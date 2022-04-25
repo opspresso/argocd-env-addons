@@ -655,7 +655,7 @@ spec:
                   hosts:
                     - "appset.{{hostname.public}}"
                   gateways:
-                    - argocd-applicationset
+                    - argocd
                   http:
                     - route:
                         - destination:
