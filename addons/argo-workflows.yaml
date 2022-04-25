@@ -28,7 +28,7 @@ spec:
         namespace: addon-argo-workflows
       source:
         repoURL: https://argoproj.github.io/argo-helm
-        targetRevision: "0.13.1"
+        targetRevision: "0.14.0"
         chart: argo-workflows
         helm:
           values: |-

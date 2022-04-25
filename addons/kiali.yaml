@@ -28,7 +28,7 @@ spec:
         namespace: addon-tracing
       source:
         repoURL: https://kiali.org/helm-charts
-        targetRevision: "1.49.0"
+        targetRevision: "1.44.0"
         chart: kiali-server
         helm:
           values: |-
