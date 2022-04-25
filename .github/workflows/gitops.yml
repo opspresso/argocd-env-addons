@@ -1,0 +1,27 @@
+name: gitops
+
+on:
+  repository_dispatch:
+    types:
+      - gitops
+
+jobs:
+  gitops:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: GitOps
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHP_TOKEN }}
+          TG_USERNAME: ${{ github.event.client_payload.username }}
+          TG_PROJECT: ${{ github.event.client_payload.project }}
+          TG_VERSION: ${{ github.event.client_payload.version }}
+          TG_PHASE: ${{ github.event.client_payload.phase }}
+          TG_TYPE: ${{ github.event.client_payload.type }}
+        run: |
+          bash ./build.sh action

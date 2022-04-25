@@ -1,11 +1,11 @@
-# argocd-env-addons
+# argocd
 
 * <https://argo-cd.readthedocs.io/en/stable/getting_started/>
 * <https://argocd-applicationset.readthedocs.io/en/stable/Getting-Started/>
 
 ## create eks cluster
 
-* <https://github.com/opspresso/terraform-env-demo/tree/main/50-eks-demo>
+* <https://github.com/opspresso/terraform-env-demo/tree/main/25-eks-demo>
 
 ```bash
 terraform apply
