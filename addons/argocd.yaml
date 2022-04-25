@@ -634,7 +634,7 @@ spec:
               - apiVersion: networking.istio.io/v1beta1
                 kind: VirtualService
                 metadata:
-                  name: argocd
+                  name: argocd-server
                 spec:
                   hosts:
                     - "{{argocd.hostname}}"
