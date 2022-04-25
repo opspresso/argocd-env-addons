@@ -117,7 +117,7 @@ HTTP                   | 80                 | HTTP              | 30080         
 * <https://console.aws.amazon.com/route53/v2/hostedzones>
 * <https://argocd.demo.nalbam.com>
 
-## external-dns
+## see external-dns
 
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
 
