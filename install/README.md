@@ -132,10 +132,10 @@ export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password 
 argocd login argocd.demo.nalbam.com --grpc-web --username admin --password $ADMIN_PASSWORD
 
 argocd cluster list
-argocd cluster add eks-demo
+argocd cluster add eks-demo -y
 
-# argocd cluster add eks-demo-a
-# argocd cluster add eks-demo-b
+# argocd cluster add eks-demo-a -y
+# argocd cluster add eks-demo-b -y
 ```
 
 ## addons

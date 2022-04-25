@@ -85,6 +85,8 @@ spec:
                   alb.ingress.kubernetes.io/ip-address-type: dualstack
                   alb.ingress.kubernetes.io/scheme: internet-facing
                   alb.ingress.kubernetes.io/target-type: ip
+                  external-dns.alpha.kubernetes.io/hostname: "{{argocd.hostname}}"
+                ingressClassName: alb
                 hosts:
                   - "{{argocd.hostname}}"
 
