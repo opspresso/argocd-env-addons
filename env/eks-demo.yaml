@@ -14,7 +14,7 @@ hostname:
   public: demo.nalbam.com
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/e289c376-c58b-430e-8c04-02ceb50106f0
+  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/592c9e8f-c8a9-461f-a7cc-9f8179dcf32b
   hostname: argocd.demo.nalbam.com
   github:
     org: daangn
