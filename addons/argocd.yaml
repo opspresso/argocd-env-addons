@@ -67,28 +67,28 @@ spec:
                   cpu: 200m
                   memory: 512Mi
 
-              # service:
-              #   type: LoadBalancer
-              #   annotations:
-              #     external-dns.alpha.kubernetes.io/hostname: "{{argocd.hostname}}"
-              #     service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-              #     service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
-              #     service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
-              #     service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{argocd.acm_arn}}"
-              #     service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
-
-              ingress:
-                enabled: true
+              service:
+                type: LoadBalancer
                 annotations:
-                  kubernetes.io/ingress.class: alb
-                  alb.ingress.kubernetes.io/certificate-arn: "{{argocd.acm_arn}}"
-                  alb.ingress.kubernetes.io/ip-address-type: dualstack
-                  alb.ingress.kubernetes.io/scheme: internet-facing
-                  alb.ingress.kubernetes.io/target-type: ip
                   external-dns.alpha.kubernetes.io/hostname: "{{argocd.hostname}}"
-                ingressClassName: alb
-                hosts:
-                  - "{{argocd.hostname}}"
+                  service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+                  service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
+                  service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
+                  service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{argocd.acm_arn}}"
+                  service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+
+              # ingress:
+              #   enabled: true
+              #   annotations:
+              #     kubernetes.io/ingress.class: alb
+              #     alb.ingress.kubernetes.io/certificate-arn: "{{argocd.acm_arn}}"
+              #     alb.ingress.kubernetes.io/ip-address-type: dualstack
+              #     alb.ingress.kubernetes.io/scheme: internet-facing
+              #     alb.ingress.kubernetes.io/target-type: ip
+              #     external-dns.alpha.kubernetes.io/hostname: "{{argocd.hostname}}"
+              #   ingressClassName: alb
+              #   hosts:
+              #     - "{{argocd.hostname}}"
 
               extraArgs:
                 - --insecure
