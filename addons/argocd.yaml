@@ -606,53 +606,53 @@ spec:
                       remoteRef:
                         key: /k8s/common/argocd-webhook
 
-              - apiVersion: networking.istio.io/v1beta1
-                kind: Gateway
-                metadata:
-                  name: argocd
-                spec:
-                  selector:
-                    istio: ingressgateway
-                  servers:
-                    - hosts:
-                        - "{{argocd.hostname}}"
-                        - "appset.{{hostname.public}}"
-                      port:
-                        number: 80
-                        name: http
-                        protocol: HTTP
+              # - apiVersion: networking.istio.io/v1beta1
+              #   kind: Gateway
+              #   metadata:
+              #     name: argocd
+              #   spec:
+              #     selector:
+              #       istio: ingressgateway
+              #     servers:
+              #       - hosts:
+              #           - "{{argocd.hostname}}"
+              #           - "appset.{{hostname.public}}"
+              #         port:
+              #           number: 80
+              #           name: http
+              #           protocol: HTTP
 
-              - apiVersion: networking.istio.io/v1beta1
-                kind: VirtualService
-                metadata:
-                  name: argocd-server
-                spec:
-                  hosts:
-                    - "{{argocd.hostname}}"
-                  gateways:
-                    - argocd
-                  http:
-                    - route:
-                        - destination:
-                            host: argocd-server
-                            port:
-                              number: 80
+              # - apiVersion: networking.istio.io/v1beta1
+              #   kind: VirtualService
+              #   metadata:
+              #     name: argocd-server
+              #   spec:
+              #     hosts:
+              #       - "{{argocd.hostname}}"
+              #     gateways:
+              #       - argocd
+              #     http:
+              #       - route:
+              #           - destination:
+              #               host: argocd-server
+              #               port:
+              #                 number: 80
 
-              - apiVersion: networking.istio.io/v1beta1
-                kind: VirtualService
-                metadata:
-                  name: argocd-applicationset
-                spec:
-                  hosts:
-                    - "appset.{{hostname.public}}"
-                  gateways:
-                    - argocd
-                  http:
-                    - route:
-                        - destination:
-                            host: argocd-applicationset-controller
-                            port:
-                              number: 7000
+              # - apiVersion: networking.istio.io/v1beta1
+              #   kind: VirtualService
+              #   metadata:
+              #     name: argocd-applicationset
+              #   spec:
+              #     hosts:
+              #       - "appset.{{hostname.public}}"
+              #     gateways:
+              #       - argocd
+              #     http:
+              #       - route:
+              #           - destination:
+              #               host: argocd-applicationset-controller
+              #               port:
+              #                 number: 7000
 
       syncPolicy:
         # automated:
