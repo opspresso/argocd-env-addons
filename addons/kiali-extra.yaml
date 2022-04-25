@@ -51,16 +51,6 @@ spec:
                       remoteRef:
                         key: /k8s/common/google-secret
 
-              # - apiVersion: kubernetes-client.io/v1
-              #   kind: ExternalSecret
-              #   metadata:
-              #     name: kiali
-              #   spec:
-              #     backendType: systemManager
-              #     data:
-              #       - key: /k8s/common/google-secret
-              #         name: oidc-secret
-
               - apiVersion: networking.istio.io/v1beta1
                 kind: Gateway
                 metadata:

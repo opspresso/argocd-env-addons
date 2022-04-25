@@ -579,41 +579,21 @@ spec:
                       remoteRef:
                         key: /k8s/common/argocd-noti-token
 
-              # - apiVersion: kubernetes-client.io/v1
-              #   kind: ExternalSecret
-              #   metadata:
-              #     name: argocd-secret
-              #   spec:
-              #     backendType: systemManager
-              #     data:
-              #       - key: /k8s/common/argocd-password
-              #         name: admin.password
-              #       - key: /k8s/common/argocd-mtime
-              #         name: admin.passwordMtime
-              #       - key: /k8s/{{argocd.github.org}}/argocd-github-id
-              #         name: dex.github.clientId
-              #       - key: /k8s/{{argocd.github.org}}/argocd-github-secret
-              #         name: dex.github.clientSecret
-              #       - key: /k8s/common/argocd-webhook
-              #         name: webhook.github.secret
-              #       - key: /k8s/common/argocd-server-secret
-              #         name: server.secretkey
-              #       - key: /k8s/common/google-id
-              #         name: dex.google.clientId
-              #       - key: /k8s/common/google-secret
-              #         name: dex.google.clientSecret
-              #       - key: /k8s/common/argo-workflows-client-secret
-              #         name: argo-workflows-client-secret
-
-              # - apiVersion: kubernetes-client.io/v1
-              #   kind: ExternalSecret
-              #   metadata:
-              #     name: argocd-notifications-secret
-              #   spec:
-              #     backendType: systemManager
-              #     data:
-              #       - key: /k8s/common/argocd-noti-token
-              #         name: slack-token
+              - apiVersion: external-secrets.io/v1beta1
+                kind: ExternalSecret
+                metadata:
+                  name: argocd-applicationset-secret
+                spec:
+                  refreshInterval: 1h
+                  secretStoreRef:
+                    kind: ClusterSecretStore
+                    name: parameter-store
+                  target:
+                    name: argocd-applicationset-secret
+                  data:
+                    - secretKey: webhook.github.secret
+                      remoteRef:
+                        key: /k8s/common/argocd-webhook
 
               - apiVersion: networking.istio.io/v1beta1
                 kind: Gateway

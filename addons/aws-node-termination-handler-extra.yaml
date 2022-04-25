@@ -51,16 +51,6 @@ spec:
                       remoteRef:
                         key: /k8s/common/slack-hooks
 
-              # - apiVersion: kubernetes-client.io/v1
-              #   kind: ExternalSecret
-              #   metadata:
-              #     name: webhook-secret
-              #   spec:
-              #     backendType: systemManager
-              #     data:
-              #       - key: /k8s/common/slack-hooks
-              #         name: webhookurl
-
               - apiVersion: v1
                 kind: ConfigMap
                 metadata:
