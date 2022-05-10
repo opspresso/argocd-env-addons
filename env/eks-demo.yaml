@@ -38,7 +38,7 @@ aws-ebs-csi-driver:
       repository: sig-storage/livenessprobe
 
 istio:
-  version: "1.12.6" # istio eks-demo
+  version: "1.12.7" # istio eks-demo
   global:
     hub: gcr.io/istio-release
   pilot:
