@@ -28,7 +28,7 @@ spec:
         namespace: addon-aws-ebs-csi-driver
       source:
         repoURL: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-        targetRevision: "2.6.4"
+        targetRevision: "2.6.7"
         chart: aws-ebs-csi-driver
         helm:
           values: |-
