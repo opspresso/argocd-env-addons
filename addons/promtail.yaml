@@ -41,10 +41,9 @@ spec:
             config:
               lokiAddress: http://{{loki.hostname}}/loki/api/v1/push
 
-              # snippets:
-              #   extraClientConfigs:
-              #     - external_labels:
-              #         cluster: "{{cluster}}"
+              snippets:
+                extraClientConfigs:
+                  - external_labels: cluster:{{cluster}}
 
             tolerations:
               - operator: Exists
