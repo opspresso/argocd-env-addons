@@ -121,6 +121,19 @@ HTTP                   | 80                 | HTTP              | 30080         
 
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
 
+```bash
+cd external-dns
+
+helm upgrade --install external-dns external-dns/external-dns \
+  -n addon-external-dns --create-namespace \
+  -f values.output.yaml
+
+cd ..
+
+POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadata.name' -r)
+kubectl logs ${POD_NAME} -n addon-external-dns
+```
+
 ## argocd login
 
 > argocd 에 로그인 합니다.
