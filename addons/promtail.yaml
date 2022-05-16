@@ -43,7 +43,8 @@ spec:
 
               snippets:
                 extraClientConfigs:
-                  - external_labels: cluster:{{cluster}}
+                  - external_labels:
+                      cluster: "{{cluster}}"
 
             tolerations:
               - operator: Exists
