@@ -38,8 +38,8 @@ spec:
               registry: {{promtail.image.registry}}
               repository: {{promtail.image.repository}}
 
-            # extraArgs:
-            #   - -client.external-labels=cluster={{cluster}}
+            extraArgs:
+              - -client.external-labels=cluster={{cluster}}
 
             config:
               lokiAddress: http://{{loki.hostname}}/loki/api/v1/push
