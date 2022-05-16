@@ -41,17 +41,17 @@ spec:
             config:
               lokiAddress: http://{{loki.hostname}}/loki/api/v1/push
 
-              snippets:
-                extraClientConfigs:
-                  - external_labels:
-                      cluster: "{{cluster}}"
+              # snippets:
+              #   extraClientConfigs:
+              #     - external_labels:
+              #         cluster: "{{cluster}}"
 
-            # tolerations:
-            #   - operator: Exists
+            tolerations:
+              - operator: Exists
 
-            # updateStrategy:
-            #   rollingUpdate:
-            #     maxUnavailable: 10%
+            updateStrategy:
+              rollingUpdate:
+                maxUnavailable: 25%
 
       syncPolicy:
         automated:
