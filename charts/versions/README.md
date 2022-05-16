@@ -17,7 +17,6 @@ helm repo add deliveryhero https://charts.deliveryhero.io
 helm repo add devtron https://helm.devtron.ai
 helm repo add eks https://aws.github.io/eks-charts
 helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
-helm repo add kubernetes-external-secrets https://external-secrets.github.io/kubernetes-external-secrets
 helm repo add external-secrets https://charts.external-secrets.io
 helm repo add flagger https://flagger.app
 helm repo add fluxcd https://charts.fluxcd.io
@@ -32,6 +31,7 @@ helm repo add jetstack https://charts.jetstack.io
 helm repo add karpenter https://charts.karpenter.sh
 helm repo add kiali https://kiali.org/helm-charts
 helm repo add kubecost https://kubecost.github.io/cost-analyzer
+helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server
 helm repo add opspresso https://opspresso.github.io/helm-charts
 helm repo add prometheus https://prometheus-community.github.io/helm-charts
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets

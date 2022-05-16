@@ -12,14 +12,6 @@
       "default": "0.15.0",
       "description": "argo/argo-workflows"
     },
-    "helm_argocd_applicationset": {
-      "default": "1.12.1",
-      "description": "argo/argocd-applicationset"
-    },
-    "helm_argocd_notifications": {
-      "default": "1.8.1",
-      "description": "argo/argocd-notifications"
-    },
     "helm_aws_ebs_csi_driver": {
       "default": "2.6.7",
       "description": "aws-ebs-csi-driver/aws-ebs-csi-driver"
@@ -72,10 +64,6 @@
       "default": "0.5.2",
       "description": "external-secrets/external-secrets"
     },
-    "helm_gocd": {
-      "default": "1.41.0",
-      "description": "gocd/gocd"
-    },
     "helm_grafana": {
       "default": "6.29.2",
       "description": "grafana/grafana"
@@ -108,10 +96,6 @@
       "default": "35.2.0",
       "description": "prometheus/kube-prometheus-stack"
     },
-    "helm_kubecost": {
-      "default": "1.92.0",
-      "description": "kubecost/cost-analyzer"
-    },
     "helm_kubernetes_dashboard": {
       "default": "5.4.1",
       "description": "dashboard/kubernetes-dashboard"
@@ -121,8 +105,8 @@
       "description": "grafana/loki"
     },
     "helm_metrics_server": {
-      "default": "2.11.4",
-      "description": "stable/metrics-server"
+      "default": "3.8.2",
+      "description": "metrics-server/metrics-server"
     },
     "helm_prometheus": {
       "default": "15.8.5",
@@ -139,10 +123,6 @@
     "helm_raw": {
       "default": "0.2.5",
       "description": "incubator/raw"
-    },
-    "helm_sealed_secrets": {
-      "default": "2.1.4",
-      "description": "sealed-secrets/sealed-secrets"
     }
   }
 }
