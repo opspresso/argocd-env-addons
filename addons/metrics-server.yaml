@@ -41,17 +41,17 @@ spec:
             apiService:
               create: false
 
-            tolerations:
-              - key: group
-                operator: Equal
-                value: ingress
-                effect: NoSchedule
-            nodeSelector:
-              group: ingress
+            # tolerations:
+            #   - key: group
+            #     operator: Equal
+            #     value: graviton
+            #     effect: NoSchedule
+            # nodeSelector:
+            #   group: graviton
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
