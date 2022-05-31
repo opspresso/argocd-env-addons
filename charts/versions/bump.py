@@ -47,9 +47,9 @@ def replace():
                 # replace
                 if new_ver != "":
                     if new_ver != old_ver:
-                        print("{:50} {:10} -> {:10}".format(desc, old_ver, new_ver))
+                        print("{:40} {:10} -> {:10}".format(desc, old_ver, new_ver))
                     else:
-                        print("{:50} {:10}".format(desc, old_ver))
+                        print("{:40} {:10}".format(desc, old_ver))
 
                     doc["variable"][k]["default"] = new_ver
 

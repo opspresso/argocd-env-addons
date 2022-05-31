@@ -4,14 +4,12 @@ name | image | amd64 | arm64
 --- | --- | --- | ---
 argo-rollouts | quay.io/argoproj/argo-rollouts | ✅ | ✅
 argocd | quay.io/argoproj/argocd | ✅ | ✅
-argocd-applicationset | quay.io/argoproj/argocd-applicationset | ✅ | ❌
 aws-ebs-csi-driver | amazon/aws-ebs-csi-driver | ✅ | ✅
 aws-efs-csi-driver | amazon/aws-efs-csi-driver | ✅ | ✅
 aws-load-balancer-controller | 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-load-balancer-controller | ✅ | ✅
 aws-node | 602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/amazon-k8s-cni | ✅ | ✅
 aws-node-termination-handler | public.ecr.aws/aws-ec2/aws-node-termination-handler | ✅ | ✅
 cert-manager | quay.io/jetstack/cert-manager-controller | ✅ | ✅
-chaoskube | quay.io/linki/chaoskube | ✅ | ❌
 cluster-autoscaler | k8s.gcr.io/autoscaling/cluster-autoscaler | ✅ | ✅
 consul | consul | ✅ | ✅
 coredns | 602401143452.dkr.ecr.ap-northeast-2.amazonaws.com/eks/coredns | ✅ | ✅

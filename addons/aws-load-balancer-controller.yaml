@@ -28,7 +28,7 @@ spec:
         namespace: addon-aws-load-balancer-controller
       source:
         repoURL: https://aws.github.io/eks-charts
-        targetRevision: "1.4.1"
+        targetRevision: "1.4.2"
         chart: aws-load-balancer-controller
         helm:
           values: |-

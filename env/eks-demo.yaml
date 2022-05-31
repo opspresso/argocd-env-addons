@@ -38,7 +38,7 @@ aws-ebs-csi-driver:
       repository: sig-storage/livenessprobe
 
 istio:
-  version: "1.12.7" # istio eks-demo
+  version: "1.13.4" # istio eks-demo
   global:
     hub: gcr.io/istio-release
   pilot:
@@ -64,7 +64,7 @@ cluster-autoscaler:
   scale-down-utilization-threshold: 0.6
 
 cluster-overprovisioner:
-  replicas: 1
+  replicas: 0
   cpu: "1"
   memory: 1Gi
 
