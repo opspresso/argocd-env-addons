@@ -63,8 +63,11 @@ spec:
 
               # kubeStateMetrics:
               #   enabled: false
-              # nodeExporter:
-              #   enabled: false
+
+              nodeExporter:
+                # enabled: false
+                tolerations:
+                  - operator: Exists
 
             persistentVolume:
               storageClass: gp3
