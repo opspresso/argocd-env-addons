@@ -35,9 +35,9 @@ spec:
             # fullnameOverride: kubecost
 
             global:
-              prometheus:
-                enabled: false
-                fqdn: http://prometheus-prometheus.addon-prometheus.svc
+              # prometheus:
+              #   enabled: false
+              #   fqdn: http://prometheus-prometheus.addon-prometheus.svc
               grafana:
                 enabled: false
 
@@ -49,17 +49,17 @@ spec:
             nodeSelector:
               group: monitoring
 
-            # prometheus:
-            #   server:
-            #     persistentVolume:
-            #       storageClass: gp3
-            #     tolerations:
-            #       - key: group
-            #         operator: Equal
-            #         value: monitoring
-            #         effect: NoSchedule
-            #     nodeSelector:
-            #       group: monitoring
+            prometheus:
+              server:
+                persistentVolume:
+                  storageClass: gp3
+                tolerations:
+                  - key: group
+                    operator: Equal
+                    value: monitoring
+                    effect: NoSchedule
+                nodeSelector:
+                  group: monitoring
 
               # kubeStateMetrics:
               #   enabled: false
