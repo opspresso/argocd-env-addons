@@ -62,7 +62,7 @@ spec:
                   http:
                     - route:
                         - destination:
-                            host: kubecost-eks-demo-cost-analyzer
+                            host: kubecost-{{cluster}}-cost-analyzer
                             port:
                               number: 9090
 
