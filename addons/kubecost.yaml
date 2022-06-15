@@ -45,6 +45,9 @@ spec:
             # networkCosts:
             #   enabled: true
 
+            reporting:
+              valuesReporting: false
+
             serviceMonitor:
               enabled: true
               additionalLabels:
