@@ -5,12 +5,12 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: https://github.com/opspresso/argocd-env-demo.git
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          - path: "env/eks-demo-a.yaml"
-          - path: "env/eks-demo-b.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
@@ -28,7 +28,7 @@ spec:
         namespace: addon-kubecost
       source:
         repoURL: https://kubecost.github.io/cost-analyzer
-        targetRevision: "1.88.1"
+        targetRevision: "1.94.3"
         chart: cost-analyzer
         helm:
           values: |-

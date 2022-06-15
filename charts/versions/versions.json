@@ -48,6 +48,10 @@
       "default": "1.6.0",
       "description": "cortex/cortex"
     },
+    "helm_cost_analyzer": {
+      "default": "1.94.3",
+      "description": "kubecost/cost-analyzer"
+    },
     "helm_crossplane": {
       "default": "1.8.1",
       "description": "crossplane/crossplane"
