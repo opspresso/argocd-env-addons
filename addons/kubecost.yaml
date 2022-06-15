@@ -55,42 +55,13 @@ spec:
             nodeSelector:
               group: monitoring
 
-            # prometheus:
-            #   server:
-            #     persistentVolume:
-            #       storageClass: gp3
-            #     tolerations:
-            #       - key: group
-            #         operator: Equal
-            #         value: monitoring
-            #         effect: NoSchedule
-            #     nodeSelector:
-            #       group: monitoring
-
-            #   # kubeStateMetrics:
-            #   #   # enabled: false
-
-            #   # nodeExporter:
-            #   #   # enabled: false
-            #   #   tolerations:
-            #   #     - operator: Exists
-
-            # grafana:
-            #   datasources:
-            #     datasources.yaml:
-            #       apiVersion: 1
-            #       datasources:
-            #         - name: prometheus-kubecost
-            #           type: prometheus
-            #           url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
-
             persistentVolume:
               storageClass: gp3
               size: 32Gi
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
