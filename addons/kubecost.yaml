@@ -38,14 +38,16 @@ spec:
               # prometheus:
               #   enabled: false
               #   fqdn: http://cost-analyzer-prometheus-server.default.svc
+              grafana:
+                enabled: false
 
-              tolerations:
-                - key: group
-                  operator: Equal
-                  value: monitoring
-                  effect: NoSchedule
-              nodeSelector:
-                group: monitoring
+            tolerations:
+              - key: group
+                operator: Equal
+                value: monitoring
+                effect: NoSchedule
+            nodeSelector:
+              group: monitoring
 
             prometheus:
               server:
