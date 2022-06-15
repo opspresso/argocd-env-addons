@@ -39,7 +39,7 @@ spec:
                 kind: PrometheusRule
                 metadata:
                   labels:
-                    release: kubecost-{{cluster}}
+                    release: prometheus-{{cluster}}
                   name: kubecost-rules
                 spec:
                   groups:
