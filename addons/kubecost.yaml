@@ -62,12 +62,12 @@ spec:
                   group: monitoring
 
               # kubeStateMetrics:
-              #   enabled: false
+              #   # enabled: false
 
-              nodeExporter:
-                # enabled: false
-                tolerations:
-                  - operator: Exists
+              # nodeExporter:
+              #   # enabled: false
+              #   tolerations:
+              #     - operator: Exists
 
             persistentVolume:
               storageClass: gp3
