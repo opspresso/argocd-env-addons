@@ -93,10 +93,9 @@ helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f value
 # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-## Change the argocd-server service type to LoadBalancer
+## argocd-server
 
 > aws 에 elb 가 생성 되었습니다. route53 에서 argocd.demo.nalbam.com 와 연결해 줍니다.
-> aws elb 에서 HTTPS 의 Instance Port 를 HTTP 의 Instance Port 로 변경 합니다.
 
 ```bash
 kubectl get pod -n argocd
@@ -108,12 +107,6 @@ NAME          | TYPE         | CLUSTER-IP    | EXTERNAL-IP                     |
 argocd-server | LoadBalancer | 172.20.41.157 | xxx-000.apne2.elb.amazonaws.com | 80:30080/TCP,443:30443/TCP | 64m
 
 * <https://ap-northeast-2.console.aws.amazon.com/ec2/v2/home?region=ap-northeast-2#LoadBalancers:>
-
-Load Balancer Protocol | Load Balancer Port | Instance Protocol | Instance Port | Cipher
----------------------- | ------------------ | ----------------- | ------------- | ------
-HTTPS                  | 443                | HTTP              | 30080         | ACM
-HTTP                   | 80                 | HTTP              | 30080         | N/A
-
 * <https://console.aws.amazon.com/route53/v2/hostedzones>
 * <https://argocd.demo.nalbam.com>
 
