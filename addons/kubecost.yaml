@@ -39,8 +39,10 @@ spec:
                 enabled: false
                 fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
               grafana:
-                # enabled: false
-                domainName: kubecost-eks-demo-grafana.addon-kubecost.svc
+                enabled: false
+                # domainName: kubecost-eks-demo-grafana.addon-kubecost.svc
+                domainName: grafana.demo.nalbam.com
+                scheme: https
 
             serviceMonitor:
               enabled: true
