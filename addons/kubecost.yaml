@@ -37,7 +37,7 @@ spec:
             global:
               prometheus:
                 enabled: false
-                # fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local
+                fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local
               grafana:
                 enabled: false
 
@@ -68,6 +68,7 @@ spec:
 
             persistentVolume:
               storageClass: gp3
+              size: 32Gi
 
       syncPolicy:
         # automated:
