@@ -37,7 +37,7 @@ spec:
             global:
               prometheus:
                 enabled: false
-                fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local
+                fqdn: http://prometheus-prometheus.addon-prometheus.svc
               grafana:
                 enabled: false
 
