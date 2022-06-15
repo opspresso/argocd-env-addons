@@ -68,6 +68,9 @@ cluster-overprovisioner:
   cpu: "1"
   memory: 1Gi
 
+kubecost:
+  hostname: kubecost.demo.nalbam.com
+
 grafana:
   hostname: grafana.demo.nalbam.com
   auth:

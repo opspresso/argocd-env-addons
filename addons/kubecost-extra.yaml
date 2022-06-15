@@ -1,0 +1,72 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: kubecost-extra
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+
+  template:
+    metadata:
+      name: "kubecost-extra"
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{cluster_env}}-addon
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        krmt.io/cluster: "{{cluster}}"
+        krmt.io/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: addon-kubecost
+      source:
+        repoURL: https://charts.helm.sh/incubator
+        targetRevision: "0.2.5"
+        chart: raw
+        helm:
+          values: |-
+            fullnameOverride: kubecost-extra
+
+            resources:
+              - apiVersion: networking.istio.io/v1beta1
+                kind: Gateway
+                metadata:
+                  name: kubecost
+                spec:
+                  selector:
+                    istio: ingressgateway
+                  servers:
+                    - hosts:
+                        - "{{kubecost.hostname}}"
+                      port:
+                        number: 80
+                        name: http
+                        protocol: HTTP
+
+              - apiVersion: networking.istio.io/v1beta1
+                kind: VirtualService
+                metadata:
+                  name: kubecost
+                spec:
+                  hosts:
+                    - "{{kubecost.hostname}}"
+                  gateways:
+                    - kubecost
+                  http:
+                    - route:
+                        - destination:
+                            host: kubecost
+                            port:
+                              number: 80
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
