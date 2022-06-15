@@ -40,7 +40,8 @@ spec:
                 fqdn: prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
               grafana:
                 enabled: false
-                fqdn: grafana.addon-grafana.svc.cluster.local
+                domainName: "{{grafana.hostname}}"
+                scheme: https
 
             # networkCosts:
             #   enabled: true
