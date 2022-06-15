@@ -34,10 +34,18 @@ spec:
           values: |-
             # fullnameOverride: kubecost
 
-            # global:
-            #   prometheus:
-            #     enabled: false
-            #     fqdn: http://cost-analyzer-prometheus-server.default.svc
+            global:
+              # prometheus:
+              #   enabled: false
+              #   fqdn: http://cost-analyzer-prometheus-server.default.svc
+
+              tolerations:
+                - key: group
+                  operator: Equal
+                  value: monitoring
+                  effect: NoSchedule
+              nodeSelector:
+                group: monitoring
 
             # prometheus:
             #   kubeStateMetrics:
@@ -45,13 +53,8 @@ spec:
             #   nodeExporter:
             #     enabled: false
 
-            tolerations:
-              - key: group
-                operator: Equal
-                value: monitoring
-                effect: NoSchedule
-            nodeSelector:
-              group: monitoring
+            persistentVolume:
+              storageClass: gp3
 
       syncPolicy:
         # automated:
