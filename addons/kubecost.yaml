@@ -35,9 +35,9 @@ spec:
             # fullnameOverride: kubecost
 
             global:
-              # prometheus:
-              #   enabled: false
-              #   fqdn: http://prometheus-prometheus.addon-prometheus.svc
+              prometheus:
+                enabled: false
+                fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
               grafana:
                 enabled: false
 
