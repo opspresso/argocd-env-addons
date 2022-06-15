@@ -32,8 +32,7 @@ spec:
         chart: cost-analyzer
         helm:
           values: |-
-            nameOverride: kubecost
-            fullnameOverride: kubecost
+            # fullnameOverride: kubecost
 
             # global:
             #   prometheus:

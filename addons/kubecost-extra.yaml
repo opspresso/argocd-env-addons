@@ -60,9 +60,9 @@ spec:
                   http:
                     - route:
                         - destination:
-                            host: kubecost
+                            host: kubecost-eks-demo-cost-analyzer
                             port:
-                              number: 80
+                              number: 9090
 
       syncPolicy:
         automated:
