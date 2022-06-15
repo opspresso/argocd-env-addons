@@ -34,11 +34,24 @@ spec:
           values: |-
             fullnameOverride: kubecost
 
-            prometheus:
-              kubeStateMetrics:
-                enabled: false
-              nodeExporter:
-                enabled: false
+            # global:
+            #   prometheus:
+            #     enabled: false
+            #     fqdn: http://cost-analyzer-prometheus-server.default.svc
+
+            # prometheus:
+            #   kubeStateMetrics:
+            #     enabled: false
+            #   nodeExporter:
+            #     enabled: false
+
+            tolerations:
+              - key: group
+                operator: Equal
+                value: monitoring
+                effect: NoSchedule
+            nodeSelector:
+              group: monitoring
 
       syncPolicy:
         # automated:
