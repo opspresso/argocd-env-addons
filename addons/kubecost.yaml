@@ -40,8 +40,7 @@ spec:
                 fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
               grafana:
                 enabled: false
-                # domainName: kubecost-eks-demo-grafana.addon-kubecost.svc
-                domainName: grafana.demo.nalbam.com
+                domainName: "{{grafana.hostname}}"
                 scheme: https
 
             serviceMonitor:
@@ -77,14 +76,14 @@ spec:
             #   #   tolerations:
             #   #     - operator: Exists
 
-            grafana:
-              datasources:
-                datasources.yaml:
-                  apiVersion: 1
-                  datasources:
-                    - name: prometheus-kubecost
-                      type: prometheus
-                      url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
+            # grafana:
+            #   datasources:
+            #     datasources.yaml:
+            #       apiVersion: 1
+            #       datasources:
+            #         - name: prometheus-kubecost
+            #           type: prometheus
+            #           url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
 
             persistentVolume:
               storageClass: gp3
