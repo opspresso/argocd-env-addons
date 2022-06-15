@@ -39,7 +39,8 @@ spec:
                 enabled: false
                 fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
               grafana:
-                enabled: false
+                # enabled: false
+                domainName: cost-analyzer-grafana.addon-kubecost.svc
 
             serviceMonitor:
               enabled: true
