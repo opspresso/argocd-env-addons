@@ -28,7 +28,7 @@ spec:
         namespace: addon-tracing
       source:
         repoURL: https://jaegertracing.github.io/helm-charts
-        targetRevision: "0.56.1"
+        targetRevision: "0.56.6"
         chart: jaeger
         helm:
           values: |-
