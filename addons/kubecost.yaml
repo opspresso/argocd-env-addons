@@ -43,8 +43,8 @@ spec:
                 domainName: "{{grafana.hostname}}"
                 scheme: https
 
-            # networkCosts:
-            #   enabled: true
+            networkCosts:
+              enabled: true
 
             reporting:
               valuesReporting: false
@@ -72,8 +72,8 @@ spec:
               size: 32Gi
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
