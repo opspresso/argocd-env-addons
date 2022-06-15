@@ -37,11 +37,10 @@ spec:
             global:
               prometheus:
                 enabled: false
-                fqdn: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
+                fqdn: prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
               grafana:
                 enabled: false
-                domainName: "{{grafana.hostname}}"
-                scheme: https
+                fqdn: grafana.addon-grafana.svc.cluster.local
 
             serviceMonitor:
               enabled: true
