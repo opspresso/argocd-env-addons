@@ -85,10 +85,18 @@ spec:
                     cluster_id: {{cluster}}
 
             kubecostMetrics:
-              emitKsmV1Metrics: false # emit all KSM metrics in KSM v1.
-              emitKsmV1MetricsOnly: false # emit only the KSM metrics missing from KSM v2. Advanced users only.
+              emitKsmV1Metrics: false
+              emitKsmV1MetricsOnly: false
 
             readonly: true
+
+            # kubecostProductConfigs:
+            #   athenaProjectID: "{{aws_account_id}}"
+            #   athenaBucketName: "s3://aws-athena-query-results-{{aws_account_id}}"
+            #   athenaRegion: "{{aws_region}}"
+            #   athenaDatabase: "athenacurcfn_athena_test1"
+            #   athenaTable: "athena_test1"
+            #   athenaWorkgroup: "primary"
 
       syncPolicy:
         # automated:
