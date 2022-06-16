@@ -43,6 +43,16 @@ spec:
                 domainName: "{{grafana.hostname}}"
                 scheme: https
 
+            serviceAccount:
+              annotations:
+                eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--kubecost"
+
+            # networkCosts:
+            #   enabled: true
+            #   config:
+            #     services:
+            #       amazon-web-services: true
+
             reporting:
               valuesReporting: false
 
@@ -67,6 +77,16 @@ spec:
             persistentVolume:
               storageClass: gp3
               size: 32Gi
+
+            prometheus:
+              server:
+                global:
+                  external_labels:
+                    cluster_id: {{cluster}}
+
+            kubecostMetrics:
+              emitKsmV1Metrics: false # emit all KSM metrics in KSM v1.
+              emitKsmV1MetricsOnly: true # emit only the KSM metrics missing from KSM v2. Advanced users only.
 
       syncPolicy:
         # automated:
