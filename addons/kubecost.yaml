@@ -88,6 +88,8 @@ spec:
               emitKsmV1Metrics: false # emit all KSM metrics in KSM v1.
               emitKsmV1MetricsOnly: false # emit only the KSM metrics missing from KSM v2. Advanced users only.
 
+            readonly: true
+
       syncPolicy:
         # automated:
         #   prune: true
