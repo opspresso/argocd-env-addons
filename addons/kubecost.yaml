@@ -56,15 +56,15 @@ spec:
             reporting:
               valuesReporting: false
 
-            # serviceMonitor:
-            #   enabled: true
-            #   additionalLabels:
-            #     release: prometheus-{{cluster}}
+            serviceMonitor:
+              enabled: true
+              additionalLabels:
+                release: prometheus-{{cluster}}
 
-            # prometheusRule:
-            #   enabled: true
-            #   additionalLabels:
-            #     release: prometheus-{{cluster}}
+            prometheusRule:
+              enabled: true
+              additionalLabels:
+                release: prometheus-{{cluster}}
 
             tolerations:
               - key: group
