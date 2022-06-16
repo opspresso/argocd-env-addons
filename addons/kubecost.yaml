@@ -86,7 +86,7 @@ spec:
 
             kubecostMetrics:
               emitKsmV1Metrics: false # emit all KSM metrics in KSM v1.
-              emitKsmV1MetricsOnly: true # emit only the KSM metrics missing from KSM v2. Advanced users only.
+              emitKsmV1MetricsOnly: false # emit only the KSM metrics missing from KSM v2. Advanced users only.
 
       syncPolicy:
         # automated:
