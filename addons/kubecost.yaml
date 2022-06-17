@@ -99,7 +99,7 @@ spec:
               # spotLabelValue: Ec2Spot
 
               athenaProjectID: "{{aws_account_id}}"
-              athenaBucketName: "s3://aws-athena-query-results-{{aws_account_id}}"
+              athenaBucketName: "s3://kubecost-results-{{aws_account_id}}"
               athenaRegion: "{{aws_region}}"
               athenaDatabase: "athenacurcfn_aws_billing_report"
               athenaTable: "aws_billing_report"
