@@ -91,18 +91,19 @@ spec:
             readonly: true
 
             kubecostProductConfigs:
+              projectID: "{{aws_account_id}}"
+              awsSpotDataRegion: "{{aws_region}}"
+              awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
+              awsSpotDataPrefix: "spot-data-feed"
+              # spotLabel: lifecycle
+              # spotLabelValue: Ec2Spot
+
               athenaProjectID: "{{aws_account_id}}"
               athenaBucketName: "s3://aws-athena-query-results-{{aws_account_id}}"
               athenaRegion: "{{aws_region}}"
               athenaDatabase: "athenacurcfn_aws_billing_report"
               athenaTable: "aws_billing_report"
               athenaWorkgroup: "primary"
-
-              projectID: "{{aws_account_id}}"
-              awsSpotDataRegion: "{{aws_region}}"
-              awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
-              # spotLabel: lifecycle
-              # spotLabelValue: Ec2Spot
 
       syncPolicy:
         # automated:
