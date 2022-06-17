@@ -98,6 +98,10 @@ spec:
               athenaTable: "aws_billing_report"
               athenaWorkgroup: "primary"
 
+              projectID: "{{aws_account_id}}"
+              awsSpotDataRegion: "{{aws_region}}"
+              awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
+
       syncPolicy:
         # automated:
         #   prune: true
