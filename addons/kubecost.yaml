@@ -101,6 +101,8 @@ spec:
               projectID: "{{aws_account_id}}"
               awsSpotDataRegion: "{{aws_region}}"
               awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
+              # spotLabel: lifecycle
+              # spotLabelValue: Ec2Spot
 
       syncPolicy:
         # automated:
