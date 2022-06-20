@@ -110,7 +110,7 @@ spec:
                 environment_label: "krmt.io/env"
                 owner_label: "krmt.io/cluster"
                 team_label: "krmt.io/team"
-                department_label: "krmt.io/department"
+                department_label: "krmt.io/group"
                 product_label: "krmt.io/product"
 
       syncPolicy:
