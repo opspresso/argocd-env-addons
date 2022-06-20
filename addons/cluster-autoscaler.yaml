@@ -42,12 +42,10 @@ spec:
               enabled: true
               clusterName: "{{cluster}}"
 
-            podLabels:
-              krmt.io/cluster: "{{cluster}}"
-              krmt.io/group: "addons"
-
             additionalLabels:
               app: cluster-autoscaler
+              krmt.io/cluster: "{{cluster}}"
+              krmt.io/group: "addons"
 
             extraArgs:
               logtostderr: true
