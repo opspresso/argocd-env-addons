@@ -43,7 +43,6 @@ spec:
               clusterName: "{{cluster}}"
 
             podLabels:
-              # app: cluster-autoscaler
               krmt.io/cluster: "{{cluster}}"
               krmt.io/group: "addons"
 
