@@ -107,11 +107,11 @@ spec:
 
               labelMappingConfigs:
                 enabled: true
-                environment_label: "ENV"
-                owner_label: "CLUSTER_NAME"
-                team_label: "TEAM"
-                department_label: "DEPARTMENT"
-                product_label: "PRODUCT"
+                environment_label: "krmt.io/env"
+                owner_label: "krmt.io/cluster"
+                team_label: "krmt.io/team"
+                department_label: "krmt.io/department"
+                product_label: "krmt.io/product"
 
       syncPolicy:
         # automated:
