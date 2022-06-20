@@ -105,6 +105,14 @@ spec:
               athenaTable: "aws_billing_report"
               athenaWorkgroup: "primary"
 
+              labelMappingConfigs:
+                enabled: true
+                environment_label: "ENV"
+                owner_label: "CLUSTER_NAME"
+                team_label: "TEAM"
+                department_label: "DEPARTMENT"
+                product_label: "PRODUCT"
+
       syncPolicy:
         # automated:
         #   prune: true
