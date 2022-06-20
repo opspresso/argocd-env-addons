@@ -36,6 +36,10 @@ spec:
 
             clusterName: "{{cluster}}"
 
+            podLabels:
+              krmt.io/cluster: "{{cluster}}"
+              krmt.io/group: "addons"
+
             serviceAccount:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--aws-load-balancer-controller"

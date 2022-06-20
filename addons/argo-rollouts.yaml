@@ -52,6 +52,10 @@ spec:
                   additionalLabels:
                     release: prometheus-{{cluster}}
 
+            podLabels:
+              krmt.io/cluster: "{{cluster}}"
+              krmt.io/group: "addons"
+
             dashboard:
               enabled: true
 

@@ -36,8 +36,12 @@ spec:
               hub: "{{istio.global.hub}}"
 
               proxy:
-                # excludeIPRanges: '0.0.0.0/0'
                 lifecycle:
+                  postStart:
+                    exec:
+                      command:
+                      - pilot-agent
+                      - wait
                   preStop:
                     exec:
                       command:
@@ -49,6 +53,21 @@ spec:
                 zipkin:
                   address: "jaeger-collector.addon-tracing.svc.cluster.local:9411"
 
+            pilot:
+              autoscaleEnabled: {{istio.pilot.autoscale}}
+              replicaCount: {{istio.pilot.min}}
+              autoscaleMin: {{istio.pilot.min}}
+              autoscaleMax: {{istio.pilot.max}}
+
+              podLabels:
+                krmt.io/cluster: "{{cluster}}"
+                krmt.io/group: "addons"
+
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+
             meshConfig:
               defaultConfig:
                 tracing:
@@ -58,17 +77,6 @@ spec:
                 holdApplicationUntilProxyStarts: true
               enableTracing: true
               rootNamespace: istio-system
-
-            pilot:
-              autoscaleEnabled: {{istio.pilot.autoscale}}
-              replicaCount: {{istio.pilot.min}}
-              autoscaleMin: {{istio.pilot.min}}
-              autoscaleMax: {{istio.pilot.max}}
-
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 128Mi
 
       ignoreDifferences:
         - kind: MutatingWebhookConfiguration
