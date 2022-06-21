@@ -105,13 +105,13 @@ spec:
               athenaTable: "aws_billing_report"
               athenaWorkgroup: "primary"
 
-              labelMappingConfigs:
-                enabled: true
-                environment_label: "krmt.io/env"
-                owner_label: "krmt.io/cluster"
-                team_label: "krmt.io/team"
-                department_label: "krmt.io/group"
-                product_label: "krmt.io/product"
+              # labelMappingConfigs:
+              #   enabled: true
+              #   environment_label: "krmt.io/env"
+              #   owner_label: "krmt.io/cluster"
+              #   team_label: "krmt.io/team"
+              #   department_label: "krmt.io/group"
+              #   product_label: "krmt.io/product"
 
       syncPolicy:
         # automated:
