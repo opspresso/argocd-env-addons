@@ -37,8 +37,8 @@ spec:
             clusterName: "{{cluster}}"
 
             podLabels:
-              krmt.io/cluster: "{{cluster}}"
-              krmt.io/group: "addons"
+              owner: "{{cluster}}"
+              department: "addons"
 
             serviceAccount:
               annotations:

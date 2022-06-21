@@ -32,6 +32,10 @@ spec:
           values: |-
             fullnameOverride: loki
 
+            podLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             resources:
               requests:
                 cpu: 250m

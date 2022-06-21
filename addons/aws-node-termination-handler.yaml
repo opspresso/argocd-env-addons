@@ -40,8 +40,8 @@ spec:
             queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster}}-worker"
 
             podLabels:
-              krmt.io/cluster: "{{cluster}}"
-              krmt.io/group: "addons"
+              owner: "{{cluster}}"
+              department: "addons"
 
             serviceAccount:
               annotations:
