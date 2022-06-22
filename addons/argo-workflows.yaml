@@ -40,11 +40,20 @@ spec:
                 annotations:
                   eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--argo-workflows"
 
+            controller:
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
+
             server:
               replicas: 1
 
               extraArgs:
                 - --auth-mode=sso
+
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
 
               sso:
                 issuer: https://{{argocd.hostname}}/api/dex
