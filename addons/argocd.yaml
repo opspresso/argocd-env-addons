@@ -32,6 +32,11 @@ spec:
           values: |-
             fullnameOverride: argocd
 
+            global:
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
+
             controller:
               resources:
                 requests:
