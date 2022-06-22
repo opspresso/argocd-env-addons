@@ -97,10 +97,6 @@ spec:
             readonly: true
 
             kubecostProductConfigs:
-              clusters:
-                - name: "{{cluster}}"
-                  address: http://{{kubecost.hostname}}
-
               projectID: "{{aws_account_id}}"
               awsSpotDataRegion: "{{aws_region}}"
               awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
