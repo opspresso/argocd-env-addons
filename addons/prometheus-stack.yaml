@@ -39,10 +39,6 @@ spec:
               department: "addons"
 
             prometheusOperator:
-              # podLabels:
-              #   owner: "{{cluster}}"
-              #   department: "addons"
-
               tolerations:
                 - key: group
                   operator: Equal
@@ -136,9 +132,9 @@ spec:
             kube-state-metrics:
               fullnameOverride: kube-state-metrics
 
-              # customLabels:
-              #   owner: "{{cluster}}"
-              #   department: "addons"
+              customLabels:
+                owner: "{{cluster}}"
+                department: "addons"
 
               # https://github.com/kubernetes/kube-state-metrics/blob/master/docs/cli-arguments.md
               extraArgs:
@@ -155,9 +151,9 @@ spec:
             prometheus-node-exporter:
               fullnameOverride: prometheus-node-exporter
 
-              # podLabels:
-              #   owner: "{{cluster}}"
-              #   department: "addons"
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
 
               image:
                 repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
