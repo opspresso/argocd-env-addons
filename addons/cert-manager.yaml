@@ -34,6 +34,10 @@ spec:
           values: |-
             fullnameOverride: cert-manager
 
+            podLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             installCRDs: true
 
             ingressShim:

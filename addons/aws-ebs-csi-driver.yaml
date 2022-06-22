@@ -48,10 +48,13 @@ spec:
             controller:
               k8sTagClusterId: "{{cluster}}"
 
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
+
               extraVolumeTags:
-                Environment: alpha
-                Role: eks
-                Service: ks
+                Environment: "{{cluster_env}}"
+                Role: service
 
               serviceAccount:
                 annotations:
@@ -67,6 +70,10 @@ spec:
 
             node:
               tolerateAllTaints: true
+
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
 
               serviceAccount:
                 annotations:
