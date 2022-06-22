@@ -34,6 +34,10 @@ spec:
           values: |-
             fullnameOverride: metrics-server
 
+            podLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             args:
               - --kubelet-insecure-tls
               # - --kubelet-preferred-address-types=InternalIP
