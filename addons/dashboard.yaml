@@ -34,6 +34,10 @@ spec:
           values: |-
             fullnameOverride: dashboard
 
+            podLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             extraArgs:
               - --enable-skip-login
               - --enable-insecure-login

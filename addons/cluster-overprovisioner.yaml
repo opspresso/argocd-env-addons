@@ -37,6 +37,9 @@ spec:
             deployments:
               - name: default
                 replicaCount: {{cluster-overprovisioner.replicas}}
+                podLabels:
+                  owner: "{{cluster}}"
+                  department: "addons"
                 resources:
                   requests:
                     cpu: "{{cluster-overprovisioner.cpu}}"
