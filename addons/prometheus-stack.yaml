@@ -48,11 +48,10 @@ spec:
                 group: monitoring
 
             prometheus:
-              podLabels:
-                owner: "{{cluster}}"
-                department: "addons"
-
               prometheusSpec:
+                externalLabels:
+                  owner: "{{cluster}}"
+                  department: "addons"
                 storageSpec:
                   volumeClaimTemplate:
                     spec:
@@ -79,10 +78,6 @@ spec:
                   group: monitoring
 
             alertmanager:
-              podLabels:
-                owner: "{{cluster}}"
-                department: "addons"
-
               config:
                 route:
                   receiver: "slack"
@@ -116,6 +111,10 @@ spec:
                         #   {{ end }}
 
               alertmanagerSpec:
+                externalLabels:
+                  owner: "{{cluster}}"
+                  department: "addons"
+
                 secrets:
                   - prometheus-alertmanager-secret
 
@@ -140,7 +139,7 @@ spec:
             kube-state-metrics:
               fullnameOverride: kube-state-metrics
 
-              podLabels:
+              customLabels:
                 owner: "{{cluster}}"
                 department: "addons"
 
