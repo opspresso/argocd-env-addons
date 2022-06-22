@@ -1,11 +1,11 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "4.9.1",
+      "default": "4.9.4",
       "description": "argo/argo-cd"
     },
     "helm_argo_rollouts": {
-      "default": "2.16.0",
+      "default": "2.17.0",
       "description": "argo/argo-rollouts"
     },
     "helm_argo_workflows": {
@@ -57,7 +57,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "2.35.3",
+      "default": "2.35.6",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -69,7 +69,7 @@
       "description": "external-secrets/external-secrets"
     },
     "helm_grafana": {
-      "default": "6.29.11",
+      "default": "6.30.2",
       "description": "grafana/grafana"
     },
     "helm_ingress_nginx": {
@@ -85,11 +85,11 @@
       "description": "istio/istiod"
     },
     "helm_jaeger": {
-      "default": "0.56.6",
+      "default": "0.56.8",
       "description": "jaegertracing/jaeger"
     },
     "helm_karpenter": {
-      "default": "0.11.0",
+      "default": "0.12.0",
       "description": "karpenter/karpenter"
     },
     "helm_kiali_server": {
@@ -97,7 +97,7 @@
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
-      "default": "36.0.1",
+      "default": "36.0.3",
       "description": "prometheus/kube-prometheus-stack"
     },
     "helm_kubernetes_dashboard": {
@@ -105,7 +105,7 @@
       "description": "dashboard/kubernetes-dashboard"
     },
     "helm_loki": {
-      "default": "2.12.1",
+      "default": "2.12.2",
       "description": "grafana/loki"
     },
     "helm_metrics_server": {
@@ -121,7 +121,7 @@
       "description": "prometheus/prometheus-adapter"
     },
     "helm_promtail": {
-      "default": "5.1.0",
+      "default": "6.0.0",
       "description": "grafana/promtail"
     },
     "helm_raw": {
