@@ -99,7 +99,7 @@ spec:
             kubecostProductConfigs:
               clusters:
                 - name: "{{cluster}}"
-                  address: http://kubecost.{{hostname.internal}}
+                  address: http://{{kubecost.hostname}}
 
               projectID: "{{aws_account_id}}"
               awsSpotDataRegion: "{{aws_region}}"
