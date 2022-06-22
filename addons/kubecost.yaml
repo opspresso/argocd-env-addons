@@ -84,6 +84,12 @@ spec:
                   external_labels:
                     cluster_id: {{cluster}}
 
+            kubecostModel:
+              resources:
+                requests:
+                  cpu: "200m"
+                  memory: "256Mi"
+
             kubecostMetrics:
               emitKsmV1Metrics: false
               emitKsmV1MetricsOnly: false
