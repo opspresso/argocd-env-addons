@@ -34,6 +34,10 @@ spec:
           values: |-
             fullnameOverride: prometheus
 
+            commonLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             prometheusOperator:
               podLabels:
                 owner: "{{cluster}}"
@@ -49,9 +53,6 @@ spec:
 
             prometheus:
               prometheusSpec:
-                externalLabels:
-                  owner: "{{cluster}}"
-                  department: "addons"
                 storageSpec:
                   volumeClaimTemplate:
                     spec:
@@ -111,10 +112,6 @@ spec:
                         #   {{ end }}
 
               alertmanagerSpec:
-                externalLabels:
-                  owner: "{{cluster}}"
-                  department: "addons"
-
                 secrets:
                   - prometheus-alertmanager-secret
 
