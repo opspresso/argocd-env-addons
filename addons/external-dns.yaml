@@ -32,6 +32,10 @@ spec:
           values: |-
             fullnameOverride: external-dns
 
+            podLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             sources:
               - ingress
               - service
