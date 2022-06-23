@@ -36,6 +36,7 @@ helm repo add opspresso https://opspresso.github.io/helm-charts
 helm repo add prometheus https://prometheus-community.github.io/helm-charts
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
 helm repo add stable https://charts.helm.sh/stable
+helm repo add whatap http://repo.whatap.io/helm
 ```
 
 ```bash
