@@ -13,7 +13,7 @@
       "description": "argo/argo-workflows"
     },
     "helm_aws_ebs_csi_driver": {
-      "default": "2.6.10",
+      "default": "2.6.11",
       "description": "aws-ebs-csi-driver/aws-ebs-csi-driver"
     },
     "helm_aws_efs_csi_driver": {
@@ -65,11 +65,11 @@
       "description": "external-dns/external-dns"
     },
     "helm_external_secrets": {
-      "default": "0.5.6",
+      "default": "0.5.7",
       "description": "external-secrets/external-secrets"
     },
     "helm_grafana": {
-      "default": "6.30.2",
+      "default": "6.31.0",
       "description": "grafana/grafana"
     },
     "helm_ingress_nginx": {
@@ -127,6 +127,10 @@
     "helm_raw": {
       "default": "0.2.5",
       "description": "incubator/raw"
+    },
+    "helm_whatap": {
+      "default": "1.1.48",
+      "description": "whatap/helm-kube-mon"
     }
   }
 }
