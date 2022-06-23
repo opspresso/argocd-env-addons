@@ -27,7 +27,7 @@ spec:
         name: "{{cluster}}"
         namespace: addon-whatap
       source:
-        repoURL: https://grafana.github.io/helm-charts
+        repoURL: http://repo.whatap.io/helm
         targetRevision: "1.1.48"
         chart: helm-kube-mon
         helm:
