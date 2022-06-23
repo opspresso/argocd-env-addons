@@ -38,6 +38,11 @@ spec:
               owner: "{{cluster}}"
               department: "addons"
 
+            whatap_license: ""
+
+            whatap_host: "13.124.11.223/13.209.172.35"
+            whatap_port: 6600
+
       syncPolicy:
         # automated:
         #   prune: true
