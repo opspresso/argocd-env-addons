@@ -43,6 +43,14 @@ spec:
             whatap_host: "13.124.11.223/13.209.172.35"
             whatap_port: 6600
 
+            tolerations:
+              - key: group
+                operator: Equal
+                value: monitoring
+                effect: NoSchedule
+            nodeSelector:
+              group: monitoring
+
       syncPolicy:
         # automated:
         #   prune: true
