@@ -43,6 +43,10 @@ spec:
                 domainName: "{{grafana.hostname}}"
                 scheme: https
 
+              additionalLabels:
+                owner: "{{cluster}}"
+                department: "addons"
+
             serviceAccount:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--kubecost"

@@ -65,6 +65,10 @@ spec:
                 - 'istio-system'
                 - 'sample'
 
+              pod_labels:
+                owner: "{{cluster}}"
+                department: "addons"
+
               # tolerations:
               #   - key: group
               #     operator: Equal
