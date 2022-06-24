@@ -39,8 +39,9 @@ spec:
               department: "addons"
 
             defaultRules:
-              owner: "{{cluster}}"
-              department: "addons"
+              labels:
+                owner: "{{cluster}}"
+                department: "addons"
 
             prometheusOperator:
               tolerations:
