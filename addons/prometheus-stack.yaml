@@ -38,11 +38,6 @@ spec:
               owner: "{{cluster}}"
               department: "addons"
 
-            defaultRules:
-              labels:
-                owner: "{{cluster}}"
-                department: "addons"
-
             prometheusOperator:
               tolerations:
                 - key: group
@@ -54,6 +49,10 @@ spec:
 
             prometheus:
               prometheusSpec:
+                podMetadata:
+                  labels:
+                    owner: "{{cluster}}"
+                    department: "addons"
                 storageSpec:
                   volumeClaimTemplate:
                     spec:
