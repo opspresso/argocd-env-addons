@@ -36,7 +36,7 @@ spec:
 
             replicaCount: {{istio.gateway.min}}
 
-            podLabels:
+            podAnnotations:
               owner: "{{cluster}}"
               department: "addons"
 
