@@ -36,6 +36,10 @@ spec:
 
             replicaCount: {{istio.gateway.min}}
 
+            podLabels:
+              owner: "{{cluster}}"
+              department: "addons"
+
             autoscaling:
               enabled: {{istio.gateway.autoscale}}
               minReplicas: {{istio.gateway.min}}

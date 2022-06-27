@@ -60,8 +60,8 @@ spec:
               autoscaleMax: {{istio.pilot.max}}
 
               podLabels:
-                krmt.io/cluster: "{{cluster}}"
-                krmt.io/group: "addons"
+                owner: "{{cluster}}"
+                department: "addons"
 
               resources:
                 requests:
