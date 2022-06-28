@@ -51,11 +51,11 @@ spec:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--kubecost"
 
-            # networkCosts:
-            #   enabled: true
-            #   config:
-            #     services:
-            #       amazon-web-services: true
+            networkCosts:
+              enabled: true
+              config:
+                services:
+                  amazon-web-services: true
 
             reporting:
               valuesReporting: false
