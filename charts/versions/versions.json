@@ -1,7 +1,7 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "4.9.7",
+      "default": "4.9.10",
       "description": "argo/argo-cd"
     },
     "helm_argo_rollouts": {
@@ -9,7 +9,7 @@
       "description": "argo/argo-rollouts"
     },
     "helm_argo_workflows": {
-      "default": "0.16.5",
+      "default": "0.16.6",
       "description": "argo/argo-workflows"
     },
     "helm_aws_ebs_csi_driver": {
@@ -37,7 +37,7 @@
       "description": "chaoskube/chaoskube"
     },
     "helm_cluster_autoscaler": {
-      "default": "9.19.1",
+      "default": "9.19.2",
       "description": "autoscaler/cluster-autoscaler"
     },
     "helm_cluster_overprovisioner": {
@@ -89,7 +89,7 @@
       "description": "jaegertracing/jaeger"
     },
     "helm_karpenter": {
-      "default": "0.12.0",
+      "default": "0.13.0",
       "description": "karpenter/karpenter"
     },
     "helm_kiali_server": {
