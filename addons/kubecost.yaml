@@ -53,6 +53,7 @@ spec:
 
             networkCosts:
               enabled: true
+              prometheusScrape: true
               config:
                 services:
                   amazon-web-services: true
