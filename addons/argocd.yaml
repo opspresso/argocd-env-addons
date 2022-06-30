@@ -26,7 +26,7 @@ spec:
         namespace: argocd
       source:
         repoURL: https://argoproj.github.io/argo-helm
-        targetRevision: "4.9.10"
+        targetRevision: "4.9.11"
         chart: argo-cd
         helm:
           values: |-
@@ -221,16 +221,16 @@ spec:
                   cpu: 100m
                   memory: 256Mi
 
-            applicationSet:
-              service:
-                type: LoadBalancer
-                annotations:
-                  external-dns.alpha.kubernetes.io/hostname: "appset.{{hostname.public}}"
-                  service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-                  service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
-                  service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
-                  service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{argocd.acm_arn}}"
-                  service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
+            # applicationSet:
+            #   service:
+            #     type: LoadBalancer
+            #     annotations:
+            #       external-dns.alpha.kubernetes.io/hostname: "appset.{{hostname.public}}"
+            #       service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+            #       service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
+            #       service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
+            #       service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{argocd.acm_arn}}"
+            #       service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
 
             notifications:
               argocdUrl: https://{{argocd.hostname}}

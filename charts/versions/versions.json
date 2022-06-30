@@ -1,7 +1,7 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "4.9.10",
+      "default": "4.9.11",
       "description": "argo/argo-cd"
     },
     "helm_argo_rollouts": {
@@ -13,7 +13,7 @@
       "description": "argo/argo-workflows"
     },
     "helm_aws_ebs_csi_driver": {
-      "default": "2.7.0",
+      "default": "2.8.0",
       "description": "aws-ebs-csi-driver/aws-ebs-csi-driver"
     },
     "helm_aws_efs_csi_driver": {
@@ -57,7 +57,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "2.35.6",
+      "default": "2.36.0",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -89,7 +89,7 @@
       "description": "jaegertracing/jaeger"
     },
     "helm_karpenter": {
-      "default": "0.13.0",
+      "default": "0.13.1",
       "description": "karpenter/karpenter"
     },
     "helm_kiali_server": {
