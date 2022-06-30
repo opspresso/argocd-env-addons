@@ -121,7 +121,7 @@ spec:
                   - id: argo-workflows-sso
                     name: Argo Workflow
                     redirectURIs:
-                      - https://workflows.{{hostname.internal}}/oauth2/callback
+                      - https://workflows.{{hostname.public}}/oauth2/callback
                     secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
 
               rbacConfig:
