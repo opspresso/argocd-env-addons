@@ -51,16 +51,6 @@ spec:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--kubecost"
 
-            networkCosts:
-              enabled: true
-              prometheusScrape: true
-              config:
-                services:
-                  amazon-web-services: true
-
-            reporting:
-              valuesReporting: false
-
             serviceMonitor:
               enabled: true
               additionalLabels:
@@ -123,6 +113,64 @@ spec:
               #   team_label: "krmt.io/team"
               #   department_label: "krmt.io/group"
               #   product_label: "krmt.io/product"
+
+            networkCosts:
+              enabled: true
+              prometheusScrape: true
+              config:
+                services:
+                  amazon-web-services: true
+
+            reporting:
+              valuesReporting: false
+
+            notifications:
+              alertConfigs:
+                globalSlackWebhookUrl: https://hooks.slack.com/services/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
+
+              alerts:
+                # Daily namespace budget alert on namespace `kubecost`
+                - type: budget                # supported: budget, recurringUpdate
+                  threshold: 50               # optional, required for budget alerts
+                  window: daily               # or 1d
+                  aggregation: namespace
+                  filter: kubecost
+
+                # Daily cluster budget alert on cluster `cluster-one`
+                - type: budget
+                  threshold: 200.8        # optional, required for budget alerts
+                  window: daily           # or 1d
+                  aggregation: cluster
+                  filter: cluster-one     # does not accept csv
+
+                # Recurring weekly update (weeklyUpdate alert)
+                - type: recurringUpdate
+                  window: weekly          # or 7d
+                  aggregation: namespace
+                  filter: '*'
+
+                # Recurring weekly namespace update on kubecost namespace
+                - type: recurringUpdate
+                  window: weekly # or 7d
+                  aggregation: namespace
+                  filter: kubecost
+
+                # Spend Change Alert
+                - type: spendChange         # change relative to moving avg
+                  relativeThreshold: 0.20   # Proportional change relative to baseline. Must be greater than -1 (can be negative)
+                  window: 1d                # accepts ‘d’, ‘h’
+                  baselineWindow: 30d       # previous window, offset by window
+                  aggregation: namespace
+                  filter: kubecost, default # accepts csv
+
+                # Health Score Alert
+                - type: health              # Alerts when health score changes by a threshold
+                  window: 10m
+                  threshold: 5              # Send Alert if health scores changes by 5 or more
+
+                # Kubecost Health Diagnostic
+                - type: diagnostic          # Alerts when kubecost is is unable to compute costs - ie: Prometheus unreachable
+                  window: 10m
 
       syncPolicy:
         # automated:
