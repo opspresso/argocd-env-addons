@@ -50,6 +50,8 @@ spec:
               notifications:
                 alertConfigs:
                   globalSlackWebhookUrl: https://hooks.slack.com/services/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
+                  globalAlertEmails:
+                    - me@nalbam.com
 
                   alerts:
                     # Daily namespace budget alert on namespace `kubecost`
