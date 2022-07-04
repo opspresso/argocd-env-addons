@@ -54,23 +54,23 @@ spec:
                   alerts:
                     # Daily namespace budget alert on namespace `kubecost`
                     - type: budget                # supported: budget, recurringUpdate
-                      threshold: 50               # optional, required for budget alerts
+                      threshold: 5                # optional, required for budget alerts
                       window: daily               # or 1d
                       aggregation: namespace
                       filter: kubecost
 
                     # Daily cluster budget alert on cluster `cluster-one`
                     - type: budget
-                      threshold: 200.8        # optional, required for budget alerts
+                      threshold: 100.2        # optional, required for budget alerts
                       window: daily           # or 1d
                       aggregation: cluster
-                      filter: cluster-one     # does not accept csv
+                      filter: {{cluster}}     # does not accept csv
 
                     # Recurring weekly update (weeklyUpdate alert)
                     - type: recurringUpdate
                       window: weekly          # or 7d
                       aggregation: namespace
-                      filter: '*'
+                      filter: '*' # kubecost
 
                     # Recurring weekly namespace update on kubecost namespace
                     - type: recurringUpdate
@@ -84,7 +84,7 @@ spec:
                       window: 1d                # accepts ‘d’, ‘h’
                       baselineWindow: 30d       # previous window, offset by window
                       aggregation: namespace
-                      filter: kubecost, default # accepts csv
+                      filter: '*' # kubecost, default # accepts csv
 
                     # Health Score Alert
                     - type: health              # Alerts when health score changes by a threshold
