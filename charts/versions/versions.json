@@ -69,7 +69,7 @@
       "description": "external-secrets/external-secrets"
     },
     "helm_grafana": {
-      "default": "6.31.1",
+      "default": "6.32.0",
       "description": "grafana/grafana"
     },
     "helm_ingress_nginx": {
@@ -97,7 +97,7 @@
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
-      "default": "36.2.0",
+      "default": "36.2.1",
       "description": "prometheus/kube-prometheus-stack"
     },
     "helm_kubernetes_dashboard": {
@@ -113,7 +113,7 @@
       "description": "metrics-server/metrics-server"
     },
     "helm_prometheus": {
-      "default": "15.10.1",
+      "default": "15.10.2",
       "description": "prometheus/prometheus"
     },
     "helm_prometheus_adapter": {
@@ -121,7 +121,7 @@
       "description": "prometheus/prometheus-adapter"
     },
     "helm_promtail": {
-      "default": "6.0.0",
+      "default": "6.0.2",
       "description": "grafana/promtail"
     },
     "helm_raw": {
