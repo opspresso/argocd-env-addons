@@ -126,7 +126,9 @@ spec:
                   window: "15d"
                   aggregateBy: "type"
                   accumulate: false # daily resolution
-                  filters: [] # if no filters, specify empty array
+                  filters:
+                    - property: "type"
+                      value: "ClusterManagement,Disk,LoadBalancer,Node"
 
             serviceAccount:
               annotations:
