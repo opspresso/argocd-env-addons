@@ -103,22 +103,8 @@ spec:
                   - title: "Example Saved Report 0"
                     window: "15d"
                     aggregateBy: "namespace"
-                    idle: "separate"
+                    idle: "shareByNode"
                     accumulate: false # daily resolution
-                    filters: [] # if no filters, specify empty array
-
-                  - title: "Example Saved Report 1"
-                    window: "15d"
-                    aggregateBy: "controllerKind"
-                    idle: "share"
-                    accumulate: false
-                    filters: [] # if no filters, specify empty array
-
-                  - title: "Example Saved Report 2"
-                    window: "15d"
-                    aggregateBy: "service"
-                    idle: "hide"
-                    accumulate: true # entire window resolution
                     filters: [] # if no filters, specify empty array
 
               assetReports:
