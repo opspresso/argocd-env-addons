@@ -1,8 +1,7 @@
 cluster: eks-demo-b
 cluster_env: alpha
 
-# cluster_ep: https://xxxxx.yy.ap-northeast-2.eks.amazonaws.com
-# cluster_oidc: ""
+cluster_oidc: ""
 
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
