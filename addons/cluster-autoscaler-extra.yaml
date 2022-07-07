@@ -40,7 +40,7 @@ spec:
                 metadata:
                   name: cluster-autoscaler
                 spec:
-                  serviceAccountName: cluster-autoscaler
+                  # serviceAccountName: cluster-autoscaler
                   policy:
                     statement:
                     - action:
