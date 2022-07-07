@@ -5,12 +5,12 @@ metadata:
 spec:
   generators:
     - git:
-        repoURL: https://github.com/opspresso/argocd-env-demo.git
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          - path: "env/eks-demo-a.yaml"
-          - path: "env/eks-demo-b.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
@@ -49,6 +49,9 @@ spec:
                         - "autoscaling:DescribeTags"
                         - "autoscaling:SetDesiredCapacity"
                         - "autoscaling:TerminateInstanceInAutoScalingGroup"
+                        - "autoscaling:UpdateAutoScalingGroup"
+                        - "ec2:DescribeLaunchTemplateVersions"
+                        - "ec2:DescribeInstanceTypes"
                       resource: "*"
 
       syncPolicy:
