@@ -36,7 +36,7 @@ spec:
 
             clusterName: "{{cluster}}"
 
-            oidcProviderARN: "{{cluster_oidc}}"
+            oidcProviderARN: "arn:aws:iam::{{aws_account_id}}:oidc-provider/{{cluster_oidc}}"
 
             roleARN: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--irsa-operator"
 
