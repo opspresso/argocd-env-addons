@@ -32,6 +32,18 @@ spec:
           values: |-
             fullnameOverride: argo-events
 
+            controller:
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
+
+            webhook:
+              enabled: true
+
+              podLabels:
+                owner: "{{cluster}}"
+                department: "addons"
+
       syncPolicy:
         automated:
           prune: true
