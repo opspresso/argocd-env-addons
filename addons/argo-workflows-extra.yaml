@@ -108,7 +108,7 @@ spec:
                 roleRef:
                   apiGroup: rbac.authorization.k8s.io
                   kind: ClusterRole
-                  name: view
+                  name: argo-workflows-view
                 subjects:
                   - kind: ServiceAccount
                     namespace: addon-argo-workflows
@@ -121,11 +121,41 @@ spec:
                 roleRef:
                   apiGroup: rbac.authorization.k8s.io
                   kind: ClusterRole
-                  name: admin
+                  name: argo-workflows-server
                 subjects:
                   - kind: ServiceAccount
                     namespace: addon-argo-workflows
                     name: admin
+
+              # - apiVersion: rbac.authorization.k8s.io/v1
+              #   kind: ClusterRole
+              #   metadata:
+              #     name: argo:viewer
+              #   rules:
+              #     - apiGroups:
+              #         - argoproj.io
+              #       resources:
+              #         - eventsources
+              #         - sensors
+              #       verbs:
+              #         - get
+              #         - list
+              #         - watch
+
+              # - apiVersion: rbac.authorization.k8s.io/v1
+              #   kind: ClusterRole
+              #   metadata:
+              #     name: argo:admin
+              #   rules:
+              #     - apiGroups:
+              #         - argoproj.io
+              #       resources:
+              #         - eventsources
+              #         - sensors
+              #       verbs:
+              #         - get
+              #         - list
+              #         - watch
 
       syncPolicy:
         automated:

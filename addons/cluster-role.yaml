@@ -57,6 +57,7 @@ spec:
                       - ""
                     resources:
                       - "pods/exec"
+                      - "pods/portforward"
                     verbs:
                       - create
 
