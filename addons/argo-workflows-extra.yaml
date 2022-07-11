@@ -184,8 +184,7 @@ spec:
                   - apiGroups:
                       - argoproj.io
                     resources:
-                      - eventsources
-                      - sensors
+                      - '*'
                     verbs:
                       - get
                       - list
@@ -193,7 +192,7 @@ spec:
                   - apiGroups:
                       - dataflow.argoproj.io
                     resources:
-                      - pipelines
+                      - '*'
                     verbs:
                       - get
                       - list
