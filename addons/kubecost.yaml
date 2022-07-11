@@ -63,7 +63,7 @@ spec:
 
                     # Daily cluster budget alert on cluster `cluster-one`
                     - type: budget
-                      threshold: 4000.0         # optional, required for budget alerts
+                      threshold: 40.0           # optional, required for budget alerts
                       window: daily             # or 1d
                       aggregation: cluster
                       filter: {{cluster}}       # does not accept csv
@@ -72,13 +72,13 @@ spec:
                     - type: recurringUpdate
                       window: weekly            # or 7d
                       aggregation: namespace
-                      filter: '*'               # kubecost
+                      filter: '*'
 
                     # # Recurring weekly namespace update on `kubecost` namespace
                     # - type: recurringUpdate
                     #   window: weekly            # or 7d
                     #   aggregation: namespace
-                    #   filter: '*'               # kubecost
+                    #   filter: kubecost
 
                     # # Spend Change Alert
                     # - type: spendChange         # change relative to moving avg
@@ -86,7 +86,7 @@ spec:
                     #   window: 1d                # accepts ‘d’, ‘h’
                     #   baselineWindow: 30d       # previous window, offset by window
                     #   aggregation: namespace
-                    #   filter: '*'               # kubecost, default # accepts csv
+                    #   filter: '*' # kubecost, default # accepts csv
 
                     # # Health Score Alert
                     # - type: health              # Alerts when health score changes by a threshold
