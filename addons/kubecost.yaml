@@ -63,7 +63,7 @@ spec:
 
                     # Daily cluster budget alert on cluster `cluster-one`
                     - type: budget
-                      threshold: 4000.0       # optional, required for budget alerts
+                      threshold: 50.0       # optional, required for budget alerts
                       window: daily           # or 1d
                       aggregation: cluster
                       filter: {{cluster}}     # does not accept csv
