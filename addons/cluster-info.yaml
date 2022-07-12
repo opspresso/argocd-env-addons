@@ -54,19 +54,6 @@ spec:
                 rules:
                   - apiGroups:
                       - ""
-                      - apps
-                      - batch
-                      - extensions
-                      - networking.istio.io
-                      - argoproj.io
-                    resources:
-                      - "*"
-                    verbs:
-                      - get
-                      - list
-                      - watch
-                  - apiGroups:
-                      - ""
                     resources:
                       - "pods/exec"
                       - "pods/portforward"
@@ -76,11 +63,11 @@ spec:
               - apiVersion: rbac.authorization.k8s.io/v1
                 kind: ClusterRoleBinding
                 metadata:
-                  name: k8s-readonly:group
+                  name: k8s-readonly:view
                 roleRef:
                   apiGroup: rbac.authorization.k8s.io
                   kind: ClusterRole
-                  name: k8s-readonly
+                  name: view
                 subjects:
                   - kind: Group
                     name: k8s-readonly
@@ -94,7 +81,7 @@ spec:
                   kind: ClusterRole
                   name: k8s-readonly
                 subjects:
-                  - kind: User
+                  - kind: Group
                     name: k8s-readonly
 
       syncPolicy:
