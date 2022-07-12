@@ -67,19 +67,19 @@ spec:
                   value: workers
                   effect: NoSchedule
 
-            # storageClasses:
-            #   - name: efs
-            #     mountOptions:
-            #       - tls
-            #     parameters:
-            #       basePath: "/shared"
-            #       directoryPerms: "755"
-            #       fileSystemId: ""
-            #       gidRangeEnd: "2000"
-            #       gidRangeStart: "1000"
-            #       provisioningMode: efs-ap
-            #     reclaimPolicy: Retain
-            #     allowVolumeExpansion: true
+            storageClasses:
+              - name: efs
+                mountOptions:
+                  - tls
+                parameters:
+                  basePath: "/shared"
+                  directoryPerms: "755"
+                  fileSystemId: "{{aws-ebs-efs-driver.efs-id}}"
+                  gidRangeEnd: "2000"
+                  gidRangeStart: "1000"
+                  provisioningMode: efs-ap
+                reclaimPolicy: Retain
+                allowVolumeExpansion: true
 
       syncPolicy:
         automated:
