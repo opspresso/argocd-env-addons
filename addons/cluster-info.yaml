@@ -40,11 +40,11 @@ spec:
                 metadata:
                   name: cluster-info
                 data:
-                  CLUSTER_NAME: {{cluster}}
-                  CLUSTER_ENV: {{cluster_env}}
-                  AWS_ACCOUNT_ID: {{aws_account_id}}
-                  AWS_REGION: {{aws_region}}
-                  COUNTRY: {{country}}
+                  CLUSTER_NAME: "{{cluster}}"
+                  CLUSTER_ENV: "{{cluster_env}}"
+                  AWS_ACCOUNT_ID: "{{aws_account_id}}"
+                  AWS_REGION: "{{aws_region}}"
+                  COUNTRY: "{{country}}"
 
               - apiVersion: rbac.authorization.k8s.io/v1
                 kind: ClusterRole
