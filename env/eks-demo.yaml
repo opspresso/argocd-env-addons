@@ -2,6 +2,7 @@ cluster: eks-demo
 
 country: kr
 env: alpha
+role: mgt
 
 cluster_oidc: "oidc.eks.ap-northeast-2.amazonaws.com/id/F4C51C0629D57234B46B78E11A5CACB2"
 
