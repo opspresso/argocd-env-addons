@@ -74,7 +74,7 @@ spec:
                 parameters:
                   basePath: "/shared"
                   directoryPerms: "755"
-                  fileSystemId: "{{aws-ebs-efs-driver.efs_id}}"
+                  fileSystemId: "{{aws-efs-csi-driver.efs-id}}"
                   gidRangeEnd: "2000"
                   gidRangeStart: "1000"
                   provisioningMode: efs-ap
