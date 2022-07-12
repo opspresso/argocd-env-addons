@@ -16,7 +16,7 @@ spec:
     metadata:
       name: "aws-ebs-csi-driver-{{cluster}}"
       annotations:
-        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{cluster_env}}-addon
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         krmt.io/cluster: "{{cluster}}"
@@ -53,7 +53,7 @@ spec:
                 department: "addons"
 
               extraVolumeTags:
-                Environment: "{{cluster_env}}"
+                Environment: "{{env}}"
                 Role: service
 
               serviceAccount:

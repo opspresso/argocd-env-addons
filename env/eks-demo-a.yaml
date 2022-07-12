@@ -1,12 +1,12 @@
 cluster: eks-demo-a
-cluster_env: alpha
+
+country: kr
+env: alpha
 
 cluster_oidc: ""
 
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
-
-country: kr
 
 hostname:
   internal: in.demo.nalbam.com

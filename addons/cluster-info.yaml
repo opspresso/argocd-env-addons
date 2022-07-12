@@ -16,7 +16,7 @@ spec:
     metadata:
       name: "cluster-info-{{cluster}}"
       annotations:
-        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{cluster_env}}-addon
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         krmt.io/cluster: "{{cluster}}"
@@ -40,11 +40,11 @@ spec:
                 metadata:
                   name: cluster-info
                 data:
-                  CLUSTER_NAME: "{{cluster}}"
-                  CLUSTER_ENV: "{{cluster_env}}"
                   AWS_ACCOUNT_ID: "{{aws_account_id}}"
                   AWS_REGION: "{{aws_region}}"
+                  CLUSTER: "{{cluster}}"
                   COUNTRY: "{{country}}"
+                  ENV: "{{env}}"
 
               - apiVersion: rbac.authorization.k8s.io/v1
                 kind: ClusterRole
