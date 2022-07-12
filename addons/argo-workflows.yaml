@@ -74,6 +74,14 @@ spec:
                 scopes:
                   - groups
 
+            # artifactRepository:
+            #   s3:
+            #     insecure: true
+            #     bucket:
+            #     region:
+            #     # endpoint:
+            #     # roleARN:
+
       syncPolicy:
         automated:
           prune: true
