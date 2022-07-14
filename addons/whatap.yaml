@@ -28,7 +28,7 @@ spec:
         namespace: addon-whatap
       source:
         repoURL: http://repo.whatap.io/helm
-        targetRevision: "1.1.48"
+        targetRevision: "1.1.49"
         chart: helm-kube-mon
         helm:
           values: |-
