@@ -101,10 +101,10 @@ spec:
                           address: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
                           query: |
                             sum(irate(
-                              istio_requests_total{reporter="source",destination_service=~"{{args.service-name}}",response_code!~"5.*"}[5m]
+                              istio_requests_total{reporter="source",destination_service_name=~"{{args.service-name}}",response_code!~"5.*"}[5m]
                             )) /
                             sum(irate(
-                              istio_requests_total{reporter="source",destination_service=~"{{args.service-name}}"}[5m]
+                              istio_requests_total{reporter="source",destination_service_name=~"{{args.service-name}}"}[5m]
                             ))
 
               - apiVersion: networking.istio.io/v1beta1
