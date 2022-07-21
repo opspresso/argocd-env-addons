@@ -69,7 +69,7 @@ spec:
                   kind: ClusterRole
                   name: view
                 subjects:
-                  - kind: Group
+                  - kind: User
                     name: k8s-readonly
 
               - apiVersion: rbac.authorization.k8s.io/v1
@@ -81,7 +81,7 @@ spec:
                   kind: ClusterRole
                   name: k8s-exec
                 subjects:
-                  - kind: Group
+                  - kind: User
                     name: k8s-readonly
 
       syncPolicy:
