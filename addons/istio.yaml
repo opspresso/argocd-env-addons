@@ -35,18 +35,6 @@ spec:
             - values.yaml
 
           values: |-
-            gateway:
-              replicaCount: {{istio.gateway.min}}
-
-              podAnnotations:
-                owner: "{{cluster}}"
-                department: "addons"
-
-              autoscaling:
-                enabled: {{istio.gateway.autoscale}}
-                minReplicas: {{istio.gateway.min}}
-                maxReplicas: {{istio.gateway.max}}
-
             istiod:
               global:
                 hub: "{{istio.global.hub}}"
@@ -70,6 +58,18 @@ spec:
                   holdApplicationUntilProxyStarts: true
                 enableTracing: true
                 rootNamespace: istio-system
+
+            gateway:
+              replicaCount: {{istio.gateway.min}}
+
+              podAnnotations:
+                owner: "{{cluster}}"
+                department: "addons"
+
+              autoscaling:
+                enabled: {{istio.gateway.autoscale}}
+                minReplicas: {{istio.gateway.min}}
+                maxReplicas: {{istio.gateway.max}}
 
             raw:
               resources:
@@ -96,8 +96,8 @@ spec:
                     targetType: ip
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
