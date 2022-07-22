@@ -57,7 +57,7 @@ spec:
             gateway:
               replicaCount: {{istio.gateway.min}}
 
-              podLabels:
+              podAnnotations:
                 owner: "{{cluster}}"
                 # department: "addons"
 
@@ -89,6 +89,13 @@ spec:
                       port: http2
                     targetGroupARN: "{{istio.target_group.internal_http}}"
                     targetType: ip
+
+      ignoreDifferences:
+        - kind: ValidatingWebhookConfiguration
+          group: admissionregistration.k8s.io
+          jsonPointers:
+            - /webhooks/0/clientConfig/caBundle
+            - /webhooks/0/failurePolicy
 
       syncPolicy:
         # automated:

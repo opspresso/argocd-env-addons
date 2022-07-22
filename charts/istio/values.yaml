@@ -39,7 +39,7 @@ istiod:
 gateway:
   name: istio-ingressgateway
 
-  podLabels:
+  podAnnotations:
     # owner: "{{cluster}}"
     department: "addons"
 
