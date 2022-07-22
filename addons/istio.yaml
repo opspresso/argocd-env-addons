@@ -14,7 +14,7 @@ spec:
 
   template:
     metadata:
-      name: "istiod-{{cluster}}"
+      name: "istio-{{cluster}}"
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
