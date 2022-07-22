@@ -52,12 +52,7 @@ spec:
               meshConfig:
                 defaultConfig:
                   tracing:
-                    sampling: {{istio.sampling}}
-                  gatewayTopology:
-                    numTrustedProxies: 1
-                  holdApplicationUntilProxyStarts: true
-                enableTracing: true
-                rootNamespace: istio-system
+                    sampling: {{istio.tracing.sampling}}
 
             gateway:
               replicaCount: {{istio.gateway.min}}

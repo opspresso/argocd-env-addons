@@ -52,7 +52,8 @@ istio:
     autoscale: false
     min: 2
     max: 5
-  sampling: 10
+  tracing:
+    sampling: 10
   target_group:
     internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-0/a5038710261163f6
     public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-0/6f62582beaaf3f8b
