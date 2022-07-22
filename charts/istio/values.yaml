@@ -1,16 +1,16 @@
 gateway:
   name: istio-ingressgateway
 
-  replicaCount: "{{Values.gateway.min}}"
+  replicaCount: "{{ .Values.gateway.min }}"
 
   podAnnotations:
-    owner: "{{Values.cluster}}"
+    owner: "{{ .Values.cluster }}"
     department: "addons"
 
   autoscaling:
-    enabled: "{{Values.gateway.autoscale}}"
-    minReplicas: "{{Values.gateway.min}}"
-    maxReplicas: "{{Values.gateway.max}}"
+    enabled: "{{ .Values.gateway.autoscale }}"
+    minReplicas: "{{ .Values.gateway.min }}"
+    maxReplicas: "{{ .Values.gateway.max }}"
 
   service:
     type: ClusterIP
@@ -20,7 +20,7 @@ gateway:
 
 istiod:
   global:
-    hub: "{{Values.global.hub}}"
+    hub: "{{ .Values.global.hub }}"
 
     proxy:
       lifecycle:
@@ -41,13 +41,13 @@ istiod:
         address: "jaeger-collector.addon-tracing.svc.cluster.local:9411"
 
   pilot:
-    autoscaleEnabled: "{{Values.pilot.autoscale}}"
-    replicaCount: "{{Values.pilot.min}}"
-    autoscaleMin: "{{Values.pilot.min}}"
-    autoscaleMax: "{{Values.pilot.max}}"
+    autoscaleEnabled: "{{ .Values.pilot.autoscale }}"
+    replicaCount: "{{ .Values.pilot.min }}"
+    autoscaleMin: "{{ .Values.pilot.min }}"
+    autoscaleMax: "{{ .Values.pilot.max }}"
 
     podLabels:
-      owner: "{{Values.cluster}}"
+      owner: "{{ .Values.cluster }}"
       department: "addons"
 
     resources:
@@ -58,7 +58,7 @@ istiod:
   meshConfig:
     defaultConfig:
       tracing:
-        sampling: "{{Values.tracing.sampling}}"
+        sampling: "{{ .Values.tracing.sampling }}"
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
@@ -75,7 +75,7 @@ raw:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "{{Values.target_group.public_http}}"
+        targetGroupARN: "{{ .Values.target_group.public_http }}"
         targetType: ip
 
     - apiVersion: elbv2.k8s.aws/v1beta1
@@ -86,7 +86,7 @@ raw:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "{{Values.target_group.internal_http}}"
+        targetGroupARN: "{{ .Values.target_group.internal_http }}"
         targetType: ip
 
     - apiVersion: v1
@@ -112,7 +112,7 @@ raw:
       metadata:
         labels:
           app: istio-ingressgateway
-          release: prometheus-{{Values.cluster}}
+          release: prometheus-{{ .Values.cluster }}
         name: istio-ingressgateway-metrics
       spec:
         endpoints:
@@ -133,7 +133,7 @@ raw:
       metadata:
         labels:
           app: istio-components
-          release: prometheus-{{Values.cluster}}
+          release: prometheus-{{ .Values.cluster }}
         name: istio-components-metrics
       spec:
         endpoints:
@@ -166,7 +166,7 @@ raw:
       metadata:
         labels:
           app: istio-servicemesh
-          release: prometheus-{{Values.cluster}}
+          release: prometheus-{{ .Values.cluster }}
         name: istio-servicemesh-metrics
       spec:
         endpoints:
