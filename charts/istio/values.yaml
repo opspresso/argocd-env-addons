@@ -19,6 +19,10 @@ istiod:
         address: "jaeger-collector.addon-tracing.svc.cluster.local:9411"
 
   pilot:
+    podLabels:
+      # owner: "{{cluster}}"
+      department: "addons"
+
     resources:
       requests:
         cpu: 100m
@@ -34,6 +38,10 @@ istiod:
 
 gateway:
   name: istio-ingressgateway
+
+  podLabels:
+    # owner: "{{cluster}}"
+    department: "addons"
 
   service:
     type: ClusterIP

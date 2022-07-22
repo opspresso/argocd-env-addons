@@ -47,7 +47,7 @@ spec:
 
                 podLabels:
                   owner: "{{cluster}}"
-                  department: "addons"
+                  # department: "addons"
 
               meshConfig:
                 defaultConfig:
@@ -57,9 +57,9 @@ spec:
             gateway:
               replicaCount: {{istio.gateway.min}}
 
-              podAnnotations:
+              podLabels:
                 owner: "{{cluster}}"
-                department: "addons"
+                # department: "addons"
 
               autoscaling:
                 enabled: {{istio.gateway.autoscale}}
