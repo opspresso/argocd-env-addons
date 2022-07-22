@@ -39,15 +39,12 @@ istiod:
 gateway:
   name: istio-ingressgateway
 
-  # podAnnotations:
-  #   # owner: "{{cluster}}"
-  #   department: "addons"
-
   service:
     type: ClusterIP
 
   labels:
     istio: ingressgateway
+    # owner: "{{cluster}}"
     department: "addons"
 
 raw:

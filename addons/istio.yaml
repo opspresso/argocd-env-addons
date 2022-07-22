@@ -57,10 +57,6 @@ spec:
             gateway:
               replicaCount: {{istio.gateway.min}}
 
-              # podAnnotations:
-              #   owner: "{{cluster}}"
-              #   # department: "addons"
-
               autoscaling:
                 enabled: {{istio.gateway.autoscale}}
                 minReplicas: {{istio.gateway.min}}
