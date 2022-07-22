@@ -27,7 +27,7 @@ spec:
         name: "{{cluster}}"
         namespace: istio-system
       source:
-        repoURL: git@github.com:opspresso/argocd-env-addons.git
+        repoURL: https://github.com/opspresso/argocd-env-addons
         targetRevision: HEAD
         path: charts/istio
         helm:
