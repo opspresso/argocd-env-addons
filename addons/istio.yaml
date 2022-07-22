@@ -35,27 +35,65 @@ spec:
             - values.yaml
 
           values: |-
-            cluster: "{{cluster}}"
-
-            global:
-              hub: "gcr.io/istio-release"
-
-            pilot:
-              autoscale: "false"
-              min: "2"
-              max: "2"
-
             gateway:
-              autoscale: "false"
-              min: "2"
-              max: "5"
+              replicaCount: {{istio.gateway.min}}
 
-            tracing:
-              sampling: "10"
+              podAnnotations:
+                owner: "{{cluster}}"
+                department: "addons"
 
-            target_group:
-              internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-0/a5038710261163f6
-              public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-0/6f62582beaaf3f8b
+              autoscaling:
+                enabled: {{istio.gateway.autoscale}}
+                minReplicas: {{istio.gateway.min}}
+                maxReplicas: {{istio.gateway.max}}
+
+            istiod:
+              global:
+                hub: "{{istio.global.hub}}"
+
+              pilot:
+                autoscaleEnabled: {{istio.pilot.autoscale}}
+                replicaCount: {{istio.pilot.min}}
+                autoscaleMin: {{istio.pilot.min}}
+                autoscaleMax: {{istio.pilot.max}}
+
+                podLabels:
+                  owner: "{{cluster}}"
+                  department: "addons"
+
+              meshConfig:
+                defaultConfig:
+                  tracing:
+                    sampling: {{istio.sampling}}
+                  gatewayTopology:
+                    numTrustedProxies: 1
+                  holdApplicationUntilProxyStarts: true
+                enableTracing: true
+                rootNamespace: istio-system
+
+            raw:
+              resources:
+                - apiVersion: elbv2.k8s.aws/v1beta1
+                  kind: TargetGroupBinding
+                  metadata:
+                    name: istio-ingressgateway-public
+                  spec:
+                    serviceRef:
+                      name: istio-ingressgateway
+                      port: http2
+                    targetGroupARN: "{{istio.target_group.public_http}}"
+                    targetType: ip
+
+                - apiVersion: elbv2.k8s.aws/v1beta1
+                  kind: TargetGroupBinding
+                  metadata:
+                    name: istio-ingressgateway-internal
+                  spec:
+                    serviceRef:
+                      name: istio-ingressgateway
+                      port: http2
+                    targetGroupARN: "{{istio.target_group.internal_http}}"
+                    targetType: ip
 
       syncPolicy:
         # automated:
