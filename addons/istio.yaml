@@ -64,6 +64,7 @@ spec:
 
               labels:
                 owner: "{{cluster}}"
+                # department: "addons"
 
             raw:
               resources:
