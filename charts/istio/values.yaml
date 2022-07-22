@@ -35,15 +35,15 @@ istiod:
         cpu: 100m
         memory: 128Mi
 
-  # meshConfig:
-  #   defaultConfig:
-  #     tracing:
-  #       sampling: "{{ .Values.tracing.sampling }}"
-  #     gatewayTopology:
-  #       numTrustedProxies: 1
-  #     holdApplicationUntilProxyStarts: true
-  #   enableTracing: true
-  #   rootNamespace: istio-system
+  meshConfig:
+    defaultConfig:
+      # tracing:
+      #   sampling: "{{ .Values.tracing.sampling }}"
+      gatewayTopology:
+        numTrustedProxies: 1
+      holdApplicationUntilProxyStarts: true
+    enableTracing: true
+    rootNamespace: istio-system
 
 gateway:
   name: istio-ingressgateway
