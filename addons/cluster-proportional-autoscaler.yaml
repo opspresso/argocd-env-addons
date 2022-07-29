@@ -45,7 +45,7 @@ spec:
                   - [ 4096, 15 ]
                 nodesToReplicas:
                   - [ 1, 1 ]
-                  - [ 2, 2 ]
+                  - [ 5, 2 ]
 
               # linear:
               #   coresPerReplica: 2
