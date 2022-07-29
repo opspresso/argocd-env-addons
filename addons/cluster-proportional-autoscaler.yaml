@@ -44,7 +44,7 @@ spec:
                 includeUnschedulableNodes: true
 
             options:
-              namespace: default
+              namespace: addon-cluster-overprovisioner
               target: deployment/cluster-overprovisioner-default
 
       syncPolicy:
