@@ -1,0 +1,62 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-proportional-autoscaler
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
+
+  template:
+    metadata:
+      name: "cluster-proportional-autoscaler-{{cluster}}"
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        krmt.io/cluster: "{{cluster}}"
+        krmt.io/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: addon-cluster-proportional-autoscaler
+      source:
+        repoURL: https://kubernetes-sigs.github.io/cluster-proportional-autoscaler
+        targetRevision: "1.0.0"
+        chart: cluster-proportional-autoscaler
+        helm:
+          values: |-
+            fullnameOverride: cluster-proportional-autoscaler
+
+            config:
+              ladder:
+                coresToReplicas:
+                  - [ 1, 1 ]
+                  - [ 64, 3 ]
+                  - [ 512, 5 ]
+                  - [ 1024, 7 ]
+                  - [ 2048, 10 ]
+                  - [ 4096, 15 ]
+                nodesToReplicas:
+                  - [ 1, 1 ]
+                  - [ 2, 2 ]
+              linear:
+                coresPerReplica: 2
+                nodesPerReplica: 1
+                min: 1
+                max: 100
+                preventSinglePointFailure: true
+                includeUnschedulableNodes: true
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
