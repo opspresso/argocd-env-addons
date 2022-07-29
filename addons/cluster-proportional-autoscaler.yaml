@@ -35,17 +35,17 @@ spec:
             fullnameOverride: cluster-proportional-autoscaler
 
             config:
-              ladder:
-                coresToReplicas:
-                  - [ 1, 1 ]
-                  - [ 64, 3 ]
-                  - [ 512, 5 ]
-                  - [ 1024, 7 ]
-                  - [ 2048, 10 ]
-                  - [ 4096, 15 ]
-                nodesToReplicas:
-                  - [ 1, 1 ]
-                  - [ 2, 2 ]
+              # ladder:
+              #   coresToReplicas:
+              #     - [ 1, 1 ]
+              #     - [ 64, 3 ]
+              #     - [ 512, 5 ]
+              #     - [ 1024, 7 ]
+              #     - [ 2048, 10 ]
+              #     - [ 4096, 15 ]
+              #   nodesToReplicas:
+              #     - [ 1, 1 ]
+              #     - [ 2, 2 ]
               linear:
                 coresPerReplica: 2
                 nodesPerReplica: 1
