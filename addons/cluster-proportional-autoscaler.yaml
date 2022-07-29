@@ -47,14 +47,6 @@ spec:
                   - [ 1, 1 ]
                   - [ 10, 3 ]
 
-              # linear:
-              #   coresPerReplica: 2
-              #   nodesPerReplica: 1
-              #   min: 1
-              #   max: {{cluster-overprovisioner.replicas}}
-              #   preventSinglePointFailure: true
-              #   includeUnschedulableNodes: true
-
             options:
               namespace: addon-cluster-overprovisioner
               target: deployment/cluster-overprovisioner-default
