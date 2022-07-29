@@ -48,6 +48,12 @@ spec:
                     cpu: "{{cluster-overprovisioner.cpu}}"
                     memory: "{{cluster-overprovisioner.memory}}"
 
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
+
       syncPolicy:
         # automated:
         #   prune: true
