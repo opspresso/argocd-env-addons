@@ -39,7 +39,10 @@ spec:
                 nodesToReplicas:
                   - [ 1, 1 ]
                   - [ 10, 2 ]
-                  - [ 20, 4 ]
+                  - [ 50, 4 ]
+                  - [ 100, 6 ]
+                  - [ 200, 10 ]
+                  - [ 500, 20 ]
 
             options:
               namespace: addon-cluster-overprovisioner
