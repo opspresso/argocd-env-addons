@@ -35,13 +35,25 @@ spec:
             fullnameOverride: cluster-proportional-autoscaler
 
             config:
-              linear:
-                coresPerReplica: 2
-                nodesPerReplica: 1
-                min: 1
-                max: 2
-                preventSinglePointFailure: true
-                includeUnschedulableNodes: true
+              ladder:
+                coresToReplicas:
+                  - [ 1, 1 ]
+                  - [ 64, 3 ]
+                  - [ 512, 5 ]
+                  - [ 1024, 7 ]
+                  - [ 2048, 10 ]
+                  - [ 4096, 15 ]
+                nodesToReplicas:
+                  - [ 1, 1 ]
+                  - [ 2, 2 ]
+
+              # linear:
+              #   coresPerReplica: 2
+              #   nodesPerReplica: 1
+              #   min: 1
+              #   max: {{cluster-overprovisioner.replicas}}
+              #   preventSinglePointFailure: true
+              #   includeUnschedulableNodes: true
 
             options:
               namespace: addon-cluster-overprovisioner
