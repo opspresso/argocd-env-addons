@@ -34,16 +34,16 @@ spec:
           values: |-
             fullnameOverride: aws-ebs-csi-driver
 
-            image:
-              repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.image.repository}}
+            # image:
+            #   repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.image.repository}}
 
-            sidecars:
-              nodeDriverRegistrar:
-                image:
-                  repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.nodeDriverRegistrar.image.repository}}
-              livenessProbe:
-                image:
-                  repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.livenessProbe.image.repository}}
+            # sidecars:
+            #   nodeDriverRegistrar:
+            #     image:
+            #       repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.nodeDriverRegistrar.image.repository}}
+            #   livenessProbe:
+            #     image:
+            #       repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.livenessProbe.image.repository}}
 
             controller:
               k8sTagClusterId: "{{cluster}}"
