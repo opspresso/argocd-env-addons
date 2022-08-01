@@ -1,7 +1,7 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "4.10.0",
+      "default": "4.10.3",
       "description": "argo/argo-cd"
     },
     "helm_argo_rollouts": {
@@ -21,7 +21,7 @@
       "description": "aws-efs-csi-driver/aws-efs-csi-driver"
     },
     "helm_aws_load_balancer_controller": {
-      "default": "1.4.2",
+      "default": "1.4.3",
       "description": "eks/aws-load-balancer-controller"
     },
     "helm_aws_node_termination_handler": {
@@ -101,7 +101,7 @@
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
-      "default": "38.0.3",
+      "default": "39.2.0",
       "description": "prometheus/kube-prometheus-stack"
     },
     "helm_kubernetes_dashboard": {
