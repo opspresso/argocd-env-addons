@@ -1,7 +1,7 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "4.10.3",
+      "default": "4.10.5",
       "description": "argo/argo-cd"
     },
     "helm_argo_rollouts": {
@@ -41,7 +41,7 @@
       "description": "autoscaler/cluster-autoscaler"
     },
     "helm_cluster_overprovisioner": {
-      "default": "0.7.8",
+      "default": "0.7.9",
       "description": "deliveryhero/cluster-overprovisioner"
     },
     "helm_cluster_proportional_autoscaler": {
@@ -61,7 +61,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "2.37.0",
+      "default": "2.37.2",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -69,15 +69,15 @@
       "description": "external-dns/external-dns"
     },
     "helm_external_secrets": {
-      "default": "0.5.8",
+      "default": "0.5.9",
       "description": "external-secrets/external-secrets"
     },
     "helm_grafana": {
-      "default": "6.32.9",
+      "default": "6.32.12",
       "description": "grafana/grafana"
     },
     "helm_ingress_nginx": {
-      "default": "4.2.0",
+      "default": "4.2.1",
       "description": "ingress-nginx/ingress-nginx"
     },
     "helm_irsa_operator": {
@@ -85,11 +85,11 @@
       "description": "irsa-operator/irsa-operator"
     },
     "helm_istio": {
-      "default": "1.14.2",
+      "default": "1.14.3",
       "description": "istio/istiod"
     },
     "helm_jaeger": {
-      "default": "0.57.1",
+      "default": "0.58.0",
       "description": "jaegertracing/jaeger"
     },
     "helm_karpenter": {
@@ -101,7 +101,7 @@
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
-      "default": "39.2.0",
+      "default": "39.5.0",
       "description": "prometheus/kube-prometheus-stack"
     },
     "helm_kubernetes_dashboard": {
@@ -121,7 +121,7 @@
       "description": "metrics-server/metrics-server"
     },
     "helm_prometheus": {
-      "default": "15.11.0",
+      "default": "15.12.0",
       "description": "prometheus/prometheus"
     },
     "helm_prometheus_adapter": {
@@ -137,7 +137,7 @@
       "description": "incubator/raw"
     },
     "helm_whatap": {
-      "default": "1.1.50",
+      "default": "1.1.52",
       "description": "whatap/helm-kube-mon"
     }
   }
