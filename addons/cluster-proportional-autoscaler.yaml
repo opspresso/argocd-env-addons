@@ -37,7 +37,7 @@ spec:
             config:
               ladder:
                 nodesToReplicas:
-                  - [ 1, 0 ]
+                  - [ 1, 1 ]
                   - [ 10, 2 ]
                   - [ 50, 4 ]
                   - [ 100, 6 ]
