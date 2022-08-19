@@ -75,6 +75,7 @@ spec:
                     - "kiali.{{hostname.public}}"
                   gateways:
                     - kiali
+                    - mesh
                   http:
                     - headers:
                         request:

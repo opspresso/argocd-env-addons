@@ -59,6 +59,7 @@ spec:
                     - "jaeger.{{hostname.public}}"
                   gateways:
                     - jaeger
+                    - mesh
                   http:
                     - route:
                         - destination:

@@ -131,6 +131,7 @@ spec:
                     - "rollouts.{{hostname.public}}"
                   gateways:
                     - argo-rollouts
+                    - mesh
                   http:
                     - route:
                         - destination:

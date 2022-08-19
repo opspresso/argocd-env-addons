@@ -76,6 +76,7 @@ spec:
                     - "workflows.{{hostname.public}}"
                   gateways:
                     - argo-workflows
+                    - mesh
                   http:
                     - route:
                         - destination:

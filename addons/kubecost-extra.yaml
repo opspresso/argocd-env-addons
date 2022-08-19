@@ -59,6 +59,7 @@ spec:
                     - "{{kubecost.hostname}}"
                   gateways:
                     - kubecost
+                    - mesh
                   http:
                     - route:
                         - destination:

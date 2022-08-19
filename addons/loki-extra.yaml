@@ -57,6 +57,7 @@ spec:
                     - "{{loki.hostname}}"
                   gateways:
                     - loki
+                    - mesh
                   http:
                     - route:
                         - destination:
