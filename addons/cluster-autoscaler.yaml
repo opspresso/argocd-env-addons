@@ -28,7 +28,7 @@ spec:
         namespace: addon-cluster-autoscaler
       source:
         repoURL: https://kubernetes.github.io/autoscaler
-        targetRevision: "9.20.0"
+        targetRevision: "9.19.2"
         chart: cluster-autoscaler
         helm:
           values: |-
@@ -39,7 +39,6 @@ spec:
             awsRegion: "{{aws_region}}"
 
             autoDiscovery:
-              enabled: true
               clusterName: "{{cluster}}"
 
             additionalLabels:
@@ -62,8 +61,6 @@ spec:
 
             rbac:
               serviceAccount:
-                # create: false
-                # name: cluster-autoscaler-irsa
                 annotations:
                   eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--cluster-autoscaler"
 
