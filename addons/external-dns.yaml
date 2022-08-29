@@ -26,7 +26,7 @@ spec:
         namespace: addon-external-dns
       source:
         repoURL: https://kubernetes-sigs.github.io/external-dns
-        targetRevision: "1.10.1"
+        targetRevision: "1.11.0"
         chart: external-dns
         helm:
           values: |-
@@ -53,8 +53,8 @@ spec:
             #   group: graviton
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true

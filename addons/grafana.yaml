@@ -26,7 +26,7 @@ spec:
         namespace: addon-grafana
       source:
         repoURL: https://grafana.github.io/helm-charts
-        targetRevision: "6.32.12"
+        targetRevision: "6.33.2"
         chart: grafana
         helm:
           values: |-
@@ -220,8 +220,8 @@ spec:
               group: monitoring
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true

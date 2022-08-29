@@ -28,7 +28,7 @@ spec:
         namespace: addon-kubecost
       source:
         repoURL: https://kubecost.github.io/cost-analyzer
-        targetRevision: "1.95.1"
+        targetRevision: "1.96.0"
         chart: cost-analyzer
         helm:
           values: |-
@@ -196,8 +196,8 @@ spec:
               valuesReporting: false
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true

@@ -28,7 +28,7 @@ spec:
         namespace: addon-aws-load-balancer-controller
       source:
         repoURL: https://aws.github.io/eks-charts
-        targetRevision: "1.4.3"
+        targetRevision: "1.4.4"
         chart: aws-load-balancer-controller
         helm:
           values: |-
@@ -53,8 +53,8 @@ spec:
             #   group: graviton
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
