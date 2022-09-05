@@ -51,6 +51,9 @@ spec:
                     - secretKey: postgresql-password
                       remoteRef:
                         key: /k8s/common/postgresql/password
+                    - secretKey: postgresql-postgres-password
+                      remoteRef:
+                        key: /k8s/common/postgresql/password
 
               # - apiVersion: networking.istio.io/v1beta1
               #   kind: Gateway
