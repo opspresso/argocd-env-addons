@@ -45,7 +45,7 @@ spec:
                   target:
                     name: cloud-pricing-api-secret
                   data:
-                    - secretKey: api_key
+                    - secretKey: infracost-api-key
                       remoteRef:
                         key: /k8s/common/infracost/api_key
 
