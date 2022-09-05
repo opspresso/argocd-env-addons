@@ -28,11 +28,13 @@ spec:
         namespace: addon-cloud-pricing-api
       source:
         repoURL: https://infracost.github.io/helm-charts
-        targetRevision: "5.10.0"
+        targetRevision: "0.5.9"
         chart: cloud-pricing-api
         helm:
           values: |-
             fullnameOverride: cloud-pricing-api
+
+            existingSecretAPIKey: ""
 
       syncPolicy:
         # automated:
