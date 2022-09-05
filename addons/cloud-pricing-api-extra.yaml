@@ -48,6 +48,9 @@ spec:
                     - secretKey: infracost-api-key
                       remoteRef:
                         key: /k8s/common/infracost/api_key
+                    - secretKey: postgresql-password
+                      remoteRef:
+                        key: /k8s/common/postgresql/password
 
               # - apiVersion: networking.istio.io/v1beta1
               #   kind: Gateway
