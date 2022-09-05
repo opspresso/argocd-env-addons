@@ -29,7 +29,7 @@ spec:
       source:
         repoURL: https://infracost.github.io/helm-charts
         targetRevision: "5.10.0"
-        chart: kubernetes-cloud-pricing-api
+        chart: cloud-pricing-api
         helm:
           values: |-
             fullnameOverride: cloud-pricing-api
