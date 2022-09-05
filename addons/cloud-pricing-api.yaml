@@ -34,7 +34,7 @@ spec:
           values: |-
             fullnameOverride: cloud-pricing-api
 
-            existingSecretAPIKey: ""
+            existingSecretAPIKey: "cloud-pricing-api-secret"
 
             postgresql:
               fullnameOverride: postgresql
