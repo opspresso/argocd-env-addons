@@ -55,37 +55,37 @@ spec:
                       remoteRef:
                         key: /k8s/common/postgresql/password
 
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: Gateway
-              #   metadata:
-              #     name: cloud-pricing-api
-              #   spec:
-              #     selector:
-              #       istio: ingressgateway
-              #     servers:
-              #       - hosts:
-              #           - "cloud-pricing-api.{{hostname.public}}"
-              #         port:
-              #           number: 80
-              #           name: http
-              #           protocol: HTTP
+              - apiVersion: networking.istio.io/v1beta1
+                kind: Gateway
+                metadata:
+                  name: cloud-pricing-api
+                spec:
+                  selector:
+                    istio: ingressgateway
+                  servers:
+                    - hosts:
+                        - "cloud-pricing-api.{{hostname.public}}"
+                      port:
+                        number: 80
+                        name: http
+                        protocol: HTTP
 
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: VirtualService
-              #   metadata:
-              #     name: cloud-pricing-api
-              #   spec:
-              #     hosts:
-              #       - "cloud-pricing-api.{{hostname.public}}"
-              #     gateways:
-              #       - cloud-pricing-api
-              #       - mesh
-              #     http:
-              #       - route:
-              #           - destination:
-              #               host: cloud-pricing-api
-              #               port:
-              #                 number: 80
+              - apiVersion: networking.istio.io/v1beta1
+                kind: VirtualService
+                metadata:
+                  name: cloud-pricing-api
+                spec:
+                  hosts:
+                    - "cloud-pricing-api.{{hostname.public}}"
+                  gateways:
+                    - cloud-pricing-api
+                    - mesh
+                  http:
+                    - route:
+                        - destination:
+                            host: cloud-pricing-api
+                            port:
+                              number: 80
 
       syncPolicy:
         automated:
