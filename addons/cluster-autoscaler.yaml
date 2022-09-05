@@ -28,7 +28,7 @@ spec:
         namespace: addon-cluster-autoscaler
       source:
         repoURL: https://kubernetes.github.io/autoscaler
-        targetRevision: "9.20.1" # 9.19.4
+        targetRevision: "9.19.4" # fixed version 9.19.4
         chart: cluster-autoscaler
         helm:
           values: |-
