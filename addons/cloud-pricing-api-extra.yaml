@@ -47,7 +47,10 @@ spec:
                   data:
                     - secretKey: infracost-api-key
                       remoteRef:
-                        key: /k8s/common/infracost/api_key
+                        key: /k8s/common/infracost/api-key
+                    - secretKey: self-hosted-infracost-api-key
+                      remoteRef:
+                        key: /k8s/common/infracost/self-hosted-api-key
                     - secretKey: postgresql-password
                       remoteRef:
                         key: /k8s/common/postgresql/password

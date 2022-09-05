@@ -34,6 +34,9 @@ spec:
 
             existingSecretAPIKey: "cloud-pricing-api-secret"
 
+            api:
+              existingSecretSelfHostedAPIKey: "cloud-pricing-api-secret"
+
             postgresql:
               fullnameOverride: postgresql
               existingSecret: "cloud-pricing-api-secret"
