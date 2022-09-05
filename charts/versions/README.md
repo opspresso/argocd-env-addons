@@ -24,6 +24,7 @@ helm repo add fluxcd https://charts.fluxcd.io
 helm repo add gocd https://gocd.github.io/helm-chart
 helm repo add grafana https://grafana.github.io/helm-charts
 helm repo add incubator https://charts.helm.sh/incubator
+helm repo add infracost https://infracost.github.io/helm-charts
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add irsa-operator https://voodooteam.github.io/irsa-operator
 helm repo add istio https://istio-release.storage.googleapis.com/charts
