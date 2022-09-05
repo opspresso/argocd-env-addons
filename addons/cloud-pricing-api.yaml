@@ -9,12 +9,10 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          # - path: "env/eks-demo-a.yaml"
-          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
-      name: "cloud-pricing-api-{{cluster}}"
+      name: "cloud-pricing-api" # only management cluster
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:

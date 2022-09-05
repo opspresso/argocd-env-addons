@@ -12,7 +12,7 @@ spec:
 
   template:
     metadata:
-      name: "cloud-pricing-api-extra"
+      name: "cloud-pricing-api-extra" # only management cluster
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
