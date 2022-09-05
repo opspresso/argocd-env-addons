@@ -36,6 +36,9 @@ spec:
 
             existingSecretAPIKey: ""
 
+            postgresql:
+              fullnameOverride: postgresql
+
       syncPolicy:
         # automated:
         #   prune: true
