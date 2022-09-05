@@ -38,6 +38,8 @@ spec:
 
             postgresql:
               fullnameOverride: postgresql
+              persistence:
+                storageClass: gp3
 
       syncPolicy:
         # automated:
