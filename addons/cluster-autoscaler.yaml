@@ -28,7 +28,7 @@ spec:
         namespace: addon-cluster-autoscaler
       source:
         repoURL: https://kubernetes.github.io/autoscaler
-        targetRevision: "9.19.4"
+        targetRevision: "9.20.1" # 9.19.4
         chart: cluster-autoscaler
         helm:
           values: |-
@@ -73,8 +73,8 @@ spec:
             #   group: graviton
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
