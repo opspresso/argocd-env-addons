@@ -88,8 +88,7 @@ spec:
                 metadata:
                   name: atlantis-configmap
                 data:
-                  GH_USER: {{atlantis.github.user}}
-                  GITHUB_USER: {{atlantis.github.user}}
+                  ATLANTIS_GH_USER: {{atlantis.github.user}}
                   INFRACOST_PRICING_API_ENDPOINT: {{atlantis.pricing.url}}
 
               - apiVersion: external-secrets.io/v1beta1
@@ -104,12 +103,15 @@ spec:
                   target:
                     name: atlantis-secret
                   data:
-                    - secretKey: GH_TOKEN
-                      remoteRef:
-                        key: /k8s/common/github/{{atlantis.github.user}}/token
                     - secretKey: GITHUB_TOKEN
                       remoteRef:
                         key: /k8s/common/github/{{atlantis.github.user}}/token
+                    - secretKey: ATLANTIS_GH_TOKEN
+                      remoteRef:
+                        key: /k8s/common/github/{{atlantis.github.user}}/token
+                    - secretKey: ATLANTIS_GH_WEBHOOK_SECRET
+                      remoteRef:
+                        key: /k8s/common/github/{{atlantis.github.user}}/secret
                     - secretKey: INFRACOST_API_KEY
                       remoteRef:
                         key: /k8s/common/infracost/self-hosted-api-key
