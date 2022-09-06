@@ -37,12 +37,13 @@ spec:
             config:
               ladder:
                 nodesToReplicas:
-                  - [ 1, 1 ]
-                  - [ 10, 2 ]
-                  - [ 50, 4 ]
-                  - [ 100, 6 ]
-                  - [ 200, 10 ]
-                  - [ 500, 20 ]
+                  - [ 4, 2 ]
+                  - [ 10, 4 ]
+                  - [ 30, 6 ]
+                  - [ 60, 8 ]
+                  - [ 100, 10 ]
+                  - [ 200, 20 ]
+                  - [ 400, 40 ]
 
             options:
               namespace: addon-cluster-overprovisioner
