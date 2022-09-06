@@ -77,7 +77,7 @@ spec:
                 metadata:
                   name: atlantis-configmap
                 data:
-                  GITHUB_TOKEN: {{atlantis.github.user}}
+                  GITHUB_USER: {{atlantis.github.user}}
 
               - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret
