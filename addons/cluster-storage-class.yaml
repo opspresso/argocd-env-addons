@@ -42,7 +42,7 @@ spec:
                 provisioner: ebs.csi.aws.com
                 volumeBindingMode: WaitForFirstConsumer
                 parameters:
-                  type: "gp3"
+                  type: gp3
                   allowAutoIOPSPerGBIncrease: "true"
                 reclaimPolicy: Retain
                 allowVolumeExpansion: true
@@ -54,7 +54,7 @@ spec:
                 provisioner: ebs.csi.aws.com
                 volumeBindingMode: WaitForFirstConsumer
                 parameters:
-                  type: "gp3"
+                  type: gp3
                   allowAutoIOPSPerGBIncrease: "true"
                 reclaimPolicy: Retain
                 allowVolumeExpansion: true
@@ -71,7 +71,7 @@ spec:
                 provisioner: ebs.csi.aws.com
                 volumeBindingMode: WaitForFirstConsumer
                 parameters:
-                  type: "gp3"
+                  type: gp3
                   allowAutoIOPSPerGBIncrease: "true"
                 reclaimPolicy: Retain
                 allowVolumeExpansion: true
@@ -88,7 +88,7 @@ spec:
                 provisioner: ebs.csi.aws.com
                 volumeBindingMode: WaitForFirstConsumer
                 parameters:
-                  type: "gp3"
+                  type: gp3
                   allowAutoIOPSPerGBIncrease: "true"
                 reclaimPolicy: Retain
                 allowVolumeExpansion: true
