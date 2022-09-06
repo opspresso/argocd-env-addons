@@ -32,6 +32,8 @@ spec:
           values: |-
             fullnameOverride: atlantis
 
+            atlantisUrl: {{atlantis.url}}
+
             orgAllowlist: {{atlantis.allowlist}}
 
             # github:
@@ -49,6 +51,9 @@ spec:
               limits:
                 memory: 1Gi
                 cpu: 200m
+
+            storageClassName: gp3
+            dataStorage: 15Gi
 
             service:
               type: ClusterIP
