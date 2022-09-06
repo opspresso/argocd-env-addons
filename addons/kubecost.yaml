@@ -141,7 +141,7 @@ spec:
               group: monitoring
 
             persistentVolume:
-              storageClass: gp3-c
+              storageClass: gp3
               size: 32Gi
 
             prometheus:

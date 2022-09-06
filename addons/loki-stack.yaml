@@ -50,7 +50,7 @@ spec:
                 accessModes:
                   - ReadWriteOnce
                 size: 50Gi
-                storageClassName: gp3-a
+                storageClassName: gp3
 
               serviceMonitor:
                 enabled: true
