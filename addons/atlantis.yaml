@@ -63,7 +63,7 @@ spec:
                 memory: 1Gi
                 cpu: 200m
 
-            storageClassName: gp3
+            storageClassName: gp3-a
             dataStorage: 15Gi
 
             service:

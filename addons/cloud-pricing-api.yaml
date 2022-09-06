@@ -41,7 +41,7 @@ spec:
               fullnameOverride: postgresql
               existingSecret: "cloud-pricing-api-secret"
               persistence:
-                storageClass: gp3
+                storageClass: gp3-c
 
       syncPolicy:
         # automated:
