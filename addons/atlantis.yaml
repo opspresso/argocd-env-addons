@@ -36,13 +36,28 @@ spec:
 
             orgAllowlist: {{atlantis.allowlist}}
 
-            # github:
-            #   user: {{atlantis.github.user}}
-            #   secret: atlantis-secret
+            github:
+              user: {{atlantis.github.user}}
+              secret: atlantis-secret
 
             # image:
             #   repository: ghcr.io/runatlantis/atlantis
             #   tag: v0.19.8
+
+            # repoConfig: |
+            #   ---
+            #   repos:
+            #   - id: /.*/
+            #     apply_requirements: []
+            #     workflow: default
+            #     allowed_overrides: []
+            #     allow_custom_workflows: false
+            #   workflows:
+            #     default:
+            #       plan:
+            #         steps: [init, plan]
+            #       apply:
+            #         steps: [apply]
 
             resources:
               requests:
