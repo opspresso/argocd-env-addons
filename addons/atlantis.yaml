@@ -65,6 +65,11 @@ spec:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--atlantis"
 
+            loadEnvFromSecrets:
+              - atlantis-secret
+
+            loadEnvFromConfigMaps: []
+
             extraManifests:
               - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret
@@ -78,13 +83,13 @@ spec:
                   target:
                     name: atlantis-secret
                   data:
-                    - secretKey: github-secret
+                    - secretKey: GITHUB_TOKEN
                       remoteRef:
                         key: /k8s/common/github/{{atlantis.github.user}}/token
-                    - secretKey: infracost-api-key
+                    - secretKey: INFRACOST_API_KEY
                       remoteRef:
-                        key: /k8s/common/infracost/api-key
-                    - secretKey: self-hosted-infracost-api-key
+                        key: /k8s/common/infracost/self-hosted-api-key
+                    - secretKey: SELF_HOSTED_INFRACOST_API_KEY
                       remoteRef:
                         key: /k8s/common/infracost/self-hosted-api-key
 
