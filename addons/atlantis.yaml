@@ -76,6 +76,12 @@ spec:
                     - secretKey: github-secret
                       remoteRef:
                         key: /k8s/common/github/{{atlantis.github.user}}/token
+                    - secretKey: infracost-api-key
+                      remoteRef:
+                        key: /k8s/common/infracost/api-key
+                    - secretKey: self-hosted-infracost-api-key
+                      remoteRef:
+                        key: /k8s/common/infracost/self-hosted-api-key
 
       syncPolicy:
         # automated:
