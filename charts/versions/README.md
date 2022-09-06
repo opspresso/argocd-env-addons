@@ -4,6 +4,7 @@
 
 ```bash
 helm repo add argo https://argoproj.github.io/argo-helm
+helm repo add atlantis https://runatlantis.github.io/helm-charts
 helm repo add autoscaler https://kubernetes.github.io/autoscaler
 helm repo add aws-ebs-csi-driver https://kubernetes-sigs.github.io/aws-ebs-csi-driver
 helm repo add aws-efs-csi-driver https://kubernetes-sigs.github.io/aws-efs-csi-driver

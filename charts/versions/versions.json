@@ -12,6 +12,10 @@
       "default": "0.17.1",
       "description": "argo/argo-workflows"
     },
+    "helm_atlantis": {
+      "default": "4.0.11",
+      "description": "atlantis/atlantis"
+    },
     "helm_aws_ebs_csi_driver": {
       "default": "2.10.1",
       "description": "aws-ebs-csi-driver/aws-ebs-csi-driver"

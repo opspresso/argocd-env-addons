@@ -26,6 +26,10 @@ argo-workflows:
     org: daangn
     team: sre
 
+atlantis:
+  github:
+    org: opspresso
+
 aws-ebs-csi-driver:
   image:
     registry: k8s.gcr.io

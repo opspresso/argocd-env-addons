@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: atlantis
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+
+  template:
+    metadata:
+      name: "atlantis" # only management cluster
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        krmt.io/cluster: "{{cluster}}"
+        krmt.io/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: addon-atlantis
+      source:
+        repoURL: https://runatlantis.github.io/helm-charts
+        targetRevision: "4.0.11"
+        chart: atlantis
+        helm:
+          values: |-
+            fullnameOverride: atlantis
+
+            orgAllowlist: {{argocd.github.org}}
+
+            # image:
+            #   repository: ghcr.io/runatlantis/atlantis
+            #   tag: v0.19.8
+
+            service:
+              type: ClusterIP
+
+            ingress:
+              enabled: false
+
+            serviceAccount:
+              annotations:
+                eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--atlantis"
+
+      syncPolicy:
+        # automated:
+        #   prune: true
+        #   selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
