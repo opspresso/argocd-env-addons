@@ -51,7 +51,7 @@ istio:
     sampling: 10
   target_group:
     internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-a/c896eee42c786199
-    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-a/4a32497a30de1f28
+    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-a/c46f40a8b5d3d418
 
 # karpenter:
 #   instanceProfile: eks-demo-worker
