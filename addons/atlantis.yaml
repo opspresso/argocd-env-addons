@@ -77,6 +77,7 @@ spec:
                 metadata:
                   name: atlantis-configmap
                 data:
+                  GH_USER: {{atlantis.github.user}}
                   GITHUB_USER: {{atlantis.github.user}}
 
               - apiVersion: external-secrets.io/v1beta1
@@ -91,6 +92,9 @@ spec:
                   target:
                     name: atlantis-secret
                   data:
+                    - secretKey: GH_TOKEN
+                      remoteRef:
+                        key: /k8s/common/github/{{atlantis.github.user}}/token
                     - secretKey: GITHUB_TOKEN
                       remoteRef:
                         key: /k8s/common/github/{{atlantis.github.user}}/token
