@@ -83,8 +83,8 @@ spec:
                 lokiAddress: http://{{loki.hostname}}/loki/api/v1/push
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
