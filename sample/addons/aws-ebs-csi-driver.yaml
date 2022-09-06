@@ -79,16 +79,16 @@ spec:
                 annotations:
                   eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--aws-ebs-csi-driver"
 
-            storageClasses:
-              - name: gp3
-                annotations:
-                  storageclass.kubernetes.io/is-default-class: "true"
-                volumeBindingMode: WaitForFirstConsumer
-                parameters:
-                  type: "gp3"
-                  allowAutoIOPSPerGBIncrease: "true"
-                reclaimPolicy: Retain
-                allowVolumeExpansion: true
+            # storageClasses:
+            #   - name: gp3
+            #     annotations:
+            #       storageclass.kubernetes.io/is-default-class: "true"
+            #     volumeBindingMode: WaitForFirstConsumer
+            #     parameters:
+            #       type: "gp3"
+            #       allowAutoIOPSPerGBIncrease: "true"
+            #     reclaimPolicy: Retain
+            #     allowVolumeExpansion: true
 
       syncPolicy:
         # automated:
