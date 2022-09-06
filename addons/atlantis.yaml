@@ -65,61 +65,6 @@ spec:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--atlantis"
 
-            extraManifests:
-              - apiVersion: external-secrets.io/v1beta1
-                kind: ExternalSecret
-                metadata:
-                  name: atlantis-secret
-                spec:
-                  refreshInterval: 1h
-                  secretStoreRef:
-                    kind: ClusterSecretStore
-                    name: parameter-store
-                  target:
-                    name: atlantis-secret
-                  data:
-                    - secretKey: github-secret
-                      remoteRef:
-                        key: /k8s/common/github/{{atlantis.github.user}}/token
-                    - secretKey: infracost-api-key
-                      remoteRef:
-                        key: /k8s/common/infracost/api-key
-                    - secretKey: self-hosted-infracost-api-key
-                      remoteRef:
-                        key: /k8s/common/infracost/self-hosted-api-key
-
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: Gateway
-              #   metadata:
-              #     name: atlantis
-              #   spec:
-              #     selector:
-              #       istio: ingressgateway
-              #     servers:
-              #       - hosts:
-              #           - "atlantis.{{hostname.public}}"
-              #         port:
-              #           number: 80
-              #           name: http
-              #           protocol: HTTP
-
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: VirtualService
-              #   metadata:
-              #     name: atlantis
-              #   spec:
-              #     hosts:
-              #       - "atlantis.{{hostname.public}}"
-              #     gateways:
-              #       - atlantis
-              #       - mesh
-              #     http:
-              #       - route:
-              #           - destination:
-              #               host: atlantis
-              #               port:
-              #                 number: 80
-
       syncPolicy:
         # automated:
         #   prune: true
