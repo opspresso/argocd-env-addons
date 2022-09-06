@@ -41,7 +41,7 @@ spec:
             controller:
               workflowNamespaces:
                 - default
-                - sample
+                # - sample
 
               podLabels:
                 owner: "{{cluster}}"
