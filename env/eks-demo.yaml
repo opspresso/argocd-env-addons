@@ -28,6 +28,8 @@ argo-workflows:
 
 atlantis:
   url: https://atlantis.demo.nalbam.com
+  pricing:
+    url: https://cloud-pricing-api.demo.nalbam.com
   github:
     user: nalbam-bot
   allowlist: github.com/opspresso/terraform-*

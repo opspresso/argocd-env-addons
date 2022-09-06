@@ -79,6 +79,7 @@ spec:
                 data:
                   GH_USER: {{atlantis.github.user}}
                   GITHUB_USER: {{atlantis.github.user}}
+                  INFRACOST_PRICING_API_ENDPOINT: {{atlantis.pricing.url}}
 
               - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret
