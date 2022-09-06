@@ -46,6 +46,13 @@ spec:
                   allowAutoIOPSPerGBIncrease: "true"
                 reclaimPolicy: Retain
                 allowVolumeExpansion: true
+                allowedTopologies:
+                - matchLabelExpressions:
+                  - key: topology.ebs.csi.aws.com/zone
+                    values:
+                    - {{aws_region}}a
+                    - {{aws_region}}b
+                    - {{aws_region}}c
 
               - apiVersion: storage.k8s.io/v1
                 kind: StorageClass
