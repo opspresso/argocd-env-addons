@@ -36,10 +36,6 @@ spec:
 
             orgAllowlist: {{atlantis.allowlist}}
 
-            github:
-              user: {{atlantis.github.user}}
-              secret: atlantis-secret
-
             # image:
             #   repository: ghcr.io/runatlantis/atlantis
             #   tag: v0.19.8
