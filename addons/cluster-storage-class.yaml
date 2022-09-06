@@ -47,6 +47,57 @@ spec:
                 reclaimPolicy: Retain
                 allowVolumeExpansion: true
 
+              - apiVersion: storage.k8s.io/v1
+                kind: StorageClass
+                metadata:
+                  name: gp3-a
+                provisioner: ebs.csi.aws.com
+                volumeBindingMode: WaitForFirstConsumer
+                parameters:
+                  type: "gp3"
+                  allowAutoIOPSPerGBIncrease: "true"
+                reclaimPolicy: Retain
+                allowVolumeExpansion: true
+                allowedTopologies:
+                - matchLabelExpressions:
+                  - key: topology.ebs.csi.aws.com/zone
+                    values:
+                    - {{aws_region}}a
+
+              - apiVersion: storage.k8s.io/v1
+                kind: StorageClass
+                metadata:
+                  name: gp3-b
+                provisioner: ebs.csi.aws.com
+                volumeBindingMode: WaitForFirstConsumer
+                parameters:
+                  type: "gp3"
+                  allowAutoIOPSPerGBIncrease: "true"
+                reclaimPolicy: Retain
+                allowVolumeExpansion: true
+                allowedTopologies:
+                - matchLabelExpressions:
+                  - key: topology.ebs.csi.aws.com/zone
+                    values:
+                    - {{aws_region}}b
+
+              - apiVersion: storage.k8s.io/v1
+                kind: StorageClass
+                metadata:
+                  name: gp3-c
+                provisioner: ebs.csi.aws.com
+                volumeBindingMode: WaitForFirstConsumer
+                parameters:
+                  type: "gp3"
+                  allowAutoIOPSPerGBIncrease: "true"
+                reclaimPolicy: Retain
+                allowVolumeExpansion: true
+                allowedTopologies:
+                - matchLabelExpressions:
+                  - key: topology.ebs.csi.aws.com/zone
+                    values:
+                    - {{aws_region}}c
+
       syncPolicy:
         automated:
           prune: true
