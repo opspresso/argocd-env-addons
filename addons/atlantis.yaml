@@ -32,11 +32,23 @@ spec:
           values: |-
             fullnameOverride: atlantis
 
-            orgAllowlist: {{argocd.github.org}}
+            orgAllowlist: {{atlantis.allowlist}}
+
+            github:
+              user: {{atlantis.github.user}}
+              secret: atlantis-secret
 
             # image:
             #   repository: ghcr.io/runatlantis/atlantis
             #   tag: v0.19.8
+
+            resources:
+              requests:
+                memory: 1Gi
+                cpu: 200m
+              limits:
+                memory: 1Gi
+                cpu: 200m
 
             service:
               type: ClusterIP
@@ -47,6 +59,23 @@ spec:
             serviceAccount:
               annotations:
                 eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--atlantis"
+
+            extraManifests:
+              - apiVersion: external-secrets.io/v1beta1
+                kind: ExternalSecret
+                metadata:
+                  name: atlantis-secret
+                spec:
+                  refreshInterval: 1h
+                  secretStoreRef:
+                    kind: ClusterSecretStore
+                    name: parameter-store
+                  target:
+                    name: atlantis-secret
+                  data:
+                    - secretKey: github-secret
+                      remoteRef:
+                        key: /k8s/common/github/{{atlantis.github.user}}/token
 
       syncPolicy:
         # automated:

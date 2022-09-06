@@ -28,7 +28,8 @@ argo-workflows:
 
 atlantis:
   github:
-    org: opspresso
+    user: nalbam-bot
+  allowlist: github.com/opspresso/terraform-*
 
 aws-ebs-csi-driver:
   image:
