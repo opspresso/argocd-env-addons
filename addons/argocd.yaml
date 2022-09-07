@@ -532,33 +532,33 @@ spec:
                   target:
                     name: argocd-secret
                   data:
-                    - remoteRef:
+                    - secretKey: admin.password
+                      remoteRef:
                         key: /k8s/common/argocd-password
-                      secretKey: admin.password
-                    - remoteRef:
+                    - secretKey: admin.passwordMtime
+                      remoteRef:
                         key: /k8s/common/argocd-mtime
-                      secretKey: admin.passwordMtime
-                    - remoteRef:
+                    - secretKey: dex.github.clientId
+                      remoteRef:
                         key: /k8s/{{argocd.github.org}}/argocd-github-id
-                      secretKey: dex.github.clientId
-                    - remoteRef:
+                    - secretKey: dex.github.clientSecret
+                      remoteRef:
                         key: /k8s/{{argocd.github.org}}/argocd-github-secret
-                      secretKey: dex.github.clientSecret
-                    - remoteRef:
+                    - secretKey: webhook.github.secret
+                      remoteRef:
                         key: /k8s/common/argocd-webhook
-                      secretKey: webhook.github.secret
-                    - remoteRef:
+                    - secretKey: server.secretkey
+                      remoteRef:
                         key: /k8s/common/argocd-server-secret
-                      secretKey: server.secretkey
-                    - remoteRef:
+                    - secretKey: dex.google.clientId
+                      remoteRef:
                         key: /k8s/common/google-id
-                      secretKey: dex.google.clientId
-                    - remoteRef:
+                    - secretKey: dex.google.clientSecret
+                      remoteRef:
                         key: /k8s/common/google-secret
-                      secretKey: dex.google.clientSecret
-                    - remoteRef:
+                    - secretKey: argo-workflows-client-secret
+                      remoteRef:
                         key: /k8s/common/argo-workflows-client-secret
-                      secretKey: argo-workflows-client-secret
 
               - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret

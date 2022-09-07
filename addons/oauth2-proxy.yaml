@@ -1,0 +1,70 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: oauth2-proxy
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+
+  template:
+    metadata:
+      name: "oauth2-proxy" # only management cluster
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        krmt.io/cluster: "{{cluster}}"
+        krmt.io/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: addon-oauth2-proxy
+      source:
+        repoURL: https://oauth2-proxy.github.io/manifests
+        targetRevision: "6.2.6"
+        chart: oauth2-proxy
+        helm:
+          values: |-
+            fullnameOverride: oauth2-proxy
+
+            config:
+              existingSecret: oauth2-proxy-secret
+
+              google:
+                existingSecret: google-secret
+
+            extraArgs:
+              oidc-issuer-url: https://accounts.google.com
+              whitelist-domain: nalbam.com
+
+            extraObjects:
+              - apiVersion: external-secrets.io/v1beta1
+                kind: ExternalSecret
+                metadata:
+                  name: google-secret
+                spec:
+                  refreshInterval: 1h
+                  secretStoreRef:
+                    kind: ClusterSecretStore
+                    name: parameter-store
+                  target:
+                    name: google-secret
+                  data:
+                    - secretKey: clientId
+                      remoteRef:
+                        key: /k8s/common/google-id
+                    - secretKey: clientSecret
+                      remoteRef:
+                        key: /k8s/common/google-secret
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
