@@ -36,7 +36,7 @@ spec:
               existingSecret: oauth2-proxy-secret
 
               google:
-                existingSecret: google-secret
+                existingSecret: oauth2-proxy-secret
 
             extraArgs:
               oidc-issuer-url: https://accounts.google.com
@@ -54,25 +54,6 @@ spec:
                     name: parameter-store
                   target:
                     name: oauth2-proxy-secret
-                  data:
-                    - secretKey: clientId
-                      remoteRef:
-                        key: /k8s/common/google-id
-                    - secretKey: clientSecret
-                      remoteRef:
-                        key: /k8s/common/google-secret
-
-              - apiVersion: external-secrets.io/v1beta1
-                kind: ExternalSecret
-                metadata:
-                  name: google-secret
-                spec:
-                  refreshInterval: 1h
-                  secretStoreRef:
-                    kind: ClusterSecretStore
-                    name: parameter-store
-                  target:
-                    name: google-secret
                   data:
                     - secretKey: clientId
                       remoteRef:
