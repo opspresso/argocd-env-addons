@@ -132,6 +132,10 @@
       "default": "3.8.2",
       "description": "metrics-server/metrics-server"
     },
+    "helm_oauth2_proxy": {
+      "default": "6.2.6",
+      "description": "oauth2-proxy/oauth2-proxy"
+    },
     "helm_prometheus": {
       "default": "15.12.0",
       "description": "prometheus/prometheus"
@@ -147,10 +151,6 @@
     "helm_whatap": {
       "default": "1.1.54",
       "description": "whatap/helm-kube-mon"
-    },
-    "helm_oauth2_proxy": {
-      "default": "1.1.54",
-      "description": "oauth2-proxy/oauth2-proxy"
     }
   }
 }
