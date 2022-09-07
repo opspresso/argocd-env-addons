@@ -63,8 +63,8 @@ spec:
                         key: /k8s/common/google-secret
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
