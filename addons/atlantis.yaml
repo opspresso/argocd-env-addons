@@ -37,27 +37,35 @@ spec:
             orgAllowlist: {{atlantis.allowlist}}
 
             # image:
-            #   repository: ghcr.io/runatlantis/atlantis
-            #   tag: v0.19.8
+            #   repository: infracost/infracost-atlantis
+            #   tag: latest
 
             # repoConfig: |
             #   ---
             #   repos:
-            #   - id: /.*/
-            #     apply_requirements: []
-            #     workflow: default
-            #     allowed_overrides: []
-            #     allow_custom_workflows: false
+            #     - id: /.*/
+            #       workflow: infracost
             #   workflows:
-            #     default:
+            #     infracost:
             #       plan:
-            #         steps: [init, plan]
-            #       apply:
-            #         steps: [apply]
+            #         steps:
+            #           - env:
+            #               name: INFRACOST_OUTPUT
+            #               command: echo "/tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM/infracost-output.json"
+            #           - init
+            #           - plan
+            #           - show
+            #           - run: |
+            #               mkdir -p /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
+            #               infracost breakdown --path=$SHOWFILE --format=json --log-level=info --out-file=$INFRACOST_OUTPUT
+            #           - run: |
+            #               infracost comment github --repo $BASE_REPO_OWNER/$BASE_REPO_NAME --pull-request $PULL_NUM \
+            #                 --path $INFRACOST_OUTPUT --github-token $GITHUB_TOKEN --behavior new
+            #               rm -rf /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
 
             resources:
               requests:
-                memory: 1Gi
+                memory: 512Mi
                 cpu: 200m
               limits:
                 memory: 1Gi
