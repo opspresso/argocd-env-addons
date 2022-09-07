@@ -61,6 +61,9 @@ spec:
                     - secretKey: client-secret
                       remoteRef:
                         key: /k8s/common/google-secret
+                    - secretKey: cookie-secret
+                      remoteRef:
+                        key: /k8s/common/cookie-secret
 
       syncPolicy:
         automated:
