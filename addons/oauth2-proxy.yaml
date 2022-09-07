@@ -55,16 +55,16 @@ spec:
                   target:
                     name: oauth2-proxy-secret
                   data:
-                    - secretKey: clientId
+                    - secretKey: client-id
                       remoteRef:
                         key: /k8s/common/google-id
-                    - secretKey: clientSecret
+                    - secretKey: client-secret
                       remoteRef:
                         key: /k8s/common/google-secret
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
