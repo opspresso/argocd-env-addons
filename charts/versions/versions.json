@@ -147,6 +147,10 @@
     "helm_whatap": {
       "default": "1.1.54",
       "description": "whatap/helm-kube-mon"
+    },
+    "helm_oauth2_proxy": {
+      "default": "1.1.54",
+      "description": "oauth2-proxy/oauth2-proxy"
     }
   }
 }

@@ -35,6 +35,7 @@ helm repo add karpenter https://charts.karpenter.sh
 helm repo add kiali https://kiali.org/helm-charts
 helm repo add kubecost https://kubecost.github.io/cost-analyzer
 helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server
+helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
 helm repo add opspresso https://opspresso.github.io/helm-charts
 helm repo add prometheus https://prometheus-community.github.io/helm-charts
 helm repo add sealed-secrets https://bitnami-labs.github.io/sealed-secrets
