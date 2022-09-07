@@ -81,33 +81,33 @@ configs:
       type: helm
       url: https://opspresso.github.io/helm-charts
 
-  extraObjects:
-    - apiVersion: argoproj.io/v1alpha1
-      kind: AppProject
-      metadata:
-        name: addons
-      spec:
-        clusterResourceWhitelist:
-          - group: '*'
-            kind: '*'
-        destinations:
-          - name: '*'
-            namespace: '*'
-            server: '*'
-        sourceRepos:
-          - '*'
+extraObjects:
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: addons
+    spec:
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      destinations:
+        - name: '*'
+          namespace: '*'
+          server: '*'
+      sourceRepos:
+        - '*'
 
-    - apiVersion: argoproj.io/v1alpha1
-      kind: AppProject
-      metadata:
-        name: apps
-      spec:
-        clusterResourceWhitelist:
-          - group: '*'
-            kind: '*'
-        destinations:
-          - name: '*'
-            namespace: '*'
-            server: '*'
-        sourceRepos:
-          - '*'
+  - apiVersion: argoproj.io/v1alpha1
+    kind: AppProject
+    metadata:
+      name: apps
+    spec:
+      clusterResourceWhitelist:
+        - group: '*'
+          kind: '*'
+      destinations:
+        - name: '*'
+          namespace: '*'
+          server: '*'
+      sourceRepos:
+        - '*'
