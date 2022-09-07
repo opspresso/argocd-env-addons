@@ -1,8 +1,12 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "5.4.1",
+      "default": "5.4.2",
       "description": "argo/argo-cd"
+    },
+    "helm_argo_events": {
+      "default": "2.0.4",
+      "description": "argo/argo-events"
     },
     "helm_argo_rollouts": {
       "default": "2.20.0",
@@ -13,7 +17,7 @@
       "description": "argo/argo-workflows"
     },
     "helm_atlantis": {
-      "default": "4.0.11",
+      "default": "4.1.0",
       "description": "atlantis/atlantis"
     },
     "helm_aws_ebs_csi_driver": {
@@ -41,11 +45,11 @@
       "description": "chaoskube/chaoskube"
     },
     "helm_cloud_pricing_api": {
-      "default": "0.5.9",
+      "default": "0.5.10",
       "description": "infracost/cloud-pricing-api"
     },
     "helm_cluster_autoscaler": {
-      "default": "9.20.1",
+      "default": "9.21.0",
       "description": "autoscaler/cluster-autoscaler"
     },
     "helm_cluster_overprovisioner": {
@@ -69,7 +73,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "2.37.9",
+      "default": "3.0.0",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -81,11 +85,11 @@
       "description": "external-secrets/external-secrets"
     },
     "helm_grafana": {
-      "default": "6.36.2",
+      "default": "6.36.3",
       "description": "grafana/grafana"
     },
     "helm_ingress_nginx": {
-      "default": "4.2.4",
+      "default": "4.2.5",
       "description": "ingress-nginx/ingress-nginx"
     },
     "helm_irsa_operator": {
@@ -97,7 +101,7 @@
       "description": "istio/istiod"
     },
     "helm_jaeger": {
-      "default": "0.60.0",
+      "default": "0.61.0",
       "description": "jaegertracing/jaeger"
     },
     "helm_karpenter": {
@@ -105,7 +109,7 @@
       "description": "karpenter/karpenter"
     },
     "helm_kiali_server": {
-      "default": "1.55.1",
+      "default": "1.56.0",
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
