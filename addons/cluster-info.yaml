@@ -47,6 +47,28 @@ spec:
                   ENV: "{{env}}"
                   ROLE: "{{role}}"
 
+              - apiVersion: external-secrets.io/v1beta1
+                kind: ExternalSecret
+                metadata:
+                  name: cluster-info
+                spec:
+                  refreshInterval: 1h
+                  secretStoreRef:
+                    kind: ClusterSecretStore
+                    name: parameter-store
+                  target:
+                    name: cluster-info
+                  data:
+                    - secretKey: cluster_oidc_url
+                      remoteRef:
+                        key: /k8s/common/{{cluster}}/cluster_oidc_url
+                    - secretKey: cluster_role_name
+                      remoteRef:
+                        key: /k8s/common/{{cluster}}/cluster_role_name
+                    - secretKey: cluster_version
+                      remoteRef:
+                        key: /k8s/common/{{cluster}}/cluster_version
+
       syncPolicy:
         automated:
           prune: true
