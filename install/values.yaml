@@ -49,31 +49,6 @@ server:
     policy.csv: |
       g, GITHUB_ORG:GITHUB_TEAM, role:admin
 
-  additionalProjects:
-    - name: addons
-      namespace: argocd
-      description: addons project
-      sourceRepos:
-        - "*"
-      destinations:
-        - namespace: "*"
-          server: "*"
-      clusterResourceWhitelist:
-        - group: "*"
-          kind: "*"
-
-    - name: apps
-      namespace: argocd
-      description: apps project
-      sourceRepos:
-        - "*"
-      destinations:
-        - namespace: "*"
-          server: "*"
-      clusterResourceWhitelist:
-        - group: "*"
-          kind: "*"
-
 repoServer:
   replicas: 2
 
