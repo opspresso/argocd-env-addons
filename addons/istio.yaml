@@ -97,7 +97,7 @@ spec:
                   spec:
                     workloadSelector:
                       labels:
-                        istio: istio-ingressgateway
+                        istio: ingressgateway
                     configPatches:
                     - applyTo: NETWORK_FILTER
                       match:
