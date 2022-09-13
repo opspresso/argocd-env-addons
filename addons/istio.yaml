@@ -90,38 +90,6 @@ spec:
                     targetGroupARN: "{{istio.target_group.internal_http}}"
                     targetType: ip
 
-                - apiVersion: networking.istio.io/v1alpha3
-                  kind: EnvoyFilter
-                  metadata:
-                    name: gateway-response-remove-headers
-                  spec:
-                    workloadSelector:
-                      labels:
-                        istio: istio-ingressgateway
-                    configPatches:
-                    - applyTo: NETWORK_FILTER
-                      match:
-                        context: GATEWAY
-                        listener:
-                          filterChain:
-                            filter:
-                              name: "envoy.filters.network.http_connection_manager"
-                      patch:
-                        operation: MERGE
-                        value:
-                          typed_config:
-                            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-                            server_header_transformation: PASS_THROUGH
-                    - applyTo: ROUTE_CONFIGURATION
-                      match:
-                        context: GATEWAY
-                      patch:
-                        operation: MERGE
-                        value:
-                          response_headers_to_remove:
-                          - "x-envoy-upstream-service-time"
-                          - "server"
-
       ignoreDifferences:
         - kind: ValidatingWebhookConfiguration
           group: admissionregistration.k8s.io
