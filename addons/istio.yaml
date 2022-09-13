@@ -119,6 +119,7 @@ spec:
                         operation: MERGE
                         value:
                           response_headers_to_remove:
+                          - "x-envoy-decorator-operation"
                           - "x-envoy-upstream-service-time"
                           - "server"
 
