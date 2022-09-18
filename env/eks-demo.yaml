@@ -4,7 +4,7 @@ country: kr
 env: alpha
 role: mgt
 
-cluster_oidc: "oidc.eks.ap-northeast-2.amazonaws.com/id/90CB7F7BDDE0D72E4C4A84F9BEE16132"
+cluster_oidc: "oidc.eks.ap-northeast-2.amazonaws.com/id/2D8A6C4769FFD3F9387B3A7011D49ED5"
 
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
