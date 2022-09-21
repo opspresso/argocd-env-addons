@@ -39,6 +39,8 @@ spec:
                 kind: Gateway
                 metadata:
                   name: kubecost
+                  annotations:
+                    link.argocd.argoproj.io/external-link: "https://{{kubecost.hostname}}"
                 spec:
                   selector:
                     istio: ingressgateway

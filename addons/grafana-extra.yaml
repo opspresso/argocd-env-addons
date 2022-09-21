@@ -69,7 +69,7 @@ spec:
                 metadata:
                   name: grafana
                   annotations:
-                    link.argocd.argoproj.io/external-link: "{{grafana.hostname}}"
+                    link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
                 spec:
                   selector:
                     istio: ingressgateway

@@ -65,6 +65,8 @@ spec:
               #   kind: Gateway
               #   metadata:
               #     name: dashboard
+              #     annotations:
+              #       link.argocd.argoproj.io/external-link: "https://dashboard.{{hostname.public}}"
               #   spec:
               #     selector:
               #       istio: ingressgateway
