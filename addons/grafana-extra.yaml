@@ -68,6 +68,8 @@ spec:
                 kind: Gateway
                 metadata:
                   name: grafana
+                  annotations:
+                    link.argocd.argoproj.io/external-link: "{{grafana.hostname}}"
                 spec:
                   selector:
                     istio: ingressgateway
