@@ -38,6 +38,9 @@ spec:
               owner: "{{cluster}}"
               department: "addons"
 
+            podAnnotations:
+              link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
+
             admin:
               existingSecret: "grafana-secret"
 

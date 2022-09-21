@@ -56,6 +56,9 @@ spec:
               owner: "{{cluster}}"
               department: "addons"
 
+            podAnnotations:
+              link.argocd.argoproj.io/external-link: "https://rollouts.{{hostname.public}}"
+
             dashboard:
               enabled: true
 
