@@ -51,6 +51,8 @@ spec:
                 pass_host_header = true
                 pass_access_token = true
 
+                reverse_proxy = true
+
                 redirect_url = "https://auth.{{hostname.public}}/oauth2/callback"
 
                 oidc_issuer_url = "https://accounts.google.com"
