@@ -56,7 +56,7 @@ spec:
                 skip_jwt_bearer_tokens = true
                 silence_ping_logging = true
 
-                redirect_url = "https://auth.{{hostname.public}}/oauth2/callback"
+                # redirect_url = "https://auth.{{hostname.public}}/oauth2/callback"
 
                 oidc_issuer_url = "https://accounts.google.com"
 
