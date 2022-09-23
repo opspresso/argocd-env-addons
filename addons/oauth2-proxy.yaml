@@ -42,8 +42,8 @@ spec:
                 # upstreams = [ "file:///dev/null" ]
                 upstreams = [ "static://200" ]
 
-                cookie_domains=".{{hostname.public}}"
-                email_domains = ["*"]
+                cookie_domains = ".{{hostname.public}}"
+                email_domains = ["nalbam.com"]
                 whitelist_domains = [".{{hostname.public}}"]
 
                 set_xauthrequest = true
