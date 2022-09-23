@@ -83,37 +83,37 @@ spec:
                       remoteRef:
                         key: /k8s/common/cookie-secret
 
-              - apiVersion: networking.istio.io/v1beta1
-                kind: Gateway
-                metadata:
-                  name: oauth2-proxy
-                spec:
-                  selector:
-                    istio: ingressgateway
-                  servers:
-                    - hosts:
-                        - "auth.{{hostname.public}}"
-                      port:
-                        number: 80
-                        name: http
-                        protocol: HTTP
+              # - apiVersion: networking.istio.io/v1beta1
+              #   kind: Gateway
+              #   metadata:
+              #     name: oauth2-proxy
+              #   spec:
+              #     selector:
+              #       istio: ingressgateway
+              #     servers:
+              #       - hosts:
+              #           - "auth.{{hostname.public}}"
+              #         port:
+              #           number: 80
+              #           name: http
+              #           protocol: HTTP
 
-              - apiVersion: networking.istio.io/v1beta1
-                kind: VirtualService
-                metadata:
-                  name: oauth2-proxy
-                spec:
-                  hosts:
-                    - "auth.{{hostname.public}}"
-                  gateways:
-                    - oauth2-proxy
-                    - mesh
-                  http:
-                    - route:
-                        - destination:
-                            host: oauth2-proxy
-                            port:
-                              number: 80
+              # - apiVersion: networking.istio.io/v1beta1
+              #   kind: VirtualService
+              #   metadata:
+              #     name: oauth2-proxy
+              #   spec:
+              #     hosts:
+              #       - "auth.{{hostname.public}}"
+              #     gateways:
+              #       - oauth2-proxy
+              #       - mesh
+              #     http:
+              #       - route:
+              #           - destination:
+              #               host: oauth2-proxy
+              #               port:
+              #                 number: 80
 
               - apiVersion: security.istio.io/v1beta1
                 kind: AuthorizationPolicy
