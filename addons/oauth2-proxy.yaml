@@ -41,7 +41,7 @@ spec:
               configFile: |-
                 upstreams = [ "file:///dev/null" ]
 
-                whitelist_domains=[".nalbam.com"]
+                whitelist_domains=[".nalbam.com",".demo.nalbam.com"]
                 email_domains=["nalbam.com"]
 
                 set_xauthrequest=true
