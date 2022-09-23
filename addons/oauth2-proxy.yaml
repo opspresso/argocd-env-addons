@@ -102,6 +102,7 @@ spec:
                     - operation:
                         hosts:
                         - "dashboard.{{hostname.public}}"
+                        - "kubecost.{{hostname.public}}"
                         - "rollouts.{{hostname.public}}"
 
       syncPolicy:
