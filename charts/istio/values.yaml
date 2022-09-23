@@ -54,6 +54,9 @@ istiod:
             - cookie
             - x-forwarded-access-token
 
+    includeAdditionalHeadersInCheck:
+      authorization: "%REQ(x-auth-request-access-token)%"
+
 gateway:
   name: istio-ingressgateway
 
