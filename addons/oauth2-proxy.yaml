@@ -52,6 +52,7 @@ spec:
                 pass_access_token = true
 
                 reverse_proxy = true
+                silence_ping_logging = true
 
                 redirect_url = "https://auth.{{hostname.public}}/oauth2/callback"
 
