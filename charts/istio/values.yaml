@@ -36,6 +36,24 @@ istiod:
     enableTracing: true
     rootNamespace: istio-system
 
+    extensionProviders:
+    - name: "oauth2-proxy"
+      envoyExtAuthzHttp:
+        service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
+        port: "80"
+        headersToDownstreamOnDeny:
+          - content-type
+          - set-cookie
+        headersToUpstreamOnAllow:
+          - authorization
+          - cookie
+          - path
+          - x-auth-request-access-token
+          - x-forwarded-access-token
+        includeHeadersInCheck:
+          - "cookie"
+          - "x-forwarded-access-token"
+
 gateway:
   name: istio-ingressgateway
 

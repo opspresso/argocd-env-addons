@@ -112,7 +112,7 @@ spec:
                       istio: ingressgateway
                   action: CUSTOM
                   provider:
-                    name: "oauth2-proxy"
+                    name: oauth2-proxy
                   rules:
                   - to:
                     - operation:
