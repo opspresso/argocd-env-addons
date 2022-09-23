@@ -94,6 +94,10 @@ spec:
                             host: dashboard
                             port:
                               number: 80
+                          headers:
+                            request:
+                              set:
+                                Authorization: 'Bearer %REQ(x-auth-request-access-token)%'
 
       syncPolicy:
         automated:
