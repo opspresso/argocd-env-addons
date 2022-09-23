@@ -51,14 +51,8 @@ istiod:
             - x-auth-request-access-token
             - x-forwarded-access-token
           includeHeadersInCheck:
-            - authorization
             - cookie
-            - user-agent
             - x-forwarded-access-token
-            - x-forwarded-email
-            - x-forwarded-host
-            - x-forwarded-proto
-            - x-forwarded-user
           includeAdditionalHeadersInCheck:
             authorization: "%REQ(x-auth-request-access-token)%"
 
