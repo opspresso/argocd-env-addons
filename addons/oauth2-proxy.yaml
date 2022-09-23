@@ -40,6 +40,7 @@ spec:
 
               configFile: |-
                 upstreams = [ "file:///dev/null" ]
+                # upstreams = [ "static://200" ]
 
                 cookie_domains=".{{hostname.public}}"
                 email_domains = ["*"]
