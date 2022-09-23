@@ -123,16 +123,16 @@ spec:
                           - "x-envoy-upstream-service-time"
                           - "server"
 
-      # ignoreDifferences:
-      #   - kind: ValidatingWebhookConfiguration
-      #     group: admissionregistration.k8s.io
-      #     jsonPointers:
-      #       - /webhooks/0/clientConfig/caBundle
-      #       - /webhooks/0/failurePolicy
+      ignoreDifferences:
+        - kind: ValidatingWebhookConfiguration
+          group: admissionregistration.k8s.io
+          jsonPointers:
+            - /webhooks/0/clientConfig/caBundle
+            - /webhooks/0/failurePolicy
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
