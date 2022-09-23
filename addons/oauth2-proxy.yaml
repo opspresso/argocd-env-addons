@@ -104,7 +104,7 @@ spec:
                   - to:
                     - operation:
                         hosts:
-                        # - "dashboard.{{hostname.public}}"
+                        - "dashboard.{{hostname.public}}"
                         - "rollouts.{{hostname.public}}"
 
       syncPolicy:
