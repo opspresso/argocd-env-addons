@@ -55,6 +55,7 @@ spec:
             podLabels:
               owner: "{{cluster}}"
               department: "addons"
+              sidecar.istio.io/inject: 'true'
 
             podAnnotations:
               link.argocd.argoproj.io/external-link: "https://rollouts.{{hostname.public}}"
