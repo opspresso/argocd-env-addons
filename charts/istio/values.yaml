@@ -53,8 +53,8 @@ istiod:
           includeHeadersInCheck:
             - cookie
             - x-forwarded-access-token
-            - x-forwarded-user
-            - x-forwarded-email
+            # - x-forwarded-user
+            # - x-forwarded-email
           includeAdditionalHeadersInCheck:
             authorization: "%REQ(x-auth-request-access-token)%"
 
