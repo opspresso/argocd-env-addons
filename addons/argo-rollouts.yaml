@@ -341,11 +341,11 @@ spec:
                 trigger.on-scaling-replica-set: |
                   - send: [scaling-replicaset]
 
-      ignoreDifferences:
-        - kind: CustomResourceDefinition
-          group: apiextensions.k8s.io
-          jsonPointers:
-            - /spec/preserveUnknownFields
+      # ignoreDifferences:
+      #   - kind: CustomResourceDefinition
+      #     group: apiextensions.k8s.io
+      #     jsonPointers:
+      #       - /spec/preserveUnknownFields
 
       syncPolicy:
         automated:
