@@ -42,6 +42,7 @@ spec:
                 # upstreams = [ "file:///dev/null" ]
                 upstreams = [ "static://200" ]
 
+                cookie_secure = false
                 cookie_domains = ".{{hostname.public}}"
                 cookie_samesite = "lax"
 
