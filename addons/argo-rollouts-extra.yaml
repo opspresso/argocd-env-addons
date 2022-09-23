@@ -137,7 +137,7 @@ spec:
                   http:
                     - route:
                         - destination:
-                            host: argo-rollouts-dashboard
+                            host: argo-rollouts-dashboard.addon-argo-rollouts.svc.cluster.local
                             port:
                               number: 3100
                           # headers:
