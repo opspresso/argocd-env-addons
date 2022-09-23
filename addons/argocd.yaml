@@ -113,7 +113,7 @@ spec:
                   - id: oauth2-proxy-sso
                     name: OAuth2 Proxy
                     redirectURIs:
-                      - https://workflows.{{hostname.public}}/oauth2/callback
+                      - https://auth.{{hostname.public}}/oauth2/callback
                     secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
               rbacConfig:
