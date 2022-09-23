@@ -5,14 +5,14 @@ istiod:
         postStart:
           exec:
             command:
-            - pilot-agent
-            - wait
+              - pilot-agent
+              - wait
         preStop:
           exec:
             command:
-            - "/bin/sh"
-            - "-c"
-            - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
+              - "/bin/sh"
+              - "-c"
+              - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
 
     tracer:
       zipkin:
@@ -37,22 +37,22 @@ istiod:
     rootNamespace: istio-system
 
     extensionProviders:
-    - name: "oauth2-proxy"
-      envoyExtAuthzHttp:
-        service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
-        port: "80"
-        headersToDownstreamOnDeny:
-          - content-type
-          - set-cookie
-        headersToUpstreamOnAllow:
-          - authorization
-          - cookie
-          - path
-          - x-auth-request-access-token
-          - x-forwarded-access-token
-        includeHeadersInCheck:
-          - "cookie"
-          - "x-forwarded-access-token"
+      - name: oauth2-proxy
+        envoyExtAuthzHttp:
+          service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
+          port: "80"
+          headersToDownstreamOnDeny:
+            - content-type
+            - set-cookie
+          headersToUpstreamOnAllow:
+            - authorization
+            - cookie
+            - path
+            - x-auth-request-access-token
+            - x-forwarded-access-token
+          includeHeadersInCheck:
+            - cookie
+            - x-forwarded-access-token
 
 gateway:
   name: istio-ingressgateway
@@ -116,13 +116,13 @@ raw:
         name: istio-ingressgateway-metrics
       spec:
         endpoints:
-        - interval: 15s
-          path: /stats/prometheus
-          port: http-envoy-prom
+          - interval: 15s
+            path: /stats/prometheus
+            port: http-envoy-prom
         jobLabel: istio-ingressgateway
         namespaceSelector:
           matchNames:
-          - istio-system
+            - istio-system
         selector:
           matchLabels:
             app: istio-ingressgateway
@@ -137,18 +137,18 @@ raw:
         name: istio-components-metrics
       spec:
         endpoints:
-        - interval: 30s
-          metricRelabelings:
-            - sourceLabels:
-                - cluster
-              targetLabel: istio_cluster
-            - action: labeldrop
-              regex: cluster
-          port: http-monitoring
+          - interval: 30s
+            metricRelabelings:
+              - sourceLabels:
+                  - cluster
+                targetLabel: istio_cluster
+              - action: labeldrop
+                regex: cluster
+            port: http-monitoring
         jobLabel: istio
         namespaceSelector:
           matchNames:
-          - istio-system
+            - istio-system
         selector:
           matchExpressions:
             - key: istio
@@ -170,27 +170,27 @@ raw:
         name: istio-servicemesh-metrics
       spec:
         endpoints:
-        - interval: 15s
-          path: /stats/prometheus
-          relabelings:
-          - sourceLabels: [__meta_kubernetes_pod_container_port_name]
-            action: keep
-            regex: '.*-envoy-prom'
-          - action: labeldrop
-            regex: "__meta_kubernetes_pod_label_(.+)"
-          - sourceLabels: [__meta_kubernetes_namespace]
-            action: replace
-            targetLabel: namespace
-          - sourceLabels: [__meta_kubernetes_pod_name]
-            action: replace
-            targetLabel: pod_name
+          - interval: 15s
+            path: /stats/prometheus
+            relabelings:
+              - sourceLabels: [__meta_kubernetes_pod_container_port_name]
+                action: keep
+                regex: ".*-envoy-prom"
+              - action: labeldrop
+                regex: "__meta_kubernetes_pod_label_(.+)"
+              - sourceLabels: [__meta_kubernetes_namespace]
+                action: replace
+                targetLabel: namespace
+              - sourceLabels: [__meta_kubernetes_pod_name]
+                action: replace
+                targetLabel: pod_name
         jobLabel: istio-servicemesh
         namespaceSelector:
           any: true
         selector:
           matchExpressions:
-          - key: istio
-            operator: DoesNotExist
+            - key: istio
+              operator: DoesNotExist
 
     - apiVersion: networking.istio.io/v1alpha3
       kind: EnvoyFilter
@@ -201,25 +201,25 @@ raw:
           labels:
             istio: ingressgateway
         configPatches:
-        - applyTo: NETWORK_FILTER
-          match:
-            context: GATEWAY
-            listener:
-              filterChain:
-                filter:
-                  name: "envoy.filters.network.http_connection_manager"
-          patch:
-            operation: MERGE
-            value:
-              typed_config:
-                "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-                server_header_transformation: PASS_THROUGH
-        - applyTo: ROUTE_CONFIGURATION
-          match:
-            context: GATEWAY
-          patch:
-            operation: MERGE
-            value:
-              response_headers_to_remove:
-              - "x-envoy-upstream-service-time"
-              - "server"
+          - applyTo: NETWORK_FILTER
+            match:
+              context: GATEWAY
+              listener:
+                filterChain:
+                  filter:
+                    name: "envoy.filters.network.http_connection_manager"
+            patch:
+              operation: MERGE
+              value:
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+                  server_header_transformation: PASS_THROUGH
+          - applyTo: ROUTE_CONFIGURATION
+            match:
+              context: GATEWAY
+            patch:
+              operation: MERGE
+              value:
+                response_headers_to_remove:
+                  - "x-envoy-upstream-service-time"
+                  - "server"
