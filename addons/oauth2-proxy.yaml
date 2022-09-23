@@ -41,8 +41,8 @@ spec:
               configFile: |-
                 upstreams = [ "file:///dev/null" ]
 
-                whitelist_domains = [".{{hostname.public}}"]
                 email_domains = ["*"]
+                # whitelist_domains = [".{{hostname.public}}"]
 
                 set_xauthrequest = true
                 set_authorization_header = true
