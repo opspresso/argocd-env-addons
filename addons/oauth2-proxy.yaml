@@ -42,10 +42,7 @@ spec:
                 # upstreams = [ "file:///dev/null" ]
                 upstreams = [ "static://200" ]
 
-                cookie_secure = true
                 cookie_domains = ".{{hostname.public}}"
-                cookie_samesite = "lax"
-
                 email_domains = ["nalbam.com"]
                 whitelist_domains = [".{{hostname.public}}"]
 
@@ -59,7 +56,7 @@ spec:
                 auth_logging = true
                 request_logging = true
 
-                # reverse_proxy = true
+                reverse_proxy = true
                 # skip_jwt_bearer_tokens = true
                 silence_ping_logging = true
 
