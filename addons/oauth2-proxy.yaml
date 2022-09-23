@@ -52,11 +52,9 @@ spec:
                 pass_host_header = true
                 pass_access_token = true
 
-                reverse_proxy = true
-                skip_jwt_bearer_tokens = true
+                # reverse_proxy = true
+                # skip_jwt_bearer_tokens = true
                 silence_ping_logging = true
-
-                # redirect_url = "https://auth.{{hostname.public}}/oauth2/callback"
 
                 oidc_issuer_url = "https://accounts.google.com"
 
@@ -82,38 +80,6 @@ spec:
                     - secretKey: cookie-secret
                       remoteRef:
                         key: /k8s/common/cookie-secret
-
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: Gateway
-              #   metadata:
-              #     name: oauth2-proxy
-              #   spec:
-              #     selector:
-              #       istio: ingressgateway
-              #     servers:
-              #       - hosts:
-              #           - "auth.{{hostname.public}}"
-              #         port:
-              #           number: 80
-              #           name: http
-              #           protocol: HTTP
-
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: VirtualService
-              #   metadata:
-              #     name: oauth2-proxy
-              #   spec:
-              #     hosts:
-              #       - "auth.{{hostname.public}}"
-              #     gateways:
-              #       - oauth2-proxy
-              #       - mesh
-              #     http:
-              #       - route:
-              #           - destination:
-              #               host: oauth2-proxy
-              #               port:
-              #                 number: 80
 
               - apiVersion: security.istio.io/v1beta1
                 kind: AuthorizationPolicy
