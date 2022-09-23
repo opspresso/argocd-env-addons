@@ -39,8 +39,8 @@ spec:
                 existingSecret: oauth2-proxy-secret
 
               configFile: |-
-                upstreams = [ "file:///dev/null" ]
-                # upstreams = [ "static://200" ]
+                # upstreams = [ "file:///dev/null" ]
+                upstreams = [ "static://200" ]
 
                 cookie_domains=".{{hostname.public}}"
                 email_domains = ["*"]
