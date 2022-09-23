@@ -140,10 +140,10 @@ spec:
                             host: argo-rollouts-dashboard
                             port:
                               number: 3100
-                          headers:
-                            request:
-                              set:
-                                Authorization: 'Bearer %REQ(x-auth-request-access-token)%'
+                          # headers:
+                          #   request:
+                          #     set:
+                          #       Authorization: 'Bearer %REQ(x-auth-request-access-token)%'
 
       syncPolicy:
         automated:
