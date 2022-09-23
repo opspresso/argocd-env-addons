@@ -44,7 +44,7 @@ spec:
                 whitelist_domains=[".nalbam.com"]
                 email_domains=["nalbam.com"]
 
-                redirect_url="http://auth.{{hostname.public}}/oauth2/callback"
+                redirect_url="https://auth.{{hostname.public}}/oauth2/callback"
 
             extraArgs:
               oidc-issuer-url: https://accounts.google.com
