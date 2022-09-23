@@ -131,6 +131,7 @@ spec:
                   - to:
                     - operation:
                         hosts:
+                        - "dashboard.{{hostname.public}}"
                         - "rollouts.{{hostname.public}}"
 
       syncPolicy:

@@ -61,39 +61,39 @@ spec:
                     namespace: addon-dashboard
                     name: dashboard
 
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: Gateway
-              #   metadata:
-              #     name: dashboard
-              #     annotations:
-              #       link.argocd.argoproj.io/external-link: "https://dashboard.{{hostname.public}}"
-              #   spec:
-              #     selector:
-              #       istio: ingressgateway
-              #     servers:
-              #       - hosts:
-              #           - "dashboard.{{hostname.public}}"
-              #         port:
-              #           number: 80
-              #           name: http
-              #           protocol: HTTP
+              - apiVersion: networking.istio.io/v1beta1
+                kind: Gateway
+                metadata:
+                  name: dashboard
+                  annotations:
+                    link.argocd.argoproj.io/external-link: "https://dashboard.{{hostname.public}}"
+                spec:
+                  selector:
+                    istio: ingressgateway
+                  servers:
+                    - hosts:
+                        - "dashboard.{{hostname.public}}"
+                      port:
+                        number: 80
+                        name: http
+                        protocol: HTTP
 
-              # - apiVersion: networking.istio.io/v1beta1
-              #   kind: VirtualService
-              #   metadata:
-              #     name: dashboard
-              #   spec:
-              #     hosts:
-              #       - "dashboard.{{hostname.public}}"
-              #     gateways:
-              #       - dashboard
-              #       - mesh
-              #     http:
-              #       - route:
-              #           - destination:
-              #               host: dashboard
-              #               port:
-              #                 number: 80
+              - apiVersion: networking.istio.io/v1beta1
+                kind: VirtualService
+                metadata:
+                  name: dashboard
+                spec:
+                  hosts:
+                    - "dashboard.{{hostname.public}}"
+                  gateways:
+                    - dashboard
+                    - mesh
+                  http:
+                    - route:
+                        - destination:
+                            host: dashboard
+                            port:
+                              number: 80
 
       syncPolicy:
         automated:
