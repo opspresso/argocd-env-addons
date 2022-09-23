@@ -38,9 +38,13 @@ spec:
               google:
                 existingSecret: oauth2-proxy-secret
 
+              configFile: |-
+                upstreams = [ "file:///dev/null" ]
+                whitelist_domains=[".nalbam.com"]
+                email_domains=["nalbam.com"]
+
             extraArgs:
               oidc-issuer-url: https://accounts.google.com
-              whitelist-domain: nalbam.com
 
             extraObjects:
               - apiVersion: external-secrets.io/v1beta1
@@ -96,6 +100,24 @@ spec:
                             host: oauth2-proxy
                             port:
                               number: 80
+
+              - apiVersion: security.istio.io/v1beta1
+                kind: AuthorizationPolicy
+                metadata:
+                  name: oauth-policy
+                  namespace: istio-system
+                spec:
+                  selector:
+                    matchLabels:
+                      istio: ingressgateway
+                  action: CUSTOM
+                  provider:
+                    name: "oauth2-proxy"
+                  rules:
+                  - to:
+                    - operation:
+                        hosts:
+                        - "rollouts.{{hostname.public}}"
 
       syncPolicy:
         automated:
