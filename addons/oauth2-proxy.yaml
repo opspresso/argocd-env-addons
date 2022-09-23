@@ -43,6 +43,8 @@ spec:
                 upstreams = [ "static://200" ]
 
                 cookie_domains = ".{{hostname.public}}"
+                cookie_samesite = "lax"
+
                 email_domains = ["nalbam.com"]
                 whitelist_domains = [".{{hostname.public}}"]
 
