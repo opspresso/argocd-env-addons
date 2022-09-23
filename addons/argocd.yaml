@@ -110,6 +110,11 @@ spec:
                     redirectURIs:
                       - https://workflows.{{hostname.public}}/oauth2/callback
                     secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
+                  - id: oauth2-proxy-sso
+                    name: OAuth2 Proxy
+                    redirectURIs:
+                      - https://workflows.{{hostname.public}}/oauth2/callback
+                    secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
               rbacConfig:
                 policy.default: "role:readonly"
@@ -165,6 +170,11 @@ spec:
                     secretKeyRef:
                       name: argocd-secret
                       key: argo-workflows-client-secret
+                - name: OAUTH2_PROXY_SSO_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: argocd-secret
+                      key: oauth2-proxy-client-secret
 
               metrics:
                 enabled: true
@@ -559,6 +569,9 @@ spec:
                     - secretKey: argo-workflows-client-secret
                       remoteRef:
                         key: /k8s/common/argo-workflows-client-secret
+                    - secretKey: oauth2-proxy-client-secret
+                      remoteRef:
+                        key: /k8s/common/oauth2-proxy-client-secret
 
               - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret
