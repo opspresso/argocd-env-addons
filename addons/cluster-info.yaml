@@ -69,9 +69,50 @@ spec:
                       remoteRef:
                         key: /k8s/common/{{cluster}}/cluster_version
 
+              - apiVersion: v1
+                kind: ConfigMap
+                metadata:
+                  name: aws-auth
+                  namespace: kube-system
+                data:
+                  mapRoles: |
+                    - "groups":
+                      - "system:bootstrappers"
+                      - "system:nodes"
+                      "rolearn": "arn:aws:iam::{{aws_account_id}}:role/{{cluster}}-worker"
+                      "username": "system:node:{{EC2PrivateDNSName}}"
+                    - "groups":
+                      - "system:masters"
+                      "rolearn": "arn:aws:iam::{{aws_account_id}}:role/atlantis-ecs_task_execution"
+                      "username": "atlantis-ecs"
+                    - "groups":
+                      - "system:masters"
+                      "rolearn": "arn:aws:iam::{{aws_account_id}}:role/irsa--eks-demo--atlantis"
+                      "username": "atlantis-eks"
+                    - "groups":
+                      - "system:masters"
+                      "rolearn": "arn:aws:iam::{{aws_account_id}}:role/k8s-master"
+                      "username": "k8s-master"
+                    - "groups": []
+                      "rolearn": "arn:aws:iam::{{aws_account_id}}:role/k8s-readonly"
+                      "username": "k8s-readonly"
+                  mapUsers: |
+                    - "groups":
+                      - "system:masters"
+                      "userarn": "arn:aws:iam::{{aws_account_id}}:user/ops"
+                      "username": "iam-user-ops"
+                    - "groups":
+                      - "system:masters"
+                      "userarn": "arn:aws:iam::{{aws_account_id}}:user/bruce"
+                      "username": "iam-user-bruce"
+                    - "groups":
+                      - "system:masters"
+                      "userarn": "arn:aws:iam::{{aws_account_id}}:user/jungyoul.yu"
+                      "username": "iam-user-jungyoul.yu"
+
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
