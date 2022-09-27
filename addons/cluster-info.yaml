@@ -39,6 +39,8 @@ spec:
                 kind: ConfigMap
                 metadata:
                   name: cluster-info
+                  labels:
+                    krmt.io/type: "cluster-info"
                 data:
                   AWS_ACCOUNT_ID: "{{aws_account_id}}"
                   AWS_REGION: "{{aws_region}}"
@@ -51,6 +53,8 @@ spec:
                 kind: ExternalSecret
                 metadata:
                   name: cluster-info
+                  labels:
+                    krmt.io/type: "cluster-info"
                 spec:
                   refreshInterval: 1h
                   secretStoreRef:
