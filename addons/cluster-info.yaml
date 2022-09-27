@@ -38,7 +38,7 @@ spec:
               - apiVersion: v1
                 kind: ConfigMap
                 metadata:
-                  name: cluster-info-{{cluster}}
+                  name: cluster-info
                   labels:
                     krmt.io/type: "cluster-info"
                     krmt.io/cluster: "{{cluster}}"
