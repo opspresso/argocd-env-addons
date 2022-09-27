@@ -3,6 +3,7 @@ cluster: eks-demo-a
 country: kr
 env: alpha
 role: svc
+active: true
 
 cluster_oidc: ""
 

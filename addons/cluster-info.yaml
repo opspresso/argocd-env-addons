@@ -42,6 +42,7 @@ spec:
                   labels:
                     krmt.io/type: "cluster-info"
                 data:
+                  ACTIVE: "{{active}}"
                   AWS_ACCOUNT_ID: "{{aws_account_id}}"
                   AWS_REGION: "{{aws_region}}"
                   CLUSTER: "{{cluster}}"
