@@ -43,13 +43,13 @@ spec:
                     krmt.io/type: "cluster-info"
                     krmt.io/cluster: "{{cluster}}"
                 data:
-                  ACTIVE: "{{active}}"
-                  AWS_ACCOUNT_ID: "{{aws_account_id}}"
-                  AWS_REGION: "{{aws_region}}"
-                  CLUSTER: "{{cluster}}"
-                  COUNTRY: "{{country}}"
-                  ENV: "{{env}}"
-                  ROLE: "{{role}}"
+                  active: "{{active}}"
+                  aws_account_id: "{{aws_account_id}}"
+                  aws_region: "{{aws_region}}"
+                  cluster: "{{cluster}}"
+                  country: "{{country}}"
+                  env: "{{env}}"
+                  role: "{{role}}"
 
               - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret
