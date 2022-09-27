@@ -38,9 +38,10 @@ spec:
               - apiVersion: v1
                 kind: ConfigMap
                 metadata:
-                  name: cluster-info
+                  name: cluster-info-{{cluster}}
                   labels:
                     krmt.io/type: "cluster-info"
+                    krmt.io/cluster: "{{cluster}}"
                 data:
                   ACTIVE: "{{active}}"
                   AWS_ACCOUNT_ID: "{{aws_account_id}}"
