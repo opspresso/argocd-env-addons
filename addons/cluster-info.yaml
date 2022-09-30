@@ -102,7 +102,7 @@ spec:
                     - "groups": []
                       "rolearn": "arn:aws:iam::{{aws_account_id}}:role/k8s-readonly"
                       "username": "k8s-readonly"
-                  mapUsers: |
+                  mapUsers: |-
                     - "groups":
                       - "system:masters"
                       "userarn": "arn:aws:iam::{{aws_account_id}}:user/ops"
