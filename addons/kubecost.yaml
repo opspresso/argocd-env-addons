@@ -141,7 +141,7 @@ spec:
               group: monitoring
 
             persistentVolume:
-              storageClass: gp3
+              storageClass: gp3 # aws-ebs-sc
               size: 32Gi
 
             prometheus:
