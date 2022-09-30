@@ -207,7 +207,7 @@ spec:
               accessModes:
                 - ReadWriteOnce
               size: 5Gi
-              storageClassName: gp3
+              storageClassName: gp2 # aws-ebs-sc
 
             serviceMonitor:
               enabled: true
