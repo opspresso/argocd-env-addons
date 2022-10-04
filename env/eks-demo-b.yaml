@@ -5,8 +5,6 @@ env: alpha
 role: svc
 active: true
 
-cluster_oidc: ""
-
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
 

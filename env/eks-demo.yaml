@@ -5,8 +5,6 @@ env: alpha
 role: mgt
 active: true
 
-cluster_oidc: "oidc.eks.ap-northeast-2.amazonaws.com/id/73ECFF421C517FF6DFF95767FF2CF8FD"
-
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
 
