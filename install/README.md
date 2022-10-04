@@ -115,13 +115,13 @@ argocd-server | LoadBalancer | 172.20.41.157 | xxx-000.apne2.elb.amazonaws.com |
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
 
 ```bash
-cd external-dns
+# cd external-dns
 
 helm upgrade --install external-dns external-dns/external-dns \
   -n addon-external-dns --create-namespace \
-  -f values.output.yaml
+  -f external-dns/values.output.yaml
 
-cd ..
+# cd ..
 
 POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadata.name' -r)
 kubectl logs ${POD_NAME} -n addon-external-dns
