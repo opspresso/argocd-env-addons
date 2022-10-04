@@ -41,7 +41,7 @@ spec:
               fullnameOverride: postgresql
               existingSecret: "cloud-pricing-api-secret"
               persistence:
-                storageClass: gp3 # aws-ebs-sc
+                storageClass: gp2 # aws-ebs-sc
 
       syncPolicy:
         automated:
