@@ -92,10 +92,6 @@
       "default": "4.2.5",
       "description": "ingress-nginx/ingress-nginx"
     },
-    "helm_irsa_operator": {
-      "default": "0.1.6",
-      "description": "irsa-operator/irsa-operator"
-    },
     "helm_istio": {
       "default": "1.15.1",
       "description": "istio/istiod"
