@@ -49,6 +49,8 @@ spec:
                   cluster: "{{cluster}}"
                   country: "{{country}}"
                   env: "{{env}}"
+                  istio_version: "1.14.4"
+                  kubelet_version: "v1.22.5"
                   role: "{{role}}"
 
               - apiVersion: external-secrets.io/v1beta1
