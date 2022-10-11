@@ -41,7 +41,7 @@ spec:
             extraArgs:
               - --enable-skip-login
               - --enable-insecure-login
-              - --authentication-mode=token
+              # - --authentication-mode=token
 
             protocolHttp: true
 
