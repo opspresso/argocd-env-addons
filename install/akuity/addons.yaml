@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: addons-demo
-  namespace: akuity
+  namespace: default
   labels:
     krmt.io/group: addons
 spec:
@@ -12,8 +12,8 @@ spec:
     targetRevision: HEAD
     path: addons
   destination:
-    name: in-cluster
-    namespace: akuity
+    name: eks-demo
+    namespace: default
   syncPolicy:
     automated:
       prune: true
