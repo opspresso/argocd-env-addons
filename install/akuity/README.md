@@ -12,7 +12,7 @@ argocd app create addons --repo https://github.com/opspresso/argocd-env-addons -
   --dest-namespace argocd --dest-server https://kubernetes.default.svc --directory-recurse \
   --sync-policy automated --self-heal --sync-option Prune=true
 
-argocd app create apps --repo https://github.com/opspresso/argocd-env-apps --path apps \
+argocd app create apps --repo https://github.com/opspresso/argocd-env-demo --path apps \
   --dest-namespace argocd --dest-server https://kubernetes.default.svc --directory-recurse \
   --sync-policy automated --self-heal --sync-option Prune=true
 
