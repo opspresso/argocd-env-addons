@@ -26,7 +26,7 @@ spec:
         namespace: addon-atlantis
       source:
         repoURL: https://runatlantis.github.io/helm-charts
-        targetRevision: "4.1.0"
+        targetRevision: "4.1.2"
         chart: atlantis
         helm:
           values: |-

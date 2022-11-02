@@ -28,7 +28,7 @@ spec:
         namespace: addon-cluster-proportional-autoscaler
       source:
         repoURL: https://kubernetes-sigs.github.io/cluster-proportional-autoscaler
-        targetRevision: "1.0.0"
+        targetRevision: "1.0.1"
         chart: cluster-proportional-autoscaler
         helm:
           values: |-
