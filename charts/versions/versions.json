@@ -109,7 +109,7 @@
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
-      "default": "41.7.2",
+      "default": "41.7.3",
       "description": "prometheus/kube-prometheus-stack"
     },
     "helm_kubernetes_dashboard": {
