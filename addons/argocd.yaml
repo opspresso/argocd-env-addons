@@ -533,7 +533,7 @@ spec:
               - apiVersion: networking.istio.io/v1beta1
                 kind: Gateway
                 metadata:
-                  name: argocd
+                  name: argocd-server
                 spec:
                   selector:
                     istio: ingressgateway
@@ -548,12 +548,12 @@ spec:
               - apiVersion: networking.istio.io/v1beta1
                 kind: VirtualService
                 metadata:
-                  name: argocd
+                  name: argocd-server
                 spec:
                   hosts:
                     - "{{argocd.hostname}}"
                   gateways:
-                    - argocd
+                    - argocd-server
                     - mesh
                   http:
                     - route:
