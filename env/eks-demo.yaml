@@ -16,13 +16,13 @@ argocd:
   acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/592c9e8f-c8a9-461f-a7cc-9f8179dcf32b
   hostname: argocd.demo.nalbam.com
   github:
-    org: daangn
+    org: opspresso # daangn
     team: sre
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
 
 argo-workflows:
   github:
-    org: daangn
+    org: opspresso # daangn
     team: sre
 
 atlantis:
@@ -87,14 +87,10 @@ grafana:
   auth:
     github:
       enabled: true
-      org: daangn
+      org: opspresso # daangn
     google:
       enabled: false
       allowed_domains: nalbam.com daangn.com
-    keycloak:
-      enabled: false
-      hostname: keycloak.demo.nalbam.com
-      realm: demo
   datasource:
     demo: http://prom.in.demo.nalbam.com
     demo-a: http://prom.in.demo-a.nalbam.com
