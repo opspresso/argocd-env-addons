@@ -1,7 +1,7 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "5.13.1",
+      "default": "5.13.2",
       "description": "argo/argo-cd"
     },
     "helm_argo_events": {
@@ -65,7 +65,7 @@
       "description": "cortex/cortex"
     },
     "helm_cost_analyzer": {
-      "default": "1.97.0",
+      "default": "1.98.0",
       "description": "kubecost/cost-analyzer"
     },
     "helm_crossplane": {
@@ -73,7 +73,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "3.1.11",
+      "default": "3.2.0",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -133,7 +133,7 @@
       "description": "oauth2-proxy/oauth2-proxy"
     },
     "helm_prometheus": {
-      "default": "15.17.0",
+      "default": "15.18.0",
       "description": "prometheus/prometheus"
     },
     "helm_prometheus_adapter": {
