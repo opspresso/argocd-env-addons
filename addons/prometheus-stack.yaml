@@ -178,9 +178,9 @@ spec:
       #       - /webhooks/0/failurePolicy
 
       syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
+        # automated:
+        #   prune: true
+        #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
