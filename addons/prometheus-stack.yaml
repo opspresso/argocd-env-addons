@@ -168,6 +168,14 @@ spec:
                   - action: replace
                     sourceLabels: [__metrics_path__]
                     targetLabel: metrics_path
+                cAdvisorRelabelings:
+                  - action: replace
+                    sourceLabels: [__metrics_path__]
+                    targetLabel: metrics_path
+                probesRelabelings:
+                  - action: replace
+                    sourceLabels: [__metrics_path__]
+                    targetLabel: metrics_path
 
             grafana:
               enabled: false
