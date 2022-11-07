@@ -136,13 +136,13 @@
       "default": "15.18.0",
       "description": "prometheus/prometheus"
     },
-    "helm_promtail": {
-      "default": "15.18.0",
-      "description": "grafana/promtail"
-    },
     "helm_prometheus_adapter": {
       "default": "3.4.1",
       "description": "prometheus/prometheus-adapter"
+    },
+    "helm_promtail": {
+      "default": "6.6.1",
+      "description": "grafana/promtail"
     },
     "helm_raw": {
       "default": "0.2.5",
