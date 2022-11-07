@@ -71,7 +71,7 @@ spec:
                 memory: 1Gi
                 cpu: 200m
 
-            storageClassName: gp2 # aws-ebs-sc
+            storageClassName: gp3 # aws-ebs-sc
             dataStorage: 15Gi
 
             service:
