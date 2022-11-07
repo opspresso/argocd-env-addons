@@ -162,6 +162,13 @@ spec:
               image:
                 repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
 
+            kubelet:
+              serviceMonitor:
+                relabelings:
+                  - action: replace
+                    sourceLabels: [__metrics_path__]
+                    targetLabel: metrics_path
+
             grafana:
               enabled: false
 
@@ -178,9 +185,9 @@ spec:
       #       - /webhooks/0/failurePolicy
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
           - ServerSideApply=true
