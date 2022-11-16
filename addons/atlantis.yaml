@@ -65,11 +65,11 @@ spec:
 
             resources:
               requests:
+                cpu: 200m
                 memory: 512Mi
-                cpu: 200m
               limits:
-                memory: 1Gi
                 cpu: 200m
+                memory: 1Gi
 
             storageClassName: gp3 # aws-ebs-sc
             dataStorage: 15Gi
