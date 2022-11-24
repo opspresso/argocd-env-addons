@@ -24,7 +24,7 @@ spec:
     spec:
       project: addons
       destination:
-        name: "{{cluster_name}}"
+        name: "{{cluster}}"
         namespace: addon-chaoskube
       source:
         repoURL: https://linki.github.io/chaoskube
