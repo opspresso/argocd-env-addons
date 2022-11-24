@@ -35,7 +35,7 @@ aws-efs-csi-driver:
   efs-id: ""
 
 istio:
-  version: "1.14.1" # istio eks-demo
+  version: "1.15.2" # istio eks-demo-a
   global:
     hub: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com/mirror/istio
   pilot:
