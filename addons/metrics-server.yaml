@@ -28,7 +28,7 @@ spec:
         namespace: addon-metrics-server
       source:
         repoURL: https://kubernetes-sigs.github.io/metrics-server
-        targetRevision: "3.8.2"
+        targetRevision: "3.8.3"
         chart: metrics-server
         helm:
           values: |-

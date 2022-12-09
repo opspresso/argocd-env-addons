@@ -1,7 +1,7 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "5.16.1",
+      "default": "5.16.2",
       "description": "argo/argo-cd"
     },
     "helm_argo_events": {
@@ -73,7 +73,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "3.5.0",
+      "default": "3.5.1",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -85,7 +85,7 @@
       "description": "external-secrets/external-secrets"
     },
     "helm_grafana": {
-      "default": "6.45.1",
+      "default": "6.46.1",
       "description": "grafana/grafana"
     },
     "helm_ingress_nginx": {
@@ -117,7 +117,7 @@
       "description": "dashboard/kubernetes-dashboard"
     },
     "helm_loki": {
-      "default": "3.6.0",
+      "default": "3.6.1",
       "description": "grafana/loki"
     },
     "helm_loki_stack": {
@@ -125,7 +125,7 @@
       "description": "grafana/loki-stack"
     },
     "helm_metrics_server": {
-      "default": "3.8.2",
+      "default": "3.8.3",
       "description": "metrics-server/metrics-server"
     },
     "helm_oauth2_proxy": {
@@ -141,7 +141,7 @@
       "description": "prometheus/prometheus-adapter"
     },
     "helm_promtail": {
-      "default": "6.7.1",
+      "default": "6.7.2",
       "description": "grafana/promtail"
     },
     "helm_raw": {
