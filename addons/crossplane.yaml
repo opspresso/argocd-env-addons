@@ -9,8 +9,8 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          - path: "env/eks-demo-a.yaml"
-          - path: "env/eks-demo-b.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
