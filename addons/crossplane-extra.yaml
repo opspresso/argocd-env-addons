@@ -16,7 +16,7 @@ spec:
     metadata:
       name: "crossplane-extra-{{cluster}}"
       annotations:
-        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-crossplane-alpha-addon
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         krmt.io/cluster: "{{cluster}}"
