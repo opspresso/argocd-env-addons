@@ -40,7 +40,7 @@ spec:
                 metadata:
                   name: provider-aws
                 spec:
-                  package: "crossplane/provider-aws:v0.22.0"
+                  package: "crossplane/provider-aws:v0.34.0"
                   # https://github.com/crossplane/provider-aws
 
               - apiVersion: external-secrets.io/v1beta1
