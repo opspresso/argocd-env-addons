@@ -51,12 +51,12 @@ spec:
             #   nodeSelector:
             #     group: graviton
 
-      # ignoreDifferences:
-      #   - group: rbac.authorization.k8s.io
-      #     kind: ClusterRole
-      #     name: crossplane
-      #     jsonPointers:
-      #       - /rules
+      ignoreDifferences:
+        - group: rbac.authorization.k8s.io
+          kind: ClusterRole
+          name: crossplane
+          jsonPointers:
+            - /rules
 
       syncPolicy:
         automated:
