@@ -43,15 +43,21 @@ spec:
                   package: "crossplane/provider-aws:v0.22.0"
                   # https://github.com/crossplane/provider-aws
 
-              - apiVersion: kubernetes-client.io/v1
+              - apiVersion: external-secrets.io/v1beta1
                 kind: ExternalSecret
                 metadata:
                   name: crossplane-cred-aws-bruce-ops
                 spec:
-                  backendType: secretsManager
+                  refreshInterval: 1h
+                  secretStoreRef:
+                    kind: ClusterSecretStore
+                    name: parameter-store
+                  target:
+                    name: crossplane-cred-aws-bruce-ops
                   data:
-                    - key: /k8s/common/crossplane-cred-aws-bruce-ops
-                      name: credentials
+                    - secretKey: credentials
+                      remoteRef:
+                        key: /k8s/common/crossplane-cred-aws-bruce-ops
 
               - apiVersion: aws.crossplane.io/v1beta1
                 kind: ProviderConfig
