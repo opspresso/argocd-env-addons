@@ -28,7 +28,7 @@ spec:
         namespace: addon-crossplane
       source:
         repoURL: https://charts.crossplane.io/stable
-        targetRevision: "1.5.1"
+        targetRevision: "1.10.1"
         chart: crossplane
         helm:
           values: |-

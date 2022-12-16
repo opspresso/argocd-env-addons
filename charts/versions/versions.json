@@ -1,11 +1,11 @@
 {
   "variable": {
     "helm_argo_cd": {
-      "default": "5.16.2",
+      "default": "5.16.6",
       "description": "argo/argo-cd"
     },
     "helm_argo_events": {
-      "default": "2.0.7",
+      "default": "2.0.8",
       "description": "argo/argo-events"
     },
     "helm_argo_rollouts": {
@@ -17,7 +17,7 @@
       "description": "argo/argo-workflows"
     },
     "helm_atlantis": {
-      "default": "4.7.0",
+      "default": "4.8.1",
       "description": "atlantis/atlantis"
     },
     "helm_aws_ebs_csi_driver": {
@@ -25,7 +25,7 @@
       "description": "aws-ebs-csi-driver/aws-ebs-csi-driver"
     },
     "helm_aws_efs_csi_driver": {
-      "default": "2.3.4",
+      "default": "2.3.5",
       "description": "aws-efs-csi-driver/aws-efs-csi-driver"
     },
     "helm_aws_load_balancer_controller": {
@@ -33,7 +33,7 @@
       "description": "eks/aws-load-balancer-controller"
     },
     "helm_aws_node_termination_handler": {
-      "default": "0.20.1",
+      "default": "0.20.2",
       "description": "eks/aws-node-termination-handler"
     },
     "helm_cert_manager": {
@@ -49,7 +49,7 @@
       "description": "infracost/cloud-pricing-api"
     },
     "helm_cluster_autoscaler": {
-      "default": "9.21.0",
+      "default": "9.21.1",
       "description": "autoscaler/cluster-autoscaler"
     },
     "helm_cluster_overprovisioner": {
@@ -65,7 +65,7 @@
       "description": "cortex/cortex"
     },
     "helm_cost_analyzer": {
-      "default": "1.98.0",
+      "default": "1.99.0",
       "description": "kubecost/cost-analyzer"
     },
     "helm_crossplane": {
@@ -73,7 +73,7 @@
       "description": "crossplane/crossplane"
     },
     "helm_datadog": {
-      "default": "3.5.1",
+      "default": "3.6.4",
       "description": "datadog/datadog"
     },
     "helm_external_dns": {
@@ -93,7 +93,7 @@
       "description": "ingress-nginx/ingress-nginx"
     },
     "helm_istio": {
-      "default": "1.16.0",
+      "default": "1.16.1",
       "description": "istio/istiod"
     },
     "helm_jaeger": {
@@ -109,7 +109,7 @@
       "description": "kiali/kiali-server"
     },
     "helm_kube_prometheus_stack": {
-      "default": "42.3.0",
+      "default": "43.1.0",
       "description": "prometheus/kube-prometheus-stack"
     },
     "helm_kubernetes_dashboard": {
@@ -117,11 +117,11 @@
       "description": "dashboard/kubernetes-dashboard"
     },
     "helm_loki": {
-      "default": "3.6.1",
+      "default": "3.8.0",
       "description": "grafana/loki"
     },
     "helm_loki_stack": {
-      "default": "2.8.7",
+      "default": "2.8.8",
       "description": "grafana/loki-stack"
     },
     "helm_metrics_server": {
