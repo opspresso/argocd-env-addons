@@ -33,7 +33,7 @@ argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 
 ```bash
 argocd app create addons --repo https://github.com/opspresso/argocd-env-addons --path addons \
-  --dest-namespace argocd --dest-name in-cluster --directory-recurse --project addons \
+  --dest-namespace argocd --dest-name eks-demo --directory-recurse --project addons \
   --sync-policy automated --self-heal --sync-option Prune=true
 ```
 
@@ -41,6 +41,6 @@ argocd app create addons --repo https://github.com/opspresso/argocd-env-addons -
 
 ```bash
 argocd app create apps --repo https://github.com/opspresso/argocd-env-demo --path apps \
-  --dest-namespace argocd --dest-name in-cluster --directory-recurse --project apps \
+  --dest-namespace argocd --dest-name eks-demo --directory-recurse --project apps \
   --sync-policy automated --self-heal --sync-option Prune=true
 ```
