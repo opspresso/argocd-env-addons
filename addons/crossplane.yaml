@@ -34,22 +34,9 @@ spec:
           values: |-
             fullnameOverride: crossplane
 
-            # tolerations:
-            #   - key: group
-            #     operator: Equal
-            #     value: graviton
-            #     effect: NoSchedule
-            # nodeSelector:
-            #   group: graviton
-
-            # rbacManager:
-            #   tolerations:
-            #     - key: group
-            #       operator: Equal
-            #       value: graviton
-            #       effect: NoSchedule
-            #   nodeSelector:
-            #     group: graviton
+            serviceAccount:
+              customAnnotations:
+                eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--crossplane"
 
       ignoreDifferences:
         - group: rbac.authorization.k8s.io
