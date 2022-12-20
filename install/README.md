@@ -143,6 +143,9 @@ argocd cluster add eks-demo -y
 
 # argocd cluster add eks-demo-a -y
 # argocd cluster add eks-demo-b -y
+
+argocd proj create addons --allow-cluster-resource '*/*' --dest '*,*' --src '*'
+argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 ```
 
 ## addons
