@@ -9,11 +9,13 @@ export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
 argocd login opspresso.cd.akuity.cloud --grpc-web --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
+
+export CLUSTER="eks-demo"
 ```
 
 ## add cluster
 
-* <https://akuity.cloud/opspresso/argocd/eks-demo?tab=clusters>
+* <https://akuity.cloud/opspresso/argocd/demo?tab=clusters>
 
 ```bash
 ORG="" && TOKEN="xxxxxx" && \
@@ -33,7 +35,7 @@ argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 
 ```bash
 argocd app create addons --repo https://github.com/opspresso/argocd-env-addons --path addons \
-  --dest-namespace argocd --dest-name eks-demo --directory-recurse --project addons \
+  --dest-namespace argocd --dest-name $CLUSTER --directory-recurse --project addons \
   --sync-policy automated --self-heal --sync-option Prune=true
 ```
 
@@ -41,6 +43,6 @@ argocd app create addons --repo https://github.com/opspresso/argocd-env-addons -
 
 ```bash
 argocd app create apps --repo https://github.com/opspresso/argocd-env-demo --path apps \
-  --dest-namespace argocd --dest-name eks-demo --directory-recurse --project apps \
+  --dest-namespace argocd --dest-name $CLUSTER --directory-recurse --project apps \
   --sync-policy automated --self-heal --sync-option Prune=true
 ```
