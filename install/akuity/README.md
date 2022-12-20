@@ -11,6 +11,8 @@ export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password 
 argocd login opspresso.cd.akuity.cloud --grpc-web --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
 
 export CLUSTER="eks-demo"
+
+kubectl apply -n akuity -f https://raw.githubusercontent.com/argoproj/applicationset/v0.4.1/manifests/install.yaml
 ```
 
 ## add cluster
