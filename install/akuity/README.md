@@ -9,9 +9,6 @@ export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
 argocd login opspresso.cd.akuity.cloud --grpc-web --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
-
-argocd proj create addons --allow-cluster-resource '*/*' --dest '*,*' --src '*'
-argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 ```
 
 ## add cluster
@@ -23,6 +20,13 @@ ORG="" && TOKEN="xxxxxx" && \
   curl -s --cookie "organization=$ORG" -H "Authorization: Bearer $TOKEN" \
   "https://akuity.cloud/api/instances/clusters/xxxxxx/manifests" | \
   kubectl apply -f -
+```
+
+## add projects
+
+```bash
+argocd proj create addons --allow-cluster-resource '*/*' --dest '*,*' --src '*'
+argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 ```
 
 ## add addons
