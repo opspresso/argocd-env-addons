@@ -133,9 +133,10 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 > cluster 를 add 합니다.
 
 ```bash
+export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
-argocd login argocd.demo.nalbam.com --grpc-web --username admin --password $ADMIN_PASSWORD
+argocd login argocd.demo.nalbam.com --grpc-web --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
 
 argocd cluster list
 argocd cluster add eks-demo -y
