@@ -39,6 +39,9 @@ spec:
             enableSqsTerminationDraining: true
             queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster}}-worker"
 
+            managedAsgTag: "aws-node-termination-handler/{{cluster}}" # DEPRECATED
+            managedTag: "aws-node-termination-handler/{{cluster}}"
+
             podLabels:
               owner: "{{cluster}}"
               department: "addons"
@@ -50,20 +53,13 @@ spec:
             enableRebalanceDraining: true
             enableSpotInterruptionDraining: true
 
-            podTerminationGracePeriod: "180"
-            nodeTerminationGracePeriod: "180"
-
-            # enablePrometheusServer: true
-
-            # serviceMonitor:
-            #   create: true
-            #   labels:
-            #     release: prometheus-operator
-
             webhookURLSecretName: webhook-secret
 
             webhookTemplateConfigMapName: webhook-template
             webhookTemplateConfigMapKey: template
+
+            podTerminationGracePeriod: "180"
+            nodeTerminationGracePeriod: "180"
 
       syncPolicy:
         automated:
