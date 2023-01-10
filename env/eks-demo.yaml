@@ -86,10 +86,10 @@ grafana:
   hostname: grafana.demo.nalbam.com
   auth:
     github:
-      enabled: true
+      enabled: false
       org: opspresso # github org
     google:
-      enabled: false
+      enabled: true
       allowed_domains: nalbam.com daangn.com
   datasource:
     demo: http://prom.in.demo.nalbam.com
