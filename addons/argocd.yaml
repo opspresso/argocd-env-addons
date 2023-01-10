@@ -82,45 +82,6 @@ spec:
                   service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{argocd.acm_arn}}"
                   service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
 
-              extraArgs:
-                - --insecure
-
-              config:
-                url: https://{{argocd.hostname}}
-
-                statusbadge.enabled: "true"
-
-                help.chatUrl: "{{argocd.chatUrl}}"
-                help.chatText: "Chat now!"
-
-                dex.config: |
-                  connectors:
-                  - type: github
-                    id: github
-                    name: github
-                    config:
-                      clientID: $dex.github.clientId
-                      clientSecret: $dex.github.clientSecret
-                      teamNameField: slug
-                      orgs:
-                        - name: {{argocd.github.org}}
-                  staticClients:
-                  - id: argo-workflows-sso
-                    name: Argo Workflow
-                    redirectURIs:
-                      - https://workflows.{{hostname.public}}/oauth2/callback
-                    secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
-                  - id: oauth2-proxy-sso
-                    name: OAuth2 Proxy
-                    redirectURIs:
-                      - https://auth.{{hostname.public}}/oauth2/callback
-                    secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
-
-              rbacConfig:
-                policy.default: "role:readonly"
-                policy.csv: |
-                  g, {{argocd.github.org}}:{{argocd.github.team}}, role:admin
-
               metrics:
                 enabled: true
                 serviceMonitor:
@@ -485,17 +446,56 @@ spec:
                   - on-sync-status-unknown
 
             configs:
+              rbac:
+                policy.default: "role:readonly"
+                policy.csv: |
+                  g, {{argocd.github.org}}:{{argocd.github.team}}, role:admin
+
+              cm:
+                url: https://{{argocd.hostname}}
+
+                statusbadge.enabled: "true"
+
+                help.chatUrl: "{{argocd.chatUrl}}"
+                help.chatText: "Chat now!"
+
+                dex.config: |
+                  connectors:
+                  - type: github
+                    id: github
+                    name: github
+                    config:
+                      clientID: $dex.github.clientId
+                      clientSecret: $dex.github.clientSecret
+                      teamNameField: slug
+                      orgs:
+                        - name: {{argocd.github.org}}
+                  staticClients:
+                  - id: argo-workflows-sso
+                    name: Argo Workflow
+                    redirectURIs:
+                      - https://workflows.{{hostname.public}}/oauth2/callback
+                    secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
+                  - id: oauth2-proxy-sso
+                    name: OAuth2 Proxy
+                    redirectURIs:
+                      - https://auth.{{hostname.public}}/oauth2/callback
+                    secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
+
               secret:
                 createSecret: false
 
               repositories:
-                - name: env-addons
+                env-addons-repo:
+                  name: env-addons
                   type: git
                   url: https://github.com/opspresso/argocd-env-addons
-                - name: env-demo
+                env-demo:
+                  name: env-demo
                   type: git
                   url: https://github.com/opspresso/argocd-env-demo
-                - name: opspresso
+                opspresso-repo:
+                  name: opspresso
                   type: helm
                   url: https://opspresso.github.io/helm-charts
 

@@ -13,23 +13,16 @@ server:
       service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "AWS_ACM_CERT"
       service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
 
-  # ingress:
-  #   enabled: true
-  #   annotations:
-  #     kubernetes.io/ingress.class: "alb"
-  #     external-dns.alpha.kubernetes.io/hostname: "ARGOCD_HOSTNAME"
-  #     alb.ingress.kubernetes.io/certificate-arn: "AWS_ACM_CERT"
-  #     alb.ingress.kubernetes.io/ip-address-type: "dualstack"
-  #     alb.ingress.kubernetes.io/scheme: "internet-facing"
-  #     alb.ingress.kubernetes.io/target-type: "ip"
-  #   ingressClassName: "alb"
-  #   hosts:
-  #     - "ARGOCD_HOSTNAME"
+repoServer:
+  replicas: 2
 
-  extraArgs:
-    - --insecure
+configs:
+  rbac:
+    policy.default: "role:readonly"
+    policy.csv: |
+      g, GITHUB_ORG:GITHUB_TEAM, role:admin
 
-  config:
+  cm:
     url: https://ARGOCD_HOSTNAME
 
     dex.config: |
@@ -44,15 +37,6 @@ server:
           orgs:
             - name: GITHUB_ORG
 
-  rbacConfig:
-    policy.default: "role:readonly"
-    policy.csv: |
-      g, GITHUB_ORG:GITHUB_TEAM, role:admin
-
-repoServer:
-  replicas: 2
-
-configs:
   secret:
     createSecret: true
 
