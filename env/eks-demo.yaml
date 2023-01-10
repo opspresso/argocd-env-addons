@@ -16,13 +16,13 @@ argocd:
   acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/592c9e8f-c8a9-461f-a7cc-9f8179dcf32b
   hostname: argocd.demo.nalbam.com
   github:
-    org: daangn # github org
+    org: opspresso # github org
     team: sre
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
 
 argo-workflows:
   github:
-    org: daangn # github org
+    org: opspresso # github org
     team: sre
 
 atlantis:
@@ -71,7 +71,7 @@ istio:
 
 cluster-autoscaler:
   scan-interval: 10s
-  scale-down-delay-after-delete: 2m
+  scale-down-delay-after-delete: 1m
   scale-down-utilization-threshold: 0.6
 
 cluster-overprovisioner:
@@ -87,7 +87,7 @@ grafana:
   auth:
     github:
       enabled: true
-      org: daangn # github org
+      org: opspresso # github org
     google:
       enabled: false
       allowed_domains: nalbam.com daangn.com
