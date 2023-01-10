@@ -451,6 +451,9 @@ spec:
                 policy.csv: |
                   g, {{argocd.github.org}}:{{argocd.github.team}}, role:admin
 
+              params:
+                server.insecure: true
+
               cm:
                 url: https://{{argocd.hostname}}
 
