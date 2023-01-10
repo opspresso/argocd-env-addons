@@ -74,6 +74,16 @@ spec:
                               "short": true
                             },
                             {
+                              "title": "Kind",
+                              "value": "{{ .Kind }}",
+                              "short": true
+                            },
+                            {
+                              "title": "Monitor",
+                              "value": "{{ .Monitor }}",
+                              "short": true
+                            },
+                            {
                               "title": "Node",
                               "value": "{{ .NodeName }}",
                               "short": false
