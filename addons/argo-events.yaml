@@ -26,7 +26,7 @@ spec:
         namespace: addon-argo-events
       source:
         repoURL: https://argoproj.github.io/argo-helm
-        targetRevision: "2.0.9"
+        targetRevision: "2.0.11"
         chart: argo-events
         helm:
           values: |-

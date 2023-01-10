@@ -26,7 +26,7 @@ spec:
         namespace: addon-grafana
       source:
         repoURL: https://grafana.github.io/helm-charts
-        targetRevision: "6.48.0"
+        targetRevision: "6.49.0"
         chart: grafana
         helm:
           values: |-

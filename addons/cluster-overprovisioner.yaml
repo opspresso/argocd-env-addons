@@ -28,7 +28,7 @@ spec:
         namespace: addon-cluster-overprovisioner
       source:
         repoURL: https://charts.deliveryhero.io
-        targetRevision: "0.7.10"
+        targetRevision: "0.7.11"
         chart: cluster-overprovisioner
         helm:
           values: |-
