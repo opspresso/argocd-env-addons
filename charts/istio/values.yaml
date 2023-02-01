@@ -1,5 +1,7 @@
 istiod:
   global:
+    hub: gcr.io/istio-release
+
     proxy:
       lifecycle:
         postStart:
@@ -16,7 +18,7 @@ istiod:
 
     tracer:
       zipkin:
-        address: "jaeger-collector.addon-tracing.svc.cluster.local:9411"
+        address: jaeger-collector.addon-tracing.svc.cluster.local:9411
 
   pilot:
     podLabels:
@@ -30,9 +32,12 @@ istiod:
 
   meshConfig:
     defaultConfig:
+      tracing:
+        sampling: 10
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
+      terminationDrainDuration: 60s
     enableTracing: true
     rootNamespace: istio-system
 
