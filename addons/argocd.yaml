@@ -26,7 +26,7 @@ spec:
         namespace: argocd
       source:
         repoURL: https://argoproj.github.io/argo-helm
-        targetRevision: "5.17.4"
+        targetRevision: "5.19.12"
         chart: argo-cd
         helm:
           values: |-

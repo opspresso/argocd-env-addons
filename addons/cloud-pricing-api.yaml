@@ -26,7 +26,7 @@ spec:
         namespace: addon-cloud-pricing-api
       source:
         repoURL: https://infracost.github.io/helm-charts
-        targetRevision: "0.5.14"
+        targetRevision: "0.6.0"
         chart: cloud-pricing-api
         helm:
           values: |-

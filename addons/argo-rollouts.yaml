@@ -28,7 +28,7 @@ spec:
         namespace: addon-argo-rollouts
       source:
         repoURL: https://argoproj.github.io/argo-helm
-        targetRevision: "2.21.2"
+        targetRevision: "2.22.2"
         chart: argo-rollouts
         helm:
           values: |-
