@@ -1,9 +1,9 @@
 cluster: eks-demo-b
 
+active: "true"
 country: kr
 env: alpha
-role: svc
-active: true
+role: mgt
 
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
@@ -13,31 +13,50 @@ hostname:
   public: demo.nalbam.com
 
 argocd:
+  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/592c9e8f-c8a9-461f-a7cc-9f8179dcf32b
   hostname: argocd.demo.nalbam.com
-
-argo-workflows:
   github:
-    org: daangn
+    org: opspresso # github org
+    team: sre
+  chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
+
+argo_workflows:
+  github:
+    org: opspresso # github org
     team: sre
 
-aws-ebs-csi-driver:
+aws_ebs_csi_driver:
   image:
-    registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
-    repository: mirror/k8s-aws/aws-ebs-csi-driver
+    repository: public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver
   nodeDriverRegistrar:
     image:
-      repository: mirror/k8s-sig-storage/csi-node-driver-registrar
+      repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
   livenessProbe:
     image:
-      repository: mirror/k8s-sig-storage/livenessprobe
+      repository: k8s.gcr.io/sig-storage/livenessprobe
+  useOldCSIDriver: false
 
-aws-efs-csi-driver:
-  efs-id: ""
+aws_efs_csi_driver:
+  id: "fs-0d24289c6d6ad35d7"
+
+chaoskube:
+  interval: 20m
+  timezone: "Asia/Seoul"
+
+cluster_autoscaler:
+  scan_interval: 20s
+  scale_down_delay_after_delete: 1m
+  scale_down_utilization_threshold: 0.6
+
+cluster_overprovisioner:
+  replicas: 0
+  cpu: "1"
+  memory: 1Gi
 
 istio:
-  version: "1.15.3" # istio eks-demo-b
+  version: "1.16.2" # istio eks-demo
   global:
-    hub: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com/mirror/istio
+    hub: gcr.io/istio-release
   pilot:
     autoscale: false
     min: 2
@@ -52,30 +71,5 @@ istio:
     internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-b/504c207df9e345e8
     public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-b/020dfd696d0efda1
 
-# karpenter:
-#   instanceProfile: eks-demo-worker
-#   launchTemplate: eks-demo-workers-v1-2021121000100059230000000b
-
-cluster-autoscaler:
-  scan-interval: 10s
-  scale-down-delay-after-delete: 2m
-  scale-down-utilization-threshold: 0.6
-
-cluster-overprovisioner:
-  replicas: 0
-  cpu: "1"
-  memory: 1Gi
-
 loki:
   hostname: loki.in.demo.nalbam.com
-
-prometheus:
-  node-exporter:
-    image:
-      registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
-      repository: mirror/prometheus/node-exporter
-
-promtail:
-  image:
-    registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
-    repository: mirror/grafana/promtail

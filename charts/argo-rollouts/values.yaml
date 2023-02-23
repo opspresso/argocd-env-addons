@@ -1,0 +1,171 @@
+argo-rollouts:
+  controller:
+    metrics:
+      enabled: true
+      serviceMonitor:
+        additionalLabels:
+          release: prometheus-{{cluster}}
+        enabled: true
+    replicas: 1
+    resources:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 50m
+        memory: 64Mi
+  dashboard:
+    enabled: true
+    ingress:
+      enabled: false
+  fullnameOverride: argo-rollouts
+  notifications:
+    notifiers:
+      service.slack: 'token: $slack-token
+
+        '
+    templates:
+      template.analysis-run-error: "message: Rollout {{.rollout.metadata.name}}'s\
+        \ analysis run is in error state.\nemail:\n  subject: Rollout {{.rollout.metadata.name}}'s\
+        \ analysis run is in error state.\nslack:\n  attachments: |\n      [{\n  \
+        \      \"title\": \"{{ .rollout.metadata.name}}\",\n        \"color\": \"\
+        #ECB22E\",\n        \"fields\": [\n        {\n          \"title\": \"Strategy\"\
+        ,\n          \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.analysis-run-failed: "message: Rollout {{.rollout.metadata.name}}'s\
+        \ analysis run failed.\nemail:\n  subject: Rollout {{.rollout.metadata.name}}'s\
+        \ analysis run failed.\nslack:\n  attachments: |\n      [{\n        \"title\"\
+        : \"{{ .rollout.metadata.name}}\",\n        \"color\": \"#E01E5A\",\n    \
+        \    \"fields\": [\n        {\n          \"title\": \"Strategy\",\n      \
+        \    \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.analysis-run-running: "message: Rollout {{.rollout.metadata.name}}'s\
+        \ analysis run is running.\nemail:\n  subject: Rollout {{.rollout.metadata.name}}'s\
+        \ analysis run is running.\nslack:\n  attachments: |\n      [{\n        \"\
+        title\": \"{{ .rollout.metadata.name}}\",\n        \"color\": \"#18be52\"\
+        ,\n        \"fields\": [\n        {\n          \"title\": \"Strategy\",\n\
+        \          \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.rollout-aborted: "message: Rollout {{.rollout.metadata.name}} has been\
+        \ aborted.\nemail:\n  subject: Rollout {{.rollout.metadata.name}} has been\
+        \ aborted.\nslack:\n  attachments: |\n      [{\n        \"title\": \"{{ .rollout.metadata.name}}\"\
+        ,\n        \"color\": \"#E01E5A\",\n        \"fields\": [\n        {\n   \
+        \       \"title\": \"Strategy\",\n          \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.rollout-completed: "message: Rollout {{.rollout.metadata.name}} has\
+        \ been completed.\nemail:\n  subject: Rollout {{.rollout.metadata.name}} has\
+        \ been completed.\nslack:\n  attachments: |\n      [{\n        \"title\":\
+        \ \"{{ .rollout.metadata.name}}\",\n        \"color\": \"#18be52\",\n    \
+        \    \"fields\": [\n        {\n          \"title\": \"Strategy\",\n      \
+        \    \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.rollout-paused: "message: Rollout {{.rollout.metadata.name}} has been\
+        \ paused.\nemail:\n  subject: Rollout {{.rollout.metadata.name}} has been\
+        \ paused.\nslack:\n  attachments: |\n      [{\n        \"title\": \"{{ .rollout.metadata.name}}\"\
+        ,\n        \"color\": \"#18be52\",\n        \"fields\": [\n        {\n   \
+        \       \"title\": \"Strategy\",\n          \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.rollout-step-completed: "message: Rollout {{.rollout.metadata.name}}\
+        \ step number {{ add .rollout.status.currentStepIndex 1}}/{{len .rollout.spec.strategy.canary.steps}}\
+        \ has been completed.\nemail:\n  subject: Rollout {{.rollout.metadata.name}}\
+        \ step number {{ add .rollout.status.currentStepIndex 1}}/{{len .rollout.spec.strategy.canary.steps}}\
+        \ has been completed.\nslack:\n  attachments: |\n      [{\n        \"title\"\
+        : \"{{ .rollout.metadata.name}}\",\n        \"color\": \"#18be52\",\n    \
+        \    \"fields\": [\n        {\n          \"title\": \"Strategy\",\n      \
+        \    \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        },\n        {\n          \"title\": \"Step completed\",\n       \
+        \   \"value\": \"{{add .rollout.status.currentStepIndex 1}}/{{len .rollout.spec.strategy.canary.steps}}\"\
+        ,\n          \"short\": true\n        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.rollout-updated: "message: Rollout {{.rollout.metadata.name}} has been\
+        \ updated.\nemail:\n  subject: Rollout {{.rollout.metadata.name}} has been\
+        \ updated.\nslack:\n  attachments: |\n      [{\n        \"title\": \"{{ .rollout.metadata.name}}\"\
+        ,\n        \"color\": \"#18be52\",\n        \"fields\": [\n        {\n   \
+        \       \"title\": \"Strategy\",\n          \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+      template.scaling-replicaset: "message: Scaling Rollout {{.rollout.metadata.name}}'s\
+        \ replicaset to {{.rollout.spec.replicas}}.\nemail:\n  subject: Scaling Rollout\
+        \ {{.rollout.metadata.name}}'s replcaset to {{.rollout.spec.replicas}}.\n\
+        slack:\n  attachments: |\n      [{\n        \"title\": \"{{ .rollout.metadata.name}}\"\
+        ,\n        \"color\": \"#18be52\",\n        \"fields\": [\n        {\n   \
+        \       \"title\": \"Strategy\",\n          \"value\": \"{{if .rollout.spec.strategy.blueGreen}}BlueGreen{{end}}{{if\
+        \ .rollout.spec.strategy.canary}}Canary{{end}}\",\n          \"short\": true\n\
+        \        },\n        {\n          \"title\": \"Desired replica\",\n      \
+        \    \"value\": \"{{.rollout.spec.replicas}}\",\n          \"short\": true\n\
+        \        },\n        {\n          \"title\": \"Updated replicas\",\n     \
+        \     \"value\": \"{{.rollout.status.updatedReplicas}}\",\n          \"short\"\
+        : true\n        }\n        {{range $index, $c := .rollout.spec.template.spec.containers}}\n\
+        \          {{if not $index}},{{end}}\n          {{if $index}},{{end}}\n  \
+        \        {\n            \"title\": \"{{$c.name}}\",\n            \"value\"\
+        : \"{{$c.image}}\",\n            \"short\": true\n          }\n        {{end}}\n\
+        \        ]\n      }]\n"
+    triggers:
+      trigger.on-analysis-run-error: '- send: [analysis-run-error]
+
+        '
+      trigger.on-analysis-run-failed: '- send: [analysis-run-failed]
+
+        '
+      trigger.on-analysis-run-running: '- send: [analysis-run-running]
+
+        '
+      trigger.on-rollout-aborted: '- send: [rollout-aborted]
+
+        '
+      trigger.on-rollout-completed: '- send: [rollout-completed]
+
+        '
+      trigger.on-rollout-paused: '- send: [rollout-paused]
+
+        '
+      trigger.on-rollout-step-completed: '- send: [rollout-step-completed]
+
+        '
+      trigger.on-rollout-updated: '- send: [rollout-updated]
+
+        '
+      trigger.on-scaling-replica-set: '- send: [scaling-replicaset]'
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: https://rollouts.{{hostname.public}}
+  podLabels:
+    department: addons
+    owner: '{{cluster}}'

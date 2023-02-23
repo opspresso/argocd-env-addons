@@ -1,9 +1,9 @@
 cluster: eks-demo
 
+active: "true"
 country: kr
 env: alpha
 role: mgt
-active: true
 
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
@@ -20,7 +20,7 @@ argocd:
     team: sre
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
 
-argo-workflows:
+argo_workflows:
   github:
     org: opspresso # github org
     team: sre
@@ -33,22 +33,36 @@ atlantis:
     user: nalbam-bot
   allowlist: github.com/opspresso/terraform-*
 
-aws-ebs-csi-driver:
+aws_ebs_csi_driver:
   image:
-    registry: k8s.gcr.io
-    repository: provider-aws/aws-ebs-csi-driver
+    repository: public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver
   nodeDriverRegistrar:
     image:
-      repository: sig-storage/csi-node-driver-registrar
+      repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
   livenessProbe:
     image:
-      repository: sig-storage/livenessprobe
+      repository: k8s.gcr.io/sig-storage/livenessprobe
+  useOldCSIDriver: false
 
-aws-efs-csi-driver:
-  efs-id: "fs-0d24289c6d6ad35d7"
+aws_efs_csi_driver:
+  id: "fs-0d24289c6d6ad35d7"
+
+chaoskube:
+  interval: 20m
+  timezone: "Asia/Seoul"
+
+cluster_autoscaler:
+  scan_interval: 20s
+  scale_down_delay_after_delete: 1m
+  scale_down_utilization_threshold: 0.6
+
+cluster_overprovisioner:
+  replicas: 0
+  cpu: "1"
+  memory: 1Gi
 
 istio:
-  version: "1.15.3" # istio eks-demo
+  version: "1.16.2" # istio eks-demo
   global:
     hub: gcr.io/istio-release
   pilot:
@@ -64,20 +78,6 @@ istio:
   target_group:
     internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-0/e0f43386c9427110
     public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-0/3ee8237324559fb0
-
-# karpenter:
-#   instanceProfile: eks-demo-worker
-#   launchTemplate: eks-demo-workers-v1-2021121000100059230000000b
-
-cluster-autoscaler:
-  scan-interval: 10s
-  scale-down-delay-after-delete: 1m
-  scale-down-utilization-threshold: 0.6
-
-cluster-overprovisioner:
-  replicas: 0
-  cpu: "1"
-  memory: 1Gi
 
 kubecost:
   hostname: kubecost.demo.nalbam.com
@@ -100,13 +100,13 @@ grafana:
 loki:
   hostname: loki.in.demo.nalbam.com
 
-prometheus:
-  node-exporter:
-    image:
-      registry: quay.io
-      repository: prometheus/node-exporter
+# prometheus:
+#   node-exporter:
+#     image:
+#       registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
+#       repository: mirror/prometheus/node-exporter
 
-promtail:
-  image:
-    registry: docker.io
-    repository: grafana/promtail
+# promtail:
+#   image:
+#     registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
+#     repository: mirror/grafana/promtail

@@ -1,0 +1,11 @@
+argo-events:
+  controller:
+    podLabels:
+      department: addons
+      owner: '{{cluster}}'
+  fullnameOverride: argo-events
+  webhook:
+    enabled: true
+    podLabels:
+      department: addons
+      owner: '{{cluster}}'

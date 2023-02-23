@@ -6,3 +6,21 @@
 ## see argocd
 
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/>
+
+## gen chart
+
+```bash
+./gen_chart.py
+
+./gen_chart.py -r chaoskube
+```
+
+## gen values
+
+```bash
+./gen_values.py
+
+./gen_values.py -r chaoskube
+```
+
+jeex*nesh8HAUW6toul
