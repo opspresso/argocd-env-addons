@@ -22,5 +22,3 @@
 
 ./gen_values.py -r chaoskube
 ```
-
-jeex*nesh8HAUW6toul
