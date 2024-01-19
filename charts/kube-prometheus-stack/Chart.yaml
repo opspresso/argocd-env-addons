@@ -1,14 +1,13 @@
 apiVersion: v2
 description: A Helm chart for Kubernetes
-name: kubecost
+name: kube-prometheus-stack
 type: application
-version: "1.108.1"
+version: "55.11.0"
 
 dependencies:
-- alias: kubecost
-  name: cost-analyzer
-  repository: https://kubecost.github.io/cost-analyzer
-  version: "1.108.1"
+- name: kube-prometheus-stack
+  repository: https://prometheus-community.github.io/helm-charts
+  version: "55.11.0"
 
 - name: raw
   repository: https://charts.helm.sh/incubator
