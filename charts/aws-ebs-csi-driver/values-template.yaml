@@ -1,14 +1,14 @@
 aws-ebs-csi-driver:
-  image:
-    repository: "{{aws_ebs_csi_driver.image.repository}}"
+  # image:
+  #   repository: "{{aws_ebs_csi_driver.image.repository}}"
 
-  sidecars:
-    nodeDriverRegistrar:
-      image:
-        repository: "{{aws_ebs_csi_driver.nodeDriverRegistrar.image.repository}}"
-    livenessProbe:
-      image:
-        repository: "{{aws_ebs_csi_driver.livenessProbe.image.repository}}"
+  # sidecars:
+  #   nodeDriverRegistrar:
+  #     image:
+  #       repository: "{{aws_ebs_csi_driver.nodeDriverRegistrar.image.repository}}"
+  #   livenessProbe:
+  #     image:
+  #       repository: "{{aws_ebs_csi_driver.livenessProbe.image.repository}}"
 
   controller:
     podLabels:

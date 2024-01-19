@@ -59,12 +59,12 @@ aws-ebs-csi-driver:
         allowAutoIOPSPerGBIncrease: "true" # must quote
       allowVolumeExpansion: true
 
-    - name: gp2
-      volumeBindingMode: WaitForFirstConsumer
-      reclaimPolicy: Delete
-      parameters:
-        fsType: ext4
-        type: "gp2"
-      provisioner: kubernetes.io/aws-ebs
+    # - name: gp2
+    #   volumeBindingMode: WaitForFirstConsumer
+    #   reclaimPolicy: Delete
+    #   parameters:
+    #     fsType: ext4
+    #     type: "gp2"
+    #   provisioner: kubernetes.io/aws-ebs
 
   # useOldCSIDriver: {{aws_ebs_csi_driver.useOldCSIDriver}}
