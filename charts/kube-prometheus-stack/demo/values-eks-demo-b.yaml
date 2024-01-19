@@ -1,0 +1,35 @@
+kube-prometheus-stack:
+  fullnameOverride: prometheus
+
+raw:
+  - apiVersion: networking.istio.io/v1beta1
+    kind: Gateway
+    metadata:
+      name: prometheus
+    spec:
+      selector:
+        istio: ingressgateway
+      servers:
+        - hosts:
+            - "prom.in.demo.opspresso.com"
+          port:
+            number: 80
+            name: http
+            protocol: HTTP
+
+  - apiVersion: networking.istio.io/v1beta1
+    kind: VirtualService
+    metadata:
+      name: prometheus
+    spec:
+      hosts:
+        - "prom.in.demo.opspresso.com"
+      gateways:
+        - prometheus
+        - mesh
+      http:
+        - route:
+            - destination:
+                host: prometheus-prometheus
+                port:
+                  number: 9090
