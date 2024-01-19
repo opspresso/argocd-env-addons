@@ -96,91 +96,6 @@ raw:
           istio: ingressgateway
         type: ClusterIP
 
-    - apiVersion: monitoring.coreos.com/v1
-      kind: ServiceMonitor
-      metadata:
-        labels:
-          app: istio-ingressgateway
-          # release: prometheus-{{cluster}}
-        name: istio-ingressgateway-metrics
-      spec:
-        endpoints:
-          - interval: 15s
-            path: /stats/prometheus
-            port: http-envoy-prom
-        jobLabel: istio-ingressgateway
-        namespaceSelector:
-          matchNames:
-            - istio-system
-        selector:
-          matchLabels:
-            app: istio-ingressgateway
-            istio: ingressgateway
-
-    - apiVersion: monitoring.coreos.com/v1
-      kind: ServiceMonitor
-      metadata:
-        labels:
-          app: istio-components
-          # release: prometheus-{{cluster}}
-        name: istio-components-metrics
-      spec:
-        endpoints:
-          - interval: 30s
-            metricRelabelings:
-              - sourceLabels:
-                  - cluster
-                targetLabel: istio_cluster
-              - action: labeldrop
-                regex: cluster
-            port: http-monitoring
-        jobLabel: istio
-        namespaceSelector:
-          matchNames:
-            - istio-system
-        selector:
-          matchExpressions:
-            - key: istio
-              operator: In
-              values:
-                - mixer
-                - pilot
-                - galley
-                - citadel
-                - sidecar-injector
-                - istiod
-
-    - apiVersion: monitoring.coreos.com/v1
-      kind: ServiceMonitor
-      metadata:
-        labels:
-          app: istio-servicemesh
-          # release: prometheus-{{cluster}}
-        name: istio-servicemesh-metrics
-      spec:
-        endpoints:
-          - interval: 15s
-            path: /stats/prometheus
-            relabelings:
-              - sourceLabels: [__meta_kubernetes_pod_container_port_name]
-                action: keep
-                regex: ".*-envoy-prom"
-              - action: labeldrop
-                regex: "__meta_kubernetes_pod_label_(.+)"
-              - sourceLabels: [__meta_kubernetes_namespace]
-                action: replace
-                targetLabel: namespace
-              - sourceLabels: [__meta_kubernetes_pod_name]
-                action: replace
-                targetLabel: pod_name
-        jobLabel: istio-servicemesh
-        namespaceSelector:
-          any: true
-        selector:
-          matchExpressions:
-            - key: istio
-              operator: DoesNotExist
-
     - apiVersion: networking.istio.io/v1alpha3
       kind: EnvoyFilter
       metadata:
@@ -213,3 +128,88 @@ raw:
                   - "x-envoy-decorator-operation"
                   - "x-envoy-upstream-service-time"
                   - "server"
+
+    # - apiVersion: monitoring.coreos.com/v1
+    #   kind: ServiceMonitor
+    #   metadata:
+    #     labels:
+    #       app: istio-ingressgateway
+    #       # release: prometheus-{{cluster}}
+    #     name: istio-ingressgateway-metrics
+    #   spec:
+    #     endpoints:
+    #       - interval: 15s
+    #         path: /stats/prometheus
+    #         port: http-envoy-prom
+    #     jobLabel: istio-ingressgateway
+    #     namespaceSelector:
+    #       matchNames:
+    #         - istio-system
+    #     selector:
+    #       matchLabels:
+    #         app: istio-ingressgateway
+    #         istio: ingressgateway
+
+    # - apiVersion: monitoring.coreos.com/v1
+    #   kind: ServiceMonitor
+    #   metadata:
+    #     labels:
+    #       app: istio-components
+    #       # release: prometheus-{{cluster}}
+    #     name: istio-components-metrics
+    #   spec:
+    #     endpoints:
+    #       - interval: 30s
+    #         metricRelabelings:
+    #           - sourceLabels:
+    #               - cluster
+    #             targetLabel: istio_cluster
+    #           - action: labeldrop
+    #             regex: cluster
+    #         port: http-monitoring
+    #     jobLabel: istio
+    #     namespaceSelector:
+    #       matchNames:
+    #         - istio-system
+    #     selector:
+    #       matchExpressions:
+    #         - key: istio
+    #           operator: In
+    #           values:
+    #             - mixer
+    #             - pilot
+    #             - galley
+    #             - citadel
+    #             - sidecar-injector
+    #             - istiod
+
+    # - apiVersion: monitoring.coreos.com/v1
+    #   kind: ServiceMonitor
+    #   metadata:
+    #     labels:
+    #       app: istio-servicemesh
+    #       # release: prometheus-{{cluster}}
+    #     name: istio-servicemesh-metrics
+    #   spec:
+    #     endpoints:
+    #       - interval: 15s
+    #         path: /stats/prometheus
+    #         relabelings:
+    #           - sourceLabels: [__meta_kubernetes_pod_container_port_name]
+    #             action: keep
+    #             regex: ".*-envoy-prom"
+    #           - action: labeldrop
+    #             regex: "__meta_kubernetes_pod_label_(.+)"
+    #           - sourceLabels: [__meta_kubernetes_namespace]
+    #             action: replace
+    #             targetLabel: namespace
+    #           - sourceLabels: [__meta_kubernetes_pod_name]
+    #             action: replace
+    #             targetLabel: pod_name
+    #     jobLabel: istio-servicemesh
+    #     namespaceSelector:
+    #       any: true
+    #     selector:
+    #       matchExpressions:
+    #         - key: istio
+    #           operator: DoesNotExist
