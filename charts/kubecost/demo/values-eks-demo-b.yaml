@@ -1,0 +1,123 @@
+kubecost:
+  global:
+    prometheus:
+      fqdn: "https://prom.in.demo.opspresso.com"
+
+    notifications:
+      alertConfigs:
+        alerts:
+          # # Daily namespace budget alert on namespace `kubecost`
+          # - type: budget                # supported: budget, recurringUpdate
+          #   threshold: 5                # optional, required for budget alerts
+          #   window: daily               # or 1d
+          #   aggregation: namespace
+          #   filter: kubecost
+
+          # Daily cluster budget alert on cluster `cluster-one`
+          - type: budget
+            threshold: 4000.0         # optional, required for budget alerts
+            window: daily             # or 1d
+            aggregation: cluster
+            filter: 'eks-demo-b'     # does not accept csv
+
+          # Recurring weekly update (weeklyUpdate alert)
+          - type: recurringUpdate
+            window: weekly            # or 7d
+            aggregation: namespace
+            filter: '*'
+
+          # # Recurring weekly namespace update on `kubecost` namespace
+          # - type: recurringUpdate
+          #   window: weekly            # or 7d
+          #   aggregation: namespace
+          #   filter: kubecost
+
+          # # Spend Change Alert
+          # - type: spendChange         # change relative to moving avg
+          #   relativeThreshold: 0.20   # Proportional change relative to baseline. Must be greater than -1 (can be negative)
+          #   window: 1d                # accepts ‘d’, ‘h’
+          #   baselineWindow: 30d       # previous window, offset by window
+          #   aggregation: namespace
+          #   filter: '*' # kubecost, default # accepts csv
+
+          # # Health Score Alert
+          # - type: health              # Alerts when health score changes by a threshold
+          #   window: 10m
+          #   threshold: 5              # Send Alert if health scores changes by 5 or more
+
+          # # Kubecost Health Diagnostic
+          # - type: diagnostic          # Alerts when kubecost is is unable to compute costs - ie: Prometheus unreachable
+          #   window: 10m
+
+  ingress:
+    enabled: true
+    hosts:
+      - "kubecost.in.demo.opspresso.com"
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo-b--kubecost"
+
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: "prometheus-eks-demo-b"
+
+  prometheusRule:
+    enabled: true
+    additionalLabels:
+      release: "prometheus-eks-demo-b"
+
+  prometheus:
+    server:
+      global:
+        external_labels:
+          cluster_id: "eks-demo-b"
+
+  kubecostProductConfigs:
+    projectID: "082867736673"
+    awsSpotDataRegion: "ap-northeast-2"
+    awsSpotDataBucket: "aws-spot-data-082867736673"
+    awsSpotDataPrefix: "spot-data-feed"
+    # spotLabel: lifecycle
+    # spotLabelValue: Ec2Spot
+
+    athenaProjectID: "082867736673"
+    athenaBucketName: "s3://aws-athena-query-results-082867736673"
+    athenaRegion: "ap-northeast-2"
+    athenaDatabase: "athenacurcfn_aws_billing_report"
+    athenaTable: "aws_billing_report"
+    athenaWorkgroup: "primary"
+
+raw:
+  resources:
+    - apiVersion: networking.istio.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: kubecost
+      spec:
+        selector:
+          istio: ingressgateway
+        servers:
+          - hosts:
+              - "kubecost.in.demo.opspresso.com"
+            port:
+              number: 80
+              name: http
+              protocol: HTTP
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: kubecost
+      spec:
+        hosts:
+          - "kubecost.in.demo.opspresso.com"
+        gateways:
+          - kubecost
+        http:
+          - route:
+              - destination:
+                  host: "kubecost-eks-demo-b-cost-analyzer"
+                  port:
+                    number: 9090

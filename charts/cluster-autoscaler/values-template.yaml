@@ -1,0 +1,45 @@
+cluster-autoscaler:
+  awsRegion: '{{aws_region}}'
+
+  autoDiscovery:
+    clusterName: '{{cluster_name}}'
+
+  extraArgs:
+{% if cluster_autoscaler.scan_interval is defined %}
+    scan-interval: "{{cluster_autoscaler.scan_interval}}"
+{% endif %}
+{% if cluster_autoscaler.scale_down_delay_after_delete is defined %}
+    scale-down-delay-after-delete: "{{cluster_autoscaler.scale_down_delay_after_delete}}"
+{% endif %}
+{% if cluster_autoscaler.scale_down_delay_after_add is defined %}
+    scale-down-delay-after-add: "{{cluster_autoscaler.scale_down_delay_after_add}}"
+{% endif %}
+{% if cluster_autoscaler.scale_down_delay_after_failure is defined %}
+    scale-down-delay-after-failure: "{{cluster_autoscaler.scale_down_delay_after_failure}}"
+{% endif %}
+{% if cluster_autoscaler.scale_down_utilization_threshold is defined %}
+    scale-down-utilization-threshold: "{{cluster_autoscaler.scale_down_utilization_threshold}}"
+{% endif %}
+{% if cluster_autoscaler.scale_down_unneeded_time is defined %}
+    scale-down-unneeded-time: "{{cluster_autoscaler.scale_down_unneeded_time}}"
+{% endif %}
+
+  rbac:
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--cluster-autoscaler
+
+  serviceMonitor:
+    enabled: {{prometheus.serviceMonitor.enabled}}
+
+{% if operation is defined %}
+{% if operation.nodeSelector is defined %}
+  nodeSelector:
+    group: "{{operation.nodeSelector}}"
+  tolerations:
+  - effect: NoSchedule
+    key: group
+    operator: Equal
+    value: "{{operation.nodeSelector}}"
+{% endif %}
+{% endif %}

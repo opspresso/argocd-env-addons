@@ -1,0 +1,31 @@
+aws-node-termination-handler:
+  fullnameOverride: aws-node-termination-handler
+
+  # podAnnotations:
+  #   chaos.alpha.kubernetes.io/enabled: "true"
+
+  podTerminationGracePeriod: 180
+  nodeTerminationGracePeriod: 180
+
+  # webhookURLSecretName: webhook-secret
+  # webhookTemplateConfigMapName: webhook-template
+  # webhookTemplateConfigMapKey: template
+
+  # turns on queue-processor mode
+  enableSqsTerminationDraining: true
+
+  # # Only used in IMDS mode.
+  # enableSpotInterruptionDraining: true
+  # enableScheduledEventDraining: true
+  # enableRebalanceMonitoring: true
+  # enableRebalanceDraining: true
+
+  enablePrometheusServer: true
+
+  rbac:
+    pspEnabled: false
+
+  serviceMonitor:
+    # namespace: addon-monitoring
+    labels:
+      release: prometheus-operator

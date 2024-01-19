@@ -1,0 +1,37 @@
+aws-ebs-csi-driver:
+  image:
+    repository: "{{aws_ebs_csi_driver.image.repository}}"
+
+  sidecars:
+    nodeDriverRegistrar:
+      image:
+        repository: "{{aws_ebs_csi_driver.nodeDriverRegistrar.image.repository}}"
+    livenessProbe:
+      image:
+        repository: "{{aws_ebs_csi_driver.livenessProbe.image.repository}}"
+
+  controller:
+    podLabels:
+      department: "addons"
+      owner: "{{cluster}}"
+
+    k8sTagClusterId: "{{cluster}}"
+
+    extraVolumeTags:
+      KubernetesCluster: "{{cluster}}"
+      Environment: "{{env}}"
+
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--aws-ebs-csi-driver"
+
+  node:
+    podLabels:
+      department: "addons"
+      owner: "{{cluster}}"
+
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--aws-ebs-csi-driver"
+
+  useOldCSIDriver: {{aws_ebs_csi_driver.useOldCSIDriver}}

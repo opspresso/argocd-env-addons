@@ -1,0 +1,13 @@
+dashboard:
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+  ingress:
+    enabled: false
+    hosts:
+      - "dashboard.in.demo.opspresso.com"

@@ -1,0 +1,130 @@
+atlantis:
+  fullnameOverride: atlantis
+
+
+  atlantisUrl: "https://atlantis.demo.opspresso.com"
+
+  orgAllowlist: "github.com/opspresso/terraform-*"
+
+  image:
+    repository: infracost/infracost-atlantis
+    tag: latest
+
+  repoConfig: |
+    ---
+    repos:
+      - id: /.*/
+        workflow: infracost
+    workflows:
+      infracost:
+        plan:
+          steps:
+            - env:
+                name: INFRACOST_OUTPUT
+                command: echo "/tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM/infracost-output.json"
+            - init
+            - plan
+            - show
+            - run: |
+                mkdir -p /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
+                infracost breakdown --path=$SHOWFILE --format=json --log-level=info --out-file=$INFRACOST_OUTPUT
+            - run: |
+                infracost comment github --repo $BASE_REPO_OWNER/$BASE_REPO_NAME --pull-request $PULL_NUM \
+                  --path $INFRACOST_OUTPUT --github-token $GITHUB_TOKEN --behavior new
+                rm -rf /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 200m
+      memory: 1Gi
+
+  storageClassName: gp3 # aws-ebs-sc
+  dataStorage: 15Gi
+
+  service:
+    type: ClusterIP
+
+  ingress:
+    enabled: false
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo--atlantis"
+
+  loadEnvFromSecrets:
+    - atlantis-secret
+
+  loadEnvFromConfigMaps:
+    - atlantis-configmap
+
+  extraManifests:
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: atlantis-configmap
+      data:
+        ATLANTIS_GH_USER: "nalbam-bot"
+        INFRACOST_PRICING_API_ENDPOINT: "https://cloud-pricing-api.demo.opspresso.com"
+
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: atlantis-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: atlantis-secret
+        data:
+          - secretKey: GITHUB_TOKEN
+            remoteRef:
+              key: /k8s/common/github/nalbam-bot/token
+          - secretKey: ATLANTIS_GH_TOKEN
+            remoteRef:
+              key: /k8s/common/github/nalbam-bot/token
+          - secretKey: ATLANTIS_GH_WEBHOOK_SECRET
+            remoteRef:
+              key: /k8s/common/github/nalbam-bot/secret
+          - secretKey: INFRACOST_API_KEY
+            remoteRef:
+              key: /k8s/common/infracost/self-hosted-api-key
+          - secretKey: SELF_HOSTED_INFRACOST_API_KEY
+            remoteRef:
+              key: /k8s/common/infracost/self-hosted-api-key
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: atlantis
+      spec:
+        selector:
+          istio: ingressgateway
+        servers:
+          - hosts:
+              - "atlantis.demo.opspresso.com"
+            port:
+              number: 80
+              name: http
+              protocol: HTTP
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: atlantis
+      spec:
+        hosts:
+          - "atlantis.demo.opspresso.com"
+        gateways:
+          - atlantis
+          - mesh
+        http:
+          - route:
+              - destination:
+                  host: atlantis
+                  port:
+                    number: 80

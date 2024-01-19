@@ -2,19 +2,20 @@ cluster: eks-demo-a
 
 active: "true"
 country: kr
-env: alpha
-role: mgt
+env: demo
+group: eks-demo-a
+role: service
 
 aws_account_id: "082867736673"
 aws_region: ap-northeast-2
 
 hostname:
-  internal: in.demo.nalbam.com
-  public: demo.nalbam.com
+  internal: in.demo.opspresso.com
+  public: demo.opspresso.com
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/592c9e8f-c8a9-461f-a7cc-9f8179dcf32b
-  hostname: argocd.demo.nalbam.com
+  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/880cf58e-6493-4469-864b-cf190dfd4308
+  hostname: argocd.demo.opspresso.com
   github:
     org: opspresso # github org
     team: sre
@@ -39,6 +40,12 @@ aws_ebs_csi_driver:
 aws_efs_csi_driver:
   id: "fs-0d24289c6d6ad35d7"
 
+aws_node_termination_handler:
+  replicas: 1
+  slack:
+    channel: "sandbox"
+    emoji: ":construction:"
+
 chaoskube:
   interval: 20m
   timezone: "Asia/Seoul"
@@ -53,8 +60,19 @@ cluster_overprovisioner:
   cpu: "1"
   memory: 1Gi
 
+cluster_role:
+  readonly:
+    enabled: true
+
+dashboard:
+  requests:
+    cpu: "200m"
+    memory: 512Mi
+  limits:
+    cpu: "500m"
+    memory: 1Gi
+
 istio:
-  version: "1.16.2" # istio eks-demo
   global:
     hub: gcr.io/istio-release
   pilot:
@@ -72,4 +90,8 @@ istio:
     public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-a/11b1aaae48c6f49a
 
 loki:
-  hostname: loki.in.demo.nalbam.com
+  hostname: loki.in.demo.opspresso.com
+
+prometheus:
+  serviceMonitor:
+    enabled: false

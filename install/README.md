@@ -19,7 +19,7 @@ terraform apply
 
 ```bash
 # variables
-export ARGOCD_HOSTNAME="argocd.demo.nalbam.com"
+export ARGOCD_HOSTNAME="argocd.demo.opspresso.com"
 
 export GITHUB_ORG="opspresso"
 export GITHUB_TEAM="sre"
@@ -95,7 +95,7 @@ helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f value
 
 ## argocd-server
 
-> aws 에 elb 가 생성 되었습니다. route53 에서 argocd.demo.nalbam.com 와 연결해 줍니다.
+> aws 에 elb 가 생성 되었습니다. route53 에서 argocd.demo.opspresso.com 와 연결해 줍니다.
 
 ```bash
 kubectl get pod -n argocd
@@ -108,7 +108,7 @@ argocd-server | LoadBalancer | 172.20.41.157 | xxx-000.apne2.elb.amazonaws.com |
 
 * <https://ap-northeast-2.console.aws.amazon.com/ec2/v2/home?region=ap-northeast-2#LoadBalancers:>
 * <https://console.aws.amazon.com/route53/v2/hostedzones>
-* <https://argocd.demo.nalbam.com>
+* <https://argocd.demo.opspresso.com>
 
 ## see external-dns
 
@@ -136,7 +136,7 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
-argocd login argocd.demo.nalbam.com --grpc-web --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
+argocd login argocd.demo.opspresso.com --grpc-web --skip-test-tls --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
 
 argocd cluster list
 argocd cluster add eks-demo -y

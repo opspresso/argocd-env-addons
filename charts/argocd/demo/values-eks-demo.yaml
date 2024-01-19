@@ -13,11 +13,11 @@ argocd:
   server:
     service:
       annotations:
-        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.nalbam.com"
+        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.opspresso.com"
         service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
         service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
         service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
-        service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:ap-northeast-2:082867736673:certificate/592c9e8f-c8a9-461f-a7cc-9f8179dcf32b"
+        service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "arn:aws:acm:ap-northeast-2:082867736673:certificate/880cf58e-6493-4469-864b-cf190dfd4308"
         service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
 
     metrics:
@@ -38,7 +38,7 @@ argocd:
           release: prometheus-eks-demo
 
   notifications:
-    argocdUrl: https://argocd.demo.nalbam.com
+    argocdUrl: https://argocd.demo.opspresso.com
 
   configs:
     rbac:
@@ -47,9 +47,7 @@ argocd:
         g, opspresso:sre, role:admin
 
     cm:
-      url: https://argocd.demo.nalbam.com
-
-      statusbadge.enabled: "true"
+      url: https://argocd.demo.opspresso.com
 
       help.chatUrl: "https://app.slack.com/client/T03FUG4UB/C035P1YD72A"
       help.chatText: "Chat now!"
@@ -69,12 +67,12 @@ argocd:
         - id: argo-workflows-sso
           name: Argo Workflow
           redirectURIs:
-            - https://workflows.demo.nalbam.com/oauth2/callback
+            - https://workflows.demo.opspresso.com/oauth2/callback
           secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
         - id: oauth2-proxy-sso
           name: OAuth2 Proxy
           redirectURIs:
-            - https://auth.demo.nalbam.com/oauth2/callback
+            - https://auth.demo.opspresso.com/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
 raw:
@@ -88,7 +86,7 @@ raw:
           istio: ingressgateway
         servers:
           - hosts:
-              - "argocd.demo.nalbam.com"
+              - "argocd.demo.opspresso.com"
             port:
               number: 80
               name: http
@@ -100,7 +98,7 @@ raw:
         name: argocd-server
       spec:
         hosts:
-          - "argocd.demo.nalbam.com"
+          - "argocd.demo.opspresso.com"
         gateways:
           - argocd-server
           - mesh

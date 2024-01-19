@@ -1,0 +1,13 @@
+dashboard:
+  resources:
+    requests:
+      cpu: "{{dashboard.requests.cpu}}"
+      memory: "{{dashboard.requests.memory}}"
+    limits:
+      cpu: "{{dashboard.limits.cpu}}"
+      memory: "{{dashboard.limits.memory}}"
+
+  ingress:
+    enabled: false
+    hosts:
+      - "dashboard.{{hostname.internal}}"

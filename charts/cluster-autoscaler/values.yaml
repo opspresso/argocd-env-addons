@@ -1,0 +1,18 @@
+cluster-autoscaler:
+  fullnameOverride: cluster-autoscaler
+
+  extraArgs:
+    logtostderr: true
+    scale-down-enabled: true
+    scale-down-utilization-threshold: '0.6'
+    scan-interval: '10s'
+    skip-nodes-with-local-storage: false
+    skip-nodes-with-system-pods: false
+    stderrthreshold: info
+    v: 4
+
+  serviceMonitor:
+    namespace: addon-cluster-autoscaler
+
+  # podAnnotations:
+  #   chaos.alpha.kubernetes.io/enabled: "true"

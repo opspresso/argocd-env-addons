@@ -1,0 +1,34 @@
+external-secrets:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::082867736673:role/irsa--eks-demo-a--external-secrets
+
+
+
+  webhook:
+
+
+  certController:
+
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ClusterSecretStore
+      metadata:
+        name: parameter-store
+      spec:
+        provider:
+          aws:
+            region: "ap-northeast-2"
+            service: ParameterStore
+
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ClusterSecretStore
+      metadata:
+        name: secrets-manager
+      spec:
+        provider:
+          aws:
+            region: "ap-northeast-2"
+            service: SecretsManager

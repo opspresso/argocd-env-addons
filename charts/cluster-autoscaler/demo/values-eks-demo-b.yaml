@@ -1,0 +1,28 @@
+cluster-autoscaler:
+  awsRegion: 'ap-northeast-2'
+
+  autoDiscovery:
+    clusterName: ''
+
+  extraArgs:
+
+    scan-interval: "20s"
+
+
+    scale-down-delay-after-delete: "1m"
+
+
+
+
+    scale-down-utilization-threshold: "0.6"
+
+
+
+  rbac:
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: arn:aws:iam::082867736673:role/irsa--eks-demo-b--cluster-autoscaler
+
+  serviceMonitor:
+    enabled: False
+

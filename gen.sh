@@ -15,7 +15,8 @@ GIT_USEREMAIL="bot@nalbam.com"
 LIST=$(ls charts)
 
 for V in ${LIST}; do
-  echo "Processing $V"
+  echo
+  echo "Processing.. $V"
   python3 gen_values.py -r $V
 done
 

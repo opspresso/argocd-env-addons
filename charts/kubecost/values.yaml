@@ -1,0 +1,158 @@
+kubecost:
+  fullnameOverride: kubecost
+
+  global:
+    prometheus:
+      enabled: false
+      # fqdn: "https://prom.{{hostname.internal}}"
+    grafana:
+      enabled: false
+      domainName: "grafana.kr.karrotmarket.com"
+      scheme: https
+
+    notifications:
+      alertConfigs:
+        globalSlackWebhookUrl: https://hooks.slack.com/services/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
+        globalAlertEmails:
+          - infra@daangn.com
+
+        # alerts:
+        #   # # Daily namespace budget alert on namespace `kubecost`
+        #   # - type: budget                # supported: budget, recurringUpdate
+        #   #   threshold: 5                # optional, required for budget alerts
+        #   #   window: daily               # or 1d
+        #   #   aggregation: namespace
+        #   #   filter: kubecost
+
+        #   # Daily cluster budget alert on cluster `cluster-one`
+        #   - type: budget
+        #     threshold: 4000.0         # optional, required for budget alerts
+        #     window: daily             # or 1d
+        #     aggregation: cluster
+        #     filter: {{cluster}}       # does not accept csv
+
+        #   # Recurring weekly update (weeklyUpdate alert)
+        #   - type: recurringUpdate
+        #     window: weekly            # or 7d
+        #     aggregation: namespace
+        #     filter: '*'
+
+        #   # # Recurring weekly namespace update on `kubecost` namespace
+        #   # - type: recurringUpdate
+        #   #   window: weekly            # or 7d
+        #   #   aggregation: namespace
+        #   #   filter: kubecost
+
+        #   # # Spend Change Alert
+        #   # - type: spendChange         # change relative to moving avg
+        #   #   relativeThreshold: 0.20   # Proportional change relative to baseline. Must be greater than -1 (can be negative)
+        #   #   window: 1d                # accepts ‘d’, ‘h’
+        #   #   baselineWindow: 30d       # previous window, offset by window
+        #   #   aggregation: namespace
+        #   #   filter: '*' # kubecost, default # accepts csv
+
+        #   # # Health Score Alert
+        #   # - type: health              # Alerts when health score changes by a threshold
+        #   #   window: 10m
+        #   #   threshold: 5              # Send Alert if health scores changes by 5 or more
+
+        #   # # Kubecost Health Diagnostic
+        #   # - type: diagnostic          # Alerts when kubecost is is unable to compute costs - ie: Prometheus unreachable
+        #   #   window: 10m
+
+    savedReports:
+      enabled: true # If true, overwrites report parameters set through UI
+      reports:
+        - title: "Example Saved Report 0"
+          window: "15d"
+          aggregateBy: "namespace"
+          idle: "shareByNode"
+          accumulate: false # daily resolution
+          filters: [] # if no filters, specify empty array
+
+    assetReports:
+      enabled: true # If true, overwrites report parameters set through UI
+      reports:
+      - title: "Example Asset Report 0"
+        window: "15d"
+        aggregateBy: "type"
+        accumulate: false # daily resolution
+        filters:
+          - property: "type"
+            value: "ClusterManagement,Disk,LoadBalancer,Node"
+
+  ingress:
+    enabled: true
+    # className: "{{ingress_nginx.ingress_class.internal}}"
+    # hosts:
+    #   - "kubecost.{{hostname.internal}}"
+
+  # serviceAccount:
+  #   annotations:
+  #     eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--kubecost"
+
+  # serviceMonitor:
+  #   enabled: true
+  #   additionalLabels:
+  #     release: "prometheus-{{cluster}}"
+
+  # prometheusRule:
+  #   enabled: true
+  #   additionalLabels:
+  #     release: "prometheus-{{cluster}}"
+
+  tolerations:
+    - key: group
+      operator: Equal
+      value: monitoring
+      effect: NoSchedule
+  nodeSelector:
+    group: monitoring
+
+  persistentVolume:
+    storageClass: gp3
+    size: 100Gi
+
+  # prometheus:
+  #   server:
+  #     global:
+  #       external_labels:
+  #         cluster_id: "{{cluster}}"
+
+  kubecostMetrics:
+    emitKsmV1Metrics: false
+    emitKsmV1MetricsOnly: false
+
+  readonly: true
+
+  kubecostProductConfigs:
+    # projectID: "{{aws_account_id}}"
+    # awsSpotDataRegion: "{{aws_region}}"
+    # awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
+    # awsSpotDataPrefix: "spot-data-feed"
+    # # spotLabel: lifecycle
+    # # spotLabelValue: Ec2Spot
+
+    # athenaProjectID: "{{aws_account_id}}"
+    # athenaBucketName: "s3://aws-athena-query-results-{{aws_account_id}}"
+    # athenaRegion: "{{aws_region}}"
+    # athenaDatabase: "athenacurcfn_aws_billing_report"
+    # athenaTable: "aws_billing_report"
+    # athenaWorkgroup: "primary"
+
+    # labelMappingConfigs:
+    #   enabled: true
+    #   environment_label: "krmt.io/env"
+    #   owner_label: "krmt.io/cluster"
+    #   team_label: "krmt.io/team"
+    #   department_label: "krmt.io/group"
+    #   product_label: "krmt.io/product"
+
+  # networkCosts:
+  #   enabled: true
+  #   config:
+  #     services:
+  #       amazon-web-services: true
+
+  reporting:
+    valuesReporting: false

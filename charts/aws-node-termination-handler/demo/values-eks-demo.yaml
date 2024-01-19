@@ -1,0 +1,20 @@
+aws-node-termination-handler:
+  awsRegion: "ap-northeast-2"
+
+  podLabels:
+    department: "addons"
+    owner: "eks-demo"
+
+  queueURL: "https://sqs.ap-northeast-2.amazonaws.com/082867736673/-nth"
+
+  replicas: "1"
+
+  managedTag: "aws-node-termination-handler/"
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo--aws-node-termination-handler"
+
+  serviceMonitor:
+    create: False
+

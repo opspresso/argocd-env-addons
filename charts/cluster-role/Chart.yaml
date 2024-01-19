@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: cluster-role
+type: application
+version: "v0.2.5"
+
+dependencies:
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5"

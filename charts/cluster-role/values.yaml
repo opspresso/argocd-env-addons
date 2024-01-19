@@ -1,0 +1,64 @@
+raw:
+  fullnameOverride: cluster-role
+
+  resources:
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: k8s-exec
+      rules:
+        - apiGroups:
+            - ""
+          resources:
+            - "pods/exec"
+            - "pods/portforward"
+          verbs:
+            - create
+
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: k8s-readonly:group:view
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: view
+      subjects:
+        - kind: Group
+          name: k8s-readonly
+
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: k8s-readonly:group:exec
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: k8s-exec
+      subjects:
+        - kind: Group
+          name: k8s-readonly
+
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: k8s-readonly:user:view
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: view
+      subjects:
+        - kind: User
+          name: k8s-readonly
+
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: k8s-readonly:user:exec
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: k8s-exec
+      subjects:
+        - kind: User
+          name: k8s-readonly

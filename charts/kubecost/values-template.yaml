@@ -1,0 +1,123 @@
+kubecost:
+  global:
+    prometheus:
+      fqdn: "https://prom.{{hostname.internal}}"
+
+    notifications:
+      alertConfigs:
+        alerts:
+          # # Daily namespace budget alert on namespace `kubecost`
+          # - type: budget                # supported: budget, recurringUpdate
+          #   threshold: 5                # optional, required for budget alerts
+          #   window: daily               # or 1d
+          #   aggregation: namespace
+          #   filter: kubecost
+
+          # Daily cluster budget alert on cluster `cluster-one`
+          - type: budget
+            threshold: 4000.0         # optional, required for budget alerts
+            window: daily             # or 1d
+            aggregation: cluster
+            filter: '{{cluster}}'     # does not accept csv
+
+          # Recurring weekly update (weeklyUpdate alert)
+          - type: recurringUpdate
+            window: weekly            # or 7d
+            aggregation: namespace
+            filter: '*'
+
+          # # Recurring weekly namespace update on `kubecost` namespace
+          # - type: recurringUpdate
+          #   window: weekly            # or 7d
+          #   aggregation: namespace
+          #   filter: kubecost
+
+          # # Spend Change Alert
+          # - type: spendChange         # change relative to moving avg
+          #   relativeThreshold: 0.20   # Proportional change relative to baseline. Must be greater than -1 (can be negative)
+          #   window: 1d                # accepts ‘d’, ‘h’
+          #   baselineWindow: 30d       # previous window, offset by window
+          #   aggregation: namespace
+          #   filter: '*' # kubecost, default # accepts csv
+
+          # # Health Score Alert
+          # - type: health              # Alerts when health score changes by a threshold
+          #   window: 10m
+          #   threshold: 5              # Send Alert if health scores changes by 5 or more
+
+          # # Kubecost Health Diagnostic
+          # - type: diagnostic          # Alerts when kubecost is is unable to compute costs - ie: Prometheus unreachable
+          #   window: 10m
+
+  ingress:
+    enabled: true
+    hosts:
+      - "kubecost.{{hostname.internal}}"
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--kubecost"
+
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: "prometheus-{{cluster}}"
+
+  prometheusRule:
+    enabled: true
+    additionalLabels:
+      release: "prometheus-{{cluster}}"
+
+  prometheus:
+    server:
+      global:
+        external_labels:
+          cluster_id: "{{cluster}}"
+
+  kubecostProductConfigs:
+    projectID: "{{aws_account_id}}"
+    awsSpotDataRegion: "{{aws_region}}"
+    awsSpotDataBucket: "aws-spot-data-{{aws_account_id}}"
+    awsSpotDataPrefix: "spot-data-feed"
+    # spotLabel: lifecycle
+    # spotLabelValue: Ec2Spot
+
+    athenaProjectID: "{{aws_account_id}}"
+    athenaBucketName: "s3://aws-athena-query-results-{{aws_account_id}}"
+    athenaRegion: "{{aws_region}}"
+    athenaDatabase: "athenacurcfn_aws_billing_report"
+    athenaTable: "aws_billing_report"
+    athenaWorkgroup: "primary"
+
+raw:
+  resources:
+    - apiVersion: networking.istio.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: kubecost
+      spec:
+        selector:
+          istio: ingressgateway
+        servers:
+          - hosts:
+              - "kubecost.{{hostname.internal}}"
+            port:
+              number: 80
+              name: http
+              protocol: HTTP
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: kubecost
+      spec:
+        hosts:
+          - "kubecost.{{hostname.internal}}"
+        gateways:
+          - kubecost
+        http:
+          - route:
+              - destination:
+                  host: "kubecost-{{cluster}}-cost-analyzer"
+                  port:
+                    number: 9090

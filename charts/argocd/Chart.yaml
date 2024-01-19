@@ -1,15 +1,15 @@
 apiVersion: v2
-appVersion: v2.5.9
 description: A Helm chart for Kubernetes
 name: argocd
 type: application
-version: 5.19.12-4f4a062
+version: "5.53.1"
 
 dependencies:
-- alias: argocd
-  name: argo-cd
+- name: argo-cd
+  alias: argocd
   repository: https://argoproj.github.io/argo-helm
-  version: 5.19.12
-- repository: https://charts.helm.sh/incubator
-  name: raw
-  version: 0.2.5
+  version: "5.53.1"
+
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5"

@@ -1,0 +1,15 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: dashboard
+type: application
+version: "6.0.8"
+
+dependencies:
+- alias: dashboard
+  name: kubernetes-dashboard
+  repository: https://kubernetes.github.io/dashboard
+  version: "6.0.8"
+
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5"

@@ -1,0 +1,64 @@
+external-secrets:
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--external-secrets
+
+{% if operation is defined %}
+{% if operation.nodeSelector is defined %}
+  nodeSelector:
+    group: "{{operation.nodeSelector}}"
+  tolerations:
+  - effect: NoSchedule
+    key: group
+    operator: Equal
+    value: "{{operation.nodeSelector}}"
+{% endif %}
+{% endif %}
+
+  webhook:
+{% if operation is defined %}
+{% if operation.nodeSelector is defined %}
+    nodeSelector:
+      group: "{{operation.nodeSelector}}"
+    tolerations:
+    - effect: NoSchedule
+      key: group
+      operator: Equal
+      value: "{{operation.nodeSelector}}"
+{% endif %}
+{% endif %}
+
+  certController:
+{% if operation is defined %}
+{% if operation.nodeSelector is defined %}
+    nodeSelector:
+      group: "{{operation.nodeSelector}}"
+    tolerations:
+    - effect: NoSchedule
+      key: group
+      operator: Equal
+      value: "{{operation.nodeSelector}}"
+{% endif %}
+{% endif %}
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ClusterSecretStore
+      metadata:
+        name: parameter-store
+      spec:
+        provider:
+          aws:
+            region: "{{aws_region}}"
+            service: ParameterStore
+
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ClusterSecretStore
+      metadata:
+        name: secrets-manager
+      spec:
+        provider:
+          aws:
+            region: "{{aws_region}}"
+            service: SecretsManager

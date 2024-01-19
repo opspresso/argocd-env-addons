@@ -1,0 +1,20 @@
+atlantis:
+  fullnameOverride: atlantis
+
+  # atlantisUrl: {{atlantis.url}}
+
+  # orgAllowlist: github.com/daangn/terraform-*
+
+  resources:
+    requests:
+      memory: 2Gi
+      cpu: "1"
+    limits:
+      memory: 4Gi
+      cpu: "2"
+
+  storageClassName: gp3 # aws-ebs-sc
+  dataStorage: 15Gi
+
+  service:
+    type: ClusterIP

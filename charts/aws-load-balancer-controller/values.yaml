@@ -1,0 +1,3 @@
+aws-load-balancer-controller:
+  fullnameOverride: aws-load-balancer-controller
+  nameOverride: aws-load-balancer-controller

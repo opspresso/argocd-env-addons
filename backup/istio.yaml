@@ -1,0 +1,138 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: istio
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
+
+  template:
+    metadata:
+      name: "istio-{{cluster}}"
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        krmt.io/cluster: "{{cluster}}"
+        krmt.io/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: istio-system
+      source:
+        repoURL: https://github.com/opspresso/argocd-env-addons
+        targetRevision: HEAD
+        path: charts/istio
+        helm:
+          valueFiles:
+            - values.yaml
+
+          values: |-
+            istiod:
+              global:
+                hub: "{{istio.global.hub}}"
+
+              pilot:
+                autoscaleEnabled: {{istio.pilot.autoscale}}
+                replicaCount: {{istio.pilot.min}}
+                autoscaleMin: {{istio.pilot.min}}
+                autoscaleMax: {{istio.pilot.max}}
+
+                podLabels:
+                  owner: "{{cluster}}"
+                  # department: "addons"
+
+              meshConfig:
+                defaultConfig:
+                  tracing:
+                    sampling: {{istio.tracing.sampling}}
+
+            gateway:
+              replicaCount: {{istio.gateway.min}}
+
+              autoscaling:
+                enabled: {{istio.gateway.autoscale}}
+                minReplicas: {{istio.gateway.min}}
+                maxReplicas: {{istio.gateway.max}}
+
+              labels:
+                owner: "{{cluster}}"
+                # department: "addons"
+
+            raw:
+              resources:
+                - apiVersion: elbv2.k8s.aws/v1beta1
+                  kind: TargetGroupBinding
+                  metadata:
+                    name: istio-ingressgateway-public
+                  spec:
+                    serviceRef:
+                      name: istio-ingressgateway
+                      port: http2
+                    targetGroupARN: "{{istio.target_group.public_http}}"
+                    targetType: ip
+
+                - apiVersion: elbv2.k8s.aws/v1beta1
+                  kind: TargetGroupBinding
+                  metadata:
+                    name: istio-ingressgateway-internal
+                  spec:
+                    serviceRef:
+                      name: istio-ingressgateway
+                      port: http2
+                    targetGroupARN: "{{istio.target_group.internal_http}}"
+                    targetType: ip
+
+                - apiVersion: networking.istio.io/v1alpha3
+                  kind: EnvoyFilter
+                  metadata:
+                    name: gateway-response-remove-headers
+                  spec:
+                    workloadSelector:
+                      labels:
+                        istio: ingressgateway
+                    configPatches:
+                    - applyTo: NETWORK_FILTER
+                      match:
+                        context: GATEWAY
+                        listener:
+                          filterChain:
+                            filter:
+                              name: "envoy.filters.network.http_connection_manager"
+                      patch:
+                        operation: MERGE
+                        value:
+                          typed_config:
+                            "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+                            server_header_transformation: PASS_THROUGH
+                    - applyTo: ROUTE_CONFIGURATION
+                      match:
+                        context: GATEWAY
+                      patch:
+                        operation: MERGE
+                        value:
+                          response_headers_to_remove:
+                          - "x-envoy-decorator-operation"
+                          - "x-envoy-upstream-service-time"
+                          - "server"
+
+      ignoreDifferences:
+        - kind: ValidatingWebhookConfiguration
+          group: admissionregistration.k8s.io
+          jsonPointers:
+            - /webhooks/0/clientConfig/caBundle
+            - /webhooks/0/failurePolicy
+
+      syncPolicy:
+        # automated:
+        #   prune: true
+        #   selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

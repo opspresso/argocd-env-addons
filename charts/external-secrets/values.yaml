@@ -1,0 +1,14 @@
+external-secrets:
+  fullnameOverride: external-secrets
+
+  # serviceAccount:
+  #   annotations:
+  #     eks.amazonaws.com/role-arn: arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--external-secrets
+
+  # nodeSelector:
+  #   group: ingress
+  # tolerations:
+  # - effect: NoSchedule
+  #   key: group
+  #   operator: Equal
+  #   value: ingress

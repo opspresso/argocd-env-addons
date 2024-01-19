@@ -1,0 +1,37 @@
+aws-ebs-csi-driver:
+  image:
+    repository: "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver"
+
+  sidecars:
+    nodeDriverRegistrar:
+      image:
+        repository: "k8s.gcr.io/sig-storage/csi-node-driver-registrar"
+    livenessProbe:
+      image:
+        repository: "k8s.gcr.io/sig-storage/livenessprobe"
+
+  controller:
+    podLabels:
+      department: "addons"
+      owner: "eks-demo-b"
+
+    k8sTagClusterId: "eks-demo-b"
+
+    extraVolumeTags:
+      KubernetesCluster: "eks-demo-b"
+      Environment: "demo"
+
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo-b--aws-ebs-csi-driver"
+
+  node:
+    podLabels:
+      department: "addons"
+      owner: "eks-demo-b"
+
+    serviceAccount:
+      annotations:
+        eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo-b--aws-ebs-csi-driver"
+
+  useOldCSIDriver: False
