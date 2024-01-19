@@ -1,14 +1,14 @@
 aws-ebs-csi-driver:
-  image:
-    repository: "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver"
+  # image:
+  #   repository: "public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver"
 
-  sidecars:
-    nodeDriverRegistrar:
-      image:
-        repository: "k8s.gcr.io/sig-storage/csi-node-driver-registrar"
-    livenessProbe:
-      image:
-        repository: "k8s.gcr.io/sig-storage/livenessprobe"
+  # sidecars:
+  #   nodeDriverRegistrar:
+  #     image:
+  #       repository: "k8s.gcr.io/sig-storage/csi-node-driver-registrar"
+  #   livenessProbe:
+  #     image:
+  #       repository: "k8s.gcr.io/sig-storage/livenessprobe"
 
   controller:
     podLabels:
