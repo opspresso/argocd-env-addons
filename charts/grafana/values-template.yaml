@@ -1,4 +1,4 @@
-grapana:
+grafana:
   fullnameOverride: grafana
 
 {% if grafana is defined %}

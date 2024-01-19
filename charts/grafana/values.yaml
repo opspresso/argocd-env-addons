@@ -1,4 +1,4 @@
-grapana:
+grafana:
   fullnameOverride: grafana
 
   revisionHistoryLimit: 3
