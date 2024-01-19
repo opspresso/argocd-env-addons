@@ -27,49 +27,17 @@ spec:
         name: "{{cluster}}"
         namespace: addon-dashboard
       source:
-        repoURL: https://kubernetes.github.io/dashboard
-        targetRevision: "6.0.0"
-        chart: kubernetes-dashboard
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/dashboard
         helm:
-          values: |-
-            fullnameOverride: dashboard
-
-            podLabels:
-              owner: "{{cluster}}"
-              department: "addons"
-
-            extraArgs:
-              - --enable-skip-login
-              - --enable-insecure-login
-              # - --authentication-mode=token
-
-            protocolHttp: true
-
-            service:
-              externalPort: 80
-
-            resources:
-              requests:
-                cpu: 50m
-                memory: 128Mi
-              limits:
-                cpu: 100m
-                memory: 256Mi
-
-            ingress:
-              enabled: false
-
-            # tolerations:
-            #   - key: group
-            #     operator: Equal
-            #     value: graviton
-            #     effect: NoSchedule
-            # nodeSelector:
-            #   group: graviton
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true

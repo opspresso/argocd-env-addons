@@ -27,72 +27,17 @@ spec:
         name: "{{cluster}}"
         namespace: addon-aws-ebs-csi-driver
       source:
-        repoURL: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-        targetRevision: "2.16.0"
-        chart: aws-ebs-csi-driver
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/aws-ebs-csi-driver
         helm:
-          values: |-
-            fullnameOverride: aws-ebs-csi-driver
-
-            # image:
-            #   repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.image.repository}}
-
-            # sidecars:
-            #   nodeDriverRegistrar:
-            #     image:
-            #       repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.nodeDriverRegistrar.image.repository}}
-            #   livenessProbe:
-            #     image:
-            #       repository: {{aws-ebs-csi-driver.image.registry}}/{{aws-ebs-csi-driver.livenessProbe.image.repository}}
-
-            controller:
-              k8sTagClusterId: "{{cluster}}"
-
-              podLabels:
-                owner: "{{cluster}}"
-                department: "addons"
-
-              extraVolumeTags:
-                Environment: "{{env}}"
-                Role: service
-
-              serviceAccount:
-                annotations:
-                  eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--aws-ebs-csi-driver"
-
-              # tolerations:
-              #   - key: group
-              #     operator: Equal
-              #     value: graviton
-              #     effect: NoSchedule
-              # nodeSelector:
-              #   group: graviton
-
-            node:
-              tolerateAllTaints: true
-
-              podLabels:
-                owner: "{{cluster}}"
-                department: "addons"
-
-              serviceAccount:
-                annotations:
-                  eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--aws-ebs-csi-driver"
-
-            storageClasses:
-              - name: gp3
-                # annotations:
-                #   storageclass.kubernetes.io/is-default-class: "true"
-                volumeBindingMode: WaitForFirstConsumer
-                parameters:
-                  type: gp3
-                  allowAutoIOPSPerGBIncrease: "true"
-                reclaimPolicy: Retain
-                allowVolumeExpansion: true
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true

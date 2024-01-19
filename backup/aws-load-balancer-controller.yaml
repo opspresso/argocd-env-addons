@@ -27,34 +27,36 @@ spec:
         name: "{{cluster}}"
         namespace: addon-aws-load-balancer-controller
       source:
-        repoURL: https://aws.github.io/eks-charts
-        targetRevision: "1.4.7"
-        chart: aws-load-balancer-controller
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/aws-load-balancer-controller
         helm:
-          values: |-
-            fullnameOverride: aws-load-balancer-controller
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
 
-            clusterName: "{{cluster}}"
-
-            podLabels:
-              owner: "{{cluster}}"
-              department: "addons"
-
-            serviceAccount:
-              annotations:
-                eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--aws-load-balancer-controller"
-
-            # tolerations:
-            #   - key: group
-            #     operator: Equal
-            #     value: graviton
-            #     effect: NoSchedule
-            # nodeSelector:
-            #   group: graviton
+      ignoreDifferences:
+        - kind: Secret
+          jsonPointers:
+            - /data/ca.crt
+            - /data/tls.crt
+            - /data/tls.key
+        - kind: MutatingWebhookConfiguration
+          group: admissionregistration.k8s.io
+          jsonPointers:
+            - /webhooks/0/clientConfig/caBundle
+            - /webhooks/1/clientConfig/caBundle
+            - /webhooks/2/clientConfig/caBundle
+        - kind: ValidatingWebhookConfiguration
+          group: admissionregistration.k8s.io
+          jsonPointers:
+            - /webhooks/0/clientConfig/caBundle
+            - /webhooks/1/clientConfig/caBundle
+            - /webhooks/2/clientConfig/caBundle
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true

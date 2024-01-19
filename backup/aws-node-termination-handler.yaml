@@ -27,42 +27,17 @@ spec:
         name: "{{cluster}}"
         namespace: addon-aws-node-termination-handler
       source:
-        repoURL: https://aws.github.io/eks-charts
-        targetRevision: "0.21.0"
-        chart: aws-node-termination-handler
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/aws-node-termination-handler
         helm:
-          values: |-
-            fullnameOverride: aws-node-termination-handler
-
-            awsRegion: "{{aws_region}}"
-
-            enableSqsTerminationDraining: true
-            queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster}}-worker"
-
-            managedTag: "aws-node-termination-handler/{{cluster}}"
-
-            podLabels:
-              owner: "{{cluster}}"
-              department: "addons"
-
-            serviceAccount:
-              annotations:
-                eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--aws-node-termination-handler"
-
-            enableRebalanceDraining: true
-            enableSpotInterruptionDraining: true
-
-            webhookURLSecretName: webhook-secret
-
-            webhookTemplateConfigMapName: webhook-template
-            webhookTemplateConfigMapKey: template
-
-            podTerminationGracePeriod: "180"
-            nodeTerminationGracePeriod: "180"
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true

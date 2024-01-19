@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: dashboard
+  name: argocd
 spec:
   generators:
     - git:
@@ -9,12 +9,10 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          # - path: "env/eks-demo-a.yaml"
-          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
-      name: "dashboard-{{cluster}}"
+      name: "argocd" # only management cluster
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
@@ -25,11 +23,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-dashboard
+        namespace: argocd
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/dashboard
+        path: charts/argocd
         helm:
           valueFiles:
             - values.yaml
