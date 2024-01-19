@@ -29,7 +29,7 @@ spec:
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/kube-prometheus-stack
+        path: charts/prometheus-stack
         helm:
           valueFiles:
             - values.yaml
