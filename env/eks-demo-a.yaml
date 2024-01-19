@@ -13,14 +13,6 @@ hostname:
   internal: in.demo.opspresso.com
   public: demo.opspresso.com
 
-argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/880cf58e-6493-4469-864b-cf190dfd4308
-  hostname: argocd.demo.opspresso.com
-  github:
-    org: opspresso # github org
-    team: sre
-  chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
-
 argo_workflows:
   github:
     org: opspresso # github org

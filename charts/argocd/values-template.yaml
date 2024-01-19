@@ -1,4 +1,7 @@
 argocd:
+  fullnameOverride: argocd
+
+{% if argocd is defined %}
   global:
     podLabels:
       owner: "{{cluster}}"
@@ -151,3 +154,4 @@ raw:
           - secretKey: oauth2-proxy-client-secret
             remoteRef:
               key: /k8s/common/oauth2-proxy-client-secret
+{% endif %}
