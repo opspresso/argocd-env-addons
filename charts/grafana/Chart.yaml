@@ -1,0 +1,15 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: grafana
+type: application
+version: "7.2.3"
+
+dependencies:
+- alias: grafana
+  name: cost-analyzer
+  repository: https://grafana.github.io/helm-charts
+  version: "7.2.3"
+
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5"

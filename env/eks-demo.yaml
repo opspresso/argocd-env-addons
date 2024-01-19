@@ -111,8 +111,8 @@ grafana:
       allowed_domains: nalbam.com daangn.com
   datasource:
     demo: http://prom.in.demo.opspresso.com
-    demo-a: http://prom.in.demo-a.nalbam.com
-    demo-b: http://prom.in.demo-b.nalbam.com
+    demo_a: http://prom.in.demo-a.opspresso.com
+    demo_b: http://prom.in.demo-b.opspresso.com
     loki: http://loki.in.demo.opspresso.com
 
 loki:
