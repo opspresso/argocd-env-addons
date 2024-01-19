@@ -16,9 +16,9 @@ grapana:
   extraSecretMounts:
     - name: grafana-secret
       secretName: grafana-secret
-      defaultMode: 0440
       mountPath: /etc/secrets/grafana-secret
       readOnly: true
+      subPath: ""
 
   grafana.ini:
     # server:
