@@ -1,6 +1,6 @@
 istiod:
   global:
-    hub: gcr.io/istio-release
+    # hub: gcr.io/istio-release
 
     proxy:
       lifecycle:

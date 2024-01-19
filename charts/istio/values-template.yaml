@@ -1,6 +1,6 @@
 istiod:
-  global:
-    hub: "{{istio.global.hub}}"
+  # global:
+  #   hub: "{{istio.global.hub}}"
 
   pilot:
     autoscaleEnabled: {{istio.pilot.autoscale}}
