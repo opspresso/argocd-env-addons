@@ -5,8 +5,7 @@ type: application
 version: "7.2.3"
 
 dependencies:
-- alias: grafana
-  name: cost-analyzer
+- name: grafana
   repository: https://grafana.github.io/helm-charts
   version: "7.2.3"
 
