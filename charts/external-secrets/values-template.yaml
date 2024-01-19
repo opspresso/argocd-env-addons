@@ -15,9 +15,9 @@ external-secrets:
 {% endif %}
 {% endif %}
 
-  webhook:
 {% if operation is defined %}
 {% if operation.nodeSelector is defined %}
+  webhook:
     nodeSelector:
       group: "{{operation.nodeSelector}}"
     tolerations:
@@ -28,9 +28,9 @@ external-secrets:
 {% endif %}
 {% endif %}
 
-  certController:
 {% if operation is defined %}
 {% if operation.nodeSelector is defined %}
+  certController:
     nodeSelector:
       group: "{{operation.nodeSelector}}"
     tolerations:
