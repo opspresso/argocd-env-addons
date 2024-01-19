@@ -70,4 +70,71 @@ grapana:
     enabled: true
     labels:
       release: prometheus-{{cluster}}
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: grafana-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: grafana-secret
+        data:
+          - secretKey: admin-user
+            remoteRef:
+              key: /k8s/common/admin-user
+          - secretKey: admin-password
+            remoteRef:
+              key: /k8s/common/admin-password
+          - secretKey: github-id
+            remoteRef:
+              key: /k8s/{{grafana.auth.github.org}}/grafana-github-id
+          - secretKey: github-secret
+            remoteRef:
+              key: /k8s/{{grafana.auth.github.org}}/grafana-github-secret
+          - secretKey: google-id
+            remoteRef:
+              key: /k8s/common/google-id
+          - secretKey: google-secret
+            remoteRef:
+              key: /k8s/common/google-secret
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: grafana
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
+      spec:
+        selector:
+          istio: ingressgateway
+        servers:
+          - hosts:
+              - "{{grafana.hostname}}"
+            port:
+              number: 80
+              name: http
+              protocol: HTTP
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: grafana
+      spec:
+        hosts:
+          - "{{grafana.hostname}}"
+        gateways:
+          - grafana
+          - mesh
+        http:
+          - route:
+              - destination:
+                  host: grafana
+                  port:
+                    number: 80
 {% endif %}
