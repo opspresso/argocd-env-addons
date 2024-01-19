@@ -1,0 +1,38 @@
+loki-stack:
+  loki:
+    fullnameOverride: loki
+
+    # podLabels:
+    #   owner: "{{cluster}}"
+    #   department: "addons"
+
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1024Mi
+
+    persistence:
+      enabled: true
+      accessModes:
+        - ReadWriteOnce
+      size: 50Gi
+      storageClassName: gp3 # aws-ebs-sc
+
+    # serviceMonitor:
+    #   enabled: true
+    #   additionalLabels:
+    #     release: prometheus-{{cluster}}
+
+    tolerations:
+      - key: group
+        operator: Equal
+        value: monitoring
+        effect: NoSchedule
+    nodeSelector:
+      group: monitoring
+
+  promtail:
+    enabled: false

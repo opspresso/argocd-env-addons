@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: prometheus
+  name: promtail
 spec:
   generators:
     - git:
@@ -14,7 +14,7 @@ spec:
 
   template:
     metadata:
-      name: "prometheus-{{cluster}}"
+      name: "promtail-{{cluster}}"
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
@@ -25,19 +25,19 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-prometheus
+        namespace: addon-promtail
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/prometheus-stack
+        path: charts/promtail
         helm:
           valueFiles:
             - values.yaml
             - "{{env}}/values-{{cluster}}.yaml"
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true

@@ -1,0 +1,20 @@
+promtail:
+  fullnameOverride: promtail
+
+  # podLabels:
+  #   owner: "{{cluster}}"
+  #   department: "addons"
+
+  # extraArgs:
+  #   - -client.external-labels=cluster={{cluster}}
+
+  # config:
+  #   clients:
+  #     - url: http://{{loki.hostname}}/loki/api/v1/push
+
+  # tolerations:
+  #   - operator: Exists
+
+  # updateStrategy:
+  #   rollingUpdate:
+  #     maxUnavailable: 25%
