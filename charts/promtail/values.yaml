@@ -1,2 +1,9 @@
 promtail:
   fullnameOverride: promtail
+
+  tolerations:
+    - operator: Exists
+
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 25%
