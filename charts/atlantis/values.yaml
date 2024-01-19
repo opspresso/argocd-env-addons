@@ -3,7 +3,7 @@ atlantis:
 
   # atlantisUrl: {{atlantis.url}}
 
-  # orgAllowlist: github.com/daangn/terraform-*
+  # orgAllowlist: github.com/opspresso/terraform-*
 
   resources:
     requests:

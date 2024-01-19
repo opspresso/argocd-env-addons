@@ -43,7 +43,7 @@ spec:
                 upstreams = [ "static://200" ]
 
                 cookie_domains = ".{{hostname.public}}"
-                email_domains = ["nalbam.com","daangn.com","kubecost.com"]
+                email_domains = ["nalbam.com","opspresso.com","kubecost.com"]
                 whitelist_domains = [".{{hostname.public}}"]
 
                 pass_access_token = true

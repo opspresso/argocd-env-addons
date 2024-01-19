@@ -27,6 +27,7 @@ jobs:
         with:
           args: --commit
         env:
+          GIT_BRANCH: main
           GIT_USEREMAIL: bot@nalbam.com
           GIT_USERNAME: nalbam-bot
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

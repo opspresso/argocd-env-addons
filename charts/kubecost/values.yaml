@@ -12,9 +12,9 @@ kubecost:
 
     notifications:
       alertConfigs:
-        globalSlackWebhookUrl: https://hooks.slack.com/services/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
+        globalSlackWebhookUrl: https://hooks.slack.com/services/xx/xx/xx
         globalAlertEmails:
-          - infra@daangn.com
+          - infra@nalbam.com
 
         # alerts:
         #   # # Daily namespace budget alert on namespace `kubecost`
