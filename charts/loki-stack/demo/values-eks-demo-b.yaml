@@ -1,3 +1,46 @@
-grafana:
-  fullnameOverride: grafana
+loki-stack:
+  loki:
+    fullnameOverride: loki
 
+    # podLabels:
+    #   owner: "eks-demo-b"
+    #   department: "addons"
+
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: prometheus-eks-demo-b
+
+raw:
+  resources:
+    - apiVersion: networking.istio.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: loki
+      spec:
+        selector:
+          istio: ingressgateway
+        servers:
+          - hosts:
+              - "loki.in.demo.opspresso.com"
+            port:
+              number: 80
+              name: http
+              protocol: HTTP
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: loki
+      spec:
+        hosts:
+          - "loki.in.demo.opspresso.com"
+        gateways:
+          - loki
+          - mesh
+        http:
+          - route:
+              - destination:
+                  host: loki
+                  port:
+                    number: 3100

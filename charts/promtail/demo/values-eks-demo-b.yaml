@@ -1,0 +1,13 @@
+promtail:
+  fullnameOverride: promtail
+
+  podLabels:
+    owner: "eks-demo-b"
+    department: "addons"
+
+  extraArgs:
+    - -client.external-labels=cluster=eks-demo-b
+
+  config:
+    clients:
+      - url: http://loki.in.demo.opspresso.com/loki/api/v1/push
