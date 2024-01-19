@@ -27,8 +27,7 @@ jobs:
         with:
           args: --commit
         env:
-          GIT_BRANCH: alpha
-          GIT_USEREMAIL: github.daangnbot@daangn.com
-          GIT_USERNAME: daangnbot
+          GIT_USEREMAIL: bot@nalbam.com
+          GIT_USERNAME: nalbam-bot
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MESSAGE_PATH: ./target/commit_message.txt
