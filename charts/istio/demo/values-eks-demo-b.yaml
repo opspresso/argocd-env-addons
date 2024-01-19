@@ -1,0 +1,54 @@
+istiod:
+  global:
+    hub: "gcr.io/istio-release"
+
+  pilot:
+    autoscaleEnabled: False
+    replicaCount: 2
+    autoscaleMin: 2
+    autoscaleMax: 2
+
+    podLabels:
+      owner: "eks-demo-b"
+      # department: "addons"
+
+  meshConfig:
+    defaultConfig:
+      tracing:
+        sampling: 10
+
+gateway:
+  replicaCount: 2
+
+  autoscaling:
+    enabled: False
+    minReplicas: 2
+    maxReplicas: 5
+
+  labels:
+    owner: "eks-demo-b"
+    # department: "addons"
+
+tgb:
+  resources:
+    - apiVersion: elbv2.k8s.aws/v1beta1
+      kind: TargetGroupBinding
+      metadata:
+        name: istio-ingressgateway-public
+      spec:
+        serviceRef:
+          name: istio-ingressgateway
+          port: http2
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-b/020dfd696d0efda1"
+        targetType: ip
+
+    - apiVersion: elbv2.k8s.aws/v1beta1
+      kind: TargetGroupBinding
+      metadata:
+        name: istio-ingressgateway-internal
+      spec:
+        serviceRef:
+          name: istio-ingressgateway
+          port: http2
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-b/504c207df9e345e8"
+        targetType: ip
