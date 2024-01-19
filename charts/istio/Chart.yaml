@@ -18,5 +18,10 @@ dependencies:
   version: "1.19.4"
 
 - name: raw
+  alias: tgb
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5"
+
+- name: raw
   repository: https://charts.helm.sh/incubator
   version: "0.2.5"

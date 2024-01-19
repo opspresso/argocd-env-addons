@@ -16,9 +16,9 @@ istiod:
               - "-c"
               - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
 
-    tracer:
-      zipkin:
-        address: jaeger-collector.addon-tracing.svc.cluster.local:9411
+    # tracer:
+    #   zipkin:
+    #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
 
   pilot:
     podLabels:
@@ -78,28 +78,6 @@ gateway:
 
 raw:
   resources:
-    - apiVersion: elbv2.k8s.aws/v1beta1
-      kind: TargetGroupBinding
-      metadata:
-        name: istio-ingressgateway-public
-      spec:
-        serviceRef:
-          name: istio-ingressgateway
-          port: http2
-        # targetGroupARN: "{{istio.target_group.public_http}}"
-        targetType: ip
-
-    - apiVersion: elbv2.k8s.aws/v1beta1
-      kind: TargetGroupBinding
-      metadata:
-        name: istio-ingressgateway-internal
-      spec:
-        serviceRef:
-          name: istio-ingressgateway
-          port: http2
-        # targetGroupARN: "{{istio.target_group.internal_http}}"
-        targetType: ip
-
     - apiVersion: v1
       kind: Service
       metadata:
@@ -232,5 +210,6 @@ raw:
               operation: MERGE
               value:
                 response_headers_to_remove:
+                  - "x-envoy-decorator-operation"
                   - "x-envoy-upstream-service-time"
                   - "server"
