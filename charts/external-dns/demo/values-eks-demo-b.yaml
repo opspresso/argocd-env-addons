@@ -1,0 +1,6 @@
+external-dns:
+  fullnameOverride: external-dns
+
+  serviceAccount:
+    annotations:
+      eks.amazonaws.com/role-arn: arn:aws:iam::082867736673:role/irsa--eks-demo-b--external-dns
