@@ -23,7 +23,7 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: default
+        namespace: addon-prometheus
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
