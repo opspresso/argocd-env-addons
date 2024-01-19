@@ -5,11 +5,11 @@ aws-node-termination-handler:
     department: "addons"
     owner: "eks-demo"
 
-  queueURL: "https://sqs.ap-northeast-2.amazonaws.com/082867736673/-nth"
+  queueURL: "https://sqs.ap-northeast-2.amazonaws.com/082867736673/eks-demo-nth"
 
   replicas: "1"
 
-  managedTag: "aws-node-termination-handler/"
+  managedTag: "aws-node-termination-handler/eks-demo"
 
   serviceAccount:
     annotations:
