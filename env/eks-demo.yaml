@@ -104,10 +104,10 @@ grafana:
   hostname: grafana.demo.opspresso.com
   auth:
     github:
-      enabled: false
+      enabled: true
       org: opspresso # github org
     google:
-      enabled: true
+      enabled: false
       allowed_domains: nalbam.com daangn.com
   datasource:
     demo: http://prom.in.demo.opspresso.com
