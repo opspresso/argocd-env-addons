@@ -2,7 +2,7 @@ cluster-autoscaler:
   awsRegion: '{{aws_region}}'
 
   autoDiscovery:
-    clusterName: '{{cluster_name}}'
+    clusterName: '{{cluster}}'
 
   extraArgs:
 {% if cluster_autoscaler.scan_interval is defined %}

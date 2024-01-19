@@ -5,11 +5,11 @@ aws-node-termination-handler:
     department: "addons"
     owner: "{{cluster}}"
 
-  queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster_name}}-nth"
+  queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster}}-nth"
 
   replicas: "{{aws_node_termination_handler.replicas}}"
 
-  managedTag: "aws-node-termination-handler/{{cluster_name}}"
+  managedTag: "aws-node-termination-handler/{{cluster}}"
 
   serviceAccount:
     annotations:
