@@ -106,6 +106,7 @@ grafana:
     github:
       enabled: true
       org: opspresso # github org
+      team_ids: sre
     google:
       enabled: false
       allowed_domains: nalbam.com daangn.com

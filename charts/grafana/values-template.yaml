@@ -16,7 +16,7 @@ grapana:
     # https://grafana.com/docs/grafana/latest/auth/github/
     auth.github:
       enabled: {{grafana.auth.github.enabled}}
-      allow_sign_up: true
+      allow_sign_up: false
       client_id: $__file{/etc/secrets/grafana-secret/github-id}
       client_secret: $__file{/etc/secrets/grafana-secret/github-secret}
       scopes: user:email,read:org
@@ -29,7 +29,7 @@ grapana:
     # https://grafana.com/docs/grafana/latest/auth/google/
     auth.google:
       enabled: {{grafana.auth.google.enabled}}
-      allow_sign_up: true
+      allow_sign_up: false
       client_id: $__file{/etc/secrets/grafana-secret/google-id}
       client_secret: $__file{/etc/secrets/grafana-secret/google-secret}
       scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
