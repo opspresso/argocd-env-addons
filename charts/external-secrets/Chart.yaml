@@ -8,6 +8,7 @@ dependencies:
 - name: external-secrets
   repository: https://charts.external-secrets.io
   version: "0.9.10"
+
 - name: raw
   repository: https://charts.helm.sh/incubator
   version: "0.2.5"

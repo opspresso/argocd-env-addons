@@ -1,0 +1,10 @@
+external-dns:
+  fullnameOverride: external-dns
+
+  sources:
+    # - ingress
+    - service
+
+  # serviceAccount:
+  #   annotations:
+  #     eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/irsa--CLUSTER_NAME--external-dns"
