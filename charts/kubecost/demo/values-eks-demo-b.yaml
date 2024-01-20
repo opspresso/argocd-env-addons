@@ -49,10 +49,13 @@ kubecost:
           # - type: diagnostic          # Alerts when kubecost is is unable to compute costs - ie: Prometheus unreachable
           #   window: 10m
 
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://kubecost."
+
   ingress:
     enabled: true
     hosts:
-      - "kubecost.in.demo.opspresso.com"
+      - "kubecost."
 
   serviceAccount:
     annotations:
@@ -100,7 +103,7 @@ raw:
           istio: ingressgateway
         servers:
           - hosts:
-              - "kubecost.in.demo.opspresso.com"
+              - "kubecost."
             port:
               number: 80
               name: http
@@ -112,7 +115,7 @@ raw:
         name: kubecost
       spec:
         hosts:
-          - "kubecost.in.demo.opspresso.com"
+          - "kubecost."
         gateways:
           - kubecost
         http:

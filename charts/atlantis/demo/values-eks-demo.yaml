@@ -6,6 +6,9 @@ atlantis:
 
   orgAllowlist: "github.com/opspresso/terraform-*"
 
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://atlantis."
+
   image:
     repository: infracost/infracost-atlantis
     tag: latest
