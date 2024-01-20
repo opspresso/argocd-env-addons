@@ -1,7 +1,4 @@
 dashboard:
-  podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://{{dashboard.hostname}}"
-
   resources:
     requests:
       cpu: "{{dashboard.requests.cpu}}"
@@ -10,10 +7,13 @@ dashboard:
       cpu: "{{dashboard.limits.cpu}}"
       memory: "{{dashboard.limits.memory}}"
 
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://dashboard.{{hostname.public}}"
+
   ingress:
     enabled: false
     hosts:
-      - "dashboard.{{hostname.internal}}"
+      - "dashboard.{{hostname.public}}"
 
 route:
   resources:
