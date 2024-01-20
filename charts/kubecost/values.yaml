@@ -101,13 +101,13 @@ kubecost:
   #   additionalLabels:
   #     release: "prometheus-{{cluster}}"
 
-  tolerations:
-    - key: group
-      operator: Equal
-      value: monitoring
-      effect: NoSchedule
-  nodeSelector:
-    group: monitoring
+  # tolerations:
+  #   - key: group
+  #     operator: Equal
+  #     value: monitoring
+  #     effect: NoSchedule
+  # nodeSelector:
+  #   group: monitoring
 
   persistentVolume:
     storageClass: gp3
