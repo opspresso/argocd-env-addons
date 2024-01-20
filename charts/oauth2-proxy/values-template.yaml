@@ -32,23 +32,23 @@ oauth2-proxy:
 
 raw:
   resources:
-    - apiVersion: security.istio.io/v1beta1
-      kind: AuthorizationPolicy
-      metadata:
-        name: oauth-policy-atlantis
-        namespace: istio-system
-      spec:
-        selector:
-          matchLabels:
-            istio: ingressgateway
-        action: ALLOW
-        rules:
-        - to:
-          - operation:
-              hosts:
-              - "atlantis.{{hostname.public}}"
-              methods: ["POST"]
-              paths: ["/events"]
+    # - apiVersion: security.istio.io/v1beta1
+    #   kind: AuthorizationPolicy
+    #   metadata:
+    #     name: oauth-policy-allow
+    #     namespace: istio-system
+    #   spec:
+    #     selector:
+    #       matchLabels:
+    #         istio: ingressgateway
+    #     action: ALLOW
+    #     rules:
+    #     - to:
+    #       - operation:
+    #           hosts:
+    #           - "atlantis.{{hostname.public}}"
+    #           methods: ["POST"]
+    #           paths: ["/events"]
 
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy

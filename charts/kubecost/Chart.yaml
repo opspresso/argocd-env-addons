@@ -5,8 +5,8 @@ type: application
 version: "1.108.1"
 
 dependencies:
-- alias: kubecost
-  name: cost-analyzer
+- name: cost-analyzer
+  alias: kubecost
   repository: https://kubecost.github.io/cost-analyzer
   version: "1.108.1"
 
