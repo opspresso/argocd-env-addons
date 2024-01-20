@@ -50,12 +50,12 @@ kubecost:
           #   window: 10m
 
   podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://kubecost."
+    link.argocd.argoproj.io/external-link: "https://kubecost.demo.opspresso.com"
 
   ingress:
     enabled: true
     hosts:
-      - "kubecost."
+      - "kubecost.demo.opspresso.com"
 
   serviceAccount:
     annotations:
@@ -103,7 +103,7 @@ raw:
           istio: ingressgateway
         servers:
           - hosts:
-              - "kubecost."
+              - "kubecost.demo.opspresso.com"
             port:
               number: 80
               name: http
@@ -115,7 +115,7 @@ raw:
         name: kubecost
       spec:
         hosts:
-          - "kubecost."
+          - "kubecost.demo.opspresso.com"
         gateways:
           - kubecost
         http:
