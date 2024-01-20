@@ -1,4 +1,7 @@
 dashboard:
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://{{dashboard.hostname}}"
+
   resources:
     requests:
       cpu: "{{dashboard.requests.cpu}}"
