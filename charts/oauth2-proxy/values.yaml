@@ -1,0 +1,31 @@
+oauth2-proxy:
+  fullnameOverride: oauth2-proxy
+
+  config:
+    existingSecret: oauth2-proxy-secret
+
+    google:
+      existingSecret: oauth2-proxy-secret
+
+  extraObjects:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: oauth2-proxy-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: oauth2-proxy-secret
+        data:
+          - secretKey: client-id
+            remoteRef:
+              key: /k8s/common/google-id
+          - secretKey: client-secret
+            remoteRef:
+              key: /k8s/common/google-secret
+          - secretKey: cookie-secret
+            remoteRef:
+              key: /k8s/common/cookie-secret

@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: oauth2-proxy
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+
+  template:
+    metadata:
+      name: "oauth2-proxy" # only management cluster
+      annotations:
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        krmt.io/cluster: "{{cluster}}"
+        krmt.io/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: addon-oauth2-proxy
+      source:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/oauth2-proxy
+        helm:
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
