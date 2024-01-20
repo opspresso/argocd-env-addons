@@ -2,12 +2,12 @@ atlantis:
   fullnameOverride: atlantis
 
 {% if atlantis is defined %}
-  atlantisUrl: "{{atlantis.url}}"
+  atlantisUrl: "https://atlantis.{{hostname.public}}"
 
   orgAllowlist: "{{atlantis.allowlist}}"
 
   podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://atlantis.{{hostname.hostname}}"
+    link.argocd.argoproj.io/external-link: "https://atlantis.{{hostname.public}}"
 
   # image:
   #   repository: infracost/infracost-atlantis
@@ -70,7 +70,7 @@ atlantis:
         name: atlantis-configmap
       data:
         ATLANTIS_GH_USER: "{{atlantis.github.user}}"
-        INFRACOST_PRICING_API_ENDPOINT: "{{atlantis.pricing.url}}"
+        INFRACOST_PRICING_API_ENDPOINT: "https://cloud-pricing-api.{{hostname.public}}"
 
     - apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret

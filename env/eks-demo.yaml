@@ -33,9 +33,6 @@ argo_workflows:
     team: sre
 
 atlantis:
-  url: https://atlantis.demo.opspresso.com
-  pricing:
-    url: https://cloud-pricing-api.demo.opspresso.com
   github:
     user: nalbam-bot
   allowlist: github.com/opspresso/terraform-*

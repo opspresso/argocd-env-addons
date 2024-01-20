@@ -1,8 +1,6 @@
 atlantis:
   fullnameOverride: atlantis
 
-  # atlantisUrl: {{atlantis.url}}
-
   # orgAllowlist: github.com/opspresso/terraform-*
 
   resources:
