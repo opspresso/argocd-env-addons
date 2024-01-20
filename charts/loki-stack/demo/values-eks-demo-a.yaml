@@ -11,6 +11,8 @@ loki-stack:
       additionalLabels:
         release: prometheus-eks-demo-a
 
+
+
 raw:
   resources:
     - apiVersion: networking.istio.io/v1beta1

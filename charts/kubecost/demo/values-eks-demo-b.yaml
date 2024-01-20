@@ -77,6 +77,8 @@ kubecost:
         external_labels:
           cluster_id: "eks-demo-b"
 
+
+
   kubecostProductConfigs:
     projectID: "082867736673"
     awsSpotDataRegion: "ap-northeast-2"
