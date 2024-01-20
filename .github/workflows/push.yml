@@ -20,7 +20,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          bash ./gen.sh
+          bash ./build.sh
 
       - name: Commit & Push
         uses: opspresso/action-builder@master
