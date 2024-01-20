@@ -49,8 +49,8 @@ kubecost:
           # - type: diagnostic          # Alerts when kubecost is is unable to compute costs - ie: Prometheus unreachable
           #   window: 10m
 
-  podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://kubecost.demo.opspresso.com"
+    podAnnotations:
+      link.argocd.argoproj.io/external-link: "https://kubecost.demo.opspresso.com"
 
   ingress:
     enabled: false
