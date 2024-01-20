@@ -1,7 +1,4 @@
 dashboard:
-  podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://"
-
   resources:
     requests:
       cpu: "200m"
@@ -10,10 +7,13 @@ dashboard:
       cpu: "500m"
       memory: "1Gi"
 
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://dashboard.demo.opspresso.com"
+
   ingress:
     enabled: false
     hosts:
-      - "dashboard.in.demo.opspresso.com"
+      - "dashboard.demo.opspresso.com"
 
 route:
   resources:
