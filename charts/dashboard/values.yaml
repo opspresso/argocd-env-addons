@@ -27,7 +27,7 @@ dashboard:
   # extras:
   #   clusterReadOnlyRole: true
 
-raw:
+roles:
   resources:
     - apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
