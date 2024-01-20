@@ -1,4 +1,7 @@
 dashboard:
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://"
+
   resources:
     requests:
       cpu: "200m"
