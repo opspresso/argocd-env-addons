@@ -53,7 +53,7 @@ kubecost:
     link.argocd.argoproj.io/external-link: "https://kubecost.{{hostname.public}}"
 
   ingress:
-    enabled: true
+    enabled: false
     hosts:
       - "kubecost.{{hostname.public}}"
 
