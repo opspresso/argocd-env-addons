@@ -108,8 +108,8 @@ grafana:
       org: opspresso # github org
       team_ids: sre
     google:
-      enabled: false
-      allowed_domains: nalbam.com daangn.com
+      enabled: true
+      allowed_domains: nalbam.com daangn.com opspresso.com
   datasource:
     demo: http://prom.in.demo.opspresso.com
     demo_a: http://prom.in.demo-a.opspresso.com
