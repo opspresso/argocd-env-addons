@@ -6,8 +6,9 @@ atlantis:
 
   orgAllowlist: "{{atlantis.allowlist}}"
 
-  # podAnnotations:
-  #   link.argocd.argoproj.io/external-link: "https://atlantis.{{hostname.public}}"
+  podTemplate:
+    annotations:
+      link.argocd.argoproj.io/external-link: "https://atlantis.{{hostname.public}}"
 
   # image:
   #   repository: infracost/infracost-atlantis
