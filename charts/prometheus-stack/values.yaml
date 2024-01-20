@@ -5,14 +5,14 @@ kube-prometheus-stack:
   #   owner: "{{cluster}}"
   #   department: "addons"
 
-  prometheusOperator:
-    tolerations:
-      - key: group
-        operator: Equal
-        value: monitoring
-        effect: NoSchedule
-    nodeSelector:
-      group: monitoring
+  # prometheusOperator:
+  #   tolerations:
+  #     - key: group
+  #       operator: Equal
+  #       value: monitoring
+  #       effect: NoSchedule
+  #   nodeSelector:
+  #     group: monitoring
 
   prometheus:
     enabled: true
@@ -39,13 +39,13 @@ kube-prometheus-stack:
           cpu: "2"
           memory: 6Gi
 
-      tolerations:
-        - key: group
-          operator: Equal
-          value: monitoring
-          effect: NoSchedule
-      nodeSelector:
-        group: monitoring
+      # tolerations:
+      #   - key: group
+      #     operator: Equal
+      #     value: monitoring
+      #     effect: NoSchedule
+      # nodeSelector:
+      #   group: monitoring
 
   alertmanager:
     enabled: false
@@ -103,14 +103,14 @@ kube-prometheus-stack:
           cpu: "1"
           memory: 2Gi
 
-      tolerations:
-        - key: group
-          operator: Equal
-          value: monitoring
-          effect: NoSchedule
-      nodeSelector:
-        group: monitoring
-        # topology.kubernetes.io/zone: {{aws_region}}c
+      # tolerations:
+      #   - key: group
+      #     operator: Equal
+      #     value: monitoring
+      #     effect: NoSchedule
+      # nodeSelector:
+      #   group: monitoring
+      #   # topology.kubernetes.io/zone: {{aws_region}}c
 
   kube-state-metrics:
     fullnameOverride: kube-state-metrics
@@ -123,13 +123,13 @@ kube-prometheus-stack:
     extraArgs:
       - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*]
 
-    tolerations:
-      - key: group
-        operator: Equal
-        value: monitoring
-        effect: NoSchedule
-    nodeSelector:
-      group: monitoring
+    # tolerations:
+    #   - key: group
+    #     operator: Equal
+    #     value: monitoring
+    #     effect: NoSchedule
+    # nodeSelector:
+    #   group: monitoring
 
   prometheus-node-exporter:
     fullnameOverride: prometheus-node-exporter

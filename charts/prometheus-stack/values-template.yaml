@@ -1,6 +1,48 @@
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
+{% if monitoring is defined %}
+{% if monitoring.nodeSelector is defined %}
+  prometheusOperator:
+    tolerations:
+      - key: group
+        operator: Equal
+        value: "{{monitoring.nodeSelector}}"
+        effect: NoSchedule
+    nodeSelector:
+      group: "{{monitoring.nodeSelector}}"
+
+  prometheus:
+    prometheusSpec:
+      tolerations:
+        - key: group
+          operator: Equal
+          value: "{{monitoring.nodeSelector}}"
+          effect: NoSchedule
+      nodeSelector:
+        group: "{{monitoring.nodeSelector}}"
+
+  alertmanager:
+    alertmanagerSpec:
+      tolerations:
+        - key: group
+          operator: Equal
+          value: "{{monitoring.nodeSelector}}"
+          effect: NoSchedule
+      nodeSelector:
+        group: "{{monitoring.nodeSelector}}"
+
+  kube-state-metrics:
+    tolerations:
+      - key: group
+        operator: Equal
+        value: "{{monitoring.nodeSelector}}"
+        effect: NoSchedule
+    nodeSelector:
+      group: "{{monitoring.nodeSelector}}"
+{% endif %}
+{% endif %}
+
 raw:
   resources:
     - apiVersion: networking.istio.io/v1beta1
