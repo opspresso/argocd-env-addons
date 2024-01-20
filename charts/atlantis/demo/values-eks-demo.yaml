@@ -6,8 +6,9 @@ atlantis:
 
   orgAllowlist: "github.com/opspresso/terraform-*"
 
-  # podAnnotations:
-  #   link.argocd.argoproj.io/external-link: "https://atlantis.demo.opspresso.com"
+  podTemplate:
+    annotations:
+      link.argocd.argoproj.io/external-link: "https://atlantis.demo.opspresso.com"
 
   # image:
   #   repository: infracost/infracost-atlantis
