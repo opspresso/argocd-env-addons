@@ -53,7 +53,7 @@ kubecost:
     link.argocd.argoproj.io/external-link: "https://kubecost.demo.opspresso.com"
 
   ingress:
-    enabled: false
+    enabled: true
     hosts:
       - "kubecost.demo.opspresso.com"
 
