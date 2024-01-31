@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: loki-stack
 type: application
-version: "2.10.0"
+version: "2.10.1"
 
 dependencies:
 - name: loki-stack
   repository: https://grafana.github.io/helm-charts
-  version: "2.10.0"
+  version: "2.10.1"
 
 - name: raw
   repository: https://charts.helm.sh/incubator
