@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: prometheus-stack
 type: application
-version: "56.3.0"
+version: "56.21.1"
 
 dependencies:
 - name: kube-prometheus-stack
   repository: https://prometheus-community.github.io/helm-charts
-  version: "56.3.0"
+  version: "56.21.1"
 
 - name: raw
   repository: https://charts.helm.sh/incubator
