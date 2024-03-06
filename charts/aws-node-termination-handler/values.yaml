@@ -22,6 +22,9 @@ aws-node-termination-handler:
 
   enablePrometheusServer: true
 
+  # Taint node upon spot interruption termination notice.
+  taintNode: true
+
   rbac:
     pspEnabled: false
 
