@@ -90,7 +90,8 @@ gateway:
   service:
     type: ClusterIP
 
-    externalTrafficPolicy: Local
+    # externalTrafficPolicy: Local
+
     annotations:
       service.kubernetes.io/topology-aware-hints: auto
 
