@@ -97,8 +97,8 @@ istio:
   tracing:
     sampling: 10
   target_group:
-    internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-0/aefb7e177410595b
-    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-0/08838a6c244f3faa
+    internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-0/b79ab075be67effc
+    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-0/2533e1c1604af2a1
 
 kubecost:
   hostname: kubecost.demo.opspresso.com
