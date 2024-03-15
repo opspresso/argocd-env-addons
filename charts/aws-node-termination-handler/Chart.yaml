@@ -2,9 +2,9 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: aws-node-termination-handler
 type: application
-version: "0.22.0"
+version: "0.22.0" # helm chart aws-node-termination-handler version
 
 dependencies:
 - name: aws-node-termination-handler
   repository: oci://public.ecr.aws/aws-ec2/helm
-  version: "0.22.0"
+  version: "0.22.0" # helm chart aws-node-termination-handler version

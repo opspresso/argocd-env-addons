@@ -2,13 +2,13 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: grafana
 type: application
-version: "7.3.3"
+version: "7.3.7" # helm chart grafana version
 
 dependencies:
 - name: grafana
   repository: https://grafana.github.io/helm-charts
-  version: "7.3.3"
+  version: "7.3.7" # helm chart grafana version
 
 - name: raw
   repository: https://charts.helm.sh/incubator
-  version: "0.2.5"
+  version: "0.2.5" # helm chart raw version

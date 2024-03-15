@@ -2,13 +2,13 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: oauth2-proxy
 type: application
-version: "7.1.0"
+version: "7.1.0" # helm chart oauth2-proxy version
 
 dependencies:
 - name: oauth2-proxy
   repository: https://oauth2-proxy.github.io/manifests
-  version: "7.1.0"
+  version: "7.1.0" # helm chart oauth2-proxy version
 
 - name: raw
   repository: https://charts.helm.sh/incubator
-  version: "0.2.5"
+  version: "0.2.5" # helm chart raw version

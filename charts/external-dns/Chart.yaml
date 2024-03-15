@@ -2,9 +2,9 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: external-dns
 type: application
-version: "1.14.3"
+version: "1.14.3" # helm chart external-dns version
 
 dependencies:
 - name: external-dns
   repository: https://kubernetes-sigs.github.io/external-dns
-  version: "1.14.3"
+  version: "1.14.3" # helm chart external-dns version

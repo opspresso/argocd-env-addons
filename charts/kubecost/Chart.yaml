@@ -2,14 +2,14 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: kubecost
 type: application
-version: "2.1.0"
+version: "2.1.1" # helm chart kubecost version
 
 dependencies:
 - name: cost-analyzer
   alias: kubecost
   repository: https://kubecost.github.io/cost-analyzer
-  version: "2.1.0"
+  version: "2.1.1" # helm chart kubecost version
 
 - name: raw
   repository: https://charts.helm.sh/incubator
-  version: "0.2.5"
+  version: "0.2.5" # helm chart raw version
