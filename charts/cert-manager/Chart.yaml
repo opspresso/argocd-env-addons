@@ -1,0 +1,15 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: cert-manager
+type: application
+version: "v1.13.3" # helm chart cert-manager version
+
+dependencies:
+  - name: cert-manager
+    repository: https://charts.jetstack.io
+    version: "v1.13.3" # helm chart cert-manager version
+
+  - name: raw
+    alias: cert-manager-extra
+    repository: https://charts.helm.sh/incubator
+    version: "0.2.5" # helm chart raw version
