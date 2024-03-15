@@ -1,6 +1,6 @@
 istiod:
-  # global:
-  #   hub: "gcr.io/istio-release"
+  global:
+    hub: "gcr.io/istio-release"
 
   pilot:
     autoscaleEnabled: False
