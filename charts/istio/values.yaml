@@ -3,7 +3,7 @@ istiod:
     # hub: gcr.io/istio-release
 
     proxy:
-      image: auto
+      # image: auto
 
       lifecycle:
         # preStop:
