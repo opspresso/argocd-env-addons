@@ -3,6 +3,8 @@ istiod:
     # hub: gcr.io/istio-release
 
     proxy:
+      image: auto
+
       lifecycle:
         postStart:
           exec:
