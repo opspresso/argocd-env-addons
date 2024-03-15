@@ -6,26 +6,41 @@ istiod:
       image: auto
 
       lifecycle:
+        # preStop:
+        #   exec:
+        #     command:
+        #       - "/bin/sh"
+        #       - "-c"
+        #       - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
         postStart:
           exec:
             command:
               - pilot-agent
               - wait
-        preStop:
-          exec:
-            command:
-              - "/bin/sh"
-              - "-c"
-              - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
 
     # tracer:
     #   zipkin:
     #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
 
   pilot:
-    podLabels:
-      # owner: "{{cluster}}"
-      department: "addons"
+    autoscaleEnabled: false
+
+    serviceAnnotations:
+      service.kubernetes.io/topology-aware-hints: auto
+
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: istiod
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app: istiod
 
     resources:
       requests:
@@ -39,9 +54,11 @@ istiod:
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
-      terminationDrainDuration: 60s
+      terminationDrainDuration: 30s
     enableTracing: true
     rootNamespace: istio-system
+    # localityLbSetting:
+    #   enabled: true
 
     extensionProviders:
       - name: oauth2-proxy
@@ -73,10 +90,23 @@ gateway:
   service:
     type: ClusterIP
 
-  labels:
-    istio: ingressgateway
-    # owner: "{{cluster}}"
-    department: "addons"
+    externalTrafficPolicy: Local
+    annotations:
+      service.kubernetes.io/topology-aware-hints: auto
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istio-ingressgateway
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istio-ingressgateway
 
 raw:
   resources:
