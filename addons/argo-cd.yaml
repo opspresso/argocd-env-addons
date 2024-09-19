@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: argocd
+  name: argo-cd
 spec:
   generators:
     - git:
@@ -12,7 +12,7 @@ spec:
 
   template:
     metadata:
-      name: "argocd" # only management cluster
+      name: "argo-cd" # only management cluster
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
@@ -23,11 +23,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: argocd
+        namespace: argo-cd
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/argocd
+        path: charts/argo-cd
         helm:
           valueFiles:
             - values.yaml
