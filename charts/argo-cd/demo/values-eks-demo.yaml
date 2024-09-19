@@ -1,5 +1,5 @@
-argocd:
-  fullnameOverride: argocd
+argo-cd:
+  fullnameOverride: argo-cd
 
 
   global:
