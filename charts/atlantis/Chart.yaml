@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: atlantis
 type: application
-version: "4.23.4" # helm chart atlantis version
+version: "4.25.0" # helm chart atlantis version
 
 dependencies:
 - name: atlantis
   repository: https://runatlantis.github.io/helm-charts
-  version: "4.23.4" # helm chart atlantis version
+  version: "4.25.0" # helm chart atlantis version
 
 - name: raw
   repository: https://charts.helm.sh/incubator
