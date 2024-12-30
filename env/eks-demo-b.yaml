@@ -18,19 +18,19 @@ argo_workflows:
     org: opspresso # github org
     team: sre
 
-aws_ebs_csi_driver:
-  image:
-    repository: public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver
-  nodeDriverRegistrar:
-    image:
-      repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
-  livenessProbe:
-    image:
-      repository: k8s.gcr.io/sig-storage/livenessprobe
-  useOldCSIDriver: false
+# aws_ebs_csi_driver:
+#   image:
+#     repository: public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver
+#   nodeDriverRegistrar:
+#     image:
+#       repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
+#   livenessProbe:
+#     image:
+#       repository: k8s.gcr.io/sig-storage/livenessprobe
+#   useOldCSIDriver: false
 
-aws_efs_csi_driver:
-  id: "fs-0d24289c6d6ad35d7"
+# aws_efs_csi_driver:
+#   id: "fs-0d24289c6d6ad35d7"
 
 aws_node_termination_handler:
   replicas: 1
@@ -38,19 +38,19 @@ aws_node_termination_handler:
     channel: "sandbox"
     emoji: ":construction:"
 
-chaoskube:
-  interval: 20m
-  timezone: "Asia/Seoul"
+# chaoskube:
+#   interval: 20m
+#   timezone: "Asia/Seoul"
 
 cluster_autoscaler:
   scan_interval: 20s
   scale_down_delay_after_delete: 1m
   scale_down_utilization_threshold: 0.6
 
-cluster_overprovisioner:
-  replicas: 0
-  cpu: "1"
-  memory: 1Gi
+# cluster_overprovisioner:
+#   replicas: 0
+#   cpu: "1"
+#   memory: 1Gi
 
 cluster_role:
   readonly:
@@ -78,8 +78,8 @@ istio:
   tracing:
     sampling: 10
   target_group:
-    internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-b/0473aba906da72f7
-    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-b/dae5072ff80d643a
+    internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-b/c58aa00f37da3d17
+    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-b/eee2c9eeccac5e8b
 
 loki:
   hostname: loki.in.demo.opspresso.com
