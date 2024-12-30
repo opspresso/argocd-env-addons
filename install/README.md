@@ -95,7 +95,7 @@ helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f value
 
 ## argocd-server
 
-> aws 에 elb 가 생성 되었습니다. route53 에서 argocd.demo.opspresso.com 와 연결해 줍니다.
+> aws 에 elb 가 생성 되었습니다. external-dns 로 argocd.demo.opspresso.com 와 연결해 줍니다.
 
 ```bash
 kubectl get pod -n argocd
@@ -110,16 +110,14 @@ argocd-server | LoadBalancer | 172.20.41.157 | xxx-000.apne2.elb.amazonaws.com |
 * <https://console.aws.amazon.com/route53/v2/hostedzones>
 * <https://argocd.demo.opspresso.com>
 
-## see external-dns
+## external-dns
 
-* See <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
+* <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
 
 ```bash
 # helm search repo external-dns
 
-helm upgrade --install external-dns external-dns/external-dns \
-  -n addon-external-dns --create-namespace \
-  -f external-dns/values.yaml
+helm upgrade --install external-dns external-dns/external-dns -n addon-external-dns --create-namespace -f external-dns/values.yaml
 
 POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadata.name' -r)
 kubectl logs ${POD_NAME} -n addon-external-dns
