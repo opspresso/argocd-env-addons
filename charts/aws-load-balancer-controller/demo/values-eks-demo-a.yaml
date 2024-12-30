@@ -1,11 +1,3 @@
 aws-load-balancer-controller:
   clusterName: "eks-demo-a"
 
-  podLabels:
-    department: "addons"
-    owner: "eks-demo-a"
-
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo-a--aws-load-balancer-controller"
-

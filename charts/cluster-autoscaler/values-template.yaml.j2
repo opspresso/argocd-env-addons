@@ -24,11 +24,6 @@ cluster-autoscaler:
     scale-down-unneeded-time: "{{cluster_autoscaler.scale_down_unneeded_time}}"
 {% endif %}
 
-  rbac:
-    serviceAccount:
-      annotations:
-        eks.amazonaws.com/role-arn: arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--cluster-autoscaler
-
   serviceMonitor:
     enabled: {{prometheus.serviceMonitor.enabled}}
 

@@ -27,19 +27,18 @@ def gen_repos(args, ext="yaml"):
         e = Environment(loader=FileSystemLoader("charts/{}/".format(args.reponame)))
         t = e.get_template(template_name)
 
-        for phase in ["alpha", "prod"]:
-            gen_values(t, args.reponame, phase)
+        gen_values(t, args.reponame)
 
 
-def gen_values(t, reponame, phase):
-    for env_file in os.listdir("env/{}".format(phase)):
+def gen_values(t, reponame):
+    for env_file in os.listdir("env"):
         if env_file.endswith(".yaml"):
             # print("")
 
-            env_path = "env/{}/{}".format(phase, env_file)
+            env_path = "env/{}".format(env_file)
             # print("# env ", env_path)
 
-            save_root = "charts/{}/{}".format(reponame, phase)
+            save_root = "charts/{}/demo".format(reponame)
             save_path = "{}/values-{}".format(save_root, env_file)
 
             with open(env_path, "r") as vars:

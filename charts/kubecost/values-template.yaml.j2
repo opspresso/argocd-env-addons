@@ -57,10 +57,6 @@ kubecost:
     hosts:
       - "kubecost.{{hostname.public}}"
 
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--kubecost"
-
   serviceMonitor:
     enabled: true
     additionalLabels:

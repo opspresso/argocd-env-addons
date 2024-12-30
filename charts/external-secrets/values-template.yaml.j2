@@ -1,8 +1,4 @@
 external-secrets:
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--external-secrets
-
 {% if operation is defined %}
 {% if operation.nodeSelector is defined %}
   nodeSelector:

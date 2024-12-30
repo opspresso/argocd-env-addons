@@ -54,10 +54,6 @@ atlantis:
   ingress:
     enabled: false
 
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{cluster}}--atlantis"
-
   loadEnvFromSecrets:
     - atlantis-secret
 

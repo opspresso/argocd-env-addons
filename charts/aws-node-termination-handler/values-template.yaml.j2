@@ -11,10 +11,6 @@ aws-node-termination-handler:
 
   managedTag: "aws-node-termination-handler/{{cluster}}"
 
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::{{aws_account_id}}:role/irsa--{{group}}--aws-node-termination-handler"
-
   serviceMonitor:
     create: {{prometheus.serviceMonitor.enabled}}
 

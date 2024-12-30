@@ -57,10 +57,6 @@ kubecost:
     hosts:
       - "kubecost.demo.opspresso.com"
 
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo-b--kubecost"
-
   serviceMonitor:
     enabled: true
     additionalLabels:
@@ -80,15 +76,15 @@ kubecost:
 
 
   kubecostProductConfigs:
-    projectID: "082867736673"
+    projectID: "396608815058"
     awsSpotDataRegion: "ap-northeast-2"
-    awsSpotDataBucket: "aws-spot-data-082867736673"
+    awsSpotDataBucket: "aws-spot-data-396608815058"
     awsSpotDataPrefix: "spot-data-feed"
     # spotLabel: lifecycle
     # spotLabelValue: Ec2Spot
 
-    athenaProjectID: "082867736673"
-    athenaBucketName: "s3://aws-athena-query-results-082867736673"
+    athenaProjectID: "396608815058"
+    athenaBucketName: "s3://aws-athena-query-results-396608815058"
     athenaRegion: "ap-northeast-2"
     athenaDatabase: "athenacurcfn_aws_billing_report"
     athenaTable: "aws_billing_report"

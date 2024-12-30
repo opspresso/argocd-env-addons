@@ -5,15 +5,11 @@ aws-node-termination-handler:
     department: "addons"
     owner: "eks-demo-b"
 
-  queueURL: "https://sqs.ap-northeast-2.amazonaws.com/082867736673/eks-demo-b-nth"
+  queueURL: "https://sqs.ap-northeast-2.amazonaws.com/396608815058/eks-demo-b-nth"
 
   replicas: "1"
 
   managedTag: "aws-node-termination-handler/eks-demo-b"
-
-  serviceAccount:
-    annotations:
-      eks.amazonaws.com/role-arn: "arn:aws:iam::082867736673:role/irsa--eks-demo-b--aws-node-termination-handler"
 
   serviceMonitor:
     create: False
