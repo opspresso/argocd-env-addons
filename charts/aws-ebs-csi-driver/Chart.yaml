@@ -2,9 +2,9 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: aws-ebs-csi-driver
 type: application
-version: "2.28.1" # helm chart aws-ebs-csi-driver version
+version: "2.38.1" # helm chart aws-ebs-csi-driver version
 
 dependencies:
 - name: aws-ebs-csi-driver
   repository: https://kubernetes-sigs.github.io/aws-ebs-csi-driver
-  version: "2.28.1" # helm chart aws-ebs-csi-driver version
+  version: "2.38.1" # helm chart aws-ebs-csi-driver version

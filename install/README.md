@@ -5,7 +5,7 @@
 
 ## create eks cluster
 
-* <https://github.com/opspresso/terraform-env-demo/tree/main/25-eks-demo>
+* <https://github.com/opspresso/terraform-env-demo/tree/main/demo/7-eks>
 
 ```bash
 terraform apply
@@ -56,10 +56,10 @@ export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password 
 export ARGOCD_PASSWORD=$(aws ssm get-parameter --name /k8s/common/argocd-password --with-decryption | jq .Parameter.Value -r)
 export ARGOCD_MTIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 export ARGOCD_SERVER_SECRET=$(aws ssm get-parameter --name /k8s/common/argocd-server-secret --with-decryption | jq .Parameter.Value -r)
-export ARGOCD_GITHUB_ID=$(aws ssm get-parameter --name /k8s/common/argocd-github-id --with-decryption | jq .Parameter.Value -r)
-export ARGOCD_GITHUB_SECRET=$(aws ssm get-parameter --name /k8s/common/argocd-github-secret --with-decryption | jq .Parameter.Value -r)
 export ARGOCD_WEBHOOK=$(aws ssm get-parameter --name /k8s/common/argocd-webhook --with-decryption | jq .Parameter.Value -r)
 export ARGOCD_NOTI_TOKEN=$(aws ssm get-parameter --name /k8s/common/argocd-noti-token --with-decryption | jq .Parameter.Value -r)
+export ARGOCD_GITHUB_ID=$(aws ssm get-parameter --name /k8s/common/argocd-github-id --with-decryption | jq .Parameter.Value -r)
+export ARGOCD_GITHUB_SECRET=$(aws ssm get-parameter --name /k8s/common/argocd-github-secret --with-decryption | jq .Parameter.Value -r)
 
 export AWS_ACM_CERT="$(aws acm list-certificates --query "CertificateSummaryList[].{CertificateArn:CertificateArn,DomainName:DomainName}[?contains(DomainName,'${ARGOCD_HOSTNAME}')] | [0].CertificateArn" | jq . -r)"
 
@@ -115,13 +115,11 @@ argocd-server | LoadBalancer | 172.20.41.157 | xxx-000.apne2.elb.amazonaws.com |
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
 
 ```bash
-# cd external-dns
+# helm search repo external-dns
 
 helm upgrade --install external-dns external-dns/external-dns \
   -n addon-external-dns --create-namespace \
-  -f external-dns/values.output.yaml
-
-# cd ..
+  -f external-dns/values.yaml
 
 POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadata.name' -r)
 kubectl logs ${POD_NAME} -n addon-external-dns

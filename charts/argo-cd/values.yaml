@@ -1,5 +1,5 @@
 argo-cd:
-  fullnameOverride: argo-cd
+  fullnameOverride: argocd
 
   # global:
   #   podLabels:
