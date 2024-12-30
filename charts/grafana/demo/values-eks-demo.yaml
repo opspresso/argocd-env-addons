@@ -67,7 +67,7 @@ grafana:
         access: proxy
 
   serviceMonitor:
-    enabled: true
+    enabled: False
     labels:
       release: prometheus-eks-demo
 
