@@ -1,4 +1,6 @@
 external-secrets:
+  fullnameOverride: external-secrets
+
 
 
 
