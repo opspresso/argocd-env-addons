@@ -1,4 +1,6 @@
 external-secrets:
+  fullnameOverride: external-secrets
+
 {% if operation is defined %}
 {% if operation.nodeSelector is defined %}
   nodeSelector:

@@ -58,8 +58,9 @@ export ARGOCD_MTIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 export ARGOCD_SERVER_SECRET=$(aws ssm get-parameter --name /k8s/common/argocd-server-secret --with-decryption | jq .Parameter.Value -r)
 export ARGOCD_WEBHOOK=$(aws ssm get-parameter --name /k8s/common/argocd-webhook --with-decryption | jq .Parameter.Value -r)
 export ARGOCD_NOTI_TOKEN=$(aws ssm get-parameter --name /k8s/common/argocd-noti-token --with-decryption | jq .Parameter.Value -r)
-export ARGOCD_GITHUB_ID=$(aws ssm get-parameter --name /k8s/common/argocd-github-id --with-decryption | jq .Parameter.Value -r)
-export ARGOCD_GITHUB_SECRET=$(aws ssm get-parameter --name /k8s/common/argocd-github-secret --with-decryption | jq .Parameter.Value -r)
+
+export ARGOCD_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/argocd-github-id" --with-decryption | jq .Parameter.Value -r)
+export ARGOCD_GITHUB_SECRET=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/argocd-github-secret" --with-decryption | jq .Parameter.Value -r)
 
 export AWS_ACM_CERT="$(aws acm list-certificates --query "CertificateSummaryList[].{CertificateArn:CertificateArn,DomainName:DomainName}[?contains(DomainName,'${ARGOCD_HOSTNAME}')] | [0].CertificateArn" | jq . -r)"
 
@@ -121,6 +122,8 @@ helm upgrade --install external-dns external-dns/external-dns -n addon-external-
 
 POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadata.name' -r)
 kubectl logs ${POD_NAME} -n addon-external-dns
+
+# sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
 ## argocd login
