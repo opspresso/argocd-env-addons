@@ -18,8 +18,8 @@ aws-ebs-csi-driver:
       Role: eks
       Service: ks
 
-  node:
-    tolerateAllTaints: true
+  # node:
+  #   tolerateAllTaints: true
 
   storageClasses:
     - name: gp3

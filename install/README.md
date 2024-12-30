@@ -24,6 +24,7 @@ export ARGOCD_HOSTNAME="argocd.demo.opspresso.com"
 export GITHUB_ORG="opspresso"
 export GITHUB_TEAM="sre"
 
+export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD="REPLACE_ME"
 export ARGOCD_PASSWORD="$(htpasswd -nbBC 10 "" ${ADMIN_PASSWORD} | tr -d ':\n' | sed 's/$2y/$2a/')"
 export ARGOCD_SERVER_SECRET="REPLACE_ME" # random string
@@ -39,6 +40,7 @@ export GRAFANA_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
 export AWS_ACM_CERT="arn:aws:acm:xxx:xxx:certificate/xxx"
 
 # put aws ssm parameter store
+aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/argocd-password --value "${ARGOCD_PASSWORD}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/argocd-server-secret --value "${ARGOCD_SERVER_SECRET}" --type SecureString --overwrite | jq .
