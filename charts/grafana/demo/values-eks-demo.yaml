@@ -13,6 +13,7 @@ grafana:
     server:
       root_url: "https://grafana.demo.opspresso.com/"
 
+
     # https://grafana.com/docs/grafana/latest/auth/github/
     auth.github:
       enabled: True
@@ -26,16 +27,8 @@ grafana:
       allowed_organizations: opspresso
       # team_ids: sre
 
-    # https://grafana.com/docs/grafana/latest/auth/google/
-    auth.google:
-      enabled: True
-      allow_sign_up: true
-      client_id: $__file{/etc/secrets/grafana-secret/google-id}
-      client_secret: $__file{/etc/secrets/grafana-secret/google-secret}
-      scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
-      auth_url: https://accounts.google.com/o/oauth2/auth
-      token_url: https://accounts.google.com/o/oauth2/token
-      allowed_domains: nalbam.com daangn.com opspresso.com
+
+
 
   ingress:
     enabled: false
@@ -93,18 +86,15 @@ raw:
           - secretKey: admin-password
             remoteRef:
               key: /k8s/common/admin-password
+
           - secretKey: github-id
             remoteRef:
               key: /k8s/opspresso/grafana-github-id
           - secretKey: github-secret
             remoteRef:
               key: /k8s/opspresso/grafana-github-secret
-          - secretKey: google-id
-            remoteRef:
-              key: /k8s/common/google-id
-          - secretKey: google-secret
-            remoteRef:
-              key: /k8s/common/google-secret
+
+
 
     - apiVersion: networking.istio.io/v1beta1
       kind: Gateway
