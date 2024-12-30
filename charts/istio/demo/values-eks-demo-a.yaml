@@ -39,7 +39,7 @@ tgb:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-http-a/6c9fb9d32654667d"
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-a/ecaf6eeb5a715cc9"
         targetType: ip
 
     - apiVersion: elbv2.k8s.aws/v1beta1
@@ -50,5 +50,5 @@ tgb:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:082867736673:targetgroup/demo-in-http-a/9620e42a8879f0a8"
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/140c9abc47d4684e"
         targetType: ip
