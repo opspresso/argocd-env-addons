@@ -12,7 +12,7 @@
 ```bash
 ./gen_chart.py
 
-./gen_chart.py -r chaoskube
+./gen_chart.py -r cluster-autoscaler
 ```
 
 ## gen values
@@ -20,7 +20,7 @@
 ```bash
 ./gen_values.py
 
-./gen_values.py -r chaoskube
+./gen_values.py -r cluster-autoscaler
 ```
 
 ## versions
