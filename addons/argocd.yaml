@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: argo-cd
+  name: argocd
 spec:
   generators:
     - git:
@@ -12,7 +12,7 @@ spec:
 
   template:
     metadata:
-      name: "argo-cd" # only management cluster
+      name: "argocd" # only management cluster
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
