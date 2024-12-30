@@ -67,7 +67,7 @@ grafana:
         access: proxy
 
   serviceMonitor:
-    enabled: true
+    enabled: {{prometheus.serviceMonitor.enabled}}
     labels:
       release: prometheus-{{cluster}}
 
