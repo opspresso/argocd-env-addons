@@ -25,6 +25,8 @@ argocd:
   github:
     org: opspresso # github org
     team: sre
+  google:
+    enabled: false
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
 
 argo_workflows:
