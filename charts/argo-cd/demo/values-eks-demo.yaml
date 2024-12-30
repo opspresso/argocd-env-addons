@@ -144,12 +144,7 @@ raw:
           - secretKey: server.secretkey
             remoteRef:
               key: /k8s/common/argocd-server-secret
-          - secretKey: dex.google.clientId
-            remoteRef:
-              key: /k8s/common/google-id
-          - secretKey: dex.google.clientSecret
-            remoteRef:
-              key: /k8s/common/google-secret
+
           - secretKey: argo-workflows-client-secret
             remoteRef:
               key: /k8s/common/argo-workflows-client-secret
