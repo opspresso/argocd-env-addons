@@ -6,7 +6,7 @@ env: demo
 group: eks-demo-a
 role: service
 
-aws_account_id: "082867736673"
+aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 
 hostname:

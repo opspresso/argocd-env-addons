@@ -6,7 +6,7 @@ env: demo
 group: eks-demo
 role: mgmt
 
-aws_account_id: "082867736673"
+aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 
 hostname:
@@ -20,7 +20,7 @@ hostname:
 #   nodeSelector: monitoring
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:082867736673:certificate/880cf58e-6493-4469-864b-cf190dfd4308
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/880cf58e-6493-4469-864b-cf190dfd4308
   hostname: argocd.demo.opspresso.com
   github:
     org: opspresso # github org
