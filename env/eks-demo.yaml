@@ -90,12 +90,12 @@ istio:
     hub: gcr.io/istio-release
   pilot:
     autoscale: false
-    min: 2
-    max: 2
+    min: 3
+    max: 3
   gateway:
     autoscale: false
-    min: 2
-    max: 5
+    min: 3
+    max: 3
   tracing:
     sampling: 10
   target_group:
