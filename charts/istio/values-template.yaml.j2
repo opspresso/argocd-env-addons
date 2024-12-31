@@ -1,20 +1,20 @@
 istiod:
   global:
     hub: "{{istio.global.hub}}"
-{#
+
   replicaCount: {{istio.pilot.min}}
 
   autoscaleEnabled: {{istio.pilot.autoscale}}
   autoscaleMin: {{istio.pilot.min}}
-  autoscaleMax: {{istio.pilot.max}} #}
-{#
+  autoscaleMax: {{istio.pilot.max}}
+
 gateway:
   replicaCount: {{istio.gateway.min}}
 
   autoscaling:
     enabled: {{istio.gateway.autoscale}}
     minReplicas: {{istio.gateway.min}}
-    maxReplicas: {{istio.gateway.max}} #}
+    maxReplicas: {{istio.gateway.max}}
 
 tgb:
   resources:

@@ -25,19 +25,19 @@ istiod:
   serviceAnnotations:
     service.kubernetes.io/topology-aware-hints: auto
 
-  # topologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: topology.kubernetes.io/zone
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istiod
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istiod
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istiod
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istiod
 
   meshConfig:
     defaultConfig:
@@ -53,29 +53,29 @@ istiod:
     # localityLbSetting:
     #   enabled: true
 
-    # extensionProviders:
-    #   - name: oauth2-proxy
-    #     envoyExtAuthzHttp:
-    #       service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
-    #       port: "80"
-    #       headersToDownstreamOnDeny:
-    #         - content-type
-    #         - set-cookie
-    #       headersToUpstreamOnAllow:
-    #         - authorization
-    #         - cookie
-    #         - path
-    #         - x-auth-request-access-token
-    #         - x-auth-request-user
-    #         - x-auth-request-email
-    #         - x-forwarded-access-token
-    #       includeHeadersInCheck:
-    #         - cookie
-    #         - x-forwarded-access-token
-    #         # - x-forwarded-user
-    #         # - x-forwarded-email
-    #       includeAdditionalHeadersInCheck:
-    #         authorization: "%REQ(x-auth-request-access-token)%"
+    extensionProviders:
+      - name: oauth2-proxy
+        envoyExtAuthzHttp:
+          service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
+          port: "80"
+          headersToDownstreamOnDeny:
+            - content-type
+            - set-cookie
+          headersToUpstreamOnAllow:
+            - authorization
+            - cookie
+            - path
+            - x-auth-request-access-token
+            - x-auth-request-user
+            - x-auth-request-email
+            - x-forwarded-access-token
+          includeHeadersInCheck:
+            - cookie
+            - x-forwarded-access-token
+            # - x-forwarded-user
+            # - x-forwarded-email
+          includeAdditionalHeadersInCheck:
+            authorization: "%REQ(x-auth-request-access-token)%"
 
 gateway:
   name: istio-ingressgateway
@@ -92,19 +92,19 @@ gateway:
     annotations:
       service.kubernetes.io/topology-aware-hints: auto
 
-  # topologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: topology.kubernetes.io/zone
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istio-ingressgateway
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istio-ingressgateway
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istio-ingressgateway
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istio-ingressgateway
 
 raw:
   resources:
