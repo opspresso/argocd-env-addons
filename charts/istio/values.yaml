@@ -1,24 +1,24 @@
 istiod:
-  # global:
-  #   # hub: gcr.io/istio-release
+  global:
+    hub: gcr.io/istio-release
 
-  #   proxy:
-  #     lifecycle:
-  #       # preStop:
-  #       #   exec:
-  #       #     command:
-  #       #       - "/bin/sh"
-  #       #       - "-c"
-  #       #       - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
-  #       postStart:
-  #         exec:
-  #           command:
-  #             - pilot-agent
-  #             - wait
+    # proxy:
+    #   lifecycle:
+    #     # preStop:
+    #     #   exec:
+    #     #     command:
+    #     #       - "/bin/sh"
+    #     #       - "-c"
+    #     #       - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
+    #     postStart:
+    #       exec:
+    #         command:
+    #           - pilot-agent
+    #           - wait
 
-  #   # tracer:
-  #   #   zipkin:
-  #   #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
+    # # tracer:
+    # #   zipkin:
+    # #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
 
   pilot:
     autoscaleEnabled: false
