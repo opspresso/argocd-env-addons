@@ -13,17 +13,17 @@ istiod:
               - pilot-agent
               - wait
 
-  # env:
-  #   EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
-  #   ENABLE_100_CONTINUE_HEADERS: "false"
+  env:
+    EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
+    ENABLE_100_CONTINUE_HEADERS: "false"
 
   resources:
     requests:
       cpu: 100m
       memory: 128Mi
 
-  # serviceAnnotations:
-  #   service.kubernetes.io/topology-aware-hints: auto
+  serviceAnnotations:
+    service.kubernetes.io/topology-aware-hints: auto
 
   topologySpreadConstraints:
     - maxSkew: 1
@@ -90,8 +90,8 @@ gateway:
 
     # externalTrafficPolicy: Local
 
-    # annotations:
-    #   service.kubernetes.io/topology-aware-hints: auto
+    annotations:
+      service.kubernetes.io/topology-aware-hints: auto
 
   topologySpreadConstraints:
     - maxSkew: 1
