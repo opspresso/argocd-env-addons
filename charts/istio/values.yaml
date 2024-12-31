@@ -17,30 +17,31 @@ istiod:
     EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
     ENABLE_100_CONTINUE_HEADERS: "false"
 
-  pilot:
-    autoscaleEnabled: false
+  autoscaleEnabled: false
 
-    serviceAnnotations:
-      service.kubernetes.io/topology-aware-hints: auto
+  serviceAnnotations:
+    service.kubernetes.io/topology-aware-hints: auto
 
-    topologySpreadConstraints:
-      - maxSkew: 1
-        topologyKey: topology.kubernetes.io/zone
-        whenUnsatisfiable: ScheduleAnyway
-        labelSelector:
-          matchLabels:
-            app: istiod
-      - maxSkew: 1
-        topologyKey: kubernetes.io/hostname
-        whenUnsatisfiable: ScheduleAnyway
-        labelSelector:
-          matchLabels:
-            app: istiod
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istiod
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istiod
 
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
+  replicaCount: 3
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
   meshConfig:
     defaultConfig:
