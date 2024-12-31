@@ -8,8 +8,3 @@ dependencies:
   - name: cert-manager
     repository: https://charts.jetstack.io
     version: "v1.16.2" # helm chart cert-manager version
-
-  - name: raw
-    alias: cert-manager-extra
-    repository: https://charts.helm.sh/incubator
-    version: "0.2.5" # helm chart raw version

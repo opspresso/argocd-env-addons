@@ -7,10 +7,7 @@ cert-manager:
 
   installCRDs: true
 
-cert-manager-extra:
-  fullnameOverride: cert-manager-extra
-
-  resources:
+  extraObjects:
     - apiVersion: cert-manager.io/v1
       kind: ClusterIssuer
       metadata:
