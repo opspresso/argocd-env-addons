@@ -64,6 +64,9 @@ dashboard:
     cpu: "500m"
     memory: 1Gi
 
+ingress_nginx:
+  replicas: 3
+
 istio:
   global:
     hub: gcr.io/istio-release

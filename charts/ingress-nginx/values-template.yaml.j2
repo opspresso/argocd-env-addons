@@ -1,0 +1,13 @@
+ingress-nginx:
+  fullnameOverride: ingress-nginx
+
+  controller:
+    replicaCount: "{{ingress_nginx.replicas}}"
+
+    stats:
+      enabled: {{prometheus.serviceMonitor.enabled}}
+
+    metrics:
+      enabled: {{prometheus.serviceMonitor.enabled}}
+      serviceMonitor:
+        enabled: {{prometheus.serviceMonitor.enabled}}

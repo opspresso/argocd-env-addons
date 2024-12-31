@@ -1,0 +1,50 @@
+ingress-nginx:
+  fullnameOverride: ingress-nginx
+
+  controller:
+    config:
+      use-forwarded-headers: "true"
+      compute-full-forwarded-for: "true"
+      # whitelist-source-range: "10.0.0.0/8" # internal only
+      ssl-redirect: "false" # we use `special` port to control ssl redirection
+      server-snippet: |
+        listen 8000;
+        if ( $server_port = 8000 ) {
+          set $http_x_forwarded_proto "https";
+        }
+
+    # https://github.com/kubernetes/ingress-nginx/issues/7837
+    allowSnippetAnnotations: false
+
+    ingressClassResource:
+      default: true
+
+    ingressClass: "nginx"
+
+    containerPort:
+      http: 80
+      https: 443
+      special: 8000
+
+    service:
+      type: ClusterIP
+
+      targetPorts:
+        http: http
+        https: special
+
+      externalTrafficPolicy: Local
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      # limits:
+      #   cpu: 500m
+      #   memory: 512Mi
+
+  tcp:
+    "8200": "addon-ingress-nginx/ingress-nginx-defaultbackend:80"
+
+  defaultBackend:
+    enabled: true
