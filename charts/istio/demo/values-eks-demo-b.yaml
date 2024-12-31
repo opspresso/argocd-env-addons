@@ -2,19 +2,7 @@ istiod:
   global:
     hub: "gcr.io/istio-release"
 
-  replicaCount: 3
 
-  autoscaleEnabled: False
-  autoscaleMin: 3
-  autoscaleMax: 3
-
-gateway:
-  replicaCount: 3
-
-  autoscaling:
-    enabled: False
-    minReplicas: 3
-    maxReplicas: 3
 
 tgb:
   resources:
