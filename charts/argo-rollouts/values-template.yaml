@@ -14,14 +14,6 @@ argo-rollouts:
         enabled: {{prometheus.serviceMonitor.enabled}}
         namespace: addon-argo-rollouts
 
-    # nodeSelector:
-    #   group: "{{operation.nodeSelector}}"
-    # tolerations:
-    # - effect: NoSchedule
-    #   key: group
-    #   operator: Equal
-    #   value: "{{operation.nodeSelector}}"
-
   dashboard:
     enabled: true
 
@@ -46,7 +38,6 @@ argo-rollouts:
     secret:
       create: false
 
-{% raw %}
     notifiers:
       service.slack: |
         token: $slack-token
@@ -303,4 +294,3 @@ argo-rollouts:
         - send: [rollout-updated]
       trigger.on-scaling-replica-set: |
         - send: [scaling-replicaset]
-{% endraw %}
