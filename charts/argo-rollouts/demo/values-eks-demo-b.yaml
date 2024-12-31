@@ -11,7 +11,7 @@ argo-rollouts:
     metrics:
       enabled: true
       serviceMonitor:
-        enabled: {{prometheus.serviceMonitor.enabled}}
+        enabled: False
         namespace: addon-argo-rollouts
 
   dashboard:
@@ -26,10 +26,10 @@ argo-rollouts:
         memory: 128Mi
 
     podAnnotations:
-      link.argocd.argoproj.io/external-link: "https://rollouts.{{hostname.public}}"
+      link.argocd.argoproj.io/external-link: "https://rollouts.demo.opspresso.com"
 
     ingress:
       enabled: false
       ingressClassName: "nginx"
       hosts:
-        - "rollouts.{{hostname.public}}"
+        - "rollouts.demo.opspresso.com"
