@@ -43,8 +43,8 @@ istiod:
     defaultConfig:
       proxyMetadata:
         EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
-        MINIMUM_DRAIN_DURATION: "10s"
         ISTIO_META_DNS_DOMAIN: cluster.local
+        MINIMUM_DRAIN_DURATION: "10s"
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
