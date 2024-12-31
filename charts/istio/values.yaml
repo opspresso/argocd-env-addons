@@ -7,21 +7,11 @@ istiod:
         enabled: true
 
       lifecycle:
-        # preStop:
-        #   exec:
-        #     command:
-        #       - "/bin/sh"
-        #       - "-c"
-        #       - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
         postStart:
           exec:
             command:
               - pilot-agent
               - wait
-
-    # tracer:
-    #   zipkin:
-    #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
 
   env:
     EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
