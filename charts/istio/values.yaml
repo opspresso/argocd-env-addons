@@ -42,8 +42,8 @@ istiod:
   meshConfig:
     defaultConfig:
       proxyMetadata:
-         EXIT_ON_ZERO_ACTIVE_CONNECTIONS: 'true'
-         MINIMUM_DRAIN_DURATION: '10s'
+        EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
+        MINIMUM_DRAIN_DURATION: "10s"
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
@@ -133,19 +133,19 @@ raw:
         namespace: istio-system
       spec:
         configPatches:
-        - applyTo: NETWORK_FILTER
-          match:
-            context: ANY
-            listener:
-              filterChain:
-                filter:
-                  name: envoy.filters.network.http_connection_manager
-          patch:
-            operation: MERGE
-            value:
-              typed_config:
-                "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-                preserve_external_request_id: true
+          - applyTo: NETWORK_FILTER
+            match:
+              context: ANY
+              listener:
+                filterChain:
+                  filter:
+                    name: envoy.filters.network.http_connection_manager
+            patch:
+              operation: MERGE
+              value:
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+                  preserve_external_request_id: true
 
     - apiVersion: networking.istio.io/v1alpha3
       kind: EnvoyFilter
@@ -154,22 +154,22 @@ raw:
         namespace: istio-system
       spec:
         configPatches:
-        - applyTo: NETWORK_FILTER
-          match:
-            context: ANY
-            listener:
-              filterChain:
-                filter:
-                  name: envoy.filters.network.http_connection_manager
-          patch:
-            operation: MERGE
-            value:
-              typed_config:
-                '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
-                request_id_extension:
-                  typed_config:
-                    '@type': type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
-                    pack_trace_reason: false
+          - applyTo: NETWORK_FILTER
+            match:
+              context: ANY
+              listener:
+                filterChain:
+                  filter:
+                    name: envoy.filters.network.http_connection_manager
+            patch:
+              operation: MERGE
+              value:
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                  request_id_extension:
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
+                      pack_trace_reason: false
 
     # - apiVersion: monitoring.coreos.com/v1
     #   kind: ServiceMonitor
