@@ -58,29 +58,29 @@ istiod:
     # localityLbSetting:
     #   enabled: true
 
-    extensionProviders:
-      - name: oauth2-proxy
-        envoyExtAuthzHttp:
-          service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
-          port: "80"
-          headersToDownstreamOnDeny:
-            - content-type
-            - set-cookie
-          headersToUpstreamOnAllow:
-            - authorization
-            - cookie
-            - path
-            - x-auth-request-access-token
-            - x-auth-request-user
-            - x-auth-request-email
-            - x-forwarded-access-token
-          includeHeadersInCheck:
-            - cookie
-            - x-forwarded-access-token
-            # - x-forwarded-user
-            # - x-forwarded-email
-          includeAdditionalHeadersInCheck:
-            authorization: "%REQ(x-auth-request-access-token)%"
+    # extensionProviders:
+    #   - name: oauth2-proxy
+    #     envoyExtAuthzHttp:
+    #       service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
+    #       port: "80"
+    #       headersToDownstreamOnDeny:
+    #         - content-type
+    #         - set-cookie
+    #       headersToUpstreamOnAllow:
+    #         - authorization
+    #         - cookie
+    #         - path
+    #         - x-auth-request-access-token
+    #         - x-auth-request-user
+    #         - x-auth-request-email
+    #         - x-forwarded-access-token
+    #       includeHeadersInCheck:
+    #         - cookie
+    #         - x-forwarded-access-token
+    #         # - x-forwarded-user
+    #         # - x-forwarded-email
+    #       includeAdditionalHeadersInCheck:
+    #         authorization: "%REQ(x-auth-request-access-token)%"
 
 gateway:
   name: istio-ingressgateway
