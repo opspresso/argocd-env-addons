@@ -4,7 +4,7 @@ istiod:
 
     proxy:
       startupProbe:
-        enabled: false
+        enabled: true
 
       lifecycle:
         postStart:
@@ -13,9 +13,9 @@ istiod:
               - pilot-agent
               - wait
 
-  env:
-    EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
-    ENABLE_100_CONTINUE_HEADERS: "false"
+  # env:
+  #   EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
+  #   ENABLE_100_CONTINUE_HEADERS: "false"
 
   resources:
     requests:
