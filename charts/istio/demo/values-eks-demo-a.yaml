@@ -8,10 +8,6 @@ istiod:
     autoscaleMin: 2
     autoscaleMax: 2
 
-    podLabels:
-      owner: "eks-demo-a"
-      # department: "addons"
-
   meshConfig:
     defaultConfig:
       tracing:
@@ -24,10 +20,6 @@ gateway:
     enabled: False
     minReplicas: 2
     maxReplicas: 5
-
-  labels:
-    owner: "eks-demo-a"
-    # department: "addons"
 
 tgb:
   resources:
