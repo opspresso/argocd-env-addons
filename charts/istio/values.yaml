@@ -22,8 +22,8 @@ istiod:
       cpu: 100m
       memory: 128Mi
 
-  serviceAnnotations:
-    service.kubernetes.io/topology-aware-hints: auto
+  # serviceAnnotations:
+  #   service.kubernetes.io/topology-aware-hints: auto
 
   topologySpreadConstraints:
     - maxSkew: 1
@@ -89,8 +89,8 @@ gateway:
 
     # externalTrafficPolicy: Local
 
-    annotations:
-      service.kubernetes.io/topology-aware-hints: auto
+    # annotations:
+    #   service.kubernetes.io/topology-aware-hints: auto
 
   topologySpreadConstraints:
     - maxSkew: 1
