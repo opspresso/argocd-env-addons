@@ -80,9 +80,10 @@ istio:
     max: 3
   tracing:
     sampling: 10
-  target_group:
-    internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-b/c58aa00f37da3d17
-    public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-b/eee2c9eeccac5e8b
+
+target_group:
+  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-b/c58aa00f37da3d17
+  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-b/eee2c9eeccac5e8b
 
 loki:
   hostname: loki.in.demo.opspresso.com

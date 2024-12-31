@@ -22,7 +22,7 @@ tgb:
         serviceRef:
           name: ingress-nginx-controller
           port: http
-        targetGroupARN: "{{istio.target_group.public_http}}"
+        targetGroupARN: "{{target_group.public_http}}"
         targetType: ip
 
     - apiVersion: elbv2.k8s.aws/v1beta1
@@ -33,5 +33,5 @@ tgb:
         serviceRef:
           name: ingress-nginx-controller
           port: http
-        targetGroupARN: "{{istio.target_group.internal_http}}"
+        targetGroupARN: "{{target_group.internal_http}}"
         targetType: ip

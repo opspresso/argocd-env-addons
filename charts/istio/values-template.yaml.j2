@@ -26,7 +26,7 @@ tgb:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "{{istio.target_group.public_http}}"
+        targetGroupARN: "{{target_group.public_http}}"
         targetType: ip
 
     - apiVersion: elbv2.k8s.aws/v1beta1
@@ -37,5 +37,5 @@ tgb:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "{{istio.target_group.internal_http}}"
+        targetGroupARN: "{{target_group.internal_http}}"
         targetType: ip
