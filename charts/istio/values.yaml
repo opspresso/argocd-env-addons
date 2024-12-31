@@ -13,7 +13,11 @@ istiod:
               - pilot-agent
               - wait
 
-  remotePilotAddress: "istiod.istio-system.svc.cluster.local"
+    remotePilotAddress: "istiod.istio-system.svc.cluster.local"
+
+  # istiodRemote:
+  #   enabled: true
+  #   # injectionURL: "istiod.istio-system.svc.cluster.local"
 
   env:
     EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
