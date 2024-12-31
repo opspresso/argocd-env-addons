@@ -33,7 +33,7 @@ ingress-nginx:
         http: http
         https: special
 
-      externalTrafficPolicy: Local
+      # externalTrafficPolicy: Local
 
     resources:
       requests:
