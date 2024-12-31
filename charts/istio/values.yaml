@@ -2,23 +2,30 @@ istiod:
   global:
     hub: gcr.io/istio-release
 
-    # proxy:
-    #   lifecycle:
-    #     # preStop:
-    #     #   exec:
-    #     #     command:
-    #     #       - "/bin/sh"
-    #     #       - "-c"
-    #     #       - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
-    #     postStart:
-    #       exec:
-    #         command:
-    #           - pilot-agent
-    #           - wait
+    proxy:
+      startupProbe:
+        enabled: true
 
-    # # tracer:
-    # #   zipkin:
-    # #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
+      lifecycle:
+        # preStop:
+        #   exec:
+        #     command:
+        #       - "/bin/sh"
+        #       - "-c"
+        #       - "while [ $(netstat -plunt | grep tcp | grep -v envoy | wc -l | xargs) -ne 0 ]; do sleep 1; done"
+        postStart:
+          exec:
+            command:
+              - pilot-agent
+              - wait
+
+    # tracer:
+    #   zipkin:
+    #     address: jaeger-collector.addon-tracing.svc.cluster.local:9411
+
+  env:
+    EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
+    ENABLE_100_CONTINUE_HEADERS: "false"
 
   pilot:
     autoscaleEnabled: false
@@ -40,20 +47,21 @@ istiod:
           matchLabels:
             app: istiod
 
-    resources:
-      requests:
-        cpu: 100m
-        memory: 128Mi
+    # resources:
+    #   requests:
+    #     cpu: 100m
+    #     memory: 128Mi
 
   meshConfig:
     defaultConfig:
-      tracing:
-        sampling: 10
+      proxyMetadata:
+         EXIT_ON_ZERO_ACTIVE_CONNECTIONS: 'true'
+         MINIMUM_DRAIN_DURATION: '10s'
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
       terminationDrainDuration: 30s
-    enableTracing: true
+    enableTracing: false
     rootNamespace: istio-system
     # localityLbSetting:
     #   enabled: true
@@ -84,6 +92,13 @@ istiod:
 
 gateway:
   name: istio-ingressgateway
+
+  autoscaling:
+    enabled: false
+
+  labels:
+    app: istio-ingressgateway
+    istio: ingressgateway
 
   service:
     type: ClusterIP
@@ -127,38 +142,38 @@ raw:
           istio: ingressgateway
         type: ClusterIP
 
-    - apiVersion: networking.istio.io/v1alpha3
-      kind: EnvoyFilter
-      metadata:
-        name: gateway-response-remove-headers
-      spec:
-        workloadSelector:
-          labels:
-            istio: ingressgateway
-        configPatches:
-          - applyTo: NETWORK_FILTER
-            match:
-              context: GATEWAY
-              listener:
-                filterChain:
-                  filter:
-                    name: "envoy.filters.network.http_connection_manager"
-            patch:
-              operation: MERGE
-              value:
-                typed_config:
-                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-                  server_header_transformation: PASS_THROUGH
-          - applyTo: ROUTE_CONFIGURATION
-            match:
-              context: GATEWAY
-            patch:
-              operation: MERGE
-              value:
-                response_headers_to_remove:
-                  - "x-envoy-decorator-operation"
-                  - "x-envoy-upstream-service-time"
-                  - "server"
+    # - apiVersion: networking.istio.io/v1alpha3
+    #   kind: EnvoyFilter
+    #   metadata:
+    #     name: gateway-response-remove-headers
+    #   spec:
+    #     workloadSelector:
+    #       labels:
+    #         istio: ingressgateway
+    #     configPatches:
+    #       - applyTo: NETWORK_FILTER
+    #         match:
+    #           context: GATEWAY
+    #           listener:
+    #             filterChain:
+    #               filter:
+    #                 name: "envoy.filters.network.http_connection_manager"
+    #         patch:
+    #           operation: MERGE
+    #           value:
+    #             typed_config:
+    #               "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+    #               server_header_transformation: PASS_THROUGH
+    #       - applyTo: ROUTE_CONFIGURATION
+    #         match:
+    #           context: GATEWAY
+    #         patch:
+    #           operation: MERGE
+    #           value:
+    #             response_headers_to_remove:
+    #               - "x-envoy-decorator-operation"
+    #               - "x-envoy-upstream-service-time"
+    #               - "server"
 
     # - apiVersion: monitoring.coreos.com/v1
     #   kind: ServiceMonitor
