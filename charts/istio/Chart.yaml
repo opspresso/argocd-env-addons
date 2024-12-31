@@ -9,11 +9,11 @@ dependencies:
   repository: https://istio-release.storage.googleapis.com/charts
   version: "1.24.2" # helm chart istiod version
 
-- name: gateway
+- name: istiod
   repository: https://istio-release.storage.googleapis.com/charts
   version: "1.24.2" # helm chart istiod version
 
-- name: istiod
+- name: gateway
   repository: https://istio-release.storage.googleapis.com/charts
   version: "1.24.2" # helm chart istiod version
 
