@@ -44,7 +44,7 @@ ingress-nginx:
       #   memory: 512Mi
 
   tcp:
-    "8200": "addon-ingress-nginx/ingress-nginx-defaultbackend:80"
+    "8200": "ingress-nginx/ingress-nginx-defaultbackend:80"
 
   defaultBackend:
     enabled: true
