@@ -2,81 +2,81 @@ istiod:
   global:
     hub: gcr.io/istio-release
 
-    # proxy:
-    #   startupProbe:
-    #     enabled: true
+    proxy:
+      startupProbe:
+        enabled: true
 
-    #   lifecycle:
-    #     postStart:
-    #       exec:
-    #         command:
-    #           - pilot-agent
-    #           - wait
+      lifecycle:
+        postStart:
+          exec:
+            command:
+              - pilot-agent
+              - wait
 
-  # env:
-  #   EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
-  #   ENABLE_100_CONTINUE_HEADERS: "false"
+  env:
+    EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
+    ENABLE_100_CONTINUE_HEADERS: "false"
 
-  # resources:
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
 
-  # serviceAnnotations:
-  #   service.kubernetes.io/topology-aware-hints: auto
+  serviceAnnotations:
+    service.kubernetes.io/topology-aware-hints: auto
 
-  # topologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: topology.kubernetes.io/zone
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istiod
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istiod
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istiod
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istiod
 
-  # meshConfig:
-  #   defaultConfig:
-  #     proxyMetadata:
-  #       EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
-  #       ISTIO_META_DNS_DOMAIN: cluster.local
-  #       MINIMUM_DRAIN_DURATION: "10s"
-  #     gatewayTopology:
-  #       numTrustedProxies: 1
-  #     holdApplicationUntilProxyStarts: true
-  #     terminationDrainDuration: 30s
-  #   enableTracing: false
-  #   rootNamespace: istio-system
-  #   # localityLbSetting:
-  #   #   enabled: true
+  meshConfig:
+    defaultConfig:
+      proxyMetadata:
+        EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
+        ISTIO_META_DNS_DOMAIN: cluster.local
+        MINIMUM_DRAIN_DURATION: "10s"
+      gatewayTopology:
+        numTrustedProxies: 1
+      holdApplicationUntilProxyStarts: true
+      terminationDrainDuration: 30s
+    enableTracing: false
+    rootNamespace: istio-system
+    # localityLbSetting:
+    #   enabled: true
 
-    # extensionProviders:
-    #   - name: oauth2-proxy
-    #     envoyExtAuthzHttp:
-    #       service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
-    #       port: "80"
-    #       headersToDownstreamOnDeny:
-    #         - content-type
-    #         - set-cookie
-    #       headersToUpstreamOnAllow:
-    #         - authorization
-    #         - cookie
-    #         - path
-    #         - x-auth-request-access-token
-    #         - x-auth-request-user
-    #         - x-auth-request-email
-    #         - x-forwarded-access-token
-    #       includeHeadersInCheck:
-    #         - cookie
-    #         - x-forwarded-access-token
-    #         # - x-forwarded-user
-    #         # - x-forwarded-email
-    #       includeAdditionalHeadersInCheck:
-    #         authorization: "%REQ(x-auth-request-access-token)%"
+    extensionProviders:
+      - name: oauth2-proxy
+        envoyExtAuthzHttp:
+          service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
+          port: "80"
+          headersToDownstreamOnDeny:
+            - content-type
+            - set-cookie
+          headersToUpstreamOnAllow:
+            - authorization
+            - cookie
+            - path
+            - x-auth-request-access-token
+            - x-auth-request-user
+            - x-auth-request-email
+            - x-forwarded-access-token
+          includeHeadersInCheck:
+            - cookie
+            - x-forwarded-access-token
+            # - x-forwarded-user
+            # - x-forwarded-email
+          includeAdditionalHeadersInCheck:
+            authorization: "%REQ(x-auth-request-access-token)%"
 
 gateway:
   name: istio-ingressgateway
@@ -85,27 +85,27 @@ gateway:
   #   app: istio-ingressgateway
   #   istio: ingressgateway
 
-  # service:
-  #   type: ClusterIP
+  service:
+    type: ClusterIP
 
-  #   # externalTrafficPolicy: Local
+    externalTrafficPolicy: Local
 
-  #   annotations:
-  #     service.kubernetes.io/topology-aware-hints: auto
+    annotations:
+      service.kubernetes.io/topology-aware-hints: auto
 
-  # topologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: topology.kubernetes.io/zone
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istio-ingressgateway
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app: istio-ingressgateway
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istio-ingressgateway
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app: istio-ingressgateway
 
 raw:
   resources:
