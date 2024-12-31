@@ -96,9 +96,9 @@ gateway:
   autoscaling:
     enabled: false
 
-  labels:
-    app: istio-ingressgateway
-    istio: ingressgateway
+  # labels:
+  #   app: istio-ingressgateway
+  #   istio: ingressgateway
 
   service:
     type: ClusterIP
@@ -142,38 +142,50 @@ raw:
           istio: ingressgateway
         type: ClusterIP
 
-    # - apiVersion: networking.istio.io/v1alpha3
-    #   kind: EnvoyFilter
-    #   metadata:
-    #     name: gateway-response-remove-headers
-    #   spec:
-    #     workloadSelector:
-    #       labels:
-    #         istio: ingressgateway
-    #     configPatches:
-    #       - applyTo: NETWORK_FILTER
-    #         match:
-    #           context: GATEWAY
-    #           listener:
-    #             filterChain:
-    #               filter:
-    #                 name: "envoy.filters.network.http_connection_manager"
-    #         patch:
-    #           operation: MERGE
-    #           value:
-    #             typed_config:
-    #               "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
-    #               server_header_transformation: PASS_THROUGH
-    #       - applyTo: ROUTE_CONFIGURATION
-    #         match:
-    #           context: GATEWAY
-    #         patch:
-    #           operation: MERGE
-    #           value:
-    #             response_headers_to_remove:
-    #               - "x-envoy-decorator-operation"
-    #               - "x-envoy-upstream-service-time"
-    #               - "server"
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: EnvoyFilter
+      metadata:
+        name: preserve-external-request-id
+        namespace: istio-system
+      spec:
+        configPatches:
+        - applyTo: NETWORK_FILTER
+          match:
+            context: ANY
+            listener:
+              filterChain:
+                filter:
+                  name: envoy.filters.network.http_connection_manager
+          patch:
+            operation: MERGE
+            value:
+              typed_config:
+                "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+                preserve_external_request_id: true
+
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: EnvoyFilter
+      metadata:
+        name: uuid-unable-trace-reason
+        namespace: istio-system
+      spec:
+        configPatches:
+        - applyTo: NETWORK_FILTER
+          match:
+            context: ANY
+            listener:
+              filterChain:
+                filter:
+                  name: envoy.filters.network.http_connection_manager
+          patch:
+            operation: MERGE
+            value:
+              typed_config:
+                '@type': type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                request_id_extension:
+                  typed_config:
+                    '@type': type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
+                    pack_trace_reason: false
 
     # - apiVersion: monitoring.coreos.com/v1
     #   kind: ServiceMonitor
