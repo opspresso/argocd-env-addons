@@ -13,7 +13,7 @@ istiod:
               - pilot-agent
               - wait
 
-    remotePilotAddress: "istiod.istio-system.svc.cluster.local"
+    # remotePilotAddress: "istiod.istio-system.svc.cluster.local"
 
   env:
     EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
@@ -45,7 +45,6 @@ istiod:
     defaultConfig:
       proxyMetadata:
         EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
-        ISTIO_META_DNS_DOMAIN: cluster.local
         MINIMUM_DRAIN_DURATION: "10s"
       gatewayTopology:
         numTrustedProxies: 1
