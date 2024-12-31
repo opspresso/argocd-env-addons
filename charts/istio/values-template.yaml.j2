@@ -8,10 +8,6 @@ istiod:
     autoscaleMin: {{istio.pilot.min}}
     autoscaleMax: {{istio.pilot.max}}
 
-    podLabels:
-      owner: "{{cluster}}"
-      # department: "addons"
-
   meshConfig:
     defaultConfig:
       tracing:
@@ -24,10 +20,6 @@ gateway:
     enabled: {{istio.gateway.autoscale}}
     minReplicas: {{istio.gateway.min}}
     maxReplicas: {{istio.gateway.max}}
-
-  labels:
-    owner: "{{cluster}}"
-    # department: "addons"
 
 tgb:
   resources:
