@@ -4,7 +4,7 @@ istiod:
 
     proxy:
       startupProbe:
-        enabled: true
+        enabled: false
 
       lifecycle:
         postStart:
