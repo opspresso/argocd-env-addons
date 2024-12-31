@@ -47,10 +47,10 @@ istiod:
           matchLabels:
             app: istiod
 
-    # resources:
-    #   requests:
-    #     cpu: 100m
-    #     memory: 128Mi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
   meshConfig:
     defaultConfig:
@@ -96,9 +96,9 @@ gateway:
   autoscaling:
     enabled: false
 
-  # labels:
-  #   app: istio-ingressgateway
-  #   istio: ingressgateway
+  labels:
+    app: istio-ingressgateway
+    istio: ingressgateway
 
   service:
     type: ClusterIP
