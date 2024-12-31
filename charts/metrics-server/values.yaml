@@ -1,9 +1,9 @@
 metrics-server:
   fullnameOverride: metrics-server
 
-  apiService:
-    create: true
+  # apiService:
+  #   create: true
 
-  args:
-    - --kubelet-insecure-tls
-    - --kubelet-preferred-address-types=InternalIP
+  # args:
+  #   - --kubelet-insecure-tls
+  #   - --kubelet-preferred-address-types=InternalIP
