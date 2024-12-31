@@ -2,25 +2,6 @@ istiod:
   global:
     hub: "gcr.io/istio-release"
 
-  pilot:
-    autoscaleEnabled: False
-    replicaCount: 2
-    autoscaleMin: 2
-    autoscaleMax: 2
-
-  meshConfig:
-    defaultConfig:
-      tracing:
-        sampling: 10
-
-gateway:
-  replicaCount: 2
-
-  autoscaling:
-    enabled: False
-    minReplicas: 2
-    maxReplicas: 5
-
 tgb:
   resources:
     - apiVersion: elbv2.k8s.aws/v1beta1
