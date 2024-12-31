@@ -118,10 +118,10 @@ raw:
 {% if grafana.auth.google.enabled %}
           - secretKey: google-id
             remoteRef:
-              key: /k8s/common/google-id
+              key: /common/google/client_id
           - secretKey: google-secret
             remoteRef:
-              key: /k8s/common/google-secret
+              key: /common/google/client_secret
 {% endif %}
 
     - apiVersion: networking.istio.io/v1beta1

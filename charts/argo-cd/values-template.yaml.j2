@@ -147,10 +147,10 @@ raw:
 {% if argocd.google.enabled %}
           - secretKey: dex.google.clientId
             remoteRef:
-              key: /k8s/common/google-id
+              key: /common/google/client_id
           - secretKey: dex.google.clientSecret
             remoteRef:
-              key: /k8s/common/google-secret
+              key: /common/google/client_secret
 {% endif %}
           - secretKey: argo-workflows-client-secret
             remoteRef:

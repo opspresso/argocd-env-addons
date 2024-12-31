@@ -22,10 +22,10 @@ oauth2-proxy:
         data:
           - secretKey: client-id
             remoteRef:
-              key: /k8s/common/google-id
+              key: /common/google/client_id
           - secretKey: client-secret
             remoteRef:
-              key: /k8s/common/google-secret
+              key: /common/google/client_secret
           - secretKey: cookie-secret
             remoteRef:
               key: /k8s/common/cookie-secret
