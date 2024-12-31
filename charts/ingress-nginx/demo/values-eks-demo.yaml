@@ -22,7 +22,7 @@ tgb:
         serviceRef:
           name: ingress-nginx-controller
           port: http
-        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-0/a766fcc903146b7d"
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-0/0dd99846c85bb21b"
         targetType: ip
 
     - apiVersion: elbv2.k8s.aws/v1beta1
@@ -33,5 +33,5 @@ tgb:
         serviceRef:
           name: ingress-nginx-controller
           port: http
-        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-0/1ce364d032be7b33"
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-0/de191ecdaf127c74"
         targetType: ip
