@@ -1,4 +1,6 @@
 istiod:
+  revisionTags: ["default"]
+
   global:
     hub: gcr.io/istio-release
 
