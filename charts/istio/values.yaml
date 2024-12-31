@@ -81,14 +81,10 @@ istiod:
 gateway:
   name: istio-ingressgateway
 
-  # labels:
-  #   app: istio-ingressgateway
-  #   istio: ingressgateway
-
   service:
     type: ClusterIP
 
-    externalTrafficPolicy: Local
+    # externalTrafficPolicy: Local
 
     annotations:
       service.kubernetes.io/topology-aware-hints: auto
