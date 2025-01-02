@@ -35,9 +35,6 @@ export ARGOCD_NOTI_TOKEN="REPLACE_ME" # xoxp-xxxx <https://api.slack.com/apps>
 export ARGOCD_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
 export ARGOCD_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
 
-export GRAFANA_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
-export GRAFANA_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
-
 export AWS_ACM_CERT="arn:aws:acm:xxx:xxx:certificate/xxx"
 
 # put aws ssm parameter store
@@ -55,9 +52,6 @@ aws ssm put-parameter --name /k8s/common/cookie-secret --value "${ARGOCD_SERVER_
 
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-id --value "${ARGOCD_GITHUB_ID}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-secret --value "${ARGOCD_GITHUB_SECRET}" --type SecureString --overwrite | jq .
-
-aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-id --value "${GRAFANA_GITHUB_ID}" --type SecureString --overwrite | jq .
-aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-secret --value "${GRAFANA_GITHUB_SECRET}" --type SecureString --overwrite | jq .
 
 # get aws ssm parameter store
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
