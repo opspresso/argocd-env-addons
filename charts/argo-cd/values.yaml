@@ -21,12 +21,12 @@ argo-cd:
   server:
     replicas: 2
 
-    autoscaling:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 4
-      targetCPUUtilizationPercentage: 60
-      targetMemoryUtilizationPercentage: 60
+    # autoscaling:
+    #   enabled: true
+    #   minReplicas: 2
+    #   maxReplicas: 4
+    #   targetCPUUtilizationPercentage: 60
+    #   targetMemoryUtilizationPercentage: 60
 
     resources:
       requests:
@@ -59,12 +59,12 @@ argo-cd:
   repoServer:
     replicas: 2
 
-    autoscaling:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 4
-      targetCPUUtilizationPercentage: 60
-      targetMemoryUtilizationPercentage: 60
+    # autoscaling:
+    #   enabled: true
+    #   minReplicas: 2
+    #   maxReplicas: 4
+    #   targetCPUUtilizationPercentage: 60
+    #   targetMemoryUtilizationPercentage: 60
 
     resources:
       requests:
