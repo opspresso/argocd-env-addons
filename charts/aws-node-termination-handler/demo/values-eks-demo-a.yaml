@@ -7,7 +7,7 @@ aws-node-termination-handler:
 
   queueURL: "https://sqs.ap-northeast-2.amazonaws.com/396608815058/eks-demo-a-nth"
 
-  replicas: "1"
+
 
   managedTag: "aws-node-termination-handler/eks-demo-a"
 
