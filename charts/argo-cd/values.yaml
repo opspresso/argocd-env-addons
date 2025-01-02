@@ -459,7 +459,7 @@ argo-cd:
         name: env-addons
         type: git
         url: https://github.com/opspresso/argocd-env-addons
-      env-demo:
+      env-demo-repo:
         name: env-demo
         type: git
         url: https://github.com/opspresso/argocd-env-demo
