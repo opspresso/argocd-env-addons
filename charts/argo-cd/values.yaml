@@ -141,14 +141,14 @@ argo-cd:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/subscriptions/
 
       - recipients:
-        - slack:sandbox
+          - slack:sandbox
         triggers:
-        - on-deployed
-        - on-health-degraded
-        - on-sync-failed
-        - on-sync-running
-        - on-sync-status-unknown
-        - on-sync-succeeded
+          - on-deployed
+          - on-health-degraded
+          - on-sync-failed
+          - on-sync-running
+          - on-sync-status-unknown
+          - on-sync-succeeded
 
     templates:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/templates/
@@ -478,14 +478,14 @@ argo-cd:
         name: addons
       spec:
         clusterResourceWhitelist:
-          - group: '*'
-            kind: '*'
+          - group: "*"
+            kind: "*"
         destinations:
-          - name: '*'
-            namespace: '*'
-            server: '*'
+          - name: "*"
+            namespace: "*"
+            server: "*"
         sourceRepos:
-          - '*'
+          - "https://github.com/opspresso/argocd-env-addons"
 
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
@@ -493,14 +493,14 @@ argo-cd:
         name: apps
       spec:
         clusterResourceWhitelist:
-          - group: '*'
-            kind: '*'
+          - group: "*"
+            kind: "*"
         destinations:
-          - name: '*'
-            namespace: '*'
-            server: '*'
+          - name: "*"
+            namespace: "*"
+            server: "*"
         sourceRepos:
-          - '*'
+          - "https://github.com/opspresso/argocd-env-demo"
 
     - apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret
