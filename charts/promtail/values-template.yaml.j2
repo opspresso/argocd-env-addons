@@ -1,10 +1,6 @@
 promtail:
   fullnameOverride: promtail
 
-  podLabels:
-    owner: "{{cluster}}"
-    department: "addons"
-
   extraArgs:
     - -client.external-labels=cluster={{cluster}}
 

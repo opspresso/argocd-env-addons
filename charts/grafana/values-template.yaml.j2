@@ -2,10 +2,6 @@ grafana:
   fullnameOverride: grafana
 
 {% if grafana is defined %}
-  podLabels:
-    owner: "{{cluster}}"
-    department: "addons"
-
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
 
