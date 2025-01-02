@@ -1,10 +1,6 @@
 aws-node-termination-handler:
   awsRegion: "ap-northeast-2"
 
-  podLabels:
-    department: "addons"
-    owner: "eks-demo-b"
-
   queueURL: "https://sqs.ap-northeast-2.amazonaws.com/396608815058/eks-demo-b-nth"
 
 

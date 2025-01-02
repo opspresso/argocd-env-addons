@@ -2,12 +2,8 @@ loki-stack:
   loki:
     fullnameOverride: loki
 
-    # podLabels:
-    #   owner: "eks-demo-b"
-    #   department: "addons"
-
     serviceMonitor:
-      enabled: true
+      enabled: False
       additionalLabels:
         release: prometheus-eks-demo-b
 

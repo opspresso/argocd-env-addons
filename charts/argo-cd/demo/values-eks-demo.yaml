@@ -5,6 +5,7 @@ argo-cd:
   controller:
     metrics:
       serviceMonitor:
+        enabled: False
         selector:
           release: prometheus-eks-demo
 
@@ -22,18 +23,21 @@ argo-cd:
 
     metrics:
       serviceMonitor:
+        enabled: False
         selector:
           release: prometheus-eks-demo
 
   repoServer:
     metrics:
       serviceMonitor:
+        enabled: False
         selector:
           release: prometheus-eks-demo
 
   dex:
     metrics:
       serviceMonitor:
+        enabled: False
         selector:
           release: prometheus-eks-demo
 

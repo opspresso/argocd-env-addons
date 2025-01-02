@@ -1,4 +1,6 @@
 dashboard:
+
+
   resources:
     requests:
       cpu: "200m"
@@ -6,6 +8,7 @@ dashboard:
     limits:
       cpu: "500m"
       memory: "1Gi"
+
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://dashboard.demo.opspresso.com"
@@ -47,3 +50,21 @@ route:
                   host: dashboard
                   port:
                     number: 80
+
+    - apiVersion: security.istio.io/v1beta1
+      kind: AuthorizationPolicy
+      metadata:
+        name: oauth2-proxy-dashboard
+        namespace: istio-system
+      spec:
+        selector:
+          matchLabels:
+            istio: ingressgateway
+        action: CUSTOM
+        provider:
+          name: oauth2-proxy-dashboard
+        rules:
+        - to:
+          - operation:
+              hosts:
+              - "dashboard.demo.opspresso.com"

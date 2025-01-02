@@ -128,3 +128,22 @@ atlantis:
                   host: atlantis
                   port:
                     number: 80
+
+    - apiVersion: security.istio.io/v1beta1
+      kind: AuthorizationPolicy
+      metadata:
+        name: oauth2-proxy-atlantis
+        namespace: istio-system
+      spec:
+        selector:
+          matchLabels:
+            istio: ingressgateway
+        action: ALLOW
+        rules:
+        - to:
+          - operation:
+              hosts:
+              - "atlantis.demo.opspresso.com"
+              methods: ["GET"]
+              paths: ["/"]
+

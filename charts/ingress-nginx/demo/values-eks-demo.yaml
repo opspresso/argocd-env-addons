@@ -1,6 +1,7 @@
 ingress-nginx:
   fullnameOverride: ingress-nginx
 
+
   controller:
     replicaCount: "3"
 
@@ -11,6 +12,7 @@ ingress-nginx:
       enabled: False
       serviceMonitor:
         enabled: False
+
 
 tgb:
   resources:

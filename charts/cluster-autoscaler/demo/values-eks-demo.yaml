@@ -4,6 +4,7 @@ cluster-autoscaler:
   autoDiscovery:
     clusterName: 'eks-demo'
 
+
   extraArgs:
 
     scan-interval: "20s"
@@ -15,6 +16,7 @@ cluster-autoscaler:
 
 
     scale-down-utilization-threshold: "0.6"
+
 
 
 
