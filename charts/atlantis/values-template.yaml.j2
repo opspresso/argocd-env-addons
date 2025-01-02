@@ -98,6 +98,6 @@ atlantis:
           - operation:
               hosts:
               - "atlantis.{{hostname.public}}"
-              methods: ["GET"]
-              paths: ["/"]
+              methods: ["POST"]
+              paths: ["/events"]
 {% endif %}
