@@ -89,5 +89,5 @@ atlantis:
           - operation:
               hosts:
               - "atlantis.demo.opspresso.com"
-              methods: ["GET"]
-              paths: ["/"]
+              methods: ["POST"]
+              paths: ["/events"]
