@@ -62,7 +62,7 @@ route:
             istio: ingressgateway
         action: CUSTOM
         provider:
-          name: oauth2-proxy-rollouts
+          name: oauth2-proxy
         rules:
         - to:
           - operation:
