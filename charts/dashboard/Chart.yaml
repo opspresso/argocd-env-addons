@@ -2,13 +2,13 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: dashboard
 type: application
-version: "7.10.0" # helm chart kubernetes-dashboard version
+version: "6.0.8" # helm chart kubernetes-dashboard version
 
 dependencies:
 - alias: dashboard
   name: kubernetes-dashboard
   repository: https://kubernetes.github.io/dashboard
-  version: "7.10.0" # helm chart kubernetes-dashboard version
+  version: "6.0.8" # helm chart kubernetes-dashboard version
 
 - name: raw
   alias: roles
