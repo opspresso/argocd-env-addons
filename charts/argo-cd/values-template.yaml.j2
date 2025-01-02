@@ -2,11 +2,6 @@ argo-cd:
   fullnameOverride: argocd
 
 {% if argocd is defined %}
-  global:
-    podLabels:
-      owner: "{{cluster}}"
-      department: "addons"
-
   controller:
     metrics:
       serviceMonitor:

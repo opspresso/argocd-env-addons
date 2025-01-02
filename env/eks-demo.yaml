@@ -20,7 +20,7 @@ hostname:
 #   nodeSelector: monitoring
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/f9c8b67e-5f3f-4aa2-9411-5fa987e01c57
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/316caa86-922f-450b-8bce-63b4af9b89b2
   hostname: argocd.demo.opspresso.com
   github:
     org: opspresso # github org
@@ -39,39 +39,10 @@ atlantis:
     user: nalbam-bot
   allowlist: github.com/opspresso/terraform-*
 
-# aws_ebs_csi_driver:
-#   image:
-#     repository: public.ecr.aws/ebs-csi-driver/aws-ebs-csi-driver
-#   nodeDriverRegistrar:
-#     image:
-#       repository: k8s.gcr.io/sig-storage/csi-node-driver-registrar
-#   livenessProbe:
-#     image:
-#       repository: k8s.gcr.io/sig-storage/livenessprobe
-#   useOldCSIDriver: false
-
-# aws_efs_csi_driver:
-#   id: "fs-0d24289c6d6ad35d7"
-
-aws_node_termination_handler:
-  replicas: 1
-  slack:
-    channel: "sandbox"
-    emoji: ":construction:"
-
-# chaoskube:
-#   interval: 20m
-#   timezone: "Asia/Seoul"
-
 cluster_autoscaler:
   scan_interval: 20s
   scale_down_delay_after_delete: 1m
   scale_down_utilization_threshold: 0.6
-
-# cluster_overprovisioner:
-#   replicas: 0
-#   cpu: "1"
-#   memory: 1Gi
 
 cluster_role:
   readonly:
@@ -131,12 +102,3 @@ loki:
 prometheus:
   serviceMonitor:
     enabled: false
-  # node-exporter:
-  #   image:
-  #     registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
-  #     repository: mirror/prometheus/node-exporter
-
-# promtail:
-#   image:
-#     registry: 082867736673.dkr.ecr.ap-northeast-2.amazonaws.com
-#     repository: mirror/grafana/promtail
