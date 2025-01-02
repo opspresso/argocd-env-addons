@@ -48,7 +48,7 @@ route:
               - "rollouts.demo.opspresso.com"
             port:
               number: 3100
-              name: http
+              name: dashboard
               protocol: HTTP
 
     - apiVersion: networking.istio.io/v1beta1
