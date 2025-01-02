@@ -107,11 +107,7 @@ kube-prometheus-stack:
   kube-state-metrics:
     fullnameOverride: kube-state-metrics
 
-    # customLabels:
-    #   owner: "{{cluster}}"
-    #   department: "addons"
-
-    # https://github.com/kubernetes/kube-state-metrics/blob/master/docs/cli-arguments.md
+    # https://github.com/kubernetes/kube-state-metrics/tree/main/docs
     extraArgs:
       - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*]
 
@@ -125,10 +121,6 @@ kube-prometheus-stack:
 
   prometheus-node-exporter:
     fullnameOverride: prometheus-node-exporter
-
-    # podLabels:
-    #   owner: "{{cluster}}"
-    #   department: "addons"
 
     # image:
     #   repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
