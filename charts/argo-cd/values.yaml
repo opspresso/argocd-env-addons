@@ -7,7 +7,7 @@ argo-cd:
         cpu: 200m
         memory: 1Gi
       limits:
-        cpu: 500m
+        cpu: 200m
         memory: 1Gi
 
     metrics:
@@ -33,8 +33,8 @@ argo-cd:
         cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 256Mi
 
     service:
       type: LoadBalancer
@@ -68,11 +68,11 @@ argo-cd:
 
     resources:
       requests:
-        cpu: 250m
+        cpu: 500m
         memory: 512Mi
       limits:
         cpu: 500m
-        memory: 1Gi
+        memory: 512Mi
 
     metrics:
       enabled: true
@@ -90,8 +90,8 @@ argo-cd:
         cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 256Mi
 
   dex:
     resources:
@@ -99,8 +99,8 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
 
     env:
       - name: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
@@ -128,8 +128,8 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
 
   notifications:
     # argocdUrl: https://{{argocd.hostname}}
@@ -139,8 +139,8 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
 
     secret:
       create: false
