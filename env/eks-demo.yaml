@@ -99,3 +99,6 @@ grafana:
 prometheus:
   serviceMonitor:
     enabled: false
+
+loki:
+  hostname: loki.in.demo.opspresso.com

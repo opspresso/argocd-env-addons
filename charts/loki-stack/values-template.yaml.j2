@@ -30,7 +30,7 @@ raw:
           istio: ingressgateway
         servers:
           - hosts:
-              - "loki.{{hostname.internal}}"
+              - "{{loki.hostname}}"
             port:
               number: 80
               name: http
@@ -42,7 +42,7 @@ raw:
         name: loki
       spec:
         hosts:
-          - "loki.{{hostname.internal}}"
+          - "{{loki.hostname}}"
         gateways:
           - loki
           - mesh
