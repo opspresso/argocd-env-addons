@@ -19,14 +19,7 @@ argo-cd:
         #   release: prometheus-{{cluster}}
 
   server:
-    replicas: 2
-
-    # autoscaling:
-    #   enabled: true
-    #   minReplicas: 2
-    #   maxReplicas: 4
-    #   targetCPUUtilizationPercentage: 60
-    #   targetMemoryUtilizationPercentage: 60
+    # replicas: 2
 
     resources:
       requests:
@@ -83,7 +76,7 @@ argo-cd:
         #   release: prometheus-{{cluster}}
 
   applicationSet:
-    replicas: 2
+    # replicas: 2
 
     resources:
       requests:
