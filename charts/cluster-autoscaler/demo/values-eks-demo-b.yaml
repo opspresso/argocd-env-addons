@@ -1,8 +1,8 @@
 cluster-autoscaler:
-  awsRegion: 'ap-northeast-2'
+  awsRegion: "ap-northeast-2"
 
   autoDiscovery:
-    clusterName: 'eks-demo-b'
+    clusterName: "eks-demo-b"
 
 
   extraArgs:
