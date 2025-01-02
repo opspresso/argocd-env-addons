@@ -105,12 +105,6 @@ atlantis:
                   host: atlantis
                   port:
                     number: 80
-          - match:
-              - uri:
-                  prefix: "/"
-            fault:
-              abort:
-                httpStatus: 403
 
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
