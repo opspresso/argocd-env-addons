@@ -109,7 +109,7 @@ kube-prometheus-stack:
 
     # https://github.com/kubernetes/kube-state-metrics/tree/main/docs
     extraArgs:
-      - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*]
+      - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*],daemonsets=[*]
 
     # tolerations:
     #   - key: group
