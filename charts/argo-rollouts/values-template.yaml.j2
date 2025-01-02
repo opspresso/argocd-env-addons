@@ -47,8 +47,8 @@ route:
           - hosts:
               - "rollouts.{{hostname.public}}"
             port:
-              number: 3100
-              name: dashboard
+              number: 80
+              name: http
               protocol: HTTP
 
     - apiVersion: networking.istio.io/v1beta1
