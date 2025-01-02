@@ -52,6 +52,7 @@ atlantis:
         servers:
           - hosts:
               - "atlantis.demo.opspresso.com"
+              - "atlantis-public.demo.opspresso.com"
             port:
               number: 80
               name: http
@@ -74,6 +75,34 @@ atlantis:
                   port:
                     number: 80
 
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: atlantis-public
+      spec:
+        hosts:
+          - "atlantis-public.demo.opspresso.com"
+        gateways:
+          - atlantis
+          - mesh
+        http:
+          - match:
+              - uri:
+                  prefix: "/events"
+                method:
+                  exact: "POST"
+            route:
+              - destination:
+                  host: atlantis
+                  port:
+                    number: 80
+          - match:
+              - uri:
+                  prefix: "/"
+            fault:
+              abort:
+                httpStatus: 403
+
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
       metadata:
@@ -83,11 +112,11 @@ atlantis:
         selector:
           matchLabels:
             istio: ingressgateway
-        action: ALLOW
+        action: CUSTOM
+        provider:
+          name: oauth2-proxy
         rules:
         - to:
           - operation:
               hosts:
               - "atlantis.demo.opspresso.com"
-              methods: ["POST"]
-              paths: ["/events"]
