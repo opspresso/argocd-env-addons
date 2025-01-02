@@ -55,7 +55,7 @@ route:
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
       metadata:
-        name: oauth2-proxy-rollouts
+        name: rollouts
         namespace: istio-system
       spec:
         selector:
