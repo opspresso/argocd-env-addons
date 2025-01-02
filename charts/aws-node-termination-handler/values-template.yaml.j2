@@ -7,7 +7,9 @@ aws-node-termination-handler:
 
   queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster}}-nth"
 
+{% if aws_node_termination_handler is defined %}
   replicas: "{{aws_node_termination_handler.replicas}}"
+{% endif %}
 
   managedTag: "aws-node-termination-handler/{{cluster}}"
 
