@@ -27,14 +27,6 @@ cluster_role:
   readonly:
     enabled: true
 
-dashboard:
-  requests:
-    cpu: "200m"
-    memory: 512Mi
-  limits:
-    cpu: "500m"
-    memory: 1Gi
-
 ingress_nginx:
   replicas: 3
 

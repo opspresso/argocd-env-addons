@@ -1,15 +1,4 @@
 dashboard:
-
-{% if dashboard is defined %}
-  resources:
-    requests:
-      cpu: "{{dashboard.requests.cpu}}"
-      memory: "{{dashboard.requests.memory}}"
-    limits:
-      cpu: "{{dashboard.limits.cpu}}"
-      memory: "{{dashboard.limits.memory}}"
-{% endif %}
-
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://dashboard.{{hostname.public}}"
 

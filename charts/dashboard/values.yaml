@@ -1,20 +1,16 @@
 dashboard:
   fullnameOverride: dashboard
 
-  # podLabels:
-  #   owner: "{{cluster}}"
-  #   department: "addons"
-
   extraArgs:
     - --enable-skip-login
 
-  # resources:
-  #   requests:
-  #     cpu: "{{dashboard.requests.cpu}}"
-  #     memory: "{{dashboard.requests.memory}}"
-  #   limits:
-  #     cpu: "{{dashboard.limits.cpu}}"
-  #     memory: "{{dashboard.limits.memory}}"
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
+    limits:
+      cpu: "50m"
+      memory: "128Mi"
 
   protocolHttp: true
 
