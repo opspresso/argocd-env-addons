@@ -45,8 +45,14 @@ atlantis:
   ingress:
     enabled: false
 
+  loadEnvFromConfigMaps:
+    - atlantis-configmap
+
   loadEnvFromSecrets:
     - atlantis-secret
 
-  loadEnvFromConfigMaps:
-    - atlantis-configmap
+  extraVolumes:
+    - name: atlantis-secret
+      secret:
+        secretName: atlantis-secret
+        defaultMode: 0400

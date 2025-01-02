@@ -37,6 +37,7 @@ argo_workflows:
 atlantis:
   allowlist: github.com/opspresso/terraform-*
   github:
+    org: opspresso # github org
     user: nalbam-bot
   infracost:
     enabled: false

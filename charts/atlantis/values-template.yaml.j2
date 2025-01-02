@@ -16,7 +16,10 @@ atlantis:
       metadata:
         name: atlantis-configmap
       data:
+        ATLANTIS_GH_ORG: "{{atlantis.github.org}}"
         ATLANTIS_GH_USER: "{{atlantis.github.user}}"
+        ATLANTIS_WRITE_GIT_CREDS: "true"
+        ATLANTIS_ALLOW_FORK_PRS: "true"
 {% if atlantis.infracost.enabled %}
         INFRACOST_PRICING_API_ENDPOINT: "https://cloud-pricing-api.{{hostname.public}}"
 {% endif %}
@@ -33,9 +36,6 @@ atlantis:
         target:
           name: atlantis-secret
         data:
-          - secretKey: GITHUB_TOKEN
-            remoteRef:
-              key: /k8s/common/github/{{atlantis.github.user}}/token
           - secretKey: ATLANTIS_GH_TOKEN
             remoteRef:
               key: /k8s/common/github/{{atlantis.github.user}}/token
