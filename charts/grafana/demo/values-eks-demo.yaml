@@ -2,10 +2,6 @@ grafana:
   fullnameOverride: grafana
 
 
-  podLabels:
-    owner: "eks-demo"
-    department: "addons"
-
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
 

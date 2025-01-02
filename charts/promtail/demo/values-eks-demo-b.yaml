@@ -1,10 +1,6 @@
 promtail:
   fullnameOverride: promtail
 
-  podLabels:
-    owner: "eks-demo-b"
-    department: "addons"
-
   extraArgs:
     - -client.external-labels=cluster=eks-demo-b
 
