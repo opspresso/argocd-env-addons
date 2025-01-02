@@ -102,28 +102,16 @@ helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f value
 # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-## argocd-server
+## external-dns
 
 > aws 에 elb 가 생성 되었습니다. external-dns 로 argocd.demo.opspresso.com 와 연결해 줍니다.
-
-```bash
-kubectl get pod -n argocd
-kubectl get svc argocd-server -n argocd
-```
-
-NAME          | TYPE         | CLUSTER-IP    | EXTERNAL-IP                     | PORT(S)                    | AGE
-------------- | ------------ | ------------- | ------------------------------- | -------------------------- | ---
-argocd-server | LoadBalancer | 172.20.41.157 | xxx-000.apne2.elb.amazonaws.com | 80:30080/TCP,443:30443/TCP | 64m
-
-* <https://ap-northeast-2.console.aws.amazon.com/ec2/v2/home?region=ap-northeast-2#LoadBalancers:>
-* <https://console.aws.amazon.com/route53/v2/hostedzones>
-* <https://argocd.demo.opspresso.com>
-
-## external-dns
 
 * <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
 
 ```bash
+# helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
+
+# helm repo update
 # helm search repo external-dns
 
 helm upgrade --install external-dns external-dns/external-dns -n addon-external-dns --create-namespace -f external-dns/values.yaml
@@ -133,6 +121,8 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 
 # sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
+
+* <https://argocd.demo.opspresso.com>
 
 ## argocd login
 
