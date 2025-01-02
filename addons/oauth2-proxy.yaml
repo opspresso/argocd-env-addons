@@ -9,10 +9,12 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
-      name: "oauth2-proxy" # only management cluster
+      name: "oauth2-proxy-{{cluster}}"
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
