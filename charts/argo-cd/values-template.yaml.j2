@@ -5,6 +5,7 @@ argo-cd:
   controller:
     metrics:
       serviceMonitor:
+        enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
           release: prometheus-{{cluster}}
 
@@ -22,18 +23,21 @@ argo-cd:
 
     metrics:
       serviceMonitor:
+        enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
           release: prometheus-{{cluster}}
 
   repoServer:
     metrics:
       serviceMonitor:
+        enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
           release: prometheus-{{cluster}}
 
   dex:
     metrics:
       serviceMonitor:
+        enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
           release: prometheus-{{cluster}}
 

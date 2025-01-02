@@ -13,7 +13,7 @@ argo-cd:
     metrics:
       enabled: true
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         # selector:
         #   release: prometheus-{{cluster}}
@@ -51,7 +51,7 @@ argo-cd:
     metrics:
       enabled: true
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         # selector:
         #   release: prometheus-{{cluster}}
@@ -77,7 +77,7 @@ argo-cd:
     metrics:
       enabled: true
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         # selector:
         #   release: prometheus-{{cluster}}
@@ -106,7 +106,7 @@ argo-cd:
     metrics:
       enabled: true
       serviceMonitor:
-        enabled: true
+        enabled: false
         interval: 30s
         # selector:
         #   release: prometheus-{{cluster}}

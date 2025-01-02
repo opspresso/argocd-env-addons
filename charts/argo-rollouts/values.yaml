@@ -1,6 +1,25 @@
 argo-rollouts:
   fullnameOverride: argo-rollouts
 
+  controller:
+    resources:
+      requests:
+        cpu: 256m
+        memory: 1Gi
+      limits:
+        memory: 1Gi
+
+  dashboard:
+    enabled: true
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
   notifications:
     secret:
       create: false

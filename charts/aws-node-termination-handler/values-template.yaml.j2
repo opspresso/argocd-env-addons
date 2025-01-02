@@ -1,10 +1,6 @@
 aws-node-termination-handler:
   awsRegion: "{{aws_region}}"
 
-  podLabels:
-    department: "addons"
-    owner: "{{cluster}}"
-
   queueURL: "https://sqs.{{aws_region}}.amazonaws.com/{{aws_account_id}}/{{cluster}}-nth"
 
 {% if aws_node_termination_handler is defined %}

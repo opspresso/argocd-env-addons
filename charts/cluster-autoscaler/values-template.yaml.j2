@@ -4,6 +4,7 @@ cluster-autoscaler:
   autoDiscovery:
     clusterName: '{{cluster}}'
 
+{% if cluster_autoscaler is defined %}
   extraArgs:
 {% if cluster_autoscaler.scan_interval is defined %}
     scan-interval: "{{cluster_autoscaler.scan_interval}}"
@@ -22,6 +23,7 @@ cluster-autoscaler:
 {% endif %}
 {% if cluster_autoscaler.scale_down_unneeded_time is defined %}
     scale-down-unneeded-time: "{{cluster_autoscaler.scale_down_unneeded_time}}"
+{% endif %}
 {% endif %}
 
   serviceMonitor:

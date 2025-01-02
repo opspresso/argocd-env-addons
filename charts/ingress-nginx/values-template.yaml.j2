@@ -1,6 +1,7 @@
 ingress-nginx:
   fullnameOverride: ingress-nginx
 
+{% if ingress_nginx is defined %}
   controller:
     replicaCount: "{{ingress_nginx.replicas}}"
 
@@ -11,6 +12,7 @@ ingress-nginx:
       enabled: {{prometheus.serviceMonitor.enabled}}
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
+{% endif %}
 
 tgb:
   resources:

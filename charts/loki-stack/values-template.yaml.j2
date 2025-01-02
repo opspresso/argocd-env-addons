@@ -2,12 +2,8 @@ loki-stack:
   loki:
     fullnameOverride: loki
 
-    # podLabels:
-    #   owner: "{{cluster}}"
-    #   department: "addons"
-
     serviceMonitor:
-      enabled: true
+      enabled: {{prometheus.serviceMonitor.enabled}}
       additionalLabels:
         release: prometheus-{{cluster}}
 
@@ -34,7 +30,7 @@ raw:
           istio: ingressgateway
         servers:
           - hosts:
-              - "{{loki.hostname}}"
+              - "loki.{{hostname.internal}}"
             port:
               number: 80
               name: http
@@ -46,7 +42,7 @@ raw:
         name: loki
       spec:
         hosts:
-          - "{{loki.hostname}}"
+          - "loki.{{hostname.internal}}"
         gateways:
           - loki
           - mesh
