@@ -139,6 +139,8 @@ atlantis:
           matchLabels:
             istio: ingressgateway
         action: ALLOW
+        provider:
+          name: oauth2-proxy
         rules:
         - to:
           - operation:
@@ -146,5 +148,4 @@ atlantis:
               - "atlantis.{{hostname.public}}"
               methods: ["GET"]
               paths: ["/"]
-
 {% endif %}
