@@ -50,3 +50,21 @@ route:
                   host: argo-rollouts-dashboard
                   port:
                     number: 3100
+
+    - apiVersion: security.istio.io/v1beta1
+      kind: AuthorizationPolicy
+      metadata:
+        name: oauth2-proxy-rollouts
+        namespace: istio-system
+      spec:
+        selector:
+          matchLabels:
+            istio: ingressgateway
+        action: CUSTOM
+        provider:
+          name: oauth2-proxy-rollouts
+        rules:
+        - to:
+          - operation:
+              hosts:
+              - "rollouts.{{hostname.public}}"
