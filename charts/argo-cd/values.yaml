@@ -85,6 +85,14 @@ argo-cd:
   applicationSet:
     replicas: 2
 
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+
   dex:
     resources:
       requests:
