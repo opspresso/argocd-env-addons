@@ -30,11 +30,11 @@ argo-cd:
 
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
       limits:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
 
     service:
       type: LoadBalancer
@@ -87,11 +87,11 @@ argo-cd:
 
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
       limits:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 128Mi
 
   dex:
     resources:
