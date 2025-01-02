@@ -44,6 +44,7 @@ route:
           - "rollouts.demo.opspresso.com"
         gateways:
           - argo-rollouts-dashboard
+          - mesh
         http:
           - route:
               - destination:

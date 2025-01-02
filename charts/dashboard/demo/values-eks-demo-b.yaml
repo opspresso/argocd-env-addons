@@ -44,6 +44,7 @@ route:
           - "dashboard.demo.opspresso.com"
         gateways:
           - dashboard
+          - mesh
         http:
           - route:
               - destination:
