@@ -45,9 +45,9 @@ route:
           istio: ingressgateway
         servers:
           - hosts:
-              - "argo-rollouts.{{hostname.public}}"
+              - "rollouts.{{hostname.public}}"
             port:
-              number: 80
+              number: 3100
               name: http
               protocol: HTTP
 
@@ -57,7 +57,7 @@ route:
         name: argo-rollouts-dashboard
       spec:
         hosts:
-          - "argo-rollouts.{{hostname.public}}"
+          - "rollouts.{{hostname.public}}"
         gateways:
           - argo-rollouts-dashboard
         http:
