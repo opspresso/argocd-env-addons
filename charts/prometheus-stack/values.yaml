@@ -1,10 +1,6 @@
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
-  # commonLabels:
-  #   owner: "{{cluster}}"
-  #   department: "addons"
-
   # prometheusOperator:
   #   tolerations:
   #     - key: group
@@ -18,10 +14,6 @@ kube-prometheus-stack:
     enabled: true
 
     prometheusSpec:
-      # podMetadata:
-      #   labels:
-      #     owner: "{{cluster}}"
-      #     department: "addons"
       storageSpec:
         volumeClaimTemplate:
           spec:
@@ -121,7 +113,7 @@ kube-prometheus-stack:
 
     # https://github.com/kubernetes/kube-state-metrics/blob/master/docs/cli-arguments.md
     extraArgs:
-      - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*]
+      - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*]
 
     # tolerations:
     #   - key: group
