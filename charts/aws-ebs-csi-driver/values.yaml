@@ -1,26 +1,6 @@
 aws-ebs-csi-driver:
   fullnameOverride: aws-ebs-csi-driver
 
-  controller:
-    # k8sTagClusterId: "{{cluster}}"
-
-    # tolerations:
-    #   - key: group
-    #     operator: Equal
-    #     value: ingress
-    #     effect: NoSchedule
-    # nodeSelector:
-    #   group: ingress
-
-    extraVolumeTags:
-      # KubernetesCluster: "{{cluster}}"
-      # Environment: alpha
-      Role: eks
-      Service: ks
-
-  # node:
-  #   tolerateAllTaints: true
-
   storageClasses:
     - name: gp3
       annotations:

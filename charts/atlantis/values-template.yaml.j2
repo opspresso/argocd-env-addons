@@ -10,56 +10,6 @@ atlantis:
     annotations:
       link.argocd.argoproj.io/external-link: "https://atlantis.{{hostname.public}}"
 
-  # image:
-  #   repository: infracost/infracost-atlantis
-  #   tag: latest
-
-  # repoConfig: |
-  #   ---
-  #   repos:
-  #     - id: /.*/
-  #       workflow: infracost
-  #   workflows:
-  #     infracost:
-  #       plan:
-  #         steps:
-  #           - env:
-  #               name: INFRACOST_OUTPUT
-  #               command: echo "/tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM/infracost-output.json"
-  #           - init
-  #           - plan
-  #           - show
-  #           - run: |
-  #               mkdir -p /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
-  #               infracost breakdown --path=$SHOWFILE --format=json --log-level=info --out-file=$INFRACOST_OUTPUT
-  #           - run: |
-  #               infracost comment github --repo $BASE_REPO_OWNER/$BASE_REPO_NAME --pull-request $PULL_NUM \
-  #                 --path $INFRACOST_OUTPUT --github-token $GITHUB_TOKEN --behavior new
-  #               rm -rf /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
-
-  resources:
-    requests:
-      cpu: 200m
-      memory: 512Mi
-    limits:
-      cpu: 200m
-      memory: 1Gi
-
-  storageClassName: gp3 # aws-ebs-sc
-  dataStorage: 15Gi
-
-  service:
-    type: ClusterIP
-
-  ingress:
-    enabled: false
-
-  loadEnvFromSecrets:
-    - atlantis-secret
-
-  loadEnvFromConfigMaps:
-    - atlantis-configmap
-
   extraManifests:
     - apiVersion: v1
       kind: ConfigMap

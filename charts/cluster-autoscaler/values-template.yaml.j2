@@ -1,8 +1,8 @@
 cluster-autoscaler:
-  awsRegion: '{{aws_region}}'
+  awsRegion: "{{aws_region}}"
 
   autoDiscovery:
-    clusterName: '{{cluster}}'
+    clusterName: "{{cluster}}"
 
 {% if cluster_autoscaler is defined %}
   extraArgs:

@@ -13,6 +13,3 @@ cluster-autoscaler:
 
   serviceMonitor:
     namespace: addon-cluster-autoscaler
-
-  # podAnnotations:
-  #   chaos.alpha.kubernetes.io/enabled: "true"

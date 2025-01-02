@@ -1,10 +1,2 @@
 external-secrets:
   fullnameOverride: external-secrets
-
-  # nodeSelector:
-  #   group: ingress
-  # tolerations:
-  # - effect: NoSchedule
-  #   key: group
-  #   operator: Equal
-  #   value: ingress
