@@ -33,3 +33,36 @@ argo-rollouts:
       ingressClassName: "nginx"
       hosts:
         - "rollouts.{{hostname.public}}"
+
+route:
+  resources:
+    - apiVersion: networking.istio.io/v1beta1
+      kind: Gateway
+      metadata:
+        name: argo-rollouts-dashboard
+      spec:
+        selector:
+          istio: ingressgateway
+        servers:
+          - hosts:
+              - "argo-rollouts.{{hostname.public}}"
+            port:
+              number: 80
+              name: http
+              protocol: HTTP
+
+    - apiVersion: networking.istio.io/v1beta1
+      kind: VirtualService
+      metadata:
+        name: argo-rollouts-dashboard
+      spec:
+        hosts:
+          - "argo-rollouts.{{hostname.public}}"
+        gateways:
+          - argo-rollouts-dashboard
+        http:
+          - route:
+              - destination:
+                  host: argo-rollouts-dashboard
+                  port:
+                    number: 3100

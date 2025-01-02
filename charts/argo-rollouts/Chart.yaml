@@ -12,3 +12,8 @@ dependencies:
   - name: raw
     repository: https://charts.helm.sh/incubator
     version: "0.2.5"
+
+  - name: raw
+    alias: route
+    repository: https://charts.helm.sh/incubator
+    version: "0.2.5" # helm chart raw version
