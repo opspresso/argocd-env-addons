@@ -16,7 +16,10 @@ atlantis:
       metadata:
         name: atlantis-configmap
       data:
+        ATLANTIS_GH_ORG: "opspresso"
         ATLANTIS_GH_USER: "nalbam-bot"
+        ATLANTIS_WRITE_GIT_CREDS: "true"
+        ATLANTIS_ALLOW_FORK_PRS: "true"
 
 
     - apiVersion: external-secrets.io/v1beta1
@@ -31,9 +34,6 @@ atlantis:
         target:
           name: atlantis-secret
         data:
-          - secretKey: GITHUB_TOKEN
-            remoteRef:
-              key: /k8s/common/github/nalbam-bot/token
           - secretKey: ATLANTIS_GH_TOKEN
             remoteRef:
               key: /k8s/common/github/nalbam-bot/token
