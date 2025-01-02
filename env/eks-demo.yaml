@@ -35,9 +35,11 @@ argo_workflows:
     team: sre
 
 atlantis:
+  allowlist: github.com/opspresso/terraform-*
   github:
     user: nalbam-bot
-  allowlist: github.com/opspresso/terraform-*
+  infracost:
+    enabled: false
 
 cluster_autoscaler:
   scan_interval: 20s

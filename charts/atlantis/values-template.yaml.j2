@@ -17,7 +17,9 @@ atlantis:
         name: atlantis-configmap
       data:
         ATLANTIS_GH_USER: "{{atlantis.github.user}}"
+{% if atlantis.infracost.enabled %}
         INFRACOST_PRICING_API_ENDPOINT: "https://cloud-pricing-api.{{hostname.public}}"
+{% endif %}
 
     - apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret
@@ -40,12 +42,14 @@ atlantis:
           - secretKey: ATLANTIS_GH_WEBHOOK_SECRET
             remoteRef:
               key: /k8s/common/github/{{atlantis.github.user}}/secret
+{% if atlantis.infracost.enabled %}
           - secretKey: INFRACOST_API_KEY
             remoteRef:
               key: /k8s/common/infracost/self-hosted-api-key
           - secretKey: SELF_HOSTED_INFRACOST_API_KEY
-            remoteRef:
-              key: /k8s/common/infracost/self-hosted-api-key
+              remoteRef:
+                key: /k8s/common/infracost/self-hosted-api-key
+{% endif %}
 
     - apiVersion: networking.istio.io/v1beta1
       kind: Gateway
@@ -82,7 +86,7 @@ atlantis:
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
       metadata:
-        name: oauth2-proxy-atlantis
+        name: atlantis
         namespace: istio-system
       spec:
         selector:
