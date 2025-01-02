@@ -1,15 +1,4 @@
 dashboard:
-
-
-  resources:
-    requests:
-      cpu: "200m"
-      memory: "512Mi"
-    limits:
-      cpu: "500m"
-      memory: "1Gi"
-
-
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://dashboard.demo.opspresso.com"
 
