@@ -12,11 +12,7 @@ argo-cd:
   server:
     ingress:
       enabled: true
-      host: "argocd.demo.opspresso.com"
-      paths:
-        - path: /
-          service: argocd-server
-          port: 80
+      hostname: "argocd.demo.opspresso.com"
       annotations:
         kubernetes.io/ingress.class: "alb"
         external-dns.alpha.kubernetes.io/hostname: "argocd.demo.opspresso.com"
