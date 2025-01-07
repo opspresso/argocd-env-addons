@@ -1,0 +1,4 @@
+fullnameOverride: aws-load-balancer-controller
+nameOverride: aws-load-balancer-controller
+
+clusterName: "{{cluster}}"

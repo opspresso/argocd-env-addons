@@ -96,11 +96,26 @@ helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f value
 # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
+## aws-load-balancer-controller
+
+> argocd 에 대한 alb 를 생성 하기 위해 aws-load-balancer-controller 를 설치 합니다.
+
+* <https://github.com/kubernetes-sigs/aws-load-balancer-controller>
+
+```bash
+# helm repo add eks https://aws.github.io/eks-charts
+
+# helm repo update
+# helm search repo aws-load-balancer-controller
+
+helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n addon-aws-load-balancer-controller --create-namespace -f aws-load-balancer-controller/values.yaml
+```
+
 ## external-dns
 
-> aws 에 elb 가 생성 되었습니다. external-dns 로 argocd.demo.opspresso.com 와 연결해 줍니다.
+> argocd 도메인을 연결 하기 위해 external-dns 를 설치 합니다.
 
-* <https://github.com/opspresso/argocd-env-addons/tree/main/install/external-dns>
+* <https://github.com/kubernetes-sigs/external-dns>
 
 ```bash
 # helm repo add external-dns https://kubernetes-sigs.github.io/external-dns

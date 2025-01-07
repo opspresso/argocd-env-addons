@@ -9,17 +9,18 @@ global:
 server:
   replicas: 2
 
-  service:
-    type: LoadBalancer
+  ingress:
+    enabled: true
+    hostname: "ARGOCD_HOSTNAME"
     annotations:
+      kubernetes.io/ingress.class: "alb"
       external-dns.alpha.kubernetes.io/hostname: "ARGOCD_HOSTNAME"
-      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-      service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
-      service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
-      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-      service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "AWS_ACM_CERT"
-      service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
-      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      alb.ingress.kubernetes.io/scheme: "internet-facing"
+      alb.ingress.kubernetes.io/target-type: "ip"
+      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+      alb.ingress.kubernetes.io/certificate-arn: "AWS_ACM_CERT"
+      alb.ingress.kubernetes.io/actions.ssl-redirect: |
+        {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
 
 repoServer:
   replicas: 2
