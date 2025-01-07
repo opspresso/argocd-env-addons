@@ -3,3 +3,5 @@ fullnameOverride: external-dns
 sources:
   # - ingress
   - service
+
+policy: sync # sync or upsert-only
