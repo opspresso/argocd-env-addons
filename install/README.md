@@ -164,16 +164,13 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-en
 
 ## 삭제
 
-### service 및 aws elb 삭제
+### ingress 및 aws alb 삭제
 
-> service 를 삭제 하여, LoadBalancer 로 생성한 elb 를 삭제 합니다.
+> ingress 를 삭제 하여, aws-load-balancer-controller 로 생성한 alb 를 삭제 합니다.
 
 ```bash
-kubectl delete svc -n argocd argocd-server
-
-# helm uninstall argocd -n argocd
-
-# kubectl delete ns argocd
+kubectl delete ingress -n argocd argocd-server
+kubectl delete ingress -n addon-atlantis atlantis
 ```
 
 ### terraform destory
