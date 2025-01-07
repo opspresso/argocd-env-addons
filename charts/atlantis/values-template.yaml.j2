@@ -14,14 +14,12 @@ atlantis:
     enabled: true
     hosts:
       - "atlantis-public.{{hostname.public}}"
-    rules:
-      - host: "atlantis-public.{{hostname.public}}"
-        paths:
-          - path: /events
-            backend:
-              service:
-                name: atlantis
-                port: 80
+    paths:
+      - path: /events
+        backend:
+          service:
+            name: atlantis
+            port: 80
 
   extraManifests:
     - apiVersion: v1
