@@ -31,6 +31,7 @@ atlantis:
       alb.ingress.kubernetes.io/scheme: internet-facing
       alb.ingress.kubernetes.io/ssl-policy: ELBSecurityPolicy
       alb.ingress.kubernetes.io/target-type: ip
+      external-dns.alpha.kubernetes.io/hostname: "atlantis-public.{{hostname.public}}"
 
   extraManifests:
     - apiVersion: v1

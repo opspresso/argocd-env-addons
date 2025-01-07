@@ -2,7 +2,7 @@ external-dns:
   fullnameOverride: external-dns
 
   sources:
-    # - ingress
+    - ingress
     - service
 
   policy: sync # sync or upsert-only
