@@ -30,16 +30,10 @@ argo-cd:
         memory: 128Mi
 
     service:
-      type: LoadBalancer
-      # annotations:
-      #   external-dns.alpha.kubernetes.io/hostname: "{{argocd.hostname}}"
-      #   service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
-      #   service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "3600"
-      #   service.beta.kubernetes.io/aws-load-balancer-ip-address-type: "dualstack"
-      #   service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-      #   service.beta.kubernetes.io/aws-load-balancer-ssl-cert: "{{argocd.acm_arn}}"
-      #   service.beta.kubernetes.io/aws-load-balancer-ssl-ports: "https"
-      #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      type: ClusterIP
+
+    ingress:
+      enabled: false
 
     metrics:
       enabled: true
