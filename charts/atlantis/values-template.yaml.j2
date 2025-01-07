@@ -16,10 +16,8 @@ atlantis:
       - "atlantis-public.{{hostname.public}}"
     paths:
       - path: /events
-        backend:
-          service:
-            name: atlantis
-            port: 80
+        service: atlantis
+        port: 80
 
   extraManifests:
     - apiVersion: v1
