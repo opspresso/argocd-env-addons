@@ -10,6 +10,19 @@ atlantis:
     annotations:
       link.argocd.argoproj.io/external-link: "https://atlantis.demo.opspresso.com"
 
+  ingress:
+    enabled: true
+    hosts:
+      - "atlantis-public.demo.opspresso.com"
+    rules:
+      - host: "atlantis-public.demo.opspresso.com"
+        paths:
+          - path: /events
+            backend:
+              service:
+                name: atlantis
+                port: 80
+
   extraManifests:
     - apiVersion: v1
       kind: ConfigMap
@@ -52,7 +65,6 @@ atlantis:
         servers:
           - hosts:
               - "atlantis.demo.opspresso.com"
-              - "atlantis-public.demo.opspresso.com"
             port:
               number: 80
               name: http
@@ -70,28 +82,6 @@ atlantis:
           - mesh
         http:
           - route:
-              - destination:
-                  host: atlantis
-                  port:
-                    number: 80
-
-    - apiVersion: networking.istio.io/v1beta1
-      kind: VirtualService
-      metadata:
-        name: atlantis-public
-      spec:
-        hosts:
-          - "atlantis-public.demo.opspresso.com"
-        gateways:
-          - atlantis
-          - mesh
-        http:
-          - match:
-              - uri:
-                  prefix: "/events"
-                method:
-                  exact: "POST"
-            route:
               - destination:
                   host: atlantis
                   port:
