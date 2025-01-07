@@ -19,7 +19,7 @@ argo-cd:
         #   release: prometheus-{{cluster}}
 
   server:
-    # replicas: 2
+    replicas: 2
 
     resources:
       requests:
