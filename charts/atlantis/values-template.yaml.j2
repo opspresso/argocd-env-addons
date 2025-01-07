@@ -10,11 +10,6 @@ atlantis:
     annotations:
       link.argocd.argoproj.io/external-link: "https://atlantis.{{hostname.public}}"
 
-  # service:
-  #   type: LoadBalancer
-  #   # annotations:
-  #   #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb-ip" # ALB가 아닌 NLB를 원할 경우 이 값 사용
-
   ingress:
     enabled: true
     host: "atlantis-public.{{hostname.public}}"
