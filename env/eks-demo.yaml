@@ -20,7 +20,7 @@ hostname:
 #   nodeSelector: monitoring
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/316caa86-922f-450b-8bce-63b4af9b89b2
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/2976f231-8c30-4048-81f0-2e4e2a10fb44
   hostname: argocd.demo.opspresso.com
   github:
     org: opspresso # github org
@@ -35,6 +35,7 @@ argo_workflows:
     team: sre
 
 atlantis:
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/2976f231-8c30-4048-81f0-2e4e2a10fb44
   allowlist: github.com/opspresso/terraform-*
   github:
     org: opspresso # github org
