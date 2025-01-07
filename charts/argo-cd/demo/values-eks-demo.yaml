@@ -81,37 +81,37 @@ argo-cd:
 
 raw:
   resources:
-    - apiVersion: networking.istio.io/v1beta1
-      kind: Gateway
-      metadata:
-        name: argocd-server
-      spec:
-        selector:
-          istio: ingressgateway
-        servers:
-          - hosts:
-              - "argocd.demo.opspresso.com"
-            port:
-              number: 80
-              name: http
-              protocol: HTTP
+    # - apiVersion: networking.istio.io/v1beta1
+    #   kind: Gateway
+    #   metadata:
+    #     name: argocd-server
+    #   spec:
+    #     selector:
+    #       istio: ingressgateway
+    #     servers:
+    #       - hosts:
+    #           - "argocd.demo.opspresso.com"
+    #         port:
+    #           number: 80
+    #           name: http
+    #           protocol: HTTP
 
-    - apiVersion: networking.istio.io/v1beta1
-      kind: VirtualService
-      metadata:
-        name: argocd-server
-      spec:
-        hosts:
-          - "argocd.demo.opspresso.com"
-        gateways:
-          - argocd-server
-          - mesh
-        http:
-          - route:
-              - destination:
-                  host: argocd-server
-                  port:
-                    number: 80
+    # - apiVersion: networking.istio.io/v1beta1
+    #   kind: VirtualService
+    #   metadata:
+    #     name: argocd-server
+    #   spec:
+    #     hosts:
+    #       - "argocd.demo.opspresso.com"
+    #     gateways:
+    #       - argocd-server
+    #       - mesh
+    #     http:
+    #       - route:
+    #           - destination:
+    #               host: argocd-server
+    #               port:
+    #                 number: 80
 
     - apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret
