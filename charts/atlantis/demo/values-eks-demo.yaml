@@ -1,6 +1,7 @@
 atlantis:
   fullnameOverride: atlantis
 
+
   atlantisUrl: "https://atlantis.demo.opspresso.com"
 
   orgAllowlist: "github.com/opspresso/terraform-*"
@@ -29,6 +30,7 @@ atlantis:
         ATLANTIS_WRITE_GIT_CREDS: "true"
         ATLANTIS_ALLOW_FORK_PRS: "true"
 
+
     - apiVersion: external-secrets.io/v1beta1
       kind: ExternalSecret
       metadata:
@@ -47,6 +49,7 @@ atlantis:
           - secretKey: ATLANTIS_GH_WEBHOOK_SECRET
             remoteRef:
               key: /k8s/common/github/nalbam-bot/secret
+
 
     - apiVersion: networking.istio.io/v1beta1
       kind: Gateway
@@ -93,7 +96,7 @@ atlantis:
         provider:
           name: oauth2-proxy
         rules:
-          - to:
-              - operation:
-                  hosts:
-                    - "atlantis.demo.opspresso.com"
+        - to:
+          - operation:
+              hosts:
+              - "atlantis.demo.opspresso.com"
