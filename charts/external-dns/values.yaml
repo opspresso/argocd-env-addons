@@ -5,4 +5,4 @@ external-dns:
     # - ingress
     - service
 
-  policy: upsert-only # sync or upsert-only
+  policy: sync # sync or upsert-only
