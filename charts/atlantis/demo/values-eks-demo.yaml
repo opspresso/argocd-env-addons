@@ -12,8 +12,7 @@ atlantis:
 
   ingress:
     enabled: true
-    hosts:
-      - "atlantis-public.demo.opspresso.com"
+    host: "atlantis-public.demo.opspresso.com"
     paths:
       - path: /events
         service: atlantis
