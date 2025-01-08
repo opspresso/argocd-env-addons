@@ -419,6 +419,8 @@ argo-cd:
       server.insecure: true
 
     cm:
+      url: https://{{argocd.hostname}}
+
       statusbadge.enabled: "true"
       # statusbadge.url: https://{{argocd.hostname}}
 
