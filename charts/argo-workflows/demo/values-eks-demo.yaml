@@ -14,9 +14,9 @@ argo-workflows:
 
     # replicas: 1
 
-
     extraArgs:
       - --auth-mode=sso
+
 
     sso:
       enabled: true
