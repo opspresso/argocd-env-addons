@@ -419,9 +419,8 @@ argo-cd:
       server.insecure: true
 
     cm:
-      # url: https://{{argocd.hostname}}
-
       statusbadge.enabled: "true"
+      # statusbadge.url: https://{{argocd.hostname}}
 
       # help.chatUrl: "{{argocd.chatUrl}}"
       # help.chatText: "Chat now!"
