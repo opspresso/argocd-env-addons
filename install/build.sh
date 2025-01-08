@@ -34,4 +34,5 @@ find . -name values.output.yaml -exec sed -i "" -e "s/GITHUB_TEAM/${GITHUB_TEAM}
 find . -name values.output.yaml -exec sed -i "" -e "s@AWS_ACM_CERT@${AWS_ACM_CERT}@g" {} \;
 
 echo "values.output.yaml 파일이 생성되었습니다."
+
 echo "helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f values.output.yaml"
