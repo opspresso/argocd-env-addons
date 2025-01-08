@@ -8,7 +8,7 @@ import yaml
 import subprocess
 
 
-REPONAME = "cluster-role"
+REPONAME = "sample-addon"
 
 
 def parse_args():
