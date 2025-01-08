@@ -79,21 +79,6 @@ helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f value
 # kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
-## Install aws-load-balancer-controller
-
-> argocd 에 대한 alb 를 생성 하기 위해 aws-load-balancer-controller 를 설치 합니다.
-
-* <https://github.com/kubernetes-sigs/aws-load-balancer-controller>
-
-```bash
-# helm repo add eks https://aws.github.io/eks-charts
-
-# helm repo update
-# helm search repo aws-load-balancer-controller
-
-helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n addon-aws-load-balancer-controller --create-namespace -f aws-load-balancer-controller/values.yaml
-```
-
 ## Install external-dns
 
 > argocd 도메인을 연결 하기 위해 external-dns 를 설치 합니다.
@@ -112,6 +97,21 @@ POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadat
 kubectl logs ${POD_NAME} -n addon-external-dns
 
 # sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
+```
+
+## Install aws-load-balancer-controller
+
+> argocd 에 대한 alb 를 생성 하기 위해 aws-load-balancer-controller 를 설치 합니다.
+
+* <https://github.com/kubernetes-sigs/aws-load-balancer-controller>
+
+```bash
+# helm repo add eks https://aws.github.io/eks-charts
+
+# helm repo update
+# helm search repo aws-load-balancer-controller
+
+helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n addon-aws-load-balancer-controller --create-namespace -f aws-load-balancer-controller/values.yaml
 ```
 
 * <https://argocd.demo.opspresso.com>
