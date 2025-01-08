@@ -111,7 +111,7 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 # helm repo update
 # helm search repo aws-load-balancer-controller
 
-helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n addon-aws-load-balancer-controller --create-namespace -f aws-load-balancer-controller/values.yaml
+helm upgrade --install aws-load-balancer-controller-eks-demo eks/aws-load-balancer-controller -n addon-aws-load-balancer-controller --create-namespace -f aws-load-balancer-controller/values.yaml
 ```
 
 * <https://argocd.demo.opspresso.com>
