@@ -55,7 +55,7 @@ argo-cd:
     cm:
       url: https://argocd.demo.opspresso.com
 
-      statusbadge.url: https://argocd.demo.opspresso.com
+      statusbadge.url: https://argocd.demo.opspresso.com/
 
       help.chatUrl: "https://app.slack.com/client/T03FUG4UB/C035P1YD72A"
       help.chatText: "Chat now!"
