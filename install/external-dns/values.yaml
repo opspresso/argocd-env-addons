@@ -4,4 +4,4 @@ sources:
   - ingress
   - service
 
-policy: sync # sync or upsert-only
+# policy: sync # sync or upsert-only
