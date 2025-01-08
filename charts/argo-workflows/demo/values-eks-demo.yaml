@@ -14,15 +14,14 @@ argo-workflows:
 
     # replicas: 1
 
+
     extraArgs:
       - --auth-mode=sso
 
     sso:
       enabled: true
 
-
       issuer: https://argocd.demo.opspresso.com/api/dex
-
 
       redirectUrl: https://workflows.demo.opspresso.com/oauth2/callback
 
@@ -36,6 +35,7 @@ argo-workflows:
         enabled: false
       scopes:
         - groups
+
 
     podAnnotations:
       link.argocd.argoproj.io/external-link: "https://workflows.demo.opspresso.com"

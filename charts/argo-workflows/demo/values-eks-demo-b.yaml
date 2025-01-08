@@ -14,26 +14,7 @@ argo-workflows:
 
     # replicas: 1
 
-    extraArgs:
-      - --auth-mode=sso
 
-    sso:
-      enabled: true
-
-
-
-      redirectUrl: https://workflows.demo.opspresso.com/oauth2/callback
-
-      clientId:
-        key: client-id
-        name: argo-workflows-secret
-      clientSecret:
-        key: client-secret
-        name: argo-workflows-secret
-      rbac:
-        enabled: false
-      scopes:
-        - groups
 
     podAnnotations:
       link.argocd.argoproj.io/external-link: "https://workflows.demo.opspresso.com"
