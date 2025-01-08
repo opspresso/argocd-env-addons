@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: argo-rollouts
 type: application
-version: "2.38.1" # helm chart argo-rollouts version
+version: "2.38.2" # helm chart argo-rollouts version
 
 dependencies:
   - name: argo-rollouts
     repository: https://argoproj.github.io/argo-helm
-    version: "2.38.1" # helm chart argo-rollouts version
+    version: "2.38.2" # helm chart argo-rollouts version
 
   - name: raw
     repository: https://charts.helm.sh/incubator

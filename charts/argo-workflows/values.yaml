@@ -1,0 +1,11 @@
+argo-workflows:
+  fullnameOverride: argo-workflows
+
+  controller:
+    revisionHistoryLimit: 2
+
+    workflowNamespaces:
+      - default
+
+  server:
+    revisionHistoryLimit: 2

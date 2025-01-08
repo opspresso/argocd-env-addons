@@ -2,9 +2,9 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: cluster-autoscaler
 type: application
-version: "9.44.0" # helm chart cluster-autoscaler version
+version: "9.45.0" # helm chart cluster-autoscaler version
 
 dependencies:
 - name: cluster-autoscaler
   repository: https://kubernetes.github.io/autoscaler
-  version: "9.44.0" # helm chart cluster-autoscaler version
+  version: "9.45.0" # helm chart cluster-autoscaler version

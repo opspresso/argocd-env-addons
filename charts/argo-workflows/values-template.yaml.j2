@@ -1,0 +1,85 @@
+argo-workflows:
+  fullnameOverride: argo-workflows
+
+  controller:
+    revisionHistoryLimit: 2
+
+    workflowNamespaces:
+      - default
+
+{% if operation is defined %}
+{% if operation.nodeSelector is defined %}
+    nodeSelector:
+      group: "{{operation.nodeSelector}}"
+    tolerations:
+    - effect: NoSchedule
+      key: group
+      operator: Equal
+      value: "{{operation.nodeSelector}}"
+{% endif %}
+{% endif %}
+
+  server:
+    revisionHistoryLimit: 2
+
+    # replicas: 1
+
+    extraArgs:
+      - --auth-mode=sso
+
+    sso:
+      enabled: true
+
+      issuer: https://{{argocd.hostname}}/api/dex
+
+      redirectUrl: https://workflows.{{hostname.public}}/oauth2/callback
+
+      clientId:
+        key: client-id
+        name: argo-workflows-secret
+      clientSecret:
+        key: client-secret
+        name: argo-workflows-secret
+      rbac:
+        enabled: false
+      scopes:
+        - groups
+
+    podAnnotations:
+      link.argocd.argoproj.io/external-link: "https://workflows.{{hostname.public}}"
+
+    ingress:
+      enabled: false
+
+{% if operation is defined %}
+{% if operation.nodeSelector is defined %}
+    nodeSelector:
+      group: "{{operation.nodeSelector}}"
+    tolerations:
+    - effect: NoSchedule
+      key: group
+      operator: Equal
+      value: "{{operation.nodeSelector}}"
+{% endif %}
+{% endif %}
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: argo-workflows-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: argo-workflows-secret
+        data:
+          - secretKey: client-id
+            remoteRef:
+              key: /k8s/common/argo-workflows-client-id
+          - secretKey: client-secret
+            remoteRef:
+              key: /k8s/common/argo-workflows-client-secret
