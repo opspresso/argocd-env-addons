@@ -24,10 +24,10 @@ argo-workflows:
 
     # replicas: 1
 
-{% if argocd is defined %}
     extraArgs:
       - --auth-mode=sso
 
+{% if argocd is defined %}
     sso:
       enabled: true
 
