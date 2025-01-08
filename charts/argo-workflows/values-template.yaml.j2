@@ -24,15 +24,14 @@ argo-workflows:
 
     # replicas: 1
 
+{% if argocd is defined %}
     extraArgs:
       - --auth-mode=sso
 
     sso:
       enabled: true
 
-{% if argocd is defined %}
       issuer: https://{{argocd.hostname}}/api/dex
-{% endif %}
 
       redirectUrl: https://workflows.{{hostname.public}}/oauth2/callback
 
@@ -46,6 +45,7 @@ argo-workflows:
         enabled: false
       scopes:
         - groups
+{% endif %}
 
     podAnnotations:
       link.argocd.argoproj.io/external-link: "https://workflows.{{hostname.public}}"
