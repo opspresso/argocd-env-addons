@@ -8,6 +8,6 @@ aws-ebs-csi-driver:
       volumeBindingMode: WaitForFirstConsumer
       reclaimPolicy: Retain
       parameters:
-        type: "gp3"
+        type: gp3
         allowAutoIOPSPerGBIncrease: "true" # must quote
       allowVolumeExpansion: true
