@@ -4,7 +4,7 @@ metadata:
   name: addons-demo
   namespace: argocd
   labels:
-    krmt.io/group: addons
+    opspresso.com/group: addons
 spec:
   project: addons
   source:

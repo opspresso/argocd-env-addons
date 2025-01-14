@@ -138,11 +138,11 @@ kubecost:
 
     # labelMappingConfigs:
     #   enabled: true
-    #   environment_label: "krmt.io/env"
-    #   owner_label: "krmt.io/cluster"
-    #   team_label: "krmt.io/team"
-    #   department_label: "krmt.io/group"
-    #   product_label: "krmt.io/product"
+    #   environment_label: "opspresso.com/env"
+    #   owner_label: "opspresso.com/cluster"
+    #   team_label: "opspresso.com/team"
+    #   department_label: "opspresso.com/group"
+    #   product_label: "opspresso.com/product"
 
   # networkCosts:
   #   enabled: true
