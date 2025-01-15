@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: argo-workflows
 type: application
-version: "0.45.3" # helm chart argo-workflows version
+version: "0.45.4" # helm chart argo-workflows version
 
 dependencies:
   - name: argo-workflows
     repository: https://argoproj.github.io/argo-helm
-    version: "0.45.3" # helm chart argo-workflows version
+    version: "0.45.4" # helm chart argo-workflows version
 
   - name: raw
     repository: https://charts.helm.sh/incubator
