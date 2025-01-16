@@ -43,6 +43,7 @@ istio:
     max: 3
   tracing:
     sampling: 10
+  target_group: http_b
 
 target_group:
   internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-b/479eae4e18d70dbe
