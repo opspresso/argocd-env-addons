@@ -18,6 +18,25 @@ gateway:
 
 tgb:
   resources:
+    - apiVersion: external-secrets.io/v1beta1
+      kind: ExternalSecret
+      metadata:
+        name: istio-target-group
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: istio-target-group
+        data:
+          - secretKey: target_group_public
+            remoteRef:
+              key: /k8s/common/demo/public_http_b
+          - secretKey: target_group_internal
+            remoteRef:
+              key: /k8s/common/demo/internal_http_b
+
     - apiVersion: elbv2.k8s.aws/v1beta1
       kind: TargetGroupBinding
       metadata:
