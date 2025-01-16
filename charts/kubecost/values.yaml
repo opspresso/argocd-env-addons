@@ -7,14 +7,14 @@ kubecost:
       # fqdn: "https://prom.{{hostname.internal}}"
     grafana:
       enabled: false
-      domainName: "grafana.kr.karrotmarket.com"
+      domainName: "grafana.demo.opspresso.com"
       scheme: https
 
     notifications:
       alertConfigs:
         globalSlackWebhookUrl: https://hooks.slack.com/services/xx/xx/xx
         globalAlertEmails:
-          - infra@nalbam.com
+          - ops@nalbam.com
 
         # alerts:
         #   # # Daily namespace budget alert on namespace `kubecost`
