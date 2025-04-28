@@ -14,7 +14,7 @@ terraform apply
 ## Set variables
 
 > argocd admin password 를 잊어버리지 않기 위해, aws ssm 에 저장 합니다.
-> github 계정으로 인증학 위해 client id 와 client secret 을 저장 합니다.
+> github 계정으로 인증하기 위해 client id 와 client secret 을 저장 합니다.
 > github org (opspresso) 에 team (sre) 을 만들고 권한을 부여 합니다.
 
 ```bash
