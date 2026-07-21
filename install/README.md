@@ -99,21 +99,6 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 # sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
-## Install aws-load-balancer-controller
-
-> argocd 에 대한 alb 를 생성 하기 위해 aws-load-balancer-controller 를 설치 합니다.
-
-* <https://github.com/kubernetes-sigs/aws-load-balancer-controller>
-
-```bash
-# helm repo add eks https://aws.github.io/eks-charts
-
-# helm repo update
-# helm search repo aws-load-balancer-controller
-
-helm upgrade --install aws-load-balancer-controller-eks-demo eks/aws-load-balancer-controller -n addon-aws-load-balancer-controller --create-namespace -f aws-load-balancer-controller/values.yaml
-```
-
 * <https://argocd.demo.opspresso.com>
 
 ## Login to argocd
