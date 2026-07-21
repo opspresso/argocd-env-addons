@@ -1,3 +1,7 @@
 aws-load-balancer-controller:
   clusterName: "eks-demo-b"
 
+  region: "ap-northeast-2"
+
+  vpcId: ""
+

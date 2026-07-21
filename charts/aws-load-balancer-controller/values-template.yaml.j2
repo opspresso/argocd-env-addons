@@ -1,6 +1,10 @@
 aws-load-balancer-controller:
   clusterName: "{{cluster}}"
 
+  region: "{{aws_region}}"
+
+  vpcId: "{{vpcId}}"
+
 {% if operation is defined %}
 {% if operation.nodeSelector is defined %}
   nodeSelector:

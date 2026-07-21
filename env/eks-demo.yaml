@@ -9,6 +9,8 @@ role: mgmt
 aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 
+vpcId: vpc-087fcd5066419895f
+
 hostname:
   internal: in.demo.opspresso.com
   public: demo.opspresso.com
@@ -20,7 +22,7 @@ hostname:
 #   nodeSelector: monitoring
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/2976f231-8c30-4048-81f0-2e4e2a10fb44
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/1e9672d7-627a-4e00-826c-925e330b5165
   hostname: argocd.demo.opspresso.com
   github:
     org: opspresso # github org
@@ -35,7 +37,7 @@ argo_workflows:
     team: sre
 
 atlantis:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/2976f231-8c30-4048-81f0-2e4e2a10fb44
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/a68be62f-e8ba-4bf3-bdf9-cae7cab40650
   allowlist: github.com/opspresso/terraform-*
   github:
     org: opspresso # github org
@@ -51,9 +53,6 @@ cluster_autoscaler:
 cluster_role:
   readonly:
     enabled: true
-
-ingress_nginx:
-  replicas: 3
 
 istio:
   global:
@@ -71,11 +70,8 @@ istio:
   target_group: http_0
 
 target_group:
-  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-0/de191ecdaf127c74
-  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-0/0dd99846c85bb21b
-
-kubecost:
-  hostname: kubecost.demo.opspresso.com
+  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-0/3fb7eca645a334e7
+  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-0/4ae14c26a6338c82
 
 grafana:
   hostname: grafana.demo.opspresso.com

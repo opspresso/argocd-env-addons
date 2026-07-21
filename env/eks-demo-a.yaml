@@ -9,6 +9,8 @@ role: service
 aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 
+vpcId: vpc-087fcd5066419895f
+
 hostname:
   internal: in.demo.opspresso.com
   public: demo.opspresso.com
@@ -27,9 +29,6 @@ cluster_role:
   readonly:
     enabled: true
 
-ingress_nginx:
-  replicas: 3
-
 istio:
   global:
     hub: gcr.io/istio-release
@@ -46,8 +45,8 @@ istio:
   target_group: http_a
 
 target_group:
-  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/bb4396c62c719758
-  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-a/2d3c73b28d874d7d
+  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/3cce2f6d97ab1468
+  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-a/4495347419cd090d
 
 prometheus:
   serviceMonitor:
