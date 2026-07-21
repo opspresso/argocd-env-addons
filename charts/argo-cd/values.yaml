@@ -4,11 +4,11 @@ argo-cd:
   controller:
     resources:
       requests:
-        cpu: 200m
+        cpu: 500m
         memory: 1Gi
       limits:
-        cpu: 200m
-        memory: 1Gi
+        cpu: "1"
+        memory: 2Gi
 
     metrics:
       enabled: true
