@@ -9,7 +9,7 @@ external-secrets:
 
 raw:
   resources:
-    - apiVersion: external-secrets.io/v1beta1
+    - apiVersion: external-secrets.io/v1
       kind: ClusterSecretStore
       metadata:
         name: parameter-store
@@ -19,7 +19,7 @@ raw:
             region: "ap-northeast-2"
             service: ParameterStore
 
-    - apiVersion: external-secrets.io/v1beta1
+    - apiVersion: external-secrets.io/v1
       kind: ClusterSecretStore
       metadata:
         name: secrets-manager

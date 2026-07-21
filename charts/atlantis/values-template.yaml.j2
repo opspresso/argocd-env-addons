@@ -43,7 +43,7 @@ atlantis:
         INFRACOST_PRICING_API_ENDPOINT: "https://cloud-pricing-api.{{hostname.public}}"
 {% endif %}
 
-    - apiVersion: external-secrets.io/v1beta1
+    - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
         name: atlantis-secret
@@ -66,8 +66,8 @@ atlantis:
             remoteRef:
               key: /k8s/common/infracost/self-hosted-api-key
           - secretKey: SELF_HOSTED_INFRACOST_API_KEY
-              remoteRef:
-                key: /k8s/common/infracost/self-hosted-api-key
+            remoteRef:
+              key: /k8s/common/infracost/self-hosted-api-key
 {% endif %}
 
     - apiVersion: networking.istio.io/v1beta1
