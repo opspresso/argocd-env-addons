@@ -3,5 +3,5 @@ aws-load-balancer-controller:
 
   region: "ap-northeast-2"
 
-  vpcId: ""
+  vpcId: "vpc-087fcd5066419895f"
 
