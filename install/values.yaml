@@ -12,8 +12,8 @@ server:
   ingress:
     enabled: true
     hostname: "ARGOCD_HOSTNAME"
+    ingressClassName: "alb"
     annotations:
-      kubernetes.io/ingress.class: "alb"
       external-dns.alpha.kubernetes.io/hostname: "ARGOCD_HOSTNAME"
       alb.ingress.kubernetes.io/scheme: "internet-facing"
       alb.ingress.kubernetes.io/target-type: "ip"

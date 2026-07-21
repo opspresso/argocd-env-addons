@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: storage-class
+  name: ingress-class
 spec:
   generators:
     - git:
@@ -14,7 +14,7 @@ spec:
 
   template:
     metadata:
-      name: "storage-class-{{cluster}}"
+      name: "ingress-class-{{cluster}}"
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
@@ -25,11 +25,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-storage-class
+        namespace: addon-ingress-class
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/storage-class
+        path: charts/ingress-class
         helm:
           valueFiles:
             - values.yaml

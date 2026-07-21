@@ -61,6 +61,14 @@ aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-id --value "${ARGO
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-secret --value "${ARGOCD_GITHUB_SECRET}" --type SecureString --overwrite | jq .
 ```
 
+## Install ingress-class
+
+> EKS Auto Mode 의 내장 로드밸런싱이 ingress 를 처리 하도록 IngressClass 를 먼저 생성 합니다.
+
+```bash
+kubectl apply -f ingress-class.yaml
+```
+
 ## Install Argo CD
 
 > Argocd 를 설치 합니다.

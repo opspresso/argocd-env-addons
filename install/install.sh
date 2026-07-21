@@ -1,5 +1,7 @@
 #!/bin/bash
 
+kubectl apply -f ingress-class.yaml
+
 helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f values.output.yaml
 
 helm upgrade --install external-dns external-dns/external-dns -n addon-external-dns --create-namespace -f external-dns/values.yaml

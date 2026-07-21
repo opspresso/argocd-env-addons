@@ -17,8 +17,8 @@ atlantis:
       - path: /events
         service: atlantis
         port: 80
+    ingressClassName: "alb"
     annotations:
-      kubernetes.io/ingress.class: "alb"
       external-dns.alpha.kubernetes.io/hostname: "atlantis-public.{{hostname.public}}"
       alb.ingress.kubernetes.io/scheme: "internet-facing"
       alb.ingress.kubernetes.io/target-type: "ip"
