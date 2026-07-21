@@ -45,11 +45,6 @@ atlantis:
   infracost:
     enabled: false
 
-cluster_autoscaler:
-  scan_interval: 20s
-  scale_down_delay_after_delete: 1m
-  scale_down_utilization_threshold: 0.6
-
 cluster_role:
   readonly:
     enabled: true

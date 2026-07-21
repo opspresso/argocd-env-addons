@@ -1,7 +1,0 @@
-aws-ebs-csi-driver:
-  controller:
-    k8sTagClusterId: "eks-demo-b"
-
-    extraVolumeTags:
-      KubernetesCluster: "eks-demo-b"
-      Environment: "demo"

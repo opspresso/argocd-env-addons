@@ -18,7 +18,7 @@ gateway:
 
 tgb:
   resources:
-    - apiVersion: elbv2.k8s.aws/v1beta1
+    - apiVersion: eks.amazonaws.com/v1
       kind: TargetGroupBinding
       metadata:
         name: istio-ingressgateway-public
@@ -29,7 +29,7 @@ tgb:
         targetGroupARN: "{{target_group.public_http}}"
         targetType: ip
 
-    - apiVersion: elbv2.k8s.aws/v1beta1
+    - apiVersion: eks.amazonaws.com/v1
       kind: TargetGroupBinding
       metadata:
         name: istio-ingressgateway-internal

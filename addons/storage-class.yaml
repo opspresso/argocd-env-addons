@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: cluster-autoscaler
+  name: storage-class
 spec:
   generators:
     - git:
@@ -14,7 +14,7 @@ spec:
 
   template:
     metadata:
-      name: "cluster-autoscaler-{{cluster}}"
+      name: "storage-class-{{cluster}}"
       annotations:
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
@@ -25,11 +25,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-cluster-autoscaler
+        namespace: addon-storage-class
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/cluster-autoscaler
+        path: charts/storage-class
         helm:
           valueFiles:
             - values.yaml
