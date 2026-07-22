@@ -92,36 +92,19 @@ raw:
 
 
 
-    - apiVersion: networking.istio.io/v1beta1
-      kind: Gateway
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
       metadata:
         name: grafana
         annotations:
           link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
       spec:
-        selector:
-          istio: ingressgateway
-        servers:
-          - hosts:
-              - "grafana.demo.opspresso.com"
-            port:
-              number: 80
-              name: http
-              protocol: HTTP
-
-    - apiVersion: networking.istio.io/v1beta1
-      kind: VirtualService
-      metadata:
-        name: grafana
-      spec:
-        hosts:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
           - "grafana.demo.opspresso.com"
-        gateways:
-          - grafana
-          - mesh
-        http:
-          - route:
-              - destination:
-                  host: grafana
-                  port:
-                    number: 80
+        rules:
+          - backendRefs:
+              - name: grafana
+                port: 80

@@ -5,34 +5,17 @@ kube-prometheus-stack:
 
 raw:
   resources:
-    - apiVersion: networking.istio.io/v1beta1
-      kind: Gateway
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
       metadata:
         name: prometheus
       spec:
-        selector:
-          istio: ingressgateway
-        servers:
-          - hosts:
-              - "prom.in.demo.opspresso.com"
-            port:
-              number: 80
-              name: http
-              protocol: HTTP
-
-    - apiVersion: networking.istio.io/v1beta1
-      kind: VirtualService
-      metadata:
-        name: prometheus
-      spec:
-        hosts:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
           - "prom.in.demo.opspresso.com"
-        gateways:
-          - prometheus
-          - mesh
-        http:
-          - route:
-              - destination:
-                  host: prometheus-prometheus
-                  port:
-                    number: 9090
+        rules:
+          - backendRefs:
+              - name: prometheus-prometheus
+                port: 9090

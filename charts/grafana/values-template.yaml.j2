@@ -120,37 +120,20 @@ raw:
               key: /common/google/client_secret
 {% endif %}
 
-    - apiVersion: networking.istio.io/v1beta1
-      kind: Gateway
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
       metadata:
         name: grafana
         annotations:
           link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
       spec:
-        selector:
-          istio: ingressgateway
-        servers:
-          - hosts:
-              - "{{grafana.hostname}}"
-            port:
-              number: 80
-              name: http
-              protocol: HTTP
-
-    - apiVersion: networking.istio.io/v1beta1
-      kind: VirtualService
-      metadata:
-        name: grafana
-      spec:
-        hosts:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
           - "{{grafana.hostname}}"
-        gateways:
-          - grafana
-          - mesh
-        http:
-          - route:
-              - destination:
-                  host: grafana
-                  port:
-                    number: 80
+        rules:
+          - backendRefs:
+              - name: grafana
+                port: 80
 {% endif %}
