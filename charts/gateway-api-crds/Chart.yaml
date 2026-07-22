@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: gateway-api-crds
+type: application
+version: "1.6.1" # gateway-api version
+
+dependencies:
+- name: gateway-api-crds
+  repository: https://opspresso.github.io/helm-charts/
+  version: "1.6.1" # gateway-api version

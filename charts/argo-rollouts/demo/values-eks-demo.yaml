@@ -20,37 +20,22 @@ argo-rollouts:
 
 route:
   resources:
-    - apiVersion: networking.istio.io/v1beta1
-      kind: Gateway
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
       metadata:
         name: argo-rollouts-dashboard
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://rollouts.demo.opspresso.com"
       spec:
-        selector:
-          istio: ingressgateway
-        servers:
-          - hosts:
-              - "rollouts.demo.opspresso.com"
-            port:
-              number: 80
-              name: http
-              protocol: HTTP
-
-    - apiVersion: networking.istio.io/v1beta1
-      kind: VirtualService
-      metadata:
-        name: argo-rollouts-dashboard
-      spec:
-        hosts:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
           - "rollouts.demo.opspresso.com"
-        gateways:
-          - argo-rollouts-dashboard
-          - mesh
-        http:
-          - route:
-              - destination:
-                  host: argo-rollouts-dashboard
-                  port:
-                    number: 3100
+        rules:
+          - backendRefs:
+              - name: argo-rollouts-dashboard
+                port: 3100
 
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
