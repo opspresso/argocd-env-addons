@@ -10,25 +10,6 @@ atlantis:
     annotations:
       link.argocd.argoproj.io/external-link: "https://atlantis.demo.opspresso.com"
 
-  ingress:
-    enabled: true
-    host: "atlantis-public.demo.opspresso.com"
-    paths:
-      - path: /events
-        service: atlantis
-        port: 80
-    ingressClassName: "alb"
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: "atlantis-public.demo.opspresso.com"
-      alb.ingress.kubernetes.io/scheme: "internet-facing"
-      alb.ingress.kubernetes.io/target-type: "ip"
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-      alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:396608815058:certificate/a68be62f-e8ba-4bf3-bdf9-cae7cab40650"
-      alb.ingress.kubernetes.io/actions.ssl-redirect: |
-        {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
-      alb.ingress.kubernetes.io/actions.post-only: |
-        {"Type": "fixed-response", "FixedResponseConfig": {"ContentType": "text/plain", "StatusCode": "405", "MessageBody": "Method Not Allowed"}}
-
   extraManifests:
     - apiVersion: v1
       kind: ConfigMap
@@ -75,6 +56,30 @@ atlantis:
           - backendRefs:
               - name: atlantis
                 port: 80
+
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: atlantis-public
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
+          - "atlantis-public.demo.opspresso.com"
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /events
+            backendRefs:
+              - group: ""
+                kind: Service
+                name: atlantis
+                port: 80
+                weight: 1
 
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
