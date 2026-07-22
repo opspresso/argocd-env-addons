@@ -11,7 +11,7 @@ argo-cd:
 
   server:
     ingress:
-      enabled: true
+      enabled: false
       hostname: "{{argocd.hostname}}"
       annotations:
         kubernetes.io/ingress.class: "alb"
@@ -22,6 +22,14 @@ argo-cd:
         alb.ingress.kubernetes.io/certificate-arn: "{{argocd.acm_arn}}"
         alb.ingress.kubernetes.io/actions.ssl-redirect: |
           {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
+
+    httproute:
+      enabled: true
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
+      hostnames:
+        - "{{argocd.hostname}}"
 
     metrics:
       serviceMonitor:
@@ -85,38 +93,6 @@ argo-cd:
 
 raw:
   resources:
-    # - apiVersion: networking.istio.io/v1beta1
-    #   kind: Gateway
-    #   metadata:
-    #     name: argocd-server
-    #   spec:
-    #     selector:
-    #       istio: ingressgateway
-    #     servers:
-    #       - hosts:
-    #           - "{{argocd.hostname}}"
-    #         port:
-    #           number: 80
-    #           name: http
-    #           protocol: HTTP
-
-    # - apiVersion: networking.istio.io/v1beta1
-    #   kind: VirtualService
-    #   metadata:
-    #     name: argocd-server
-    #   spec:
-    #     hosts:
-    #       - "{{argocd.hostname}}"
-    #     gateways:
-    #       - argocd-server
-    #       - mesh
-    #     http:
-    #       - route:
-    #           - destination:
-    #               host: argocd-server
-    #               port:
-    #                 number: 80
-
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
