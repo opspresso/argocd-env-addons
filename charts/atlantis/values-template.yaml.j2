@@ -84,11 +84,8 @@ atlantis:
                   type: PathPrefix
                   value: /events
             backendRefs:
-              - group: ""
-                kind: Service
-                name: atlantis
+              - name: atlantis
                 port: 80
-                weight: 1
 
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
