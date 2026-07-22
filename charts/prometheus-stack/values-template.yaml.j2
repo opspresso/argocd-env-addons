@@ -51,11 +51,20 @@ raw:
         name: prometheus
       spec:
         parentRefs:
-          - name: istio-ingressgateway
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: istio-ingressgateway
             namespace: istio-system
         hostnames:
           - "prom.{{hostname.internal}}"
         rules:
-          - backendRefs:
-              - name: prometheus-prometheus
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - group: ""
+                kind: Service
+                name: prometheus-prometheus
                 port: 9090
+                weight: 1
