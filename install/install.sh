@@ -19,6 +19,6 @@ argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 
 kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons.yaml
 
-# kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-demo/main/apps.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-demo/main/apps.yaml
 
 echo "https://argocd.demo.opspresso.com"
