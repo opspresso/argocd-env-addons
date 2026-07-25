@@ -1,0 +1,53 @@
+# Serves custom.metrics.k8s.io from Prometheus, so an HPA can scale on an
+# application metric instead of CPU. metrics-server covers metrics.k8s.io (CPU
+# and memory); it cannot serve anything an app exports.
+#
+# A metric only reaches here if Prometheus scrapes it, which means the app's
+# ServiceMonitor must carry the label kube-prometheus-stack selects on
+# (release: prometheus-eks-demo). A rule below with no matching series makes the
+# metric unavailable rather than failing anything, so the HPA holds its replica
+# count and reports FailedGetPodsMetric.
+prometheus-adapter:
+  fullnameOverride: prometheus-adapter
+
+  # kube-prometheus-stack runs with fullnameOverride: prometheus in
+  # addon-prometheus, which names the server service prometheus-prometheus.
+  prometheus:
+    url: http://prometheus-prometheus.addon-prometheus.svc
+    port: 9090
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+  rules:
+    # The bundled default rules republish cpu/memory per pod and container as
+    # custom metrics, which duplicates metrics-server and puts a standing query
+    # load on Prometheus. Nothing here needs them; every served metric is listed
+    # below on purpose.
+    default: false
+
+    custom:
+      # agent-studio scales on in-flight runs. Its runs are I/O bound — a pod
+      # saturated with them waits on the LLM provider at near-zero CPU — so CPU
+      # utilization would fail to scale up under load while scaling down pods
+      # that are busy streaming.
+      #
+      # The gauge is smoothed over 1m (4 samples at the 15s scrape interval)
+      # before the HPA sees it. Raw scrape values swing with each run's start and
+      # finish, and the pods take ~11 minutes to drain, so acting on a momentary
+      # dip is expensive and slow to undo.
+      - seriesQuery: 'agent_studio_active_runs{namespace!="",pod!=""}'
+        resources:
+          overrides:
+            namespace:
+              resource: namespace
+            pod:
+              resource: pod
+        name:
+          as: "agent_studio_active_runs"
+        metricsQuery: 'sum(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)'

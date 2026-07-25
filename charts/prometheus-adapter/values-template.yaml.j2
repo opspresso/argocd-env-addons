@@ -1,0 +1,14 @@
+prometheus-adapter:
+  fullnameOverride: prometheus-adapter
+
+{% if monitoring is defined %}
+{% if monitoring.nodeSelector is defined %}
+  nodeSelector:
+    group: "{{monitoring.nodeSelector}}"
+  tolerations:
+    - key: group
+      operator: Equal
+      value: "{{monitoring.nodeSelector}}"
+      effect: NoSchedule
+{% endif %}
+{% endif %}

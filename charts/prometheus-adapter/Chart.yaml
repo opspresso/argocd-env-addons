@@ -1,0 +1,10 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: prometheus-adapter
+type: application
+version: "5.3.0" # helm chart prometheus-adapter version
+
+dependencies:
+- name: prometheus-adapter
+  repository: https://prometheus-community.github.io/helm-charts
+  version: "5.3.0" # helm chart prometheus-adapter version
