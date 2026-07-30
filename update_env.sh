@@ -13,9 +13,36 @@ set -euo pipefail
 
 SHELL_DIR=$(dirname $0)
 
-command -v yq >/dev/null || { echo "yq is required"; exit 1; }
+# Step logging colors. Disabled when stdout is not a terminal.
+if [ -t 1 ]; then
+  C_STEP='\033[1;36m' # cyan   - step
+  C_CMD='\033[0;33m'  # yellow - aws lookup
+  C_OK='\033[0;32m'   # green  - updated
+  C_DIM='\033[0;90m'  # gray   - unchanged / skipped
+  C_ERR='\033[0;31m'  # red    - error
+  C_OFF='\033[0m'
+else
+  C_STEP='' C_CMD='' C_OK='' C_DIM='' C_ERR='' C_OFF=''
+fi
 
+step() { echo -e "\n${C_STEP}==> $*${C_OFF}"; }
+lookup() { echo -e "${C_CMD}  aws  $*${C_OFF}"; }
+changed() { echo -e "${C_OK}  $*${C_OFF}"; }
+skip() { echo -e "${C_DIM}  $*${C_OFF}"; }
+ok() { echo -e "\n${C_OK}✔ $*${C_OFF}"; }
+die() {
+  echo -e "${C_ERR}✘ $*${C_OFF}" >&2
+  exit 1
+}
+
+step "Checking prerequisites"
+
+command -v yq >/dev/null || die "yq is required"
+echo -e "${C_DIM}  yq  $(command -v yq)${C_OFF}"
+
+lookup "sts get-caller-identity"
 CURRENT_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+echo -e "${C_DIM}  account ${CURRENT_ACCOUNT_ID}${C_OFF}"
 
 update() {
   FILE=$1
@@ -24,44 +51,45 @@ update() {
   NEW=$4
 
   if [ -z "${NEW}" ] || [ "${NEW}" == "None" ] || [ "${NEW}" == "null" ]; then
-    echo "  ${KEY}: not found in aws, skipped"
+    skip "${KEY}: not found in aws, skipped"
     return
   fi
 
   if [ -z "${OLD}" ] || [ "${OLD}" == "null" ]; then
-    echo "  ${KEY}: not set in file, skipped"
+    skip "${KEY}: not set in file, skipped"
     return
   fi
 
   if [ "${OLD}" == "${NEW}" ]; then
-    echo "  ${KEY}: unchanged"
+    skip "${KEY}: unchanged"
     return
   fi
 
   perl -pi -e "s|\Q${OLD}\E|${NEW}|" ${FILE}
-  echo "  ${KEY}: ${OLD} -> ${NEW}"
+  changed "${KEY}: ${OLD} -> ${NEW}"
 }
 
 for FILE in ${SHELL_DIR}/env/*.yaml; do
-  echo
-  echo "Processing.. ${FILE}"
+  step "Processing ${FILE}"
 
   ENV=$(yq '.env' ${FILE})
   ACCOUNT_ID=$(yq '.aws_account_id' ${FILE})
   REGION=$(yq '.aws_region' ${FILE})
 
   if [ "${ACCOUNT_ID}" != "${CURRENT_ACCOUNT_ID}" ]; then
-    echo "  skipped: aws_account_id ${ACCOUNT_ID} != current account ${CURRENT_ACCOUNT_ID}"
+    skip "skipped: aws_account_id ${ACCOUNT_ID} != current account ${CURRENT_ACCOUNT_ID}"
     continue
   fi
 
   # vpcId
+  lookup "ec2 describe-vpcs --filters Name=tag:Name,Values=vpc-${ENV}"
   VPC_ID=$(aws ec2 describe-vpcs --region ${REGION} \
     --filters "Name=tag:Name,Values=vpc-${ENV}" \
     --query 'Vpcs[0].VpcId' --output text)
   update ${FILE} "vpcId" "$(yq '.vpcId // ""' ${FILE})" "${VPC_ID}"
 
   # acm_arn
+  lookup "acm list-certificates --certificate-statuses ISSUED"
   CERTS=$(aws acm list-certificates --region ${REGION} --certificate-statuses ISSUED \
     --query 'CertificateSummaryList[].[DomainName,CertificateArn]' --output text)
 
@@ -80,15 +108,16 @@ for FILE in ${SHELL_DIR}/env/*.yaml; do
   # target_group
   SUFFIX=$(yq '.istio.target_group // ""' ${FILE} | tr '_' '-')
   if [ -n "${SUFFIX}" ]; then
+    lookup "elbv2 describe-target-groups --names ${ENV}-${SUFFIX}"
     PUBLIC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${SUFFIX}" \
       --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
     update ${FILE} "target_group.public_http" "$(yq '.target_group.public_http // ""' ${FILE})" "${PUBLIC_TG}"
 
+    lookup "elbv2 describe-target-groups --names ${ENV}-in-${SUFFIX}"
     INTERNAL_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-in-${SUFFIX}" \
       --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
     update ${FILE} "target_group.internal_http" "$(yq '.target_group.internal_http // ""' ${FILE})" "${INTERNAL_TG}"
   fi
 done
 
-echo
-echo "Done. Review with: git diff env/"
+ok "Done. Review with: git diff env/"
