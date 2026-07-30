@@ -2,19 +2,19 @@ istiod:
   global:
     hub: "gcr.io/istio-release"
 
-  replicaCount: 3
+  replicaCount: 2
 
   autoscaleEnabled: False
-  autoscaleMin: 3
-  autoscaleMax: 3
+  autoscaleMin: 2
+  autoscaleMax: 6
 
 gateway:
-  replicaCount: 3
+  replicaCount: 2
 
   autoscaling:
     enabled: False
-    minReplicas: 3
-    maxReplicas: 3
+    minReplicas: 2
+    maxReplicas: 6
 
 tgb:
   resources:
@@ -26,7 +26,7 @@ tgb:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-a/4495347419cd090d"
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-a/4cd1b8c2a06e21e9"
         targetType: ip
 
     - apiVersion: eks.amazonaws.com/v1
@@ -37,5 +37,5 @@ tgb:
         serviceRef:
           name: istio-ingressgateway
           port: http2
-        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/3cce2f6d97ab1468"
+        targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/006cd49a0edd2e69"
         targetType: ip
