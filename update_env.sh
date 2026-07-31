@@ -106,12 +106,29 @@ for FILE in ${SHELL_DIR}/env/*.yaml; do
   fi
 
   # target_group
+  #
+  # public and internal no longer share one suffix: the public groups were
+  # renamed to *-h1-* when they moved to protocol_version HTTP1 (an ALB cannot
+  # change that in place, so the group is replaced and the name has to differ).
+  # `target_group_public` overrides for that; unset keeps the old shared name.
   SUFFIX=$(yq '.istio.target_group // ""' ${FILE} | tr '_' '-')
+  PUBLIC_SUFFIX=$(yq '.istio.target_group_public // ""' ${FILE} | tr '_' '-')
+  [ -z "${PUBLIC_SUFFIX}" ] && PUBLIC_SUFFIX="${SUFFIX}"
+  GRPC_SUFFIX=$(yq '.istio.target_group_grpc // ""' ${FILE} | tr '_' '-')
   if [ -n "${SUFFIX}" ]; then
-    lookup "elbv2 describe-target-groups --names ${ENV}-${SUFFIX}"
-    PUBLIC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${SUFFIX}" \
+    lookup "elbv2 describe-target-groups --names ${ENV}-${PUBLIC_SUFFIX}"
+    PUBLIC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${PUBLIC_SUFFIX}" \
       --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
     update ${FILE} "target_group.public_http" "$(yq '.target_group.public_http // ""' ${FILE})" "${PUBLIC_TG}"
+
+    # gRPC needs h2 to the backend, which an HTTP1 group cannot carry, so it has
+    # its own. Optional: an env without one simply has no gRPC host.
+    if [ -n "${GRPC_SUFFIX}" ]; then
+      lookup "elbv2 describe-target-groups --names ${ENV}-${GRPC_SUFFIX}"
+      GRPC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${GRPC_SUFFIX}" \
+        --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
+      update ${FILE} "target_group.public_grpc" "$(yq '.target_group.public_grpc // ""' ${FILE})" "${GRPC_TG}"
+    fi
 
     lookup "elbv2 describe-target-groups --names ${ENV}-in-${SUFFIX}"
     INTERNAL_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-in-${SUFFIX}" \

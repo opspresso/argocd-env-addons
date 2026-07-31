@@ -43,10 +43,11 @@ istio:
   tracing:
     sampling: 10
   target_group: http_a
+  target_group_public: h1_a
 
 target_group:
   internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/006cd49a0edd2e69
-  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-http-a/4cd1b8c2a06e21e9
+  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-a/92eba81747265fdd
 
 prometheus:
   serviceMonitor:

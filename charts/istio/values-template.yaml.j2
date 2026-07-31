@@ -39,3 +39,16 @@ tgb:
           port: http2
         targetGroupARN: "{{target_group.internal_http}}"
         targetType: ip
+{% if target_group.public_grpc is defined and target_group.public_grpc %}
+
+    - apiVersion: eks.amazonaws.com/v1
+      kind: TargetGroupBinding
+      metadata:
+        name: istio-ingressgateway-grpc
+      spec:
+        serviceRef:
+          name: istio-ingressgateway
+          port: http2
+        targetGroupARN: "{{target_group.public_grpc}}"
+        targetType: ip
+{% endif %}
