@@ -12,7 +12,7 @@ aws_region: ap-northeast-2
 vpcId: vpc-0ac1c5fb50e3b5a41
 
 hostname:
-  internal: in.demo.opspresso.com
+  internal: demo-in.opspresso.com
   public: demo.opspresso.com
 
 # operation:
@@ -82,14 +82,14 @@ grafana:
       enabled: false
       allowed_domains: nalbam.com daangn.com opspresso.com
   datasource:
-    demo: http://prom.in.demo.opspresso.com
-    demo_a: http://prom.in.demo-a.opspresso.com
-    demo_b: http://prom.in.demo-b.opspresso.com
-    loki: http://loki.in.demo.opspresso.com
+    demo: http://prom.demo-in.opspresso.com
+    demo_a: http://prom.demo-in-a.opspresso.com
+    demo_b: http://prom.demo-in-b.opspresso.com
+    loki: http://loki.demo-in.opspresso.com
 
 prometheus:
   serviceMonitor:
     enabled: false
 
 loki:
-  hostname: loki.in.demo.opspresso.com
+  hostname: loki.demo-in.opspresso.com

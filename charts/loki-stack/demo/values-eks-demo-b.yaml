@@ -20,7 +20,7 @@ raw:
           - name: istio-ingressgateway
             namespace: istio-system
         hostnames:
-          - "loki.in.demo.opspresso.com"
+          - "loki.demo-in.opspresso.com"
         rules:
           - backendRefs:
               - name: loki

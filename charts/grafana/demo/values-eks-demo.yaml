@@ -40,19 +40,19 @@ grafana:
         isDefault: true
       - name: demo
         type: prometheus
-        url: http://prom.in.demo.opspresso.com
+        url: http://prom.demo-in.opspresso.com
         access: proxy
       - name: demo-a
         type: prometheus
-        url: http://prom.in.demo-a.opspresso.com
+        url: http://prom.demo-in-a.opspresso.com
         access: proxy
       - name: demo-b
         type: prometheus
-        url: http://prom.in.demo-b.opspresso.com
+        url: http://prom.demo-in-b.opspresso.com
         access: proxy
       - name: Loki
         type: loki
-        url: http://loki.in.demo.opspresso.com
+        url: http://loki.demo-in.opspresso.com
         access: proxy
 
   serviceMonitor:

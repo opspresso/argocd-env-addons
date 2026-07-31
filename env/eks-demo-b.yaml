@@ -12,7 +12,7 @@ aws_region: ap-northeast-2
 vpcId: vpc-0ac1c5fb50e3b5a41
 
 hostname:
-  internal: in.demo.opspresso.com
+  internal: demo-in.opspresso.com
   public: demo.opspresso.com
 
 argo_workflows:
@@ -54,4 +54,4 @@ prometheus:
     enabled: false
 
 loki:
-  hostname: loki.in.demo.opspresso.com
+  hostname: loki.demo-in.opspresso.com

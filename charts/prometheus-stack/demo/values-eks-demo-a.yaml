@@ -16,7 +16,7 @@ raw:
             name: istio-ingressgateway
             namespace: istio-system
         hostnames:
-          - "prom.in.demo.opspresso.com"
+          - "prom.demo-in.opspresso.com"
         rules:
           - matches:
               - path:
