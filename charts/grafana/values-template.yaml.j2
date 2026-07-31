@@ -49,10 +49,12 @@ grafana:
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
         access: proxy
         isDefault: true
+{% if grafana.datasource.demo is defined %}
       - name: demo
         type: prometheus
         url: {{grafana.datasource.demo}}
         access: proxy
+{% endif %}
 {% if grafana.datasource.demo_a is defined %}
       - name: demo-a
         type: prometheus

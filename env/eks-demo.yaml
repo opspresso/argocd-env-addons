@@ -82,7 +82,7 @@ grafana:
       enabled: false
       allowed_domains: nalbam.com daangn.com opspresso.com
   datasource:
-    demo: http://prom.demo-in.opspresso.com
+    # demo: http://prom.demo-in.opspresso.com
     # demo_a: http://prom.demo-in-a.opspresso.com
     # demo_b: http://prom.demo-in-b.opspresso.com
     loki: http://loki.demo-in.opspresso.com
