@@ -38,13 +38,11 @@ grafana:
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
         access: proxy
         isDefault: true
-
-
-
       - name: Loki
         type: loki
-        url: http://loki.demo-in.opspresso.com
+        url: http://loki.addon-loki.svc.cluster.local:3100
         access: proxy
+
 
   serviceMonitor:
     enabled: False
