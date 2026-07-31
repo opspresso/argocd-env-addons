@@ -49,6 +49,11 @@ grafana:
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
         access: proxy
         isDefault: true
+      - name: Loki
+        type: loki
+        url: http://loki.addon-loki.svc.cluster.local:3100
+        access: proxy
+{% if grafana.datasource is defined %}
 {% if grafana.datasource.demo is defined %}
       - name: demo
         type: prometheus
@@ -67,10 +72,7 @@ grafana:
         url: {{grafana.datasource.demo_b}}
         access: proxy
 {% endif %}
-      - name: Loki
-        type: loki
-        url: {{grafana.datasource.loki}}
-        access: proxy
+{% endif %}
 
   serviceMonitor:
     enabled: {{prometheus.serviceMonitor.enabled}}
