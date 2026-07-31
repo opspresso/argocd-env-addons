@@ -42,14 +42,8 @@ grafana:
         type: prometheus
         url: http://prom.demo-in.opspresso.com
         access: proxy
-      - name: demo-a
-        type: prometheus
-        url: http://prom.demo-in-a.opspresso.com
-        access: proxy
-      - name: demo-b
-        type: prometheus
-        url: http://prom.demo-in-b.opspresso.com
-        access: proxy
+
+
       - name: Loki
         type: loki
         url: http://loki.demo-in.opspresso.com
