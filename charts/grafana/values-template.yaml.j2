@@ -53,14 +53,18 @@ grafana:
         type: prometheus
         url: {{grafana.datasource.demo}}
         access: proxy
+{% if grafana.datasource.demo_a is defined %}
       - name: demo-a
         type: prometheus
         url: {{grafana.datasource.demo_a}}
         access: proxy
+{% endif %}
+{% if grafana.datasource.demo_b is defined %}
       - name: demo-b
         type: prometheus
         url: {{grafana.datasource.demo_b}}
         access: proxy
+{% endif %}
       - name: Loki
         type: loki
         url: {{grafana.datasource.loki}}
