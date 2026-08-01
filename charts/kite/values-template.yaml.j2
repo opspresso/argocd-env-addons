@@ -1,0 +1,70 @@
+kite:
+  fullnameOverride: kite
+
+{% if kite is defined %}
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://{{kite.hostname}}"
+
+  host: "https://{{kite.hostname}}"
+
+  gateway:
+    enabled: true
+    create: false
+    name: istio-ingressgateway
+    namespace: istio-system
+    httpRoutes:
+      - name: kite
+        hostnames:
+          - "{{kite.hostname}}"
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            timeouts:
+              request: "120s"
+
+  config:
+    enabled: true
+    superUser:
+      username: "${ADMIN_USER}"
+      password: "${ADMIN_PASSWORD}"
+    clusters:
+      - name: "{{cluster}}"
+        inCluster: true
+        prometheusURL: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
+        default: true
+
+  extraEnvs:
+    - name: ADMIN_USER
+      valueFrom:
+        secretKeyRef:
+          name: kite-admin-secret
+          key: admin-user
+    - name: ADMIN_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: kite-admin-secret
+          key: admin-password
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: kite-admin-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: kite-admin-secret
+        data:
+          - secretKey: admin-user
+            remoteRef:
+              key: /k8s/common/admin-user
+          - secretKey: admin-password
+            remoteRef:
+              key: /k8s/common/admin-password
+{% endif %}

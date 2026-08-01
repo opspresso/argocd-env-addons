@@ -1,0 +1,14 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: kite
+type: application
+version: "0.14.1" # helm chart kite version
+
+dependencies:
+- name: kite
+  repository: https://kite-org.github.io/kite/
+  version: "0.14.1" # helm chart kite version
+
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5" # helm chart raw version

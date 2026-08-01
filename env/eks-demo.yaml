@@ -87,6 +87,9 @@ grafana:
   #   # demo_b: http://prom.demo-in-b.opspresso.com
   #   loki: http://loki.demo-in.opspresso.com
 
+kite:
+  hostname: kite.demo.opspresso.com
+
 prometheus:
   serviceMonitor:
     enabled: false

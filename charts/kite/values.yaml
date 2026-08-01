@@ -1,0 +1,15 @@
+kite:
+  fullnameOverride: kite
+
+  # sqlite on a ReadWriteOnce PVC cannot RollingUpdate
+  deploymentStrategy:
+    type: Recreate
+
+  db:
+    type: sqlite
+    sqlite:
+      persistence:
+        pvc:
+          enabled: true
+          storageClass: gp3 # aws-ebs-sc
+          size: 1Gi
