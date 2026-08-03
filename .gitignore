@@ -27,6 +27,15 @@ $RECYCLE.BIN/
 target/
 build/
 
+# Helm dependencies fetched by validate.py
+charts/*/charts/
+charts/*/Chart.lock
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # Temp
 *.pid
 *.log
