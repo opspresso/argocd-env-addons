@@ -57,8 +57,28 @@ argo-cd:
   configs:
     rbac:
       policy.default: "role:readonly"
+
+      # `mcp` is the API-token account that mcp-argocd (argocd-env-demo) runs
+      # as. Named permissions rather than role:admin, because this token sits in
+      # a pod an LLM drives: it reaches exactly what that server's tools call —
+      # applications, their logs, their resource actions — and nothing that
+      # would let it rewrite Argo CD itself (repositories, clusters, accounts,
+      # RBAC, exec). Deleting the create/update/delete/sync and action/* lines
+      # is what makes it read-only, and this is the boundary that counts —
+      # MCP_READ_ONLY on the pod only decides which tools get listed.
       policy.csv: |
         g, opspresso:sre, role:admin
+
+        p, role:mcp, applications, get, */*, allow
+        p, role:mcp, applications, create, */*, allow
+        p, role:mcp, applications, update, */*, allow
+        p, role:mcp, applications, delete, */*, allow
+        p, role:mcp, applications, sync, */*, allow
+        p, role:mcp, applications, action/*, */*, allow
+        p, role:mcp, logs, get, */*, allow
+        p, role:mcp, projects, get, *, allow
+        p, role:mcp, clusters, get, *, allow
+        g, mcp, role:mcp
 
     cm:
       url: https://argocd.demo.opspresso.com
@@ -67,6 +87,11 @@ argo-cd:
 
       help.chatUrl: "https://app.slack.com/client/T03FUG4UB/C035P1YD72A"
       help.chatText: "Chat now!"
+
+      # Local account for mcp-argocd. `apiKey` and not `login`: it may mint API
+      # tokens but cannot sign in, so there is no password on it to guess and it
+      # never turns into a UI session.
+      accounts.mcp: apiKey
 
       dex.config: |
         connectors:
@@ -123,6 +148,21 @@ raw:
           - secretKey: server.secretkey
             remoteRef:
               key: /k8s/common/argocd-server-secret
+          # The `mcp` account's token list, seeded rather than left where Argo
+          # CD puts it. `argocd account generate-token` writes the list into
+          # this very Secret in-cluster, and this ExternalSecret owns the
+          # Secret — so nothing in git would bring the list back after a
+          # rebuild, and the token mcp-argocd holds would start answering 401
+          # with no trace of why. Seeding it keeps both sides agreeing, the same
+          # bargain admin.password already takes.
+          #
+          # install/token.sh writes this parameter, and install/values.yaml
+          # seeds the same key at bootstrap. It must exist before this renders:
+          # a missing parameter fails the whole ExternalSecret, so on a fresh
+          # cluster argocd-secret would never appear at all.
+          - secretKey: accounts.mcp.tokens
+            remoteRef:
+              key: /k8s/common/argocd-mcp-tokens
 
           - secretKey: argo-workflows-client-secret
             remoteRef:

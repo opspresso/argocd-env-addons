@@ -40,6 +40,9 @@ export ARGOCD_MTIME=$(ssm /k8s/common/argocd-mtime)
 export ARGOCD_SERVER_SECRET=$(ssm /k8s/common/argocd-server-secret)
 export ARGOCD_WEBHOOK=$(ssm /k8s/common/argocd-webhook)
 
+# mcp 계정의 토큰 목록. ./token.sh 가 만들어 둡니다.
+export ARGOCD_MCP_TOKENS=$(ssm /k8s/common/argocd-mcp-tokens)
+
 export ARGOCD_GITHUB_ID=$(ssm "/k8s/${GITHUB_ORG}/argocd-github-id")
 export ARGOCD_GITHUB_SECRET=$(ssm "/k8s/${GITHUB_ORG}/argocd-github-secret")
 
@@ -58,6 +61,7 @@ sub ARGOCD_HOSTNAME "${ARGOCD_HOSTNAME}" /
 sub ARGOCD_PASSWORD "${ARGOCD_PASSWORD}" @
 sub ARGOCD_MTIME "${ARGOCD_MTIME}" /
 sub ARGOCD_SERVER_SECRET "${ARGOCD_SERVER_SECRET}" /
+sub ARGOCD_MCP_TOKENS "${ARGOCD_MCP_TOKENS}" @
 sub ARGOCD_GITHUB_ID "${ARGOCD_GITHUB_ID}" /
 sub ARGOCD_GITHUB_SECRET "${ARGOCD_GITHUB_SECRET}" /
 sub ARGOCD_WEBHOOK "${ARGOCD_WEBHOOK}" /

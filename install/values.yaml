@@ -28,14 +28,37 @@ repoServer:
 configs:
   rbac:
     policy.default: "role:readonly"
+
+    # mcp 는 mcp-argocd (argocd-env-demo) 가 쓰는 API 토큰 계정입니다.
+    # role:admin 대신 이름 붙인 권한만 줍니다 — 이 토큰은 LLM 이 모는 파드 안에
+    # 있으므로, 그 서버의 도구가 실제로 호출하는 것에만 닿고 Argo CD 자체를
+    # 고쳐 쓰는 쪽(repositories, clusters, accounts, RBAC, exec)에는 닿지 않습니다.
+    # 읽기 전용으로 만들려면 create/update/delete/sync 와 action/* 줄을 지웁니다.
+    #
+    # charts/argo-cd/values-template.yaml.j2 와 같은 내용을 유지합니다.
     policy.csv: |
       g, GITHUB_ORG:GITHUB_TEAM, role:admin
+
+      p, role:mcp, applications, get, */*, allow
+      p, role:mcp, applications, create, */*, allow
+      p, role:mcp, applications, update, */*, allow
+      p, role:mcp, applications, delete, */*, allow
+      p, role:mcp, applications, sync, */*, allow
+      p, role:mcp, applications, action/*, */*, allow
+      p, role:mcp, logs, get, */*, allow
+      p, role:mcp, projects, get, *, allow
+      p, role:mcp, clusters, get, *, allow
+      g, mcp, role:mcp
 
   params:
     server.insecure: true
 
   cm:
     url: https://ARGOCD_HOSTNAME
+
+    # 토큰 전용 계정입니다. apiKey 만 주고 login 은 주지 않으므로 비밀번호가
+    # 없고 UI 세션으로도 바뀌지 않습니다.
+    accounts.mcp: apiKey
 
     dex.config: |
       connectors:
@@ -59,6 +82,12 @@ configs:
 
       dex.github.clientId: "ARGOCD_GITHUB_ID"
       dex.github.clientSecret: "ARGOCD_GITHUB_SECRET"
+
+      # mcp 계정의 토큰 목록입니다. server.secretkey 와 이 목록이 같이 고정되어
+      # 있으면 mcp-argocd 가 들고 있는 토큰이 재설치 후에도 그대로 통합니다.
+      # 값은 ./token.sh 가 만들어 SSM 에 넣습니다 — JSON 안에 " 가 있으므로
+      # 홑따옴표로 감쌉니다.
+      accounts.mcp.tokens: 'ARGOCD_MCP_TOKENS'
 
     # Argo expects the password in the secret to be bcrypt hashed. You can create this hash with
     # `htpasswd -nbBC 10 "" $PASSWORD | tr -d ':\n' | sed 's/$2y/$2a/'`
