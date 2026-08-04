@@ -60,12 +60,21 @@ argo-cd:
 
       # `mcp` is the API-token account that mcp-argocd (argocd-env-demo) runs
       # as. Named permissions rather than role:admin, because this token sits in
-      # a pod an LLM drives: it reaches exactly what that server's tools call —
-      # applications, their logs, their resource actions — and nothing that
-      # would let it rewrite Argo CD itself (repositories, clusters, accounts,
-      # RBAC, exec). Deleting the create/update/delete/sync and action/* lines
-      # is what makes it read-only, and this is the boundary that counts —
-      # MCP_READ_ONLY on the pod only decides which tools get listed.
+      # a pod an LLM drives: what it may *change* is applications and nothing
+      # else. Repositories, clusters, accounts and this policy itself have no
+      # write here, and `exec` appears in neither this role nor the default one.
+      # Deleting the create/update/delete/sync and action/* lines is what makes
+      # it read-only, and this is the boundary that counts — MCP_READ_ONLY on
+      # the pod only decides which tools get listed.
+      #
+      # It does not narrow reading, though. policy.default below is
+      # role:readonly, every account inherits it, and Argo CD's built-in
+      # definition of that role is `get` on applications, applicationsets,
+      # certificates, clusters, repositories, projects, accounts, gpgkeys and
+      # logs. So the logs/projects/clusters lines below are redundant today —
+      # they are kept so the role still stands on its own if policy.default is
+      # ever tightened. Narrowing reads for this account alone would take
+      # explicit deny rules, which Argo CD evaluates ahead of allows.
       policy.csv: |
         g, {{argocd.github.org}}:{{argocd.github.team}}, role:admin
 

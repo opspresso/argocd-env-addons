@@ -31,9 +31,17 @@ configs:
 
     # mcp 는 mcp-argocd (argocd-env-demo) 가 쓰는 API 토큰 계정입니다.
     # role:admin 대신 이름 붙인 권한만 줍니다 — 이 토큰은 LLM 이 모는 파드 안에
-    # 있으므로, 그 서버의 도구가 실제로 호출하는 것에만 닿고 Argo CD 자체를
-    # 고쳐 쓰는 쪽(repositories, clusters, accounts, RBAC, exec)에는 닿지 않습니다.
+    # 있으므로 **바꿀 수 있는 것**을 applications 로 묶어 둡니다. repositories·
+    # clusters·accounts·이 정책 자체에는 쓰기가 없고, exec 은 이 role 에도 기본
+    # role 에도 없습니다.
     # 읽기 전용으로 만들려면 create/update/delete/sync 와 action/* 줄을 지웁니다.
+    #
+    # 다만 읽기는 좁아지지 않습니다. 아래 policy.default 가 role:readonly 이고
+    # 모든 계정이 이를 상속하는데, Argo CD 빌트인 정의가 applications·
+    # applicationsets·certificates·clusters·repositories·projects·accounts·
+    # gpgkeys·logs 에 get 을 줍니다. 그래서 아래 logs/projects/clusters 줄은
+    # 지금은 중복이며, policy.default 를 좁힐 때 role 이 홀로 서도록 남겨 둡니다.
+    # 이 계정의 읽기만 좁히려면 deny 규칙이 따로 필요합니다 (deny 가 우선).
     #
     # charts/argo-cd/values-template.yaml.j2 와 같은 내용을 유지합니다.
     policy.csv: |
