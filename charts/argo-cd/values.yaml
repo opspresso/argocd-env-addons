@@ -182,7 +182,7 @@ argo-cd:
               },
               {
                 "title": "Resources",
-                "value": "{{range $i, $r := .app.status.operationState.syncResult.resources}}{{if lt $i 30}}- {{$r.kind}}/{{$r.name}} {{$r.message}}\n{{end}}{{end}}",
+                "value": "{{range $i, $r := .app.status.operationState.syncResult.resources}}{{if lt $i 30}}- {{$r.kind}}/{{$r.name}} {{$r.message | replace "\\" "" | replace "\"" "'" | replace "\n" " "}}\n{{end}}{{end}}",
                 "short": false
               }
               {{range $index, $c := .app.status.conditions}}
@@ -363,7 +363,7 @@ argo-cd:
               },
               {
                 "title": "Resources",
-                "value": "{{range $i, $r := .app.status.operationState.syncResult.resources}}{{if lt $i 30}}- {{$r.kind}}/{{$r.name}} {{$r.message}}\n{{end}}{{end}}",
+                "value": "{{range $i, $r := .app.status.operationState.syncResult.resources}}{{if lt $i 30}}- {{$r.kind}}/{{$r.name}} {{$r.message | replace "\\" "" | replace "\"" "'" | replace "\n" " "}}\n{{end}}{{end}}",
                 "short": false
               }
               {{range $index, $c := .app.status.conditions}}
