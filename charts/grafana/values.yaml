@@ -3,6 +3,11 @@ grafana:
 
   revisionHistoryLimit: 3
 
+  # The sqlite db lives on a RWO EBS volume, so a rolling update deadlocks: the
+  # new pod cannot attach the volume the outgoing pod still holds.
+  deploymentStrategy:
+    type: Recreate
+
   resources:
     requests:
       cpu: 100m
