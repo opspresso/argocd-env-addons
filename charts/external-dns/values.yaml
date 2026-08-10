@@ -6,3 +6,10 @@ external-dns:
     - service
 
   policy: sync # sync or upsert-only
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
