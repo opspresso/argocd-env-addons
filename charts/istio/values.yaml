@@ -29,19 +29,22 @@ istiod:
       cpu: 100m
       memory: 128Mi
 
-  serviceAnnotations:
-    service.kubernetes.io/topology-aware-hints: auto
+  trafficDistribution: PreferSameZone
 
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
       whenUnsatisfiable: ScheduleAnyway
+      matchLabelKeys:
+        - pod-template-hash
       labelSelector:
         matchLabels:
           app: istiod
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
       whenUnsatisfiable: ScheduleAnyway
+      matchLabelKeys:
+        - pod-template-hash
       labelSelector:
         matchLabels:
           app: istiod
@@ -55,8 +58,18 @@ istiod:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
       terminationDrainDuration: 30s
+      # Sidecars report only a subset of Envoy stats by default. Expose retry
+      # budget rejections (upstream_rq_retry_overflow) so defaultHttpRetryPolicy
+      # exhaustion is observable.
+      proxyStatsMatcher:
+        inclusionRegexps:
+          - ".*upstream_rq_retry_overflow.*"
     enableTracing: false
     rootNamespace: istio-system
+    dnsRefreshRate: 300s
+    defaultHttpRetryPolicy:
+      attempts: 2
+      retryOn: connect-failure,refused-stream,unavailable,cancelled,503
     # localityLbSetting:
     #   enabled: true
 
@@ -99,12 +112,16 @@ gateway:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
       whenUnsatisfiable: ScheduleAnyway
+      matchLabelKeys:
+        - pod-template-hash
       labelSelector:
         matchLabels:
           app: istio-ingressgateway
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
       whenUnsatisfiable: ScheduleAnyway
+      matchLabelKeys:
+        - pod-template-hash
       labelSelector:
         matchLabels:
           app: istio-ingressgateway
