@@ -3,6 +3,13 @@ grafana:
 
   revisionHistoryLimit: 3
 
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
 
@@ -94,65 +101,56 @@ grafana:
         options:
           path: /var/lib/grafana/dashboards/default
 
+  # An init container downloads every url below on each pod start, so a moving
+  # ref silently changes the dashboards and a dead one writes an empty file that
+  # Grafana then fails to parse. Pin to a commit or a release tag.
   dashboards:
     default:
       kube-cluster:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/kube-cluster.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-cluster.json
         # gnetId: 9797
         # revision: 18
         # datasource: Prometheus
       kube-deploy:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/kube-deployment.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-deployment.json
         # gnetId: 9679
         # revision: 14
         # datasource: Prometheus
       kube-sts:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/kube-statefulset.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-statefulset.json
         # gnetId: 14902
         # revision: 4
         # datasource: Prometheus
       kube-dms:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/kube-daemonset.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-daemonset.json
         # gnetId: 14982
         # revision: 2
         # datasource: Prometheus
 
-      kubecost:
-        url: https://raw.githubusercontent.com/kubecost/cost-analyzer-helm-chart/develop/cost-analyzer/cluster-metrics.json
-        datasource: Prometheus
-
-      jvm:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/jvm.json
-        datasource: Prometheus
-
-      nginx-ingress:
-        url: https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/grafana/dashboards/nginx.json
-        datasource: Prometheus
-
       argo-cd:
-        url: https://raw.githubusercontent.com/argoproj/argo-cd/master/examples/dashboard.json
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.0/examples/dashboard.json
         datasource: Prometheus
       argo-rollouts:
-        url: https://raw.githubusercontent.com/argoproj/argo-rollouts/master/examples/dashboard.json
+        url: https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.9.1/examples/dashboard.json
         datasource: Prometheus
 
       istio-extension-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/istio-extension-dashboard.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-extension-dashboard.json
         datasource: Prometheus
       istio-mesh-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/istio-mesh-dashboard.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-mesh-dashboard.json
         datasource: Prometheus
       istio-performance-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/istio-performance-dashboard.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-performance-dashboard.json
         datasource: Prometheus
       istio-service-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/istio-service-dashboard.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-service-dashboard.json
         datasource: Prometheus
       istio-workload-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/istio-workload-dashboard.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-workload-dashboard.json
         datasource: Prometheus
       pilot-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/master/grafana/istio-pilot-dashboard.json
+        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-pilot-dashboard.json
         datasource: Prometheus
 
   persistence:
