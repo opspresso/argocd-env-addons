@@ -14,6 +14,12 @@ kube-prometheus-stack:
     enabled: true
 
     prometheusSpec:
+      # Time-based retention alone lets a burst in ingestion fill the volume and
+      # take Prometheus down; the size cap leaves headroom for the WAL and for
+      # compaction, which needs room for both the old and new block.
+      retention: 10d
+      retentionSize: 60GiB
+
       storageSpec:
         volumeClaimTemplate:
           spec:
