@@ -1,0 +1,34 @@
+alloy:
+  fullnameOverride: alloy
+
+  alloy:
+    # /var/log/pods is root-owned on the node, so the collector has to run as
+    # root to tail it.
+    securityContext:
+      runAsUser: 0
+
+    mounts:
+      varlog: true
+
+    extraEnv:
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  controller:
+    type: daemonset
+
+    tolerations:
+      - operator: Exists
+
+    updateStrategy:
+      rollingUpdate:
+        maxUnavailable: 25%
