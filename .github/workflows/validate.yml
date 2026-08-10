@@ -6,6 +6,11 @@ on:
       - main
   pull_request:
 
+# The render-push step commits back to the PR branch, which needs write on
+# contents regardless of what the repository default happens to be.
+permissions:
+  contents: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -34,9 +39,13 @@ jobs:
       - name: Render 🏗️
         run: bash ./build.sh
 
+      - name: Validate 🧪
+        run: python3 ./validate.py
+
       # Rendered values are part of the reviewed diff: a template change shows
-      # exactly which clusters it touches. Fork PRs are skipped because the
-      # token cannot push to them.
+      # exactly which clusters it touches. Runs only after validation so a
+      # broken render never lands on the branch. Fork PRs are skipped because
+      # the token cannot push to them.
       - name: Push render to PR 🔁
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         run: |
@@ -47,6 +56,3 @@ jobs:
             git commit -m "Render values for ${GITHUB_HEAD_REF}"
             git push origin "HEAD:${GITHUB_HEAD_REF}"
           fi
-
-      - name: Validate 🧪
-        run: python3 ./validate.py
