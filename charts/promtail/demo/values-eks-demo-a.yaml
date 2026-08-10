@@ -1,9 +1,0 @@
-promtail:
-  fullnameOverride: promtail
-
-  extraArgs:
-    - -client.external-labels=cluster=eks-demo-a
-
-  config:
-    clients:
-      - url: http://loki.demo-in.opspresso.com/loki/api/v1/push
