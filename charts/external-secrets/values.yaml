@@ -1,2 +1,33 @@
 external-secrets:
   fullnameOverride: external-secrets
+
+  # Every addon that reads a secret from SSM waits on this controller, so it
+  # should outrank the workloads it serves when a node runs short.
+  priorityClassName: system-cluster-critical
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+  webhook:
+    priorityClassName: system-cluster-critical
+
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  certController:
+    priorityClassName: system-cluster-critical
+
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi

@@ -34,6 +34,11 @@ alloy:
   controller:
     type: daemonset
 
+    # A node's log collector has to be scheduled before the workloads whose logs
+    # it tails; without this it loses the last slot on a full node and that
+    # node's logs go uncollected.
+    priorityClassName: system-node-critical
+
     volumes:
       extra:
         - name: alloy-data
