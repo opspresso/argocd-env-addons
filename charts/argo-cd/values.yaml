@@ -179,6 +179,11 @@ argo-cd:
                 "title": "Images",
                 "value": "{{ range .app.status.summary.images }}- {{.}}\n{{end}}",
                 "short": false
+              },
+              {
+                "title": "Resources",
+                "value": "{{range $i, $r := .app.status.operationState.syncResult.resources}}{{if lt $i 30}}- {{$r.kind}}/{{$r.name}} {{$r.message | replace "\\" "" | replace "\"" "'" | replace "\n" " "}}\n{{end}}{{end}}",
+                "short": false
               }
               {{range $index, $c := .app.status.conditions}}
               {{if not $index}},{{end}}
@@ -355,6 +360,11 @@ argo-cd:
                 "title": "Images",
                 "value": "{{ range .app.status.summary.images }}- {{.}}\n{{end}}",
                 "short": false
+              },
+              {
+                "title": "Resources",
+                "value": "{{range $i, $r := .app.status.operationState.syncResult.resources}}{{if lt $i 30}}- {{$r.kind}}/{{$r.name}} {{$r.message | replace "\\" "" | replace "\"" "'" | replace "\n" " "}}\n{{end}}{{end}}",
+                "short": false
               }
               {{range $index, $c := .app.status.conditions}}
               {{if not $index}},{{end}}
@@ -422,6 +432,16 @@ argo-cd:
 
       statusbadge.enabled: "true"
       # statusbadge.url: https://{{argocd.hostname}}
+
+      # EKS Auto Mode churns NodeClaims on every scale event; keep them out of
+      # the resource cache.
+      resource.exclusions: |
+        - apiGroups:
+            - karpenter.sh
+          kinds:
+            - NodeClaim
+          clusters:
+            - "*"
 
       # help.chatUrl: "{{argocd.chatUrl}}"
       # help.chatText: "Chat now!"

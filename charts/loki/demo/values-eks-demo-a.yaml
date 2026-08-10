@@ -1,0 +1,27 @@
+loki:
+  fullnameOverride: loki
+
+  monitoring:
+    serviceMonitor:
+      enabled: False
+      labels:
+        release: prometheus-eks-demo-a
+
+
+
+raw:
+  resources:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: loki
+      spec:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
+          - "loki.demo-in.opspresso.com"
+        rules:
+          - backendRefs:
+              - name: loki
+                port: 3100

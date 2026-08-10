@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: storage-class
+  name: alloy
 spec:
   generators:
     - git:
@@ -14,9 +14,9 @@ spec:
 
   template:
     metadata:
-      name: "storage-class-{{cluster}}"
+      name: "alloy-{{cluster}}"
       annotations:
-        argocd.argoproj.io/manifest-generate-paths: /charts/storage-class
+        argocd.argoproj.io/manifest-generate-paths: /charts/alloy
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
@@ -26,11 +26,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-storage-class
+        namespace: addon-alloy
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/storage-class
+        path: charts/alloy
         helm:
           valueFiles:
             - values.yaml

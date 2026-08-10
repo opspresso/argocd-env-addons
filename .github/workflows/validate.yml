@@ -6,13 +6,22 @@ on:
       - main
   pull_request:
 
+# The render-push step commits back to the PR branch, which needs write on
+# contents regardless of what the repository default happens to be.
+permissions:
+  contents: write
+
 jobs:
   validate:
     runs-on: ubuntu-latest
 
     steps:
+      # On a same-repo pull request, check out the head branch itself (not the
+      # merge ref) so the rendered values can be pushed back to it below.
       - name: Checkout 🛎️
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref || '' }}
 
       - name: Setup Python 🐍
         uses: actions/setup-python@v5
@@ -32,3 +41,18 @@ jobs:
 
       - name: Validate 🧪
         run: python3 ./validate.py
+
+      # Rendered values are part of the reviewed diff: a template change shows
+      # exactly which clusters it touches. Runs only after validation so a
+      # broken render never lands on the branch. Fork PRs are skipped because
+      # the token cannot push to them.
+      - name: Push render to PR 🔁
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if [ -n "$(git status --porcelain charts)" ]; then
+            git config user.name "nalbam-bot"
+            git config user.email "bot@nalbam.com"
+            git add charts
+            git commit -m "Render values for ${GITHUB_HEAD_REF}"
+            git push origin "HEAD:${GITHUB_HEAD_REF}"
+          fi

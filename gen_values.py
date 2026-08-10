@@ -17,6 +17,13 @@ def parse_args():
     return p.parse_args()
 
 
+def to_yaml(value):
+    """Render an env block as YAML so a template can pass it through whole
+    with `{{ block | to_yaml | indent(2, first=true) }}` instead of mapping
+    every key by hand."""
+    return yaml.safe_dump(value, default_flow_style=False, allow_unicode=True).rstrip("\n")
+
+
 def gen_repos(args, ext="yaml"):
     template_name = "values-template.{}".format(ext)
     template_path = "charts/{}/{}".format(args.reponame, template_name)
@@ -25,6 +32,7 @@ def gen_repos(args, ext="yaml"):
         print("# gen_values", template_path)
 
         e = Environment(loader=FileSystemLoader("charts/{}/".format(args.reponame)))
+        e.filters["to_yaml"] = to_yaml
         t = e.get_template(template_name)
 
         gen_values(t, args.reponame)

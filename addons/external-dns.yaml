@@ -14,6 +14,7 @@ spec:
     metadata:
       name: "external-dns" # only management cluster
       annotations:
+        argocd.argoproj.io/manifest-generate-paths: /charts/external-dns
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"

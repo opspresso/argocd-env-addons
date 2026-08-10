@@ -14,6 +14,7 @@ spec:
     metadata:
       name: "grafana" # only management cluster
       annotations:
+        argocd.argoproj.io/manifest-generate-paths: /charts/grafana
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"

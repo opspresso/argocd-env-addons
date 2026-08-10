@@ -16,6 +16,7 @@ spec:
     metadata:
       name: "gateway-api-crds-{{cluster}}"
       annotations:
+        argocd.argoproj.io/manifest-generate-paths: /charts/gateway-api-crds
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
