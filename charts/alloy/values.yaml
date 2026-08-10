@@ -7,8 +7,16 @@ alloy:
     securityContext:
       runAsUser: 0
 
+    # Read offsets live under storagePath; on the default /tmp/alloy they die
+    # with the pod and every restart re-reads (duplicates) all logs.
+    storagePath: /var/lib/alloy
+
     mounts:
       varlog: true
+
+      extra:
+        - name: alloy-data
+          mountPath: /var/lib/alloy
 
     extraEnv:
       - name: NODE_NAME
@@ -25,6 +33,13 @@ alloy:
 
   controller:
     type: daemonset
+
+    volumes:
+      extra:
+        - name: alloy-data
+          hostPath:
+            path: /var/lib/alloy
+            type: DirectoryOrCreate
 
     tolerations:
       - operator: Exists
