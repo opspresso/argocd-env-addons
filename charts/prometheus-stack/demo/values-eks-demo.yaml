@@ -1,6 +1,24 @@
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
+  prometheus:
+    prometheusSpec:
+      # Nothing scraped here carries a cluster label, so every dashboard's
+      # cluster dropdown is empty and its cluster=~"^$cluster$" filters match
+      # only because an empty regex matches a missing label. The default scrape
+      # class stamps it on every target instead.
+      scrapeClasses:
+        - name: cluster
+          default: true
+          relabelings:
+            - targetLabel: cluster
+              replacement: "eks-demo"
+
+      # Series keep the label above locally; this is what alertmanager and any
+      # remote write see, so an alert says which cluster it came from.
+      externalLabels:
+        cluster: "eks-demo"
+
 
 
 raw:
