@@ -21,9 +21,11 @@ build.sh               # 모든 chart 에 gen_values.py 실행. CI 에서 결과
 update_env.sh          # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
 ```
 
-`charts/argo-workflows`, `charts/cluster-role` 은 `addons/` 에도 `backup/` 에도 ApplicationSet 이
-없어 배포되지 않는다. `cluster-role` 은 `env/*.yaml` 에 `cluster_role.readonly` 설정이 남아 있으니
-지우기 전에 배포 의도를 먼저 확인한다.
+`charts/` 의 모든 chart 는 `addons/` 나 `backup/` 에 ApplicationSet 을 가진다. 어느 쪽에도 없는
+chart 는 배포 경로가 없다는 뜻이므로, 새로 만들 때는 ApplicationSet 을 함께 둔다.
+
+`argo-cd` 의 Dex 설정에는 `argo-workflows-sso` OIDC 클라이언트가 남아 있다. argo-workflows 는
+배포되지 않으므로 지금은 쓰이지 않는다.
 
 ## charts 규칙
 
@@ -59,7 +61,7 @@ ApplicationSet 의 `valueFiles` 에 적힌 파일이 없으면 Argo CD 가 sync 
 ### Chart.yaml
 
 - `version` 은 upstream chart 버전과 같은 값을 쓴다 (예: argo-cd → `"10.2.2"`).
-  순수 매니페스트만 담는 chart(`cluster-role`, `storage-class`)는 incubator `raw` chart 버전을 쓴다.
+  순수 매니페스트만 담는 chart(`ingress-class`, `storage-class`)는 incubator `raw` chart 버전을 쓴다.
 - dependency 이름이 디렉토리 이름과 다르면 `alias` 로 맞춘다
   (예: `kube-prometheus-stack` → `prometheus-stack`). 한 chart 를 두 번 쓰면 `alias` 로 구분한다
   (istio 의 `raw` / `tgb`).

@@ -45,10 +45,6 @@ atlantis:
   infracost:
     enabled: false
 
-cluster_role:
-  readonly:
-    enabled: true
-
 istio:
   global:
     hub: gcr.io/istio-release

@@ -25,10 +25,6 @@ cluster_autoscaler:
   scale_down_delay_after_delete: 1m
   scale_down_utilization_threshold: 0.6
 
-cluster_role:
-  readonly:
-    enabled: true
-
 istio:
   global:
     hub: gcr.io/istio-release
