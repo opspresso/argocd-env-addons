@@ -1961,7 +1961,7 @@
         "useTags": false
       },
       {
-        "allValue": "",
+        "allValue": ".*",
         "current": {
           "selected": false,
           "text": "All",
@@ -1991,7 +1991,7 @@
         "useTags": false
       },
       {
-        "allValue": "",
+        "allValue": ".*",
         "current": {
           "selected": false,
           "text": "All",

@@ -2932,7 +2932,8 @@
         "skipUrlSync": false,
         "sort": 1,
         "type": "query",
-        "useTags": false
+        "useTags": false,
+        "allValue": ".*"
       },
       {
         "current": {
