@@ -5,6 +5,25 @@ kube-prometheus-stack:
 
 raw:
   resources:
+    # alertmanagerSpec.secrets mounts this at
+    # /etc/alertmanager/secrets/prometheus-alertmanager-secret, where the slack
+    # receiver reads the webhook through api_url_file.
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: prometheus-alertmanager-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: prometheus-alertmanager-secret
+        data:
+          - secretKey: slack-hooks
+            remoteRef:
+              key: /k8s/common/slack-webhook/sample-agent
+
     - apiVersion: gateway.networking.k8s.io/v1
       kind: HTTPRoute
       metadata:

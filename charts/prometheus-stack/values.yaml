@@ -46,15 +46,18 @@ kube-prometheus-stack:
       #   group: monitoring
 
   alertmanager:
-    enabled: false
+    enabled: true
 
     config:
       route:
         receiver: "slack"
         routes:
+          # Watchdog fires continuously by design - it is the dead man's switch
+          # that proves the alert path is alive. Routing it to slack would post
+          # forever, so it is swallowed here and only ever checked in the UI.
           - match:
               alertname: Watchdog
-            receiver: "slack"
+            receiver: "null"
 
       receivers:
         - name: "null"
@@ -90,16 +93,17 @@ kube-prometheus-stack:
             storageClassName: gp3 # aws-ebs-sc
             accessModes: ["ReadWriteOnce"]
             resources:
+              # Only silences and the notification log live here, which stay in
+              # the tens of megabytes.
               requests:
-                storage: 35Gi
+                storage: 5Gi
 
       resources:
         requests:
-          cpu: "200m"
-          memory: 512Mi
+          cpu: 50m
+          memory: 128Mi
         limits:
-          cpu: "1"
-          memory: 2Gi
+          memory: 512Mi
 
       # tolerations:
       #   - key: group
