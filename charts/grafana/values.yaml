@@ -146,29 +146,29 @@ grafana:
       # commit sha pins the urls above; the keys are the filenames written to
       # the volume, so they stay put or the old files linger there unreferenced.
       istio-extension-dashboard:
+        datasource: Prometheus
         gnetId: 13277 # Istio Wasm Extension Dashboard
         revision: 276
-        datasource: Prometheus
       istio-mesh-dashboard:
+        datasource: Prometheus
         gnetId: 7639 # Istio Mesh Dashboard
         revision: 319
-        datasource: Prometheus
       istio-performance-dashboard:
+        datasource: Prometheus
         gnetId: 11829 # Istio Performance Dashboard
         revision: 318
-        datasource: Prometheus
       istio-service-dashboard:
+        datasource: Prometheus
         gnetId: 7636 # Istio Service Dashboard
         revision: 318
-        datasource: Prometheus
       istio-workload-dashboard:
+        datasource: Prometheus
         gnetId: 7630 # Istio Workload Dashboard
         revision: 319
-        datasource: Prometheus
       pilot-dashboard:
+        datasource: Prometheus
         gnetId: 7645 # Istio Control Plane Dashboard
         revision: 318
-        datasource: Prometheus
 
   persistence:
     enabled: true
