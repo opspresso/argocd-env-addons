@@ -26,7 +26,6 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 50m
         memory: 128Mi
 
     service:
@@ -43,6 +42,10 @@ argo-cd:
         # selector:
         #   release: prometheus-{{cluster}}
 
+  # A cpu limit equal to the request leaves no burst room, and every component
+  # here was throttling against it - repo-server worst at 19.5% of its periods,
+  # which is manifest generation, so it slows every sync. Requests still reserve
+  # the capacity; only the ceiling is gone. Memory keeps its limit.
   repoServer:
     replicas: 2
 
@@ -58,7 +61,6 @@ argo-cd:
         cpu: 500m
         memory: 1Gi
       limits:
-        cpu: 500m
         memory: 1Gi
 
     metrics:
@@ -77,7 +79,6 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 50m
         memory: 128Mi
 
   dex:
@@ -86,7 +87,6 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 50m
         memory: 128Mi
 
     env:
@@ -115,7 +115,6 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 50m
         memory: 128Mi
 
   notifications:
@@ -126,7 +125,6 @@ argo-cd:
         cpu: 50m
         memory: 128Mi
       limits:
-        cpu: 50m
         memory: 128Mi
 
     secret:
