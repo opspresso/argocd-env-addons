@@ -1740,7 +1740,8 @@
     },
     {
       "datasource": {
-        "uid": "${datasource}"
+        "type": "loki",
+        "uid": "${logs}"
       },
       "fieldConfig": {
         "defaults": {
@@ -1782,7 +1783,8 @@
       "targets": [
         {
           "datasource": {
-            "uid": "${datasource}"
+            "type": "loki",
+            "uid": "${logs}"
           },
           "exemplar": true,
           "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",stream=\"stderr\",pod=~\"^$deployment-[a-z0-9]+-[a-z0-9]+\",container!~\"istio-proxy\"}[2m])) by (pod)",
@@ -1794,7 +1796,8 @@
         },
         {
           "datasource": {
-            "uid": "${datasource}"
+            "type": "loki",
+            "uid": "${logs}"
           },
           "exemplar": true,
           "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$deployment-[a-z0-9]+-[a-z0-9]+\",container!~\"istio-proxy\"} |~ \"error|ERROR\" [2m])) by (pod)",
@@ -1806,7 +1809,8 @@
         },
         {
           "datasource": {
-            "uid": "${datasource}"
+            "type": "loki",
+            "uid": "${logs}"
           },
           "exemplar": true,
           "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$deployment-[a-z0-9]+-[a-z0-9]+\",container!~\"istio-proxy\"} |~ \"warn|WARN\" [2m])) by (pod)",
@@ -1818,7 +1822,8 @@
         }
       ],
       "title": "error/warn/stderr",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "Log volume from Loki, not Prometheus - this panel uses the $logs datasource."
     },
     {
       "title": "Requests by Response Code (5m avg)",
@@ -1896,6 +1901,23 @@
         "name": "datasource",
         "options": [],
         "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Loki",
+          "value": "Loki"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "logs",
+        "options": [],
+        "query": "loki",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
