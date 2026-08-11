@@ -1352,7 +1352,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\"}[5m]))",
+          "expr": "sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\"}[5m]))",
           "interval": "",
           "legendFormat": "Received",
           "refId": "A"
