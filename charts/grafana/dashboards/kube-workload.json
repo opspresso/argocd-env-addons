@@ -2027,7 +2027,7 @@
     }
   ],
   "preload": false,
-  "refresh": "1m",
+  "refresh": "30s",
   "schemaVersion": 42,
   "tags": [
     "kubernetes",
