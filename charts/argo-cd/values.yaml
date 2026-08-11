@@ -134,7 +134,7 @@ argo-cd:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/subscriptions/
 
       - recipients:
-          - slack:sandbox
+          - slack:noti-argocd
         triggers:
           - on-deployed
           - on-health-degraded
