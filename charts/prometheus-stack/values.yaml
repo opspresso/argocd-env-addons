@@ -135,6 +135,18 @@ kube-prometheus-stack:
     # image:
     #   repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
 
+  # AWS runs these on the managed control plane, so their Services resolve to no
+  # endpoints and the bundled rules report them permanently Down. Left on, they
+  # post three critical alerts to slack every repeat_interval, forever.
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+
   kubelet:
     serviceMonitor:
       relabelings:
