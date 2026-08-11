@@ -1664,6 +1664,93 @@
               "datasource": "${datasource}"
             }
           ]
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "${logs}"
+          },
+          "fieldConfig": {
+            "defaults": {
+              "unit": "short",
+              "custom": {
+                "drawStyle": "line",
+                "lineWidth": 1,
+                "fillOpacity": 10,
+                "showPoints": "never",
+                "spanNulls": false,
+                "stacking": {
+                  "mode": "none",
+                  "group": "A"
+                }
+              }
+            },
+            "overrides": []
+          },
+          "gridPos": {
+            "h": 7,
+            "w": 12,
+            "x": 12,
+            "y": 23
+          },
+          "id": 61,
+          "links": [],
+          "options": {
+            "legend": {
+              "showLegend": true,
+              "displayMode": "list",
+              "placement": "bottom",
+              "calcs": []
+            },
+            "tooltip": {
+              "mode": "multi",
+              "sort": "none"
+            }
+          },
+          "targets": [
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${logs}"
+              },
+              "exemplar": true,
+              "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",stream=\"stderr\",pod=~\"^$statefulset-[a-z0-9]+\",container!~\"istio-proxy\"}[2m])) by (pod)",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "stderr / {{pod}}",
+              "refId": "A"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${logs}"
+              },
+              "exemplar": true,
+              "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$statefulset-[a-z0-9]+\",container!~\"istio-proxy\"} |~ \"error|ERROR\" [2m])) by (pod)",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "error  / {{pod}} ",
+              "refId": "B"
+            },
+            {
+              "datasource": {
+                "type": "loki",
+                "uid": "${logs}"
+              },
+              "exemplar": true,
+              "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$statefulset-[a-z0-9]+\",container!~\"istio-proxy\"} |~ \"warn|WARN\" [2m])) by (pod)",
+              "format": "time_series",
+              "interval": "",
+              "intervalFactor": 1,
+              "legendFormat": "warn / {{pod}}",
+              "refId": "C"
+            }
+          ],
+          "title": "error/warn/stderr",
+          "type": "timeseries",
+          "description": "Log volume from Loki, not Prometheus - this panel uses the $logs datasource."
         }
       ],
       "title": "Service",
@@ -1695,6 +1782,23 @@
         "options": [],
         "query": "prometheus",
         "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "Loki",
+          "value": "Loki"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "logs",
+        "options": [],
+        "query": "loki",
         "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
