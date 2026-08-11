@@ -116,6 +116,15 @@ grafana:
   # dashboards/ is the whole point. Third party urls stay pinned.
   dashboards:
     addons:
+      # One dashboard for deployments, daemonsets and statefulsets. Pods are
+      # resolved through namespace_workload_pod:kube_pod_owner:relabel instead
+      # of a name regex, which is both kind-agnostic and more accurate - the
+      # per-kind boards match ^name-[a-z0-9]+-[a-z0-9]+ and so counted
+      # argocd-application-controller-0, a statefulset pod, as a deployment.
+      kube-workload:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/refs/heads/main/charts/grafana/dashboards/kube-workload.json
+        datasource: Prometheus
+
       # Also published at https://grafana.com/orgs/nalbam/dashboards - the
       # gnetId below is the same dashboard, kept as the fallback source.
       kube-cluster:
