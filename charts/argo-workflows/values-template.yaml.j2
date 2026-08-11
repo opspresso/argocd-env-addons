@@ -67,6 +67,23 @@ argo-workflows:
 
 raw:
   resources:
+    # The host has to match the redirectURI on argo-cd's argo-workflows-sso
+    # staticClient, or the sso round trip lands nowhere.
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: argo-workflows
+      spec:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
+          - "workflows.{{hostname.public}}"
+        rules:
+          - backendRefs:
+              - name: argo-workflows-server
+                port: 2746
+
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
@@ -78,10 +95,14 @@ raw:
           name: parameter-store
         target:
           name: argo-workflows-secret
+          # The client id is the literal id of the staticClient that argo-cd's
+          # dex declares, not a secret, so it is written here rather than read
+          # from parameter store. Merge keeps the fetched client-secret.
+          template:
+            mergePolicy: Merge
+            data:
+              client-id: argo-workflows-sso
         data:
-          - secretKey: client-id
-            remoteRef:
-              key: /k8s/common/argo-workflows-client-id
           - secretKey: client-secret
             remoteRef:
               key: /k8s/common/argo-workflows-client-secret
