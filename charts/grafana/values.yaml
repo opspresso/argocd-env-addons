@@ -97,21 +97,25 @@ grafana:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-      - name: 'default'
+      # Renamed from 'default' on purpose. Grafana drops dashboards whose
+      # provisioner is gone from the config, which is the only way to clear rows
+      # left behind when a dashboard's uid changes under a stable filename - the
+      # istio swap left two duplicates that the API refuses to delete.
+      - name: 'addons'
         orgId: 1
         folder: ''
         type: file
         disableDeletion: false
         editable: true
         options:
-          path: /var/lib/grafana/dashboards/default
+          path: /var/lib/grafana/dashboards/addons
   # An init container downloads every url below on each pod start. The
   # kubernetes ones are served from this repo, so a dashboard cannot vanish
   # under us the way the kubecost one did - it 404'd and left a zero byte file
   # grafana could not parse. main is deliberate there: editing the json in
   # dashboards/ is the whole point. Third party urls stay pinned.
   dashboards:
-    default:
+    addons:
       # Also published at https://grafana.com/orgs/nalbam/dashboards - the
       # gnetId below is the same dashboard, kept as the fallback source.
       kube-cluster:
