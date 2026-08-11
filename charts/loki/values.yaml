@@ -46,14 +46,15 @@ loki:
         memory: 1024Mi
 
   # Rules sidecar in the loki pod; unset it and the whole pod drops to
-  # BestEffort no matter what singleBinary asks for.
+  # BestEffort no matter what singleBinary asks for. The limit has room to
+  # spare - this is a python process, and it OOMKilled in four seconds at 64Mi.
   sidecar:
     resources:
       requests:
         cpu: 10m
-        memory: 32Mi
-      limits:
         memory: 64Mi
+      limits:
+        memory: 256Mi
 
   read:
     replicas: 0
