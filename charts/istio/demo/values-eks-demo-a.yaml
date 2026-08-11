@@ -39,3 +39,179 @@ tgb:
           port: http2
         targetGroupARN: "arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-a/006cd49a0edd2e69"
         targetType: ip
+
+
+raw:
+  resources:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: Gateway
+      metadata:
+        name: istio-ingressgateway
+        namespace: istio-system
+      spec:
+        gatewayClassName: istio
+        addresses:
+          - value: istio-ingressgateway.istio-system.svc.cluster.local
+            type: Hostname
+        listeners:
+          - name: http
+            port: 80
+            protocol: HTTP
+            allowedRoutes:
+              namespaces:
+                from: All
+
+    - apiVersion: v1
+      kind: Service
+      metadata:
+        labels:
+          app: istio-ingressgateway
+          istio: ingressgateway
+        name: istio-ingressgateway-metrics
+      spec:
+        ports:
+          - name: http-envoy-prom
+            port: 25090
+            protocol: TCP
+            targetPort: 15090
+        selector:
+          app: istio-ingressgateway
+          istio: ingressgateway
+        type: ClusterIP
+
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: EnvoyFilter
+      metadata:
+        name: preserve-external-request-id
+        namespace: istio-system
+      spec:
+        configPatches:
+          - applyTo: NETWORK_FILTER
+            match:
+              context: ANY
+              listener:
+                filterChain:
+                  filter:
+                    name: envoy.filters.network.http_connection_manager
+            patch:
+              operation: MERGE
+              value:
+                typed_config:
+                  "@type": "type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager"
+                  preserve_external_request_id: true
+
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: EnvoyFilter
+      metadata:
+        name: uuid-unable-trace-reason
+        namespace: istio-system
+      spec:
+        configPatches:
+          - applyTo: NETWORK_FILTER
+            match:
+              context: ANY
+              listener:
+                filterChain:
+                  filter:
+                    name: envoy.filters.network.http_connection_manager
+            patch:
+              operation: MERGE
+              value:
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                  request_id_extension:
+                    typed_config:
+                      "@type": type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
+                      pack_trace_reason: false
+
+    # Prometheus only adopts a ServiceMonitor carrying its release label, so
+    # without it these are collected by nobody and the istio dashboards stay
+    # empty. The metrics service above is what this scrapes.
+    - apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      metadata:
+        labels:
+          app: istio-ingressgateway
+          release: prometheus-eks-demo-a
+        name: istio-ingressgateway-metrics
+      spec:
+        endpoints:
+          - interval: 15s
+            path: /stats/prometheus
+            port: http-envoy-prom
+        jobLabel: istio-ingressgateway
+        namespaceSelector:
+          matchNames:
+            - istio-system
+        selector:
+          matchLabels:
+            app: istio-ingressgateway
+            istio: ingressgateway
+
+    - apiVersion: monitoring.coreos.com/v1
+      kind: ServiceMonitor
+      metadata:
+        labels:
+          app: istio-components
+          release: prometheus-eks-demo-a
+        name: istio-components-metrics
+      spec:
+        endpoints:
+          - interval: 30s
+            metricRelabelings:
+              - sourceLabels:
+                  - cluster
+                targetLabel: istio_cluster
+              - action: labeldrop
+                regex: cluster
+            port: http-monitoring
+        jobLabel: istio
+        namespaceSelector:
+          matchNames:
+            - istio-system
+        selector:
+          matchExpressions:
+            - key: istio
+              operator: In
+              values:
+                - mixer
+                - pilot
+                - galley
+                - citadel
+                - sidecar-injector
+                - istiod
+
+    # Sidecar metrics. Left off deliberately: it selects every service in every
+    # namespace, and nothing here is sidecar-injected, so it would add a
+    # cluster-wide scrape that finds nothing. Enable it with the release label
+    # when workloads actually join the mesh.
+    # - apiVersion: monitoring.coreos.com/v1
+    #   kind: ServiceMonitor
+    #   metadata:
+    #     labels:
+    #       app: istio-servicemesh
+    #       # release: prometheus-eks-demo-a
+    #     name: istio-servicemesh-metrics
+    #   spec:
+    #     endpoints:
+    #       - interval: 15s
+    #         path: /stats/prometheus
+    #         relabelings:
+    #           - sourceLabels: [__meta_kubernetes_pod_container_port_name]
+    #             action: keep
+    #             regex: ".*-envoy-prom"
+    #           - action: labeldrop
+    #             regex: "__meta_kubernetes_pod_label_(.+)"
+    #           - sourceLabels: [__meta_kubernetes_namespace]
+    #             action: replace
+    #             targetLabel: namespace
+    #           - sourceLabels: [__meta_kubernetes_pod_name]
+    #             action: replace
+    #             targetLabel: pod_name
+    #     jobLabel: istio-servicemesh
+    #     namespaceSelector:
+    #       any: true
+    #     selector:
+    #       matchExpressions:
+    #         - key: istio
+    #           operator: DoesNotExist
