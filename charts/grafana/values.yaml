@@ -139,23 +139,32 @@ grafana:
         url: https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.9.1/examples/dashboard.json
         datasource: Prometheus
 
+      # Published by the istio org on grafana.com. revision pins them the way a
+      # commit sha pins the urls above; the keys are the filenames written to
+      # the volume, so they stay put or the old files linger there unreferenced.
       istio-extension-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-extension-dashboard.json
+        gnetId: 13277 # Istio Wasm Extension Dashboard
+        revision: 276
         datasource: Prometheus
       istio-mesh-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-mesh-dashboard.json
+        gnetId: 7639 # Istio Mesh Dashboard
+        revision: 319
         datasource: Prometheus
       istio-performance-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-performance-dashboard.json
+        gnetId: 11829 # Istio Performance Dashboard
+        revision: 318
         datasource: Prometheus
       istio-service-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-service-dashboard.json
+        gnetId: 7636 # Istio Service Dashboard
+        revision: 318
         datasource: Prometheus
       istio-workload-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-workload-dashboard.json
+        gnetId: 7630 # Istio Workload Dashboard
+        revision: 319
         datasource: Prometheus
       pilot-dashboard:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/istio-pilot-dashboard.json
+        gnetId: 7645 # Istio Control Plane Dashboard
+        revision: 318
         datasource: Prometheus
 
   persistence:
