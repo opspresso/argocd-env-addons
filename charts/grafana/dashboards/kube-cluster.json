@@ -2853,7 +2853,7 @@
       "type": "row"
     }
   ],
-  "refresh": "10s",
+  "refresh": "1m",
   "schemaVersion": 36,
   "style": "dark",
   "tags": [
