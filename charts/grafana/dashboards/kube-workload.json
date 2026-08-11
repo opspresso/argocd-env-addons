@@ -1,18 +1,4 @@
 {
-  "__requires": [
-    {
-      "type": "grafana",
-      "id": "grafana",
-      "name": "Grafana",
-      "version": "6.0.0"
-    },
-    {
-      "type": "datasource",
-      "id": "prometheus",
-      "name": "Prometheus",
-      "version": "5.0.0"
-    }
-  ],
   "annotations": {
     "list": [
       {
@@ -38,8 +24,8 @@
   "description": "Dashboard for Kubernetes Deployment with Prometheus.",
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "gnetId": 9679,
   "graphTooltip": 0,
+  "id": null,
   "links": [
     {
       "asDropdown": true,
@@ -53,14 +39,9 @@
       "type": "dashboards"
     }
   ],
-  "liveNow": false,
   "panels": [
     {
       "collapsed": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PBFA97CFB590B2093"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -69,15 +50,6 @@
       },
       "id": 58,
       "panels": [],
-      "targets": [
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "PBFA97CFB590B2093"
-          },
-          "refId": "A"
-        }
-      ],
       "title": "Workload",
       "type": "row"
     },
@@ -106,7 +78,7 @@
             "steps": [
               {
                 "color": "#e24d42",
-                "value": null
+                "value": 0
               },
               {
                 "color": "#f9934e",
@@ -129,13 +101,13 @@
         "y": 1
       },
       "id": 46,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -143,10 +115,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -192,7 +166,7 @@
             "steps": [
               {
                 "color": "#629e51",
-                "value": null
+                "value": 0
               },
               {
                 "color": "#f9934e",
@@ -215,9 +189,10 @@
         "y": 1
       },
       "id": 31,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -228,9 +203,10 @@
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
+        "sizing": "auto",
         "text": {}
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -258,9 +234,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -269,6 +249,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -276,6 +257,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -291,7 +273,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -310,20 +292,21 @@
         "y": 1
       },
       "id": 17,
-      "links": [],
       "options": {
         "graph": {},
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "7.5.1",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -353,9 +336,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -364,6 +351,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -371,6 +359,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -386,7 +375,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -405,20 +394,21 @@
         "y": 1
       },
       "id": 54,
-      "links": [],
       "options": {
         "graph": {},
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "bottom"
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -463,7 +453,7 @@
             "steps": [
               {
                 "color": "#e24d42",
-                "value": null
+                "value": 0
               },
               {
                 "color": "#f9934e",
@@ -486,13 +476,13 @@
         "y": 6
       },
       "id": 52,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -500,10 +490,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -545,7 +537,7 @@
             "steps": [
               {
                 "color": "#e0f9d7",
-                "value": null
+                "value": 0
               },
               {
                 "color": "#f9934e",
@@ -568,13 +560,13 @@
         "y": 6
       },
       "id": 53,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -582,10 +574,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -629,7 +623,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -648,13 +642,13 @@
         "y": 6
       },
       "id": 35,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -662,10 +656,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -710,7 +706,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -729,13 +725,13 @@
         "y": 6
       },
       "id": 37,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -743,10 +739,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -791,7 +789,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -810,13 +808,13 @@
         "y": 6
       },
       "id": 44,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -824,10 +822,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -855,9 +855,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 5,
             "gradientMode": "none",
@@ -866,6 +870,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -873,6 +878,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": true,
             "stacking": {
               "group": "A",
@@ -888,7 +894,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -907,19 +913,20 @@
         "y": 8
       },
       "id": 27,
-      "links": [],
       "options": {
         "legend": {
           "calcs": [],
           "displayMode": "list",
-          "placement": "bottom"
+          "placement": "bottom",
+          "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -985,7 +992,7 @@
             "steps": [
               {
                 "color": "#629e51",
-                "value": null
+                "value": 0
               },
               {
                 "color": "#f9934e",
@@ -1008,9 +1015,10 @@
         "y": 8
       },
       "id": 33,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
+        "minVizHeight": 75,
+        "minVizWidth": 75,
         "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
@@ -1021,9 +1029,10 @@
         },
         "showThresholdLabels": false,
         "showThresholdMarkers": true,
+        "sizing": "auto",
         "text": {}
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1051,9 +1060,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 0,
             "gradientMode": "none",
@@ -1062,6 +1075,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1069,6 +1083,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1084,7 +1099,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -1103,20 +1118,21 @@
         "y": 8
       },
       "id": 25,
-      "links": [],
       "options": {
         "graph": {},
         "legend": {
           "calcs": [],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1146,9 +1162,13 @@
             "mode": "palette-classic"
           },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
             "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
             "fillOpacity": 10,
             "gradientMode": "none",
@@ -1157,6 +1177,7 @@
               "tooltip": false,
               "viz": false
             },
+            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
@@ -1164,6 +1185,7 @@
               "type": "linear"
             },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
               "group": "A",
@@ -1179,7 +1201,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -1198,7 +1220,6 @@
         "y": 8
       },
       "id": 16,
-      "links": [],
       "options": {
         "graph": {},
         "legend": {
@@ -1209,15 +1230,17 @@
             "min",
             "sum"
           ],
-          "displayMode": "hidden",
-          "placement": "right"
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": false
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "single",
           "sort": "none"
         }
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1274,7 +1297,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -1293,13 +1316,13 @@
         "y": 13
       },
       "id": 39,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1307,10 +1330,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1355,7 +1380,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -1374,13 +1399,13 @@
         "y": 13
       },
       "id": 41,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1388,10 +1413,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1436,7 +1463,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               },
               {
                 "color": "red",
@@ -1455,13 +1482,13 @@
         "y": 13
       },
       "id": 45,
-      "links": [],
       "maxDataPoints": 100,
       "options": {
         "colorMode": "none",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1469,10 +1496,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1492,9 +1521,6 @@
     },
     {
       "collapsed": false,
-      "datasource": {
-        "uid": "${datasource}"
-      },
       "gridPos": {
         "h": 1,
         "w": 24,
@@ -1503,14 +1529,6 @@
       },
       "id": 51,
       "panels": [],
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "refId": "A"
-        }
-      ],
       "title": "Service",
       "type": "row"
     },
@@ -1518,19 +1536,23 @@
       "datasource": {
         "uid": "${datasource}"
       },
+      "description": "Share of requests the gateway saw that did not return 5xx. Redirects and 4xx count as served; the panel goes to \"no traffic\" rather than NaN when the rate is zero.",
       "fieldConfig": {
         "defaults": {
           "color": {
             "mode": "thresholds"
           },
+          "decimals": 2,
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "noValue": "no traffic",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "red",
-                "value": null
+                "value": 0
               },
               {
                 "color": "orange",
@@ -1542,10 +1564,7 @@
               }
             ]
           },
-          "unit": "percent",
-          "min": 0,
-          "max": 100,
-          "decimals": 2
+          "unit": "percent"
         },
         "overrides": []
       },
@@ -1556,12 +1575,12 @@
         "y": 16
       },
       "id": 56,
-      "links": [],
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1569,10 +1588,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "value"
+        "textMode": "value",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1588,8 +1609,7 @@
         }
       ],
       "title": "Success Rate non-5xx (5m avg)",
-      "type": "stat",
-      "description": "Share of requests the gateway saw that did not return 5xx. Redirects and 4xx count as served; the panel goes to \"no traffic\" rather than NaN when the rate is zero."
+      "type": "stat"
     },
     {
       "datasource": {
@@ -1606,7 +1626,7 @@
             "steps": [
               {
                 "color": "green",
-                "value": null
+                "value": 0
               }
             ]
           },
@@ -1621,12 +1641,12 @@
         "y": 16
       },
       "id": 55,
-      "links": [],
       "options": {
         "colorMode": "value",
         "graphMode": "area",
         "justifyMode": "auto",
         "orientation": "auto",
+        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1634,10 +1654,12 @@
           "fields": "",
           "values": false
         },
+        "showPercentChange": false,
         "text": {},
-        "textMode": "auto"
+        "textMode": "auto",
+        "wideLayout": true
       },
-      "pluginVersion": "9.0.4",
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1661,19 +1683,59 @@
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "s",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "lineWidth": 1,
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
-              "mode": "none",
-              "group": "A"
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
           },
-          "min": 0
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "s"
         },
         "overrides": []
       },
@@ -1684,19 +1746,20 @@
         "y": 16
       },
       "id": 59,
-      "links": [],
       "options": {
         "legend": {
-          "showLegend": true,
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "calcs": []
+          "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1740,23 +1803,63 @@
     },
     {
       "datasource": {
-        "type": "loki",
-        "uid": "${logs}"
+        "uid": "${datasource}"
       },
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "lineWidth": 1,
             "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
             "showPoints": "never",
+            "showValues": false,
             "spanNulls": false,
             "stacking": {
-              "mode": "none",
-              "group": "A"
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
             }
-          }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "reqps"
         },
         "overrides": []
       },
@@ -1766,20 +1869,118 @@
         "x": 17,
         "y": 16
       },
-      "id": 60,
-      "links": [],
+      "id": 61,
       "options": {
         "legend": {
-          "showLegend": true,
+          "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "calcs": []
+          "showLegend": true
         },
         "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (response_code) (rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m]))",
+          "legendFormat": "{{response_code}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Requests by Response Code (5m avg)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "${logs}"
+      },
+      "description": "Log volume from Loki, not Prometheus - this panel uses the $logs datasource.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "showValues": false,
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 7,
+        "w": 10,
+        "x": 0,
+        "y": 23
+      },
+      "id": 60,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
           "mode": "multi",
           "sort": "none"
         }
       },
+      "pluginVersion": "12.3.1",
       "targets": [
         {
           "datasource": {
@@ -1822,67 +2023,12 @@
         }
       ],
       "title": "error/warn/stderr",
-      "type": "timeseries",
-      "description": "Log volume from Loki, not Prometheus - this panel uses the $logs datasource."
-    },
-    {
-      "title": "Requests by Response Code (5m avg)",
-      "type": "timeseries",
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "id": 61,
-      "gridPos": {
-        "h": 7,
-        "w": 12,
-        "x": 0,
-        "y": 23
-      },
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "min": 0,
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 1,
-            "fillOpacity": 10,
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "mode": "normal",
-              "group": "A"
-            }
-          }
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "showLegend": true,
-          "displayMode": "list",
-          "placement": "bottom",
-          "calcs": []
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (response_code) (rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m]))",
-          "legendFormat": "{{response_code}}",
-          "refId": "A",
-          "datasource": {
-            "uid": "${datasource}"
-          }
-        }
-      ]
+      "type": "timeseries"
     }
   ],
+  "preload": false,
   "refresh": "1m",
-  "schemaVersion": 36,
-  "style": "dark",
+  "schemaVersion": 42,
   "tags": [
     "kubernetes",
     "prometheus"
@@ -1891,41 +2037,32 @@
     "list": [
       {
         "current": {
-          "selected": false,
           "text": "Prometheus",
           "value": "Prometheus"
         },
-        "hide": 0,
         "includeAll": false,
-        "multi": false,
         "name": "datasource",
         "options": [],
         "query": "prometheus",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "type": "datasource"
       },
       {
         "current": {
-          "selected": false,
           "text": "Loki",
           "value": "Loki"
         },
-        "hide": 0,
         "includeAll": false,
-        "multi": false,
         "name": "logs",
         "options": [],
         "query": "loki",
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "type": "datasource"
       },
       {
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -1934,9 +2071,7 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(kube_node_labels,cluster)",
-        "hide": 0,
         "includeAll": true,
-        "multi": false,
         "name": "cluster",
         "options": [],
         "query": {
@@ -1945,17 +2080,12 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "type": "query"
       },
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
           "text": "sample",
           "value": "sample"
         },
@@ -1964,9 +2094,7 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(kube_namespace_labels{cluster=~\"^$cluster$\"},namespace)",
-        "hide": 0,
         "includeAll": false,
-        "multi": false,
         "name": "namespace",
         "options": [],
         "query": {
@@ -1975,62 +2103,49 @@
         },
         "refresh": 1,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "type": "query"
       },
       {
         "current": {
-          "selected": true,
           "text": "deployment",
           "value": "deployment"
         },
         "definition": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\"},workload_type)",
-        "hide": 0,
         "includeAll": false,
-        "multi": false,
         "name": "workload_type",
         "options": [],
-        "refresh": 1,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query",
         "query": {
           "query": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\"},workload_type)",
           "refId": "StandardVariableQuery"
-        }
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
       },
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
         "definition": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload_type=\"$workload_type\"},workload)",
-        "hide": 0,
         "includeAll": true,
-        "multi": false,
         "name": "workload",
         "options": [],
-        "refresh": 2,
-        "regex": "",
-        "skipUrlSync": false,
-        "sort": 1,
-        "type": "query",
         "query": {
           "query": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload_type=\"$workload_type\"},workload)",
           "refId": "StandardVariableQuery"
-        }
+        },
+        "refresh": 2,
+        "regex": "",
+        "sort": 1,
+        "type": "query"
       },
       {
         "allValue": ".*",
         "current": {
-          "selected": false,
           "text": "All",
           "value": "$__all"
         },
@@ -2039,9 +2154,7 @@
           "uid": "${datasource}"
         },
         "definition": "label_values(kube_service_labels{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"},service)",
-        "hide": 0,
         "includeAll": true,
-        "multi": false,
         "name": "service",
         "options": [],
         "query": {
@@ -2050,12 +2163,8 @@
         },
         "refresh": 2,
         "regex": "",
-        "skipUrlSync": false,
         "sort": 1,
-        "tagValuesQuery": "",
-        "tagsQuery": "",
-        "type": "query",
-        "useTags": false
+        "type": "query"
       }
     ]
   },
@@ -2075,22 +2184,10 @@
       "1h",
       "2h",
       "1d"
-    ],
-    "time_options": [
-      "5m",
-      "15m",
-      "1h",
-      "6h",
-      "12h",
-      "24h",
-      "2d",
-      "7d",
-      "30d"
     ]
   },
   "timezone": "browser",
   "title": "Kubernetes Workload - Prometheus",
   "uid": "kube-workload",
-  "version": 1,
-  "weekStart": ""
+  "version": 1
 }
