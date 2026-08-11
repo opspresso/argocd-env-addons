@@ -5,7 +5,7 @@ argo-rollouts:
     metrics:
       enabled: true
       serviceMonitor:
-        enabled: False
+        enabled: True
         namespace: addon-argo-rollouts
 
   dashboard:

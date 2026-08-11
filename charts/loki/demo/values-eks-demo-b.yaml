@@ -3,7 +3,7 @@ loki:
 
   monitoring:
     serviceMonitor:
-      enabled: False
+      enabled: True
       labels:
         release: prometheus-eks-demo-b
 
