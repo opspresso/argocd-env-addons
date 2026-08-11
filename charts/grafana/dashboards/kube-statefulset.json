@@ -565,7 +565,7 @@
       "pluginVersion": "8.2.3",
       "targets": [
         {
-          "expr": "sum(kube_statefulset_status_replicas_unavailable{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$statefulset\"})",
+          "expr": "(sum(kube_statefulset_status_replicas{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$statefulset\"}) - sum(kube_statefulset_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$statefulset\"}))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -875,7 +875,7 @@
           "refId": "B"
         },
         {
-          "expr": "sum(kube_statefulset_status_replicas_unavailable{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$statefulset\"})",
+          "expr": "(sum(kube_statefulset_status_replicas{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$statefulset\"}) - sum(kube_statefulset_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$statefulset\"}))",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,

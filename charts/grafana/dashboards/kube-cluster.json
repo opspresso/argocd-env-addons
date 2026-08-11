@@ -483,7 +483,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(container_fs_usage_bytes{device=~\"^/dev/.*$\",id=\"/\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(container_fs_limit_bytes{device=~\"^/dev/.*$\",id=\"/\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum(node_filesystem_size_bytes{mountpoint=\"/local\"} - node_filesystem_avail_bytes{mountpoint=\"/local\"}) /\nsum(node_filesystem_size_bytes{mountpoint=\"/local\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1035,7 +1035,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(container_fs_usage_bytes{device=~\"^/dev/.*$\",id=\"/\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(node_filesystem_size_bytes{mountpoint=\"/local\"} - node_filesystem_avail_bytes{mountpoint=\"/local\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1046,7 +1046,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(container_fs_limit_bytes{device=~\"^/dev/.*$\",id=\"/\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(node_filesystem_size_bytes{mountpoint=\"/local\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1122,7 +1122,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_status_condition{condition=\"OutOfDisk\",status=\"true\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_condition{condition=\"DiskPressure\",status=\"true\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2866,8 +2866,8 @@
       {
         "current": {
           "selected": false,
-          "text": "demo",
-          "value": "demo"
+          "text": "Prometheus",
+          "value": "Prometheus"
         },
         "hide": 0,
         "includeAll": false,
