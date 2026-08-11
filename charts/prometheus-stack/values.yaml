@@ -80,7 +80,7 @@ kube-prometheus-stack:
         - name: "null"
         - name: "slack"
           slack_configs:
-            - channel: "#sandbox"
+            - channel: "#noti-eks-demo"
               api_url_file: /etc/alertmanager/secrets/prometheus-alertmanager-secret/slack-hooks
               color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
               icon_url: https://avatars3.githubusercontent.com/u/3380462
