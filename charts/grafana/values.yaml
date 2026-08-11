@@ -105,38 +105,31 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/default
+      # Fed by the ConfigMap this chart builds from dashboards/, not by the
+      # download init container, so it needs its own provider - two mounts
+      # cannot share one path.
+      - name: 'kube'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/kube
+
+  dashboardsConfigMaps:
+    kube: '{{ .Release.Name }}-dashboards-kube'
 
   # An init container downloads every url below on each pod start, so a moving
   # ref silently changes the dashboards and a dead one writes an empty file that
   # Grafana then fails to parse. Pin to a commit or a release tag.
   dashboards:
     default:
-      kube-cluster:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-cluster.json
-        # gnetId: 9797
-        # revision: 18
-        # datasource: Prometheus
-      kube-deploy:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-deployment.json
-        # gnetId: 9679
-        # revision: 14
-        # datasource: Prometheus
-      kube-sts:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-statefulset.json
-        # gnetId: 14902
-        # revision: 4
-        # datasource: Prometheus
-      kube-dms:
-        url: https://raw.githubusercontent.com/nalbam/kubernetes/d613016e3b6b5ebbbb639e5f2d17537463651687/grafana/kube-daemonset.json
-        # gnetId: 14982
-        # revision: 2
-        # datasource: Prometheus
-
       argo-cd:
-        url: https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.0/examples/dashboard.json
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
         datasource: Prometheus
       argo-rollouts:
-        url: https://raw.githubusercontent.com/argoproj/argo-rollouts/v1.9.1/examples/dashboard.json
+        url: https://raw.githubusercontent.com/argoproj/argo-rollouts/refs/heads/master/examples/dashboard.json
         datasource: Prometheus
 
       # Published by the istio org on grafana.com. revision pins them the way a
