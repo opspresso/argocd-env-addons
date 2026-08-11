@@ -1,6 +1,10 @@
 loki:
   fullnameOverride: loki
 
+  # The chart labels its own metrics cluster=<release>, which lands as
+  # cluster="loki" and puts this one job outside every cluster filter.
+  clusterLabelOverride: eks-demo
+
   monitoring:
     serviceMonitor:
       enabled: True

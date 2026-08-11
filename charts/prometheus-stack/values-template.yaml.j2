@@ -11,7 +11,10 @@ kube-prometheus-stack:
         - name: cluster
           default: true
           relabelings:
-            - targetLabel: cluster
+            # action is spelled out because the CRD defaults it, and Argo CD
+            # reads the defaulted field back as drift.
+            - action: replace
+              targetLabel: cluster
               replacement: "{{cluster}}"
 
       # Series keep the label above locally; this is what alertmanager and any
