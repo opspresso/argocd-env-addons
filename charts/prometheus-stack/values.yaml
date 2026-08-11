@@ -1,14 +1,31 @@
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
-  # prometheusOperator:
-  #   tolerations:
-  #     - key: group
-  #       operator: Equal
-  #       value: monitoring
-  #       effect: NoSchedule
-  #   nodeSelector:
-  #     group: monitoring
+  prometheusOperator:
+    # tolerations:
+    #   - key: group
+    #     operator: Equal
+    #     value: monitoring
+    #     effect: NoSchedule
+    # nodeSelector:
+    #   group: monitoring
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+    # Runs as a sidecar in the prometheus and alertmanager pods, and a pod is
+    # only as good as its least specified container.
+    prometheusConfigReloader:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 64Mi
 
   prometheus:
     enabled: true
@@ -117,6 +134,13 @@ kube-prometheus-stack:
   kube-state-metrics:
     fullnameOverride: kube-state-metrics
 
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
     # https://github.com/kubernetes/kube-state-metrics/tree/main/docs
     extraArgs:
       - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*],daemonsets=[*]
@@ -134,6 +158,17 @@ kube-prometheus-stack:
 
     # image:
     #   repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
+
+    # Same reasoning as alloy: a node agent that loses the last slot on a full
+    # node leaves that node unmonitored, which is when you most want the data.
+    priorityClassName: system-node-critical
+
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
 
   # AWS runs these on the managed control plane, so their Services resolve to no
   # endpoints and the bundled rules report them permanently Down. Left on, they
