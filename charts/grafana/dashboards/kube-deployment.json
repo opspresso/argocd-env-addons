@@ -1524,33 +1524,28 @@
             "mode": "thresholds"
           },
           "mappings": [],
-          "noValue": "0",
+          "noValue": "no traffic",
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "light-red",
+                "color": "red",
                 "value": null
               },
               {
-                "color": "super-light-red",
-                "value": 50
-              },
-              {
-                "color": "semi-dark-yellow",
-                "value": 80
-              },
-              {
-                "color": "light-green",
+                "color": "orange",
                 "value": 95
               },
               {
-                "color": "semi-dark-green",
-                "value": 98
+                "color": "green",
+                "value": 99
               }
             ]
           },
-          "unit": "short"
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "decimals": 2
         },
         "overrides": []
       },
@@ -1584,7 +1579,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\",response_code=~\"[2].*\"}[5m])) / sum(irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) * 100",
+          "expr": "(sum(irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\",response_code!~\"5..\"}[5m])) / sum(irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) * 100) and on() (sum(irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) > 0)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1592,8 +1587,9 @@
           "refId": "C"
         }
       ],
-      "title": "Success Rate 2xx (5m avg)",
-      "type": "stat"
+      "title": "Success Rate non-5xx (5m avg)",
+      "type": "stat",
+      "description": "Share of requests the gateway saw that did not return 5xx. Redirects and 4xx count as served; the panel goes to \"no traffic\" rather than NaN when the rate is zero."
     },
     {
       "datasource": {
@@ -1676,7 +1672,8 @@
               "mode": "none",
               "group": "A"
             }
-          }
+          },
+          "min": 0
         },
         "overrides": []
       },
@@ -1706,7 +1703,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "(histogram_quantile(0.99, sum(irate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000) or histogram_quantile(0.99, sum(irate(istio_request_duration_seconds_bucket{reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.99, sum(irate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1718,7 +1715,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "(histogram_quantile(0.90, sum(irate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000) or histogram_quantile(0.90, sum(irate(istio_request_duration_seconds_bucket{reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.90, sum(irate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1730,7 +1727,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "(histogram_quantile(0.50, sum(irate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\", destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000) or histogram_quantile(0.50, sum(irate(istio_request_duration_seconds_bucket{reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.50, sum(irate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\", destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1822,6 +1819,60 @@
       ],
       "title": "error/warn/stderr",
       "type": "timeseries"
+    },
+    {
+      "title": "Requests by Response Code (5m avg)",
+      "type": "timeseries",
+      "datasource": {
+        "uid": "${datasource}"
+      },
+      "id": 61,
+      "gridPos": {
+        "h": 7,
+        "w": 12,
+        "x": 0,
+        "y": 23
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 1,
+            "fillOpacity": 10,
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom",
+          "calcs": []
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (response_code) (irate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m]))",
+          "legendFormat": "{{response_code}}",
+          "refId": "A",
+          "datasource": {
+            "uid": "${datasource}"
+          }
+        }
+      ]
     }
   ],
   "refresh": "1m",
