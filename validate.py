@@ -37,6 +37,22 @@ VALUES_RE = re.compile(r"^values-.+\.yaml$")
 # ApplicationSet substitutes {{key}} from the env file the generator matched.
 PLACEHOLDER = re.compile(r"\{\{(\w+)\}\}")
 
+# Argo CD renders against the destination cluster, so a chart guarded by
+# .Capabilities.APIVersions.Has sees the CRDs installed there. `helm template`
+# assumes none exist and silently drops those resources instead of failing,
+# which reads as a clean run right up until the sync produces something CI never
+# looked at - argo-cd renders four ServiceMonitors on the cluster and none here.
+#
+# Only the prometheus-operator CRDs need declaring: charts gate on those, while
+# the gateway-api and external-secrets resources come from the raw chart
+# unconditionally. Has() matches the exact string, so a chart asking for
+# group/version/Kind is not satisfied by group/version.
+API_VERSIONS = [
+    "monitoring.coreos.com/v1",
+    "monitoring.coreos.com/v1/PrometheusRule",
+    "monitoring.coreos.com/v1/ServiceMonitor",
+]
+
 
 def parse_args():
     p = argparse.ArgumentParser(description="Helm render check")
@@ -150,6 +166,9 @@ def render(target, env_file):
 
     args = ["helm", "template", expand(target["name"], env), target["chart"]]
     args += ["--namespace", expand(target["namespace"], env)]
+
+    for api_version in API_VERSIONS:
+        args += ["--api-versions", api_version]
 
     for value_file in target["value_files"]:
         path = os.path.join(target["chart"], expand(value_file, env))
