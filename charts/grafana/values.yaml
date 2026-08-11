@@ -132,21 +132,6 @@ grafana:
         datasource: Prometheus
         # gnetId: 9797
         # revision: 18
-      kube-deploy:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/refs/heads/main/charts/grafana/dashboards/kube-deployment.json
-        datasource: Prometheus
-        # gnetId: 9679
-        # revision: 14
-      kube-sts:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/refs/heads/main/charts/grafana/dashboards/kube-statefulset.json
-        datasource: Prometheus
-        # gnetId: 14902
-        # revision: 4
-      kube-dms:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/refs/heads/main/charts/grafana/dashboards/kube-daemonset.json
-        datasource: Prometheus
-        # gnetId: 14982
-        # revision: 2
 
       argo-cd:
         url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
