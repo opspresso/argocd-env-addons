@@ -2858,8 +2858,7 @@
   "style": "dark",
   "tags": [
     "kubernetes",
-    "prometheus",
-    "cortex/enabled"
+    "prometheus"
   ],
   "templating": {
     "list": [
