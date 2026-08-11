@@ -44,4 +44,4 @@ __pycache__/
 values.output.yaml
 realm.output.json
 
-istio-*/
+.prompt.md
