@@ -32,7 +32,7 @@ prometheus-adapter:
     default: false
 
     custom:
-      # agent-studio scales on in-flight runs. Its runs are I/O bound — a pod
+      # agentdure scales on in-flight runs. Its runs are I/O bound — a pod
       # saturated with them waits on the LLM provider at near-zero CPU — so CPU
       # utilization would fail to scale up under load while scaling down pods
       # that are busy streaming.
@@ -41,7 +41,7 @@ prometheus-adapter:
       # before the HPA sees it. Raw scrape values swing with each run's start and
       # finish, and the pods take ~11 minutes to drain, so acting on a momentary
       # dip is expensive and slow to undo.
-      - seriesQuery: 'agent_studio_active_runs{namespace!="",pod!=""}'
+      - seriesQuery: 'agentdure_active_runs{namespace!="",pod!=""}'
         resources:
           overrides:
             namespace:
@@ -49,5 +49,5 @@ prometheus-adapter:
             pod:
               resource: pod
         name:
-          as: "agent_studio_active_runs"
+          as: "agentdure_active_runs"
         metricsQuery: 'sum(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)'
