@@ -430,16 +430,21 @@ grafana:
                             type: gt
                             params: [0]
 
-              # The rule above only catches an OOM that repeats fast enough for
-              # the kubelet to back off; a container that leaks and is killed
-              # every few hours never reaches CrashLoopBackOff. Pairing the
-              # restart counter with the recorded termination reason catches
-              # both - the same two metrics the Kill Reason table on the
-              # kube-workload dashboard reads. increase() over 10m holds the
-              # condition for roughly 10 minutes after a kill, which is long
-              # enough for the 2m 'for' and short enough to resolve on its own.
+              # The rule above only catches a container that dies fast enough for
+              # the kubelet to back off; one that leaks and is killed every few
+              # hours never reaches CrashLoopBackOff. Pairing the restart counter
+              # with the recorded termination reason catches both - the same two
+              # metrics the Kill Reason table on the kube-workload dashboard
+              # reads. Error is in the match because a SIGKILL from the kubelet,
+              # a failed liveness probe for instance, exits 137 without ever
+              # being tagged OOMKilled. group_left carries reason over so the
+              # slack message says which of the two it was.
+              #
+              # increase() over 10m holds the condition for roughly 10 minutes
+              # after a kill, which is long enough for the 2m 'for' and short
+              # enough to resolve on its own.
               - uid: addons-pod-oom-killed
-                title: Container OOMKilled
+                title: Container OOMKilled or Error
                 condition: C
                 for: 2m
                 noDataState: OK
@@ -447,7 +452,16 @@ grafana:
                 labels:
                   severity: warning
                 annotations:
-                  summary: A container was killed for exceeding its memory limit and restarted.
+                  # Grafana turns these two into 'View dashboard' and 'View panel'
+                  # links on the slack message, scoped to the alert's own time
+                  # range. They point at the Kill Reason table, which lists the
+                  # same terminations this rule fires on. The dashboard opens on
+                  # its default namespace and workload - carrying the alert's
+                  # labels into the url would need $labels, and helm's tpl runs
+                  # over every value here, so go template syntax cannot appear.
+                  __dashboardUid__: kube-workload
+                  __panelId__: "62"
+                  summary: A container was killed or exited with an error and restarted; the reason label says which.
                 data:
                   - refId: A
                     relativeTimeRange:
@@ -463,9 +477,9 @@ grafana:
                       instant: true
                       range: false
                       expr: |
-                        max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[10m])
-                        * on (cluster, namespace, pod, container) group_left()
-                        (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1))
+                        max by (cluster, namespace, pod, container, reason) (increase(kube_pod_container_status_restarts_total[10m])
+                        * on (cluster, namespace, pod, container) group_left(reason)
+                        (kube_pod_container_status_last_terminated_reason{reason=~"OOMKilled|Error"} == 1))
                   - refId: C
                     datasourceUid: __expr__
                     model:
