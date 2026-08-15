@@ -430,6 +430,56 @@ grafana:
                             type: gt
                             params: [0]
 
+              # The rule above only catches an OOM that repeats fast enough for
+              # the kubelet to back off; a container that leaks and is killed
+              # every few hours never reaches CrashLoopBackOff. Pairing the
+              # restart counter with the recorded termination reason catches
+              # both - the same two metrics the Kill Reason table on the
+              # kube-workload dashboard reads. increase() over 10m holds the
+              # condition for roughly 10 minutes after a kill, which is long
+              # enough for the 2m 'for' and short enough to resolve on its own.
+              - uid: addons-pod-oom-killed
+                title: Container OOMKilled
+                condition: C
+                for: 2m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: A container was killed for exceeding its memory limit and restarted.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: |
+                        max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[10m])
+                        * on (cluster, namespace, pod, container) group_left()
+                        (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1))
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [0]
+
               - uid: addons-pods-failed
                 title: Pods in Failed phase
                 condition: C
