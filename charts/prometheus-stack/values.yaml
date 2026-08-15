@@ -63,7 +63,7 @@ kube-prometheus-stack:
       #   group: monitoring
 
   alertmanager:
-    enabled: true
+    enabled: false
 
     config:
       route:
