@@ -28,6 +28,15 @@ grafana:
       readOnly: true
       subPath: ""
 
+  # The slack contact point below reads the webhook from this variable. The auth
+  # secrets above are mounted as files because grafana.ini resolves $__file{},
+  # but provisioning files only interpolate environment variables.
+  envValueFrom:
+    SLACK_WEBHOOK_URL:
+      secretKeyRef:
+        name: grafana-secret
+        key: slack-webhook
+
   grafana.ini:
     # server:
     #   root_url: "https://{{grafana.hostname}}/"
@@ -167,6 +176,469 @@ grafana:
         datasource: Prometheus
         gnetId: 7645 # Istio Control Plane Dashboard
         revision: 318
+
+  # Alertmanager is disabled in prometheus-stack, so the bundled PrometheusRules
+  # are evaluated but go nowhere. Grafana evaluates the rules below against the
+  # same Prometheus and notifies slack itself.
+  #
+  # The chart runs every entry through helm's tpl, so go template syntax cannot
+  # appear here - that rules out $labels in annotations and a custom slack
+  # title/text. The default slack template already prints the rule name, labels
+  # and annotations, which is why none is set.
+  alerting:
+    contactpoints.yaml:
+      secret:
+        apiVersion: 1
+        contactPoints:
+          - orgId: 1
+            name: slack
+            receivers:
+              - uid: slack-noti-eks-demo
+                type: slack
+                settings:
+                  # The webhook is bound to its channel at creation; recipient
+                  # only travels in the payload, matching what alertmanager sent.
+                  url: $SLACK_WEBHOOK_URL
+                  recipient: "#noti-eks-demo"
+
+    policies.yaml:
+      secret:
+        apiVersion: 1
+        policies:
+          - orgId: 1
+            receiver: slack
+            group_by: [grafana_folder, alertname, cluster, namespace]
+            group_wait: 30s
+            group_interval: 5m
+            repeat_interval: 4h
+
+    # Thresholds match the gauges on the kube-cluster and kube-workload
+    # dashboards, so a red panel and a slack message mean the same thing. The
+    # queries aggregate by label instead of summing cluster-wide the way the
+    # panels do - a total tells you something broke, a label tells you what.
+    rules.yaml:
+      secret:
+        apiVersion: 1
+        groups:
+          - orgId: 1
+            name: cluster
+            folder: addons
+            interval: 1m
+            rules:
+              - uid: addons-node-disk-pressure
+                title: Node under disk pressure
+                condition: C
+                for: 5m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: critical
+                annotations:
+                  summary: kubelet reports DiskPressure, so the node is evicting pods.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: max by (cluster, node) (kube_node_status_condition{condition="DiskPressure",status="true"})
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [0]
+
+              # The dashboard gauge turns red at 90, which is already too late to
+              # act on a volume that fills in minutes; 85 leaves room to react.
+              - uid: addons-node-disk-usage-high
+                title: Node disk usage above 85%
+                condition: C
+                for: 10m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: The /local filesystem is filling up on a node.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: 100 * (1 - sum by (cluster, instance) (node_filesystem_avail_bytes{mountpoint="/local"}) / sum by (cluster, instance) (node_filesystem_size_bytes{mountpoint="/local"}))
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [85]
+
+              - uid: addons-cluster-cpu-requests-high
+                title: Cluster CPU requests above 90% of allocatable
+                condition: C
+                for: 15m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: Little room left to schedule new pods; the next rollout may stay Pending.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: 100 * sum by (cluster) (kube_pod_container_resource_requests{resource="cpu"}) / sum by (cluster) (kube_node_status_allocatable{resource="cpu"})
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [90]
+
+              - uid: addons-cluster-memory-requests-high
+                title: Cluster memory requests above 90% of allocatable
+                condition: C
+                for: 15m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: Little room left to schedule new pods; the next rollout may stay Pending.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: 100 * sum by (cluster) (kube_pod_container_resource_requests{resource="memory"}) / sum by (cluster) (kube_node_status_allocatable{resource="memory"})
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [90]
+
+          - orgId: 1
+            name: workload
+            folder: addons
+            interval: 1m
+            rules:
+              # Stands in for the dashboard's container restart rate. A restart
+              # counter climbs for a rolling update too; CrashLoopBackOff only
+              # appears when the kubelet has given up and is backing off.
+              - uid: addons-pod-crash-looping
+                title: Pod in CrashLoopBackOff
+                condition: C
+                for: 10m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: A container keeps exiting and the kubelet is backing off its restarts.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: max by (cluster, namespace, pod, container) (kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"})
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [0]
+
+              - uid: addons-pods-failed
+                title: Pods in Failed phase
+                condition: C
+                for: 10m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: Pods are sitting in the Failed phase and nothing is clearing them.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: sum by (cluster, namespace) (kube_pod_status_phase{phase="Failed"})
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [0]
+
+              - uid: addons-deployment-replicas-unavailable
+                title: Deployment replicas unavailable
+                condition: C
+                for: 15m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: A deployment has been short of its desired replicas well past a normal rollout.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: sum by (cluster, namespace, deployment) (kube_deployment_status_replicas_unavailable)
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [0]
+
+              - uid: addons-job-failed
+                title: Job failed
+                condition: C
+                for: 5m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: A job exhausted its backoffLimit without completing.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: sum by (cluster, namespace, job_name) (kube_job_status_failed)
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [0]
+
+              # No dashboard panel covers this, but prometheus (80Gi) and grafana
+              # (5Gi) both sit on RWO volumes that take the pod down with them
+              # when they fill.
+              - uid: addons-pvc-filling-up
+                title: PersistentVolume above 85% used
+                condition: C
+                for: 15m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: A PersistentVolumeClaim is running out of space.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: 100 * sum by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes) / sum by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: gt
+                            params: [85]
+
+          - orgId: 1
+            name: service
+            folder: addons
+            interval: 1m
+            rules:
+              # The dashboard's success rate stat turns orange below 99. The
+              # trailing rate filter keeps a service that serves one request an
+              # hour from paging on a single 5xx.
+              - uid: addons-istio-success-rate-low
+                title: Istio success rate below 99%
+                condition: C
+                for: 5m
+                noDataState: OK
+                execErrState: Alerting
+                labels:
+                  severity: warning
+                annotations:
+                  summary: A service is returning 5xx to more than 1% of its requests.
+                data:
+                  - refId: A
+                    relativeTimeRange:
+                      from: 600
+                      to: 0
+                    datasourceUid: prometheus
+                    model:
+                      refId: A
+                      datasource:
+                        type: prometheus
+                        uid: prometheus
+                      editorMode: code
+                      instant: true
+                      range: false
+                      expr: |
+                        100 * sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source",response_code!~"5.."}[5m]))
+                        / sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source"}[5m]))
+                        and on (cluster, destination_service)
+                        sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source"}[5m])) > 0.1
+                  - refId: C
+                    datasourceUid: __expr__
+                    model:
+                      refId: C
+                      datasource:
+                        type: __expr__
+                        uid: __expr__
+                      type: threshold
+                      expression: A
+                      conditions:
+                        - evaluator:
+                            type: lt
+                            params: [99]
 
   persistence:
     enabled: true

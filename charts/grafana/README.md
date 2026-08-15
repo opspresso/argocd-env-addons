@@ -12,9 +12,14 @@ export ADMIN_PASSWORD="REPLACE_ME"
 export GRAFANA_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
 export GRAFANA_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
 
+export SLACK_WEBHOOK="REPLACE_ME" # slack incoming webhook bound to #noti-eks-demo
+
 # put aws ssm parameter store
 aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite | jq .
+
+# The alerting contact point reads this one.
+aws ssm put-parameter --name /k8s/common/slack-webhook/grafana --value "${SLACK_WEBHOOK}" --type SecureString --overwrite | jq .
 
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-id --value "${GRAFANA_GITHUB_ID}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-secret --value "${GRAFANA_GITHUB_SECRET}" --type SecureString --overwrite | jq .
@@ -22,6 +27,8 @@ aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-secret --value "$
 # get aws ssm parameter store
 export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
+
+export SLACK_WEBHOOK=$(aws ssm get-parameter --name /k8s/common/slack-webhook/grafana --with-decryption | jq .Parameter.Value -r)
 
 export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-id" --with-decryption | jq .Parameter.Value -r)
 export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-secret" --with-decryption | jq .Parameter.Value -r)

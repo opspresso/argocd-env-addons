@@ -44,13 +44,18 @@ grafana:
     datasources.yaml:
       apiVersion: 1
       datasources:
+      # The uids are pinned because the provisioned alert rules in values.yaml
+      # reference them; grafana assigns a random uid otherwise and every rule
+      # lands on a datasource that does not exist.
       - name: Prometheus
         type: prometheus
+        uid: prometheus
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
         access: proxy
         isDefault: true
       - name: Loki
         type: loki
+        uid: loki
         url: http://loki.addon-loki.svc.cluster.local:3100
         access: proxy
 {% if grafana.datasource is defined %}
@@ -111,6 +116,11 @@ raw:
           - secretKey: admin-password
             remoteRef:
               key: /k8s/common/admin-password
+          # Read through the SLACK_WEBHOOK_URL env var, not a file mount: the
+          # alerting provisioning files interpolate $VAR but cannot read files.
+          - secretKey: slack-webhook
+            remoteRef:
+              key: /k8s/common/slack-webhook/grafana
 {% if grafana.auth.github.enabled %}
           - secretKey: github-id
             remoteRef:
