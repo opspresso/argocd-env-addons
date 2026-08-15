@@ -1520,12 +1520,273 @@
       "type": "stat"
     },
     {
+      "datasource": {
+        "uid": "${datasource}"
+      },
+      "description": "Why containers of this workload last died. kube-state-metrics keeps the last termination for as long as the pod object lives, so a row is history, not a container that is down right now - read it together with Available and Replicas. istio-proxy is not filtered out the way it is on the usage panels, because a sidecar that gets OOMKilled takes the pod with it.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "align": "auto",
+            "cellOptions": {
+              "type": "auto"
+            },
+            "filterable": false,
+            "inspect": false
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "text",
+                "value": 0
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reason"
+            },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-text"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "OOMKilled": {
+                        "color": "red",
+                        "index": 0
+                      },
+                      "Error": {
+                        "color": "orange",
+                        "index": 1
+                      },
+                      "ContainerStatusUnknown": {
+                        "color": "orange",
+                        "index": 2
+                      },
+                      "Evicted": {
+                        "color": "yellow",
+                        "index": 3
+                      },
+                      "Completed": {
+                        "color": "green",
+                        "index": 4
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "custom.width",
+                "value": 200
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "exit code"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "last terminated"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeAsIso"
+              },
+              {
+                "id": "custom.width",
+                "value": 190
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "restarts"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "none"
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              },
+              {
+                "id": "custom.width",
+                "value": 100
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "workload"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 220
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "container"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 180
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 62,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "last terminated"
+          }
+        ]
+      },
+      "pluginVersion": "12.3.1",
+      "targets": [
+        {
+          "datasource": {
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, pod, container, reason) (kube_pod_container_status_last_terminated_exitcode{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, pod, container, reason) (kube_pod_container_status_last_terminated_timestamp{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * 1000 * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "uid": "${datasource}"
+          },
+          "expr": "max by (namespace, workload, pod, container, reason) (kube_pod_container_status_restarts_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
+          "format": "table",
+          "instant": true,
+          "interval": "",
+          "intervalFactor": 1,
+          "legendFormat": "",
+          "range": false,
+          "refId": "C"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "namespace": true
+            },
+            "includeByName": {},
+            "indexByName": {
+              "workload": 0,
+              "pod": 1,
+              "container": 2,
+              "reason": 3,
+              "Value #A": 4,
+              "Value #B": 5,
+              "Value #C": 6
+            },
+            "renameByName": {
+              "Value #A": "exit code",
+              "Value #B": "last terminated",
+              "Value #C": "restarts"
+            }
+          }
+        }
+      ],
+      "title": "Kill Reason",
+      "type": "table"
+    },
+    {
       "collapsed": false,
       "gridPos": {
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 15
+        "y": 21
       },
       "id": 51,
       "panels": [],
@@ -1572,7 +1833,7 @@
         "h": 7,
         "w": 4,
         "x": 0,
-        "y": 16
+        "y": 22
       },
       "id": 56,
       "options": {
@@ -1638,7 +1899,7 @@
         "h": 7,
         "w": 6,
         "x": 4,
-        "y": 16
+        "y": 22
       },
       "id": 55,
       "options": {
@@ -1743,7 +2004,7 @@
         "h": 7,
         "w": 7,
         "x": 10,
-        "y": 16
+        "y": 22
       },
       "id": 59,
       "options": {
@@ -1867,7 +2128,7 @@
         "h": 7,
         "w": 7,
         "x": 17,
-        "y": 16
+        "y": 22
       },
       "id": 61,
       "options": {
@@ -1964,7 +2225,7 @@
         "h": 7,
         "w": 10,
         "x": 0,
-        "y": 23
+        "y": 29
       },
       "id": 60,
       "options": {
