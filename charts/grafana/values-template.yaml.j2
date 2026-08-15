@@ -43,6 +43,18 @@ grafana:
   datasources:
     datasources.yaml:
       apiVersion: 1
+      # Grafana cannot change the uid of a datasource it has already stored: the
+      # update path re-reads the row by the uid written here, misses, and fails
+      # provisioning hard enough to take the process down with it. Dropping the
+      # rows first sends provisioning down the insert path, which honours the
+      # uids below. Grafana skips the delete event for a name that is recreated
+      # in the same pass, so nothing downstream sees the datasource disappear.
+      deleteDatasources:
+        - name: Prometheus
+          orgId: 1
+        - name: Loki
+          orgId: 1
+
       datasources:
       # The uids are pinned because the provisioned alert rules in values.yaml
       # reference them; grafana assigns a random uid otherwise and every rule
