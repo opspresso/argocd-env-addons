@@ -138,7 +138,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - ✅ 최신 / 빈칸 업그레이드 가능 / 🔒 잠금 / ⚪ 비활성
 
 표의 행 목록은 `versions.json` 의 감시 목록이지 배포 목록이 아니다 — chart 디렉토리가 없는 항목
-(`karpenter`, `raw`)도 들어 있고, 배포 여부는 알 수 없다. 배포 여부는 `addons/` 에 ApplicationSet 이
+(`karpenter`)도 들어 있고, 배포 여부는 알 수 없다. 배포 여부는 `addons/` 에 ApplicationSet 이
 있는지로 판단한다. 감시 목록의 key 가 chart 디렉토리 이름과 다르면 `path` 필드로 맞춘다
 (`istiod` → `istio`).
 

@@ -3,7 +3,6 @@ atlantis https://runatlantis.github.io/helm-charts
 external-dns https://kubernetes-sigs.github.io/external-dns
 external-secrets https://charts.external-secrets.io
 grafana https://grafana.github.io/helm-charts
-incubator https://charts.helm.sh/incubator
 istio https://istio-release.storage.googleapis.com/charts
 kite https://kite-org.github.io/kite
 metrics-server https://kubernetes-sigs.github.io/metrics-server

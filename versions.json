@@ -97,11 +97,6 @@
       "current": "88.2.0",
       "version": "88.5.2"
     },
-    "raw": {
-      "app_version": "0.2.3",
-      "chart": "incubator/raw",
-      "version": "0.2.5"
-    },
     "vllm-stack": {
       "app_version": "",
       "chart": "vllm/vllm-stack",

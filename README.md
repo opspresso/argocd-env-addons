@@ -125,6 +125,5 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | oauth2-proxy | ✅ | 10.7.0 | 10.7.0 (7.15.3) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
 | prometheus-stack |  | 88.2.0 | 88.5.2 (v0.93.1) |
-| raw |  |  | 0.2.5 (0.2.3) |
 | vllm-stack |  |  | 0.1.12 |
 <!--- END_VERSION --->
