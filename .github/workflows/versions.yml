@@ -1,0 +1,63 @@
+name: versions
+
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+# Shares the build group: both jobs push to main, so overlapping runs would
+# race for the same branch.
+concurrency:
+  group: build
+  cancel-in-progress: false
+
+# The push step commits the refreshed version table back to main, which needs
+# write on contents regardless of what the repository default happens to be.
+permissions:
+  contents: write
+
+jobs:
+  versions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v6
+
+      - name: Setup Python 🐍
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies 📦
+        run: pip install -r requirements.txt
+
+      - name: Install Helm 📝
+        uses: azure/setup-helm@v4
+
+      - name: Add helm repos 🗂️
+        run: |
+          cat repos.txt | xargs -I {} bash -c 'helm repo add {}'
+          helm repo update
+
+      # continue-on-error so partial lookup failures (e.g. an OCI registry
+      # hiccup) still commit the charts that did resolve; the run is marked
+      # failed afterwards.
+      - name: Update versions 🔄
+        id: update
+        run: ./update_versions.py
+        continue-on-error: true
+
+      - name: Push versions 🚀
+        run: |
+          if [ -n "$(git status --porcelain README.md versions.json)" ]; then
+            git config user.name "nalbam-bot"
+            git config user.email "bot@nalbam.com"
+            git add README.md versions.json
+            git commit -m "Update chart versions"
+            git push origin HEAD:main
+          fi
+
+      - name: Fail on lookup errors ❌
+        if: steps.update.outcome == 'failure'
+        run: exit 1
