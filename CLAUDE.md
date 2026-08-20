@@ -19,6 +19,9 @@ gen_values.py          # 템플릿 × env/*.yaml → charts/<addon>/<env>/values
 validate.py            # ApplicationSet 과 같은 조합으로 helm template 검증
 build.sh               # 모든 chart 에 gen_values.py 실행. CI 에서 결과를 자동 커밋
 update_env.sh          # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
+update_versions.py     # versions.json 기준으로 upstream 최신 버전 조회, README 버전 테이블 갱신
+versions.json          # update_versions.py 의 감시 목록. upstream chart 경로 + 버전 캐시
+repos.txt              # update_versions.py 가 조회할 helm repo 목록 (helm repo add 입력)
 ```
 
 `charts/` 의 모든 chart 는 `addons/` 나 `backup/` 에 ApplicationSet 을 가진다. 어느 쪽에도 없는
@@ -121,9 +124,14 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 
 ## README 버전 테이블
 
-`<!--- BEGIN_VERSION --->` ~ `<!--- END_VERSION --->` 구간은 **다른 저장소가 생성한다.**
-`opspresso/helm-charts` 의 `bump.py` 가 자기 `versions.json` 을 기준으로 helm-charts 와 이 저장소의
-README 양쪽에 같은 표를 쓴다. 여기서 직접 고치면 다음 `bump.py` 실행에서 덮어써진다.
+`<!--- BEGIN_VERSION --->` ~ `<!--- END_VERSION --->` 구간은 이 저장소의 `update_versions.py` 가
+`versions.json` 을 기준으로 생성한다. 직접 고치면 다음 실행에서 덮어써진다.
+`update_versions.py` 는 `Chart.yaml` 을 절대 수정하지 않는 순수 감시 도구다 — 버전 업그레이드는
+사람이 `Chart.yaml` 을 고치는 것으로 한다.
+
+`.github/workflows/versions.yml` 이 매일 UTC 00 에 이 스크립트를 돌려 갱신분을 `nalbam-bot`
+이름으로 main 에 커밋한다. 조회 실패가 있으면 run 은 실패로 표시되지만 성공한 chart 의
+갱신분은 그대로 커밋된다.
 
 - `CURRENT` — `charts/<NAME>/Chart.yaml` 의 version. 비어 있으면 그 chart 가 아직 없다는 뜻
 - `LATEST` — upstream 저장소의 최신 버전 (괄호는 app version)
@@ -131,17 +139,22 @@ README 양쪽에 같은 표를 쓴다. 여기서 직접 고치면 다음 `bump.p
 
 표의 행 목록은 `versions.json` 의 감시 목록이지 배포 목록이 아니다 — chart 디렉토리가 없는 항목
 (`karpenter`, `raw`)도 들어 있고, 배포 여부는 알 수 없다. 배포 여부는 `addons/` 에 ApplicationSet 이
-있는지로 판단한다.
+있는지로 판단한다. 감시 목록의 key 가 chart 디렉토리 이름과 다르면 `path` 필드로 맞춘다
+(`istiod` → `istio`).
 
-`Chart.yaml` 버전을 올린 뒤 `bump.py` 를 돌리지 않으면 표가 뒤처진다. 표와 `Chart.yaml` 이 다르면
-`Chart.yaml` 이 기준이다.
+`Chart.yaml` 버전을 올리면 다음 cron 에서 표에 반영된다. 즉시 맞추려면 수동으로 돌린다.
+표와 `Chart.yaml` 이 다르면 `Chart.yaml` 이 기준이다.
 
 ```bash
-cat ../helm-charts/repos.txt | xargs -I {} bash -c 'helm repo add {}'
+cat repos.txt | xargs -I {} bash -c 'helm repo add {}'
 helm repo update
 
-cd ../helm-charts && python3 bump.py
+./update_versions.py
 ```
+
+`karpenter`(`public.ecr.aws` OCI) 조회는 `aws ecr-public get-login-password` 로
+`helm registry login` 을 해 둬야 한다. 로그인이 없으면 해당 chart 만 Failed 로 집계되고
+나머지는 정상 진행된다.
 
 ## argocd-env-demo 와 다른 점
 
@@ -162,6 +175,4 @@ cd ../helm-charts && python3 bump.py
 
 - `terraform-env-demo` — EKS·VPC·ALB·IAM Role. `env/*.yaml` 에 들어가는 ARN 의 출처.
 - `argocd-env-demo` — 애플리케이션 배포.
-- `opspresso/helm-charts` — `gateway-api-crds` 등 자체 chart 의 저장소이자, 이 저장소 README 의
-  버전 테이블을 생성하는 `bump.py` 가 있는 곳. `bump.py` 는 `charts/*/Chart.yaml` 을 읽으므로
-  두 저장소가 나란히 clone 되어 있어야 한다.
+- `opspresso/helm-charts` — `gateway-api-crds` 등 자체 chart 의 저장소.

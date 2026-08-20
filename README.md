@@ -82,21 +82,28 @@ values 파일 누락이나 chart 오류를 Argo CD sync 가 아니라 CI 에서 
 
 ## versions
 
-아래 표는 [`opspresso/helm-charts`](https://github.com/opspresso/helm-charts) 의 `bump.py` 가
-`versions.json` 을 기준으로 생성해 helm-charts 와 이 저장소 README 양쪽에 쓴다.
-여기서 직접 고치지 않는다.
+아래 표는 `update_versions.py` 가 `versions.json` 을 기준으로 생성한다. 여기서 직접 고치지 않는다.
+`versions` workflow 가 매일 UTC 00 에 실행해 갱신분을 main 에 커밋하므로, `Chart.yaml` 버전을
+올리면 늦어도 다음 날 표에 반영된다.
 
 * `CURRENT` — `charts/<NAME>/Chart.yaml` 의 version. 비어 있으면 그 chart 가 아직 없다는 뜻
 * `LATEST` — upstream 저장소의 최신 버전 (괄호는 app version)
 * ✅ 최신 / 빈칸 업그레이드 가능 / 🔒 잠금 / ⚪ 비활성
 
-`Chart.yaml` 버전을 올린 뒤에는 `bump.py` 를 다시 돌려야 표가 맞는다.
+바로 갱신하려면 수동으로 돌린다.
 
 ```bash
-cat ../helm-charts/repos.txt | xargs -I {} bash -c 'helm repo add {}'
+cat repos.txt | xargs -I {} bash -c 'helm repo add {}'
 helm repo update
 
-cd ../helm-charts && python3 bump.py
+./update_versions.py
+```
+
+`karpenter` 처럼 `public.ecr.aws` 의 OCI chart 를 조회하려면 로그인이 필요하다.
+CI 는 익명으로 조회를 시도하고, 실패하면 해당 chart 만 건너뛴다.
+
+```bash
+aws ecr-public get-login-password --region us-east-1 | helm registry login --username AWS --password-stdin public.ecr.aws
 ```
 
 <!--- BEGIN_VERSION --->
@@ -117,7 +124,7 @@ cd ../helm-charts && python3 bump.py
 | metrics-server |  | 3.13.1 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.0 | 10.7.0 (7.15.3) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack |  | 88.2.0 | 88.5.0 (v0.93.1) |
+| prometheus-stack |  | 88.2.0 | 88.5.2 (v0.93.1) |
 | raw |  |  | 0.2.5 (0.2.3) |
-| vllm-stack |  | 6.11.0 | 0.1.12 |
+| vllm-stack |  |  | 0.1.12 |
 <!--- END_VERSION --->
