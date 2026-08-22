@@ -19,16 +19,16 @@
       "version": "2.41.1"
     },
     "argo-workflows": {
-      "app_version": "v4.1.1",
+      "app_version": "v4.1.2",
       "chart": "argo/argo-workflows",
       "current": "1.0.24",
-      "version": "2.0.1"
+      "version": "2.0.2"
     },
     "atlantis": {
-      "app_version": "v0.47.0",
+      "app_version": "v0.47.1",
       "chart": "atlantis/atlantis",
       "current": "6.11.0",
-      "version": "6.14.0"
+      "version": "6.14.1"
     },
     "external-dns": {
       "app_version": "0.21.0",
@@ -56,10 +56,10 @@
       "version": "1.30.3"
     },
     "karpenter": {
-      "app_version": "1.14.0",
+      "app_version": "1.14.1",
       "chart": "public.ecr.aws/karpenter",
       "type": "oci",
-      "version": "1.14.0"
+      "version": "1.14.1"
     },
     "kite": {
       "app_version": "v0.15.0",
@@ -95,7 +95,7 @@
       "app_version": "v0.93.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "88.2.0",
-      "version": "88.5.2"
+      "version": "88.5.3"
     },
     "vllm-stack": {
       "app_version": "",
