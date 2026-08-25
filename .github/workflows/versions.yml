@@ -2,7 +2,7 @@ name: versions
 
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: "0 22 * * *"
   workflow_dispatch:
 
 # Shares the build group: both jobs push to main, so overlapping runs would
