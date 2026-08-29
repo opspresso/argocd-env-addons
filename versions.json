@@ -7,10 +7,10 @@
       "version": "1.12.1"
     },
     "argo-cd": {
-      "app_version": "v3.5.1",
+      "app_version": "v3.5.2",
       "chart": "argo/argo-cd",
       "current": "10.3.2",
-      "version": "10.4.0"
+      "version": "10.4.1"
     },
     "argo-rollouts": {
       "app_version": "v1.9.1",
@@ -37,10 +37,10 @@
       "version": "1.21.1"
     },
     "external-secrets": {
-      "app_version": "v2.9.0",
+      "app_version": "v2.10.0",
       "chart": "external-secrets/external-secrets",
       "current": "2.9.0",
-      "version": "2.9.0"
+      "version": "2.10.0"
     },
     "grafana": {
       "app_version": "12.3.1",
@@ -95,7 +95,7 @@
       "app_version": "v0.93.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "88.2.0",
-      "version": "88.6.0"
+      "version": "88.6.1"
     },
     "vllm-stack": {
       "app_version": "",
