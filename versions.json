@@ -10,13 +10,13 @@
       "app_version": "v3.5.2",
       "chart": "argo/argo-cd",
       "current": "10.3.2",
-      "version": "10.5.0"
+      "version": "10.6.0"
     },
     "argo-rollouts": {
-      "app_version": "v1.9.1",
+      "app_version": "v1.10.0",
       "chart": "argo/argo-rollouts",
       "current": "2.41.1",
-      "version": "2.42.0"
+      "version": "2.43.0"
     },
     "argo-workflows": {
       "app_version": "v4.1.2",
