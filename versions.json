@@ -10,13 +10,13 @@
       "app_version": "v3.5.2",
       "chart": "argo/argo-cd",
       "current": "10.3.2",
-      "version": "10.4.2"
+      "version": "10.5.0"
     },
     "argo-rollouts": {
       "app_version": "v1.9.1",
       "chart": "argo/argo-rollouts",
       "current": "2.41.1",
-      "version": "2.41.1"
+      "version": "2.42.0"
     },
     "argo-workflows": {
       "app_version": "v4.1.2",
@@ -95,7 +95,7 @@
       "app_version": "v0.93.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "88.2.0",
-      "version": "88.6.1"
+      "version": "88.6.2"
     },
     "vllm-stack": {
       "app_version": "",
