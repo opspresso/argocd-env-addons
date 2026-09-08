@@ -119,7 +119,7 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio |  | 1.30.3 | 1.30.4 (1.30.4) |
 | karpenter |  |  | 1.14.1 (1.14.1) |
-| kite |  | 0.14.1 | 0.15.0 (v0.15.0) |
+| kite |  | 0.14.1 | 0.15.1 (v0.15.1) |
 | loki |  | 7.2.0 | 7.3.0 (3.6.12) |
 | metrics-server |  | 3.13.1 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.0 | 10.7.0 (7.15.3) |
