@@ -10,19 +10,19 @@
       "app_version": "v3.5.2",
       "chart": "argo/argo-cd",
       "current": "10.3.2",
-      "version": "10.8.2"
+      "version": "10.8.4"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
       "chart": "argo/argo-rollouts",
       "current": "2.41.1",
-      "version": "2.43.0"
+      "version": "2.43.1"
     },
     "argo-workflows": {
       "app_version": "v4.1.2",
       "chart": "argo/argo-workflows",
       "current": "1.0.24",
-      "version": "2.0.4"
+      "version": "2.0.5"
     },
     "atlantis": {
       "app_version": "v0.47.1",

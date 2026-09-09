@@ -110,9 +110,9 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy |  | 1.11.1 | 1.12.1 (v1.19.2) |
-| argo-cd |  | 10.3.2 | 10.8.2 (v3.5.2) |
-| argo-rollouts |  | 2.41.1 | 2.43.0 (v1.10.0) |
-| argo-workflows |  | 1.0.24 | 2.0.4 (v4.1.2) |
+| argo-cd |  | 10.3.2 | 10.8.4 (v3.5.2) |
+| argo-rollouts |  | 2.41.1 | 2.43.1 (v1.10.0) |
+| argo-workflows |  | 1.0.24 | 2.0.5 (v4.1.2) |
 | atlantis |  | 6.11.0 | 6.15.0 (v0.47.1) |
 | external-dns | ✅ | 1.21.1 | 1.21.1 (0.21.0) |
 | external-secrets |  | 2.9.0 | 2.10.0 (v2.10.0) |
