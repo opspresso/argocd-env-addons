@@ -7,10 +7,10 @@
       "version": "1.12.1"
     },
     "argo-cd": {
-      "app_version": "v3.5.2",
+      "app_version": "v3.5.3",
       "chart": "argo/argo-cd",
       "current": "10.3.2",
-      "version": "10.9.0"
+      "version": "10.9.1"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
@@ -28,7 +28,7 @@
       "app_version": "v0.47.1",
       "chart": "atlantis/atlantis",
       "current": "6.11.0",
-      "version": "6.15.0"
+      "version": "6.15.1"
     },
     "external-dns": {
       "app_version": "0.22.0",
@@ -95,7 +95,7 @@
       "app_version": "v0.94.0",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "88.2.0",
-      "version": "91.2.1"
+      "version": "91.4.0"
     },
     "vllm-stack": {
       "app_version": "",
