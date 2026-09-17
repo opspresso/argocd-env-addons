@@ -46,6 +46,9 @@ argo-cd:
         selector:
           release: prometheus-k3s-demo
 
+  applicationSet:
+    replicas: 1
+
   dex:
     enabled: False
     metrics:

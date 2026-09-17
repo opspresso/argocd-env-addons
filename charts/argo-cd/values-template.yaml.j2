@@ -45,6 +45,9 @@ argo-cd:
         selector:
           release: prometheus-{{cluster}}
 
+  applicationSet:
+    replicas: {{argocd.replicas.application_set}}
+
   dex:
     enabled: {{argocd.dex.enabled}}
     metrics:

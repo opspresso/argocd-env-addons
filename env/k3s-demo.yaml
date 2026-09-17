@@ -18,6 +18,7 @@ argocd:
   replicas:
     server: 1
     repo_server: 1
+    application_set: 1
   dex:
     enabled: false
   notifications:
