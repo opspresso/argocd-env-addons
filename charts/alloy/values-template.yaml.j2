@@ -1,4 +1,7 @@
 alloy:
+  fullnameOverride: alloy
+
+{% if loki is defined %}
   alloy:
     configMap:
       content: |
@@ -85,3 +88,4 @@ alloy:
             cluster = "{{cluster}}",
           }
         }
+{% endif %}
