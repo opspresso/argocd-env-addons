@@ -1,0 +1,30 @@
+external-secrets:
+  fullnameOverride: external-secrets
+
+
+
+
+
+
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1
+      kind: ClusterSecretStore
+      metadata:
+        name: parameter-store
+      spec:
+        provider:
+          aws:
+            region: ""
+            service: ParameterStore
+
+    - apiVersion: external-secrets.io/v1
+      kind: ClusterSecretStore
+      metadata:
+        name: secrets-manager
+      spec:
+        provider:
+          aws:
+            region: ""
+            service: SecretsManager

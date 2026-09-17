@@ -1,4 +1,7 @@
 alloy:
+  fullnameOverride: alloy
+
+
   alloy:
     configMap:
       content: |

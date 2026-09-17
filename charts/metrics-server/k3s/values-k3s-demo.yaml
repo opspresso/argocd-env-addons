@@ -1,0 +1,3 @@
+metrics-server:
+  fullnameOverride: metrics-server
+

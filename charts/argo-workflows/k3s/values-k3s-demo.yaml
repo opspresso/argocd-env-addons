@@ -1,0 +1,88 @@
+argo-workflows:
+  fullnameOverride: argo-workflows
+
+  controller:
+    revisionHistoryLimit: 2
+
+    workflowNamespaces:
+      - default
+
+
+
+  server:
+    revisionHistoryLimit: 2
+
+    # replicas: 1
+
+    extraArgs:
+      - --auth-mode=sso
+
+
+    sso:
+      enabled: true
+
+      issuer: https://argocd.demo.opsp.dev/api/dex
+
+      redirectUrl: https://workflows.demo.opsp.dev/oauth2/callback
+
+      clientId:
+        key: client-id
+        name: argo-workflows-secret
+      clientSecret:
+        key: client-secret
+        name: argo-workflows-secret
+      rbac:
+        enabled: false
+      scopes:
+        - groups
+
+
+    podAnnotations:
+      link.argocd.argoproj.io/external-link: "https://workflows.demo.opsp.dev"
+
+    ingress:
+      enabled: false
+
+
+
+raw:
+  resources:
+    # The host has to match the redirectURI on argo-cd's argo-workflows-sso
+    # staticClient, or the sso round trip lands nowhere.
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: argo-workflows
+      spec:
+        parentRefs:
+          - name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
+          - "workflows.demo.opsp.dev"
+        rules:
+          - backendRefs:
+              - name: argo-workflows-server
+                port: 2746
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: argo-workflows-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: argo-workflows-secret
+          # The client id is the literal id of the staticClient that argo-cd's
+          # dex declares, not a secret, so it is written here rather than read
+          # from parameter store. Merge keeps the fetched client-secret.
+          template:
+            mergePolicy: Merge
+            data:
+              client-id: argo-workflows-sso
+        data:
+          - secretKey: client-secret
+            remoteRef:
+              key: /k8s/common/argo-workflows-client-secret
