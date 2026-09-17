@@ -5,9 +5,10 @@ country: kr
 env: k3s
 group: k3s-demo
 role: k3s
+aws_region: ap-northeast-2
 
 # k3s에서는 EKS Pod Identity와 AWS ALB/EBS를 사용하지 않습니다.
-external_secrets: false
+external_secrets: true
 
 hostname:
   internal: demo-in.opsp.dev

@@ -1,8 +1,6 @@
 argo-cd:
   fullnameOverride: argocd
 
-  extraObjects: []
-
 
   controller:
     metrics:
@@ -133,3 +131,58 @@ argo-cd:
           redirectURIs:
             - https://auth.demo.opsp.dev/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: argocd-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: argocd-secret
+        data:
+          - secretKey: admin.password
+            remoteRef:
+              key: /k8s/common/argocd-password
+          - secretKey: admin.passwordMtime
+            remoteRef:
+              key: /k8s/common/argocd-mtime
+          - secretKey: dex.github.clientId
+            remoteRef:
+              key: /k8s/opspresso/argocd-github-id
+          - secretKey: dex.github.clientSecret
+            remoteRef:
+              key: /k8s/opspresso/argocd-github-secret
+          - secretKey: webhook.github.secret
+            remoteRef:
+              key: /k8s/common/argocd-webhook
+          - secretKey: server.secretkey
+            remoteRef:
+              key: /k8s/common/argocd-server-secret
+          # The `mcp` account's token list, seeded rather than left where Argo
+          # CD puts it. `argocd account generate-token` writes the list into
+          # this very Secret in-cluster, and this ExternalSecret owns the
+          # Secret — so nothing in git would bring the list back after a
+          # rebuild, and the token mcp-argocd holds would start answering 401
+          # with no trace of why. Seeding it keeps both sides agreeing, the same
+          # bargain admin.password already takes.
+          #
+          # install/token.sh writes this parameter, and install/values.yaml
+          # seeds the same key at bootstrap. It must exist before this renders:
+          # a missing parameter fails the whole ExternalSecret, so on a fresh
+          # cluster argocd-secret would never appear at all.
+          - secretKey: accounts.mcp.tokens
+            remoteRef:
+              key: /k8s/common/argocd-mcp-tokens
+
+          - secretKey: argo-workflows-client-secret
+            remoteRef:
+              key: /k8s/common/argo-workflows-client-secret
+          - secretKey: oauth2-proxy-client-secret
+            remoteRef:
+              key: /k8s/common/oauth2-proxy-client-secret
