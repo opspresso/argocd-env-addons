@@ -5,17 +5,19 @@
 
 ## see argocd
 
-* See <https://github.com/opspresso/argocd-env-addons/tree/main/install/>
+* See <https://github.com/opspresso/argocd-env-addons/tree/main/install/eks/>
+* k3s 설치는 <https://github.com/opspresso/argocd-env-addons/tree/main/install/k3s/> 참고
 
 ## addons
 
 > addons 를 등록 합니다.
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons-eks.yaml
 ```
 
-`addons/<addon>.yaml` 이 배포 대상이고, `backup/<addon>.yaml` 은 배포하지 않는 보관본이다.
+`addons/eks/<addon>.yaml` 과 `addons/k3s/<addon>.yaml` 이 배포 대상이고,
+`backup/<addon>.yaml` 은 배포하지 않는 보관본이다.
 배포를 멈출 때는 파일을 지우지 말고 `backup/` 으로 옮긴다.
 
 ## charts
@@ -25,7 +27,8 @@ charts/<addon>/
   Chart.yaml                   # wrapper chart. upstream chart 를 dependency 로 고정
   values.yaml                  # 공통 값
   values-template.yaml.j2      # jinja2 템플릿
-  <env>/values-<cluster>.yaml  # build.sh 가 env/*.yaml 로 렌더한 결과
+  eks/values-<cluster>.yaml    # EKS 렌더 결과
+  k3s/values-<cluster>.yaml    # k3s 렌더 결과
 ```
 
 `<env>/values-<cluster>.yaml` 은 **언제나** `values-template.yaml.j2` 의 렌더 결과다.
@@ -39,7 +42,8 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 ## env
 
 `env/<cluster>.yaml` 은 git files generator 입력이자 jinja2 렌더 입력이다.
-파일 이름은 클러스터 이름이고 `cluster` 필드와 일치해야 한다. `env` 필드는 valueFiles 의 디렉토리가 된다.
+파일 이름은 클러스터 이름이고 `cluster` 필드와 일치해야 한다. `env` 필드는 `eks` 또는 `k3s`이며
+valueFiles의 디렉토리가 된다.
 
 `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 AWS 를 조회해 갱신한다.
 이미 값이 들어 있는 키만 교체한다.
@@ -50,7 +54,7 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 
 ## gen chart
 
-`addons/<addon>.yaml` 에서 `charts/<addon>/Chart.yaml` 초안을 만든다.
+`addons/<platform>/<addon>.yaml` 에서 `charts/<addon>/Chart.yaml` 초안을 만든다.
 기존 chart 에 돌리면 손으로 다듬은 주석·alias·추가 dependency 가 사라지므로 새 addon 을 만들 때만 쓴다.
 
 ```bash
@@ -65,7 +69,7 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 ```bash
 ./gen_values.py
 
-./gen_values.py -r grafana
+./gen_values.py -p eks -r grafana
 ```
 
 ## validate

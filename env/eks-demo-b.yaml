@@ -2,7 +2,7 @@ cluster: eks-demo-b
 
 active: "true"
 country: kr
-env: demo
+env: eks
 group: eks-demo-b
 role: service
 

@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: argocd
+  name: gateway-api-crds
 spec:
   generators:
     - git:
@@ -9,13 +9,14 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          - path: "env/k3s-demo.yaml"
+          # - path: "env/eks-demo-a.yaml"
+          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
-      name: "argocd" # only management cluster
+      name: "gateway-api-crds-{{cluster}}"
       annotations:
-        argocd.argoproj.io/manifest-generate-paths: /charts/argo-cd
+        argocd.argoproj.io/manifest-generate-paths: /charts/gateway-api-crds
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
@@ -25,19 +26,20 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: argocd
+        namespace: addon-gateway-api-crds
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/argo-cd
+        path: charts/gateway-api-crds
         helm:
           valueFiles:
             - values.yaml
             - "{{env}}/values-{{cluster}}.yaml"
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          - ServerSideApply=true

@@ -76,7 +76,7 @@ aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-secret --value "${
 | 파라미터 | 읽는 곳 |
 |---|---|
 | `/k8s/common/argocd-server-secret` | argocd-secret 의 `server.secretkey` — **없을 때만** 만듭니다 (32 bytes, hex) |
-| `/k8s/common/argocd-mcp-tokens` | argocd-secret 의 `accounts.mcp.tokens` — `install/values.yaml` 과 `charts/argo-cd` 의 ExternalSecret 양쪽 |
+| `/k8s/common/argocd-mcp-tokens` | argocd-secret 의 `accounts.mcp.tokens` — `install/eks/values.yaml` 과 `charts/argo-cd` 의 ExternalSecret 양쪽 |
 | `/k8s/common/mcp-argocd/argocd-api-token` | mcp-argocd 파드의 `ARGOCD_API_TOKEN` (argocd-env-demo) |
 
 Argo CD 는 API 토큰을 자기 `server.secretkey` 로 서명 하고, `jti` 가 계정의 토큰
@@ -169,7 +169,7 @@ argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 > addons 를 등록 합니다.
 
 ```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons.yaml
+kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons-eks.yaml
 ```
 
 ## Delete addons

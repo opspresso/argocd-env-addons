@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: ingress-class
+  name: istio
 spec:
   generators:
     - git:
@@ -9,15 +9,14 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          - path: "env/k3s-demo.yaml"
           # - path: "env/eks-demo-a.yaml"
           # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
-      name: "ingress-class-{{cluster}}"
+      name: "istio-{{cluster}}"
       annotations:
-        argocd.argoproj.io/manifest-generate-paths: /charts/ingress-class
+        argocd.argoproj.io/manifest-generate-paths: /charts/istio
         notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
@@ -27,15 +26,22 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-ingress-class
+        namespace: istio-system
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/ingress-class
+        path: charts/istio
         helm:
           valueFiles:
             - values.yaml
             - "{{env}}/values-{{cluster}}.yaml"
+
+      ignoreDifferences:
+        - kind: ValidatingWebhookConfiguration
+          group: admissionregistration.k8s.io
+          jsonPointers:
+            - /webhooks/0/clientConfig/caBundle
+            - /webhooks/0/failurePolicy
 
       syncPolicy:
         automated:

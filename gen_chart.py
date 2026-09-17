@@ -9,11 +9,13 @@ import subprocess
 
 
 REPONAME = "sample-addon"
+PLATFORM = "eks"
 
 
 def parse_args():
     p = argparse.ArgumentParser(description="Helm chart gen")
     p.add_argument("-r", "--reponame", default=REPONAME, help="reponame")
+    p.add_argument("-p", "--platform", choices=["eks", "k3s"], default=PLATFORM)
     return p.parse_args()
 
 
@@ -38,7 +40,7 @@ def gen_chart(args):
     os.makedirs("build", exist_ok=True)
     os.makedirs("charts", exist_ok=True)
 
-    appset_path = "addons/{}.yaml".format(args.reponame)
+    appset_path = "addons/{}/{}.yaml".format(args.platform, args.reponame)
 
     chart_path = "charts/{}/Chart.yaml".format(args.reponame)
     values_path = "charts/{}/values.yaml".format(args.reponame)

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Render every ApplicationSet the way Argo CD would, and fail on any error.
 
-Reads addons/*.yaml, expands the git files generator against the env files it
+Reads addons/**/*.yaml, expands the git files generator against the env files it
 names, and runs `helm template` with the exact valueFiles Argo CD passes. A
 broken template or a missing values file then fails CI instead of surfacing as
 a failed sync on the cluster.
@@ -11,7 +11,7 @@ Also enforces that every <env>/values-<cluster>.yaml has a values-template.yaml.
 to come from - a hand-written one is indistinguishable from a render and drifts
 without anyone noticing.
 
-    ./validate.py                 # every ApplicationSet in addons/
+    ./validate.py                 # every ApplicationSet in addons/{eks,k3s}/
     ./validate.py -r grafana      # one chart
     ./validate.py -d addons -d backup
 
@@ -79,32 +79,33 @@ def load_targets(dirs):
     targets = []
 
     for directory in dirs:
-        for name in sorted(os.listdir(directory)):
-            if not name.endswith(".yaml"):
-                continue
+        for current, _, names in os.walk(directory):
+            for name in sorted(names):
+                if not name.endswith(".yaml"):
+                    continue
 
-            path = os.path.join(directory, name)
-            with open(path, "r") as file:
-                doc = yaml.safe_load(file)
+                path = os.path.join(current, name)
+                with open(path, "r") as file:
+                    doc = yaml.safe_load(file)
 
-            if not doc or doc.get("kind") != "ApplicationSet":
-                continue
+                if not doc or doc.get("kind") != "ApplicationSet":
+                    continue
 
-            template = doc["spec"]["template"]
-            source = template["spec"]["source"]
+                template = doc["spec"]["template"]
+                source = template["spec"]["source"]
 
-            targets.append({
-                "appset": path,
-                "chart": source["path"],
-                "value_files": source.get("helm", {}).get("valueFiles", []),
-                "env_files": [
-                    entry["path"]
-                    for generator in doc["spec"]["generators"]
-                    for entry in generator["git"]["files"]
-                ],
-                "name": template["metadata"]["name"],
-                "namespace": template["spec"]["destination"]["namespace"],
-            })
+                targets.append({
+                    "appset": path,
+                    "chart": source["path"],
+                    "value_files": source.get("helm", {}).get("valueFiles", []),
+                    "env_files": [
+                        entry["path"]
+                        for generator in doc["spec"]["generators"]
+                        for entry in generator["git"]["files"]
+                    ],
+                    "name": template["metadata"]["name"],
+                    "namespace": template["spec"]["destination"]["namespace"],
+                })
 
     return targets
 
@@ -118,27 +119,28 @@ def check_templates(only=None):
     failures = []
 
     for name in sorted(os.listdir(CHARTS_DIR)):
-        chart = os.path.join(CHARTS_DIR, name)
+        chart_root = os.path.join(CHARTS_DIR, name)
+        if not os.path.isdir(chart_root):
+            continue
 
         if only and name != only:
             continue
 
-        if not os.path.isdir(chart) or os.path.exists(os.path.join(chart, TEMPLATE)):
-            continue
-
-        for entry in sorted(os.listdir(chart)):
-            directory = os.path.join(chart, entry)
-
-            if not os.path.isdir(directory):
+        for platform in ("eks", "k3s"):
+            chart = os.path.join(chart_root, platform)
+            if not os.path.isdir(chart):
                 continue
 
-            found = sorted(f for f in os.listdir(directory) if VALUES_RE.match(f))
+            if os.path.exists(os.path.join(chart_root, TEMPLATE)):
+                continue
+
+            found = sorted(f for f in os.listdir(chart) if VALUES_RE.match(f))
 
             if found:
                 failures.append((
-                    directory,
+                    chart,
                     "{} has no {}, so {} cannot be regenerated".format(
-                        chart, TEMPLATE, ", ".join(found)
+                        chart_root, TEMPLATE, ", ".join(found)
                     ),
                 ))
 
@@ -201,7 +203,7 @@ def main():
         targets = [t for t in targets if t["chart"] == wanted]
 
         if not targets:
-            print("no ApplicationSet uses {}".format(wanted))
+            print("no ApplicationSet uses {}".format(args.reponame))
             return 1
 
     failures = check_templates(args.reponame)

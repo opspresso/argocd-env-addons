@@ -1,3 +1,0 @@
-prometheus-adapter:
-  fullnameOverride: prometheus-adapter
-

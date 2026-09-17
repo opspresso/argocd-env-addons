@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Renders charts/*/values-template.yaml.j2 against every env/*.yaml.
+# Renders the shared chart template into charts/<chart>/<platform>/values-*.yaml.
 
 set -euo pipefail
 
@@ -14,10 +14,15 @@ GIT_USEREMAIL="bot@nalbam.com"
 cd "${SHELL_DIR}"
 
 # find charts
-for CHART in charts/*/; do
-  echo
-  echo "Processing.. $(basename "${CHART}")"
-  python3 gen_values.py -r "$(basename "${CHART}")"
+for CHART_DIR in charts/*/; do
+  CHART=$(basename "${CHART_DIR}")
+  for PLATFORM in eks k3s; do
+    if [ -f "${CHART_DIR}/values-template.yaml.j2" ] && [ -d "${CHART_DIR}/${PLATFORM}" ]; then
+      echo
+      echo "Processing.. ${CHART}/${PLATFORM}"
+      python3 gen_values.py -p "${PLATFORM}" -r "${CHART}"
+    fi
+  done
 done
 
 if [ "${GITHUB_PUSH}" == "true" ]; then

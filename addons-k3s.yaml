@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: addons-demo
+  name: addons-k3s
   namespace: argocd
   labels:
     opspresso.com/group: addons
@@ -10,7 +10,9 @@ spec:
   source:
     repoURL: https://github.com/opspresso/argocd-env-addons
     targetRevision: HEAD
-    path: addons
+    path: addons/k3s
+    directory:
+      recurse: true
   destination:
     name: in-cluster
     namespace: argocd

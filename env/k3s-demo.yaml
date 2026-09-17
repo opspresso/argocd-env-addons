@@ -22,18 +22,6 @@ argocd:
     enabled: false
   chatUrl: ""
 
-istio:
-  global:
-    hub: gcr.io/istio-release
-  pilot:
-    autoscale: false
-    min: 1
-    max: 1
-  gateway:
-    autoscale: false
-    min: 1
-    max: 1
-
 prometheus:
   serviceMonitor:
     enabled: false

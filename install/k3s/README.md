@@ -50,8 +50,7 @@ cert-manager가 사용하는 EC2 Instance Profile에는 최소한 다음 권한�
 3. `install/k3s/values.yaml`로 HTTPS Argo CD를 설치한다.
 4. `*.demo.opsp.dev` 인증서를 `argocd-server-tls` Secret으로 발급 요청한다.
 5. `addons`, `apps` AppProject를 생성한다.
-
-`addons.yaml`은 자동 등록하지 않는다. 필요한 경우 Argo CD 설치 후 별도로 등록한다.
+6. 저장소 루트의 `addons-k3s.yaml`을 등록한다.
 
 ## 접속
 

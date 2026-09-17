@@ -55,6 +55,9 @@ kubectl apply -f "${SCRIPT_DIR}/certificate.yaml"
 step "AppProject 생성"
 kubectl apply -f "${SCRIPT_DIR}/projects.yaml"
 
+step "k3s addons 등록"
+kubectl apply -f "${ROOT_DIR}/addons-k3s.yaml"
+
 cat <<'EOF'
 
 설치가 완료되었습니다.

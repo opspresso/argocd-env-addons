@@ -27,7 +27,8 @@ GREEN = "\033[92m"
 RED = "\033[91m"
 RESET = "\033[0m"
 
-# versions.json entries resolve to <CHARTS_DIR>/<path or key>/Chart.yaml
+# versions.json entries resolve to the EKS chart copy. K3s uses the same
+# upstream versions for the charts it shares with EKS.
 CHARTS_DIR = "charts"
 
 # Configure logging

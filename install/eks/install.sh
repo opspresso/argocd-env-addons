@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -euo pipefail
+
+SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "${SHELL_DIR}"
+
 # 실행 로그 색상 (파이프/리다이렉트 시에는 비활성화)
 if [ -t 1 ]; then
   C_STEP='\033[1;36m' # cyan  - 단계
@@ -60,7 +65,7 @@ run argocd proj create addons --allow-cluster-resource '*/*' --dest '*,*' --src 
 run argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
 
 step "addons 등록"
-run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons.yaml
+run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons-eks.yaml
 
 step "apps 등록"
 run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-demo/main/apps.yaml

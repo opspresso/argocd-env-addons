@@ -8,14 +8,19 @@ EKS 클러스터의 **addon** 을 Argo CD 로 배포하는 GitOps 저장소.
 ## 저장소 구조
 
 ```
-addons.yaml            # App of Apps. Application `addons-demo` 가 addons/ 를 sync
-addons/<addon>.yaml    # addon 별 ApplicationSet (배포 대상)
+addons-eks.yaml        # EKS App of Apps. `addons/eks/` 를 sync
+addons-k3s.yaml        # k3s App of Apps. `addons/k3s/` 를 sync
+addons/eks/<addon>.yaml # EKS addon 별 ApplicationSet
+addons/k3s/<addon>.yaml # k3s addon 별 ApplicationSet
 backup/<addon>.yaml    # 배포하지 않는 addon 의 ApplicationSet 보관소
-charts/<addon>/        # wrapper Helm chart
+charts/<addon>/        # 공용 wrapper Helm chart
+charts/<addon>/eks/    # EKS 렌더 결과
+charts/<addon>/k3s/    # k3s 렌더 결과
 env/<cluster>.yaml     # 클러스터별 변수. git files generator 입력이자 Jinja2 렌더 입력
-install/               # Argo CD 최초 부트스트랩 (helm 직접 설치)
-gen_chart.py           # addons/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
-gen_values.py          # 템플릿 × env/*.yaml → charts/<addon>/<env>/values-<cluster>.yaml
+install/eks/           # EKS Argo CD 최초 부트스트랩
+install/k3s/           # k3s Argo CD 최초 부트스트랩
+gen_chart.py           # addons/<platform>/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
+gen_values.py          # 공용 템플릿 × env/*.yaml → charts/<addon>/<env>/...
 validate.py            # ApplicationSet 과 같은 조합으로 helm template 검증
 build.sh               # 모든 chart 에 gen_values.py 실행. CI 에서 결과를 자동 커밋
 update_env.sh          # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
@@ -37,7 +42,8 @@ charts/<addon>/
   Chart.yaml                    # wrapper chart. upstream chart 를 dependency 로 고정
   values.yaml                   # 모든 클러스터 공통 값
   values-template.yaml.j2       # Jinja2 템플릿 (렌더 소스)
-  <env>/values-<cluster>.yaml   # build.sh 가 env/*.yaml 로 렌더한 결과
+  eks/values-<cluster>.yaml     # EKS 렌더 결과
+  k3s/values-<cluster>.yaml     # k3s 렌더 결과
   README.md                     # (선택) 해당 addon 이 요구하는 SSM 파라미터 등록 절차
 ```
 
@@ -84,12 +90,12 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ## env/<cluster>.yaml
 
 - 파일 이름이 클러스터 이름이고, 안의 `cluster` 필드와 일치해야 한다 (`{{cluster}}` 로 치환됨).
-- `env` 는 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
+- `env` 는 플랫폼(`eks` 또는 `k3s`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
 - `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 손으로 넣지 말고
   `./update_env.sh` 로 갱신한다. 이미 값이 들어 있는 키만 교체하므로, 새 키는 먼저 추가해야 한다.
 - `env` 를 바꾸면 렌더 출력 디렉토리도 함께 바뀐다. 옛 디렉토리에 남은 파일은 손으로 지운다.
 
-## addons/<addon>.yaml
+## addons/<platform>/<addon>.yaml
 
 - `kind: ApplicationSet` + git files generator 로 `env/*.yaml` 을 읽어 클러스터별로 fan-out 한다.
 - mgmt 클러스터 전용 addon 은 `env/eks-demo.yaml` 하나만 나열하고 `name` 에
@@ -104,7 +110,8 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ## 재생성 · 검증
 
 ```bash
-./gen_values.py -r grafana   # 한 chart 렌더
+./gen_values.py -p eks -r grafana   # EKS chart 렌더
+./gen_values.py -p k3s -r argo-cd   # k3s chart 렌더
 ./build.sh                   # 전체 chart 렌더
 ./validate.py                # helm template 로 전체 검증
 ./validate.py -r grafana     # 한 chart 만
