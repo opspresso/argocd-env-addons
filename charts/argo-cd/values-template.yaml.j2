@@ -1,6 +1,8 @@
 argo-cd:
   fullnameOverride: argocd
-
+{% if not (external_secrets | default(true)) %}
+  extraObjects: []
+{% endif %}
 {% if argocd is defined %}
   controller:
     metrics:

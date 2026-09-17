@@ -1,6 +1,8 @@
 argo-cd:
   fullnameOverride: argocd
 
+  extraObjects: []
+
 
   controller:
     metrics:
