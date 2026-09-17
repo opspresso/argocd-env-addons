@@ -2,13 +2,13 @@ argo-cd:
   fullnameOverride: argocd
 
   controller:
-    resources:
-      requests:
-        cpu: 500m
-        memory: 1Gi
-      limits:
-        cpu: "1"
-        memory: 2Gi
+    # resources:
+    #   requests:
+    #     cpu: 500m
+    #     memory: 1Gi
+    #   limits:
+    #     cpu: "1"
+    #     memory: 2Gi
 
     metrics:
       enabled: true
@@ -21,12 +21,12 @@ argo-cd:
   server:
     replicas: 2
 
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        memory: 128Mi
+    # resources:
+    #   requests:
+    #     cpu: 50m
+    #     memory: 128Mi
+    #   limits:
+    #     memory: 128Mi
 
     service:
       type: ClusterIP
@@ -56,12 +56,12 @@ argo-cd:
     #   targetCPUUtilizationPercentage: 60
     #   targetMemoryUtilizationPercentage: 60
 
-    resources:
-      requests:
-        cpu: 500m
-        memory: 1Gi
-      limits:
-        memory: 1Gi
+    # resources:
+    #   requests:
+    #     cpu: 500m
+    #     memory: 1Gi
+    #   limits:
+    #     memory: 1Gi
 
     metrics:
       enabled: true
@@ -74,20 +74,20 @@ argo-cd:
   applicationSet:
     # replicas: 2
 
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        memory: 128Mi
+    # resources:
+    #   requests:
+    #     cpu: 50m
+    #     memory: 128Mi
+    #   limits:
+    #     memory: 128Mi
 
   dex:
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        memory: 128Mi
+    # resources:
+    #   requests:
+    #     cpu: 50m
+    #     memory: 128Mi
+    #   limits:
+    #     memory: 128Mi
 
     env:
       - name: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
@@ -109,13 +109,13 @@ argo-cd:
         # selector:
         #   release: prometheus-{{cluster}}
 
-  redis:
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        memory: 128Mi
+  # redis:
+  #   # resources:
+  #   #   requests:
+  #   #     cpu: 50m
+  #   #     memory: 128Mi
+  #   #   limits:
+  #   #     memory: 128Mi
 
   notifications:
     # argocdUrl: https://{{argocd.hostname}}
