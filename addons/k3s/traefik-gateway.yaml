@@ -1,40 +1,26 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
-  name: traefik-gateway
+  name: traefik-gateway-k3s
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
-  generators:
-    - git:
-        repoURL: https://github.com/opspresso/argocd-env-addons.git
-        revision: HEAD
-        files:
-          - path: "env/k3s-demo.yaml"
-
-  template:
-    metadata:
-      name: "traefik-gateway-{{cluster}}"
-      annotations:
-        argocd.argoproj.io/sync-wave: "-1"
-      labels:
-        app.kubernetes.io/instance: "addons-{{cluster}}"
-        opspresso.com/cluster: "{{cluster}}"
-        opspresso.com/group: "addons"
-    spec:
-      project: addons
-      destination:
-        name: in-cluster
-        namespace: traefik-gateway
-      source:
-        repoURL: https://github.com/opspresso/argocd-env-addons.git
-        targetRevision: HEAD
-        path: charts/traefik-gateway
-        helm:
-          valueFiles:
-            - values.yaml
-            - "{{env}}/values-{{cluster}}.yaml"
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
+  project: addons
+  destination:
+    name: in-cluster
+    namespace: traefik-gateway
+  source:
+    repoURL: https://github.com/opspresso/argocd-env-addons.git
+    targetRevision: HEAD
+    path: charts/traefik-gateway
+    helm:
+      valueFiles:
+        - values.yaml
+        - k3s/values-k3s-demo.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

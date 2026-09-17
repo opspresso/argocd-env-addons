@@ -1,44 +1,27 @@
 apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
+kind: Application
 metadata:
-  name: gateway-api-crds
+  name: gateway-api-crds-k3s
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
 spec:
-  generators:
-    - git:
-        repoURL: https://github.com/opspresso/argocd-env-addons.git
-        revision: HEAD
-        files:
-          - path: "env/k3s-demo.yaml"
-
-  template:
-    metadata:
-      name: "gateway-api-crds-{{cluster}}"
-      annotations:
-        argocd.argoproj.io/sync-wave: "-2"
-        argocd.argoproj.io/manifest-generate-paths: /charts/gateway-api-crds
-        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: noti-argocd-{{env}}-addon
-      labels:
-        app.kubernetes.io/instance: "addons-{{cluster}}"
-        opspresso.com/cluster: "{{cluster}}"
-        opspresso.com/group: "addons"
-    spec:
-      project: addons
-      destination:
-        name: in-cluster
-        namespace: addon-gateway-api-crds
-      source:
-        repoURL: https://github.com/opspresso/argocd-env-addons.git
-        targetRevision: HEAD
-        path: charts/gateway-api-crds
-        helm:
-          valueFiles:
-            - values.yaml
-            - "{{env}}/values-{{cluster}}.yaml"
-
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-          - ServerSideApply=true
+  project: addons
+  destination:
+    name: in-cluster
+    namespace: addon-gateway-api-crds
+  source:
+    repoURL: https://github.com/opspresso/argocd-env-addons.git
+    targetRevision: HEAD
+    path: charts/gateway-api-crds
+    helm:
+      valueFiles:
+        - values.yaml
+        - k3s/values-k3s-demo.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
