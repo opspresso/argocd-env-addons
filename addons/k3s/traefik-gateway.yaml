@@ -13,6 +13,8 @@ spec:
   template:
     metadata:
       name: "traefik-gateway-{{cluster}}"
+      annotations:
+        argocd.argoproj.io/sync-wave: "-1"
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         opspresso.com/cluster: "{{cluster}}"
@@ -21,7 +23,7 @@ spec:
       project: addons
       destination:
         name: in-cluster
-        namespace: kube-system
+        namespace: traefik-gateway
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD

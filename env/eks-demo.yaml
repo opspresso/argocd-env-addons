@@ -24,6 +24,18 @@ hostname:
 argocd:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/1e9672d7-627a-4e00-826c-925e330b5165
   hostname: argocd.demo.opspresso.com
+  replicas:
+    server: 2
+    repo_server: 2
+  dex:
+    enabled: true
+  notifications:
+    enabled: true
+  http_route:
+    enabled: true
+    parent_refs:
+      - name: istio-ingressgateway
+        namespace: istio-system
   github:
     org: opspresso # github org
     team: sre

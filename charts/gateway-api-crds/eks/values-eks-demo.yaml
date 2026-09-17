@@ -1,3 +1,1 @@
-gateway:
-  enabled: False
-  hostname: "argocd.demo.opspresso.com"
+# no cluster-specific overrides

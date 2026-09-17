@@ -1,1 +1,10 @@
 enabled: {{env == "k3s"}}
+gateway:
+  name: "{{gateway.name}}"
+  namespace: "{{gateway.namespace}}"
+  class_name: "{{gateway.class_name}}"
+  hosts:
+{{gateway.hosts | to_yaml | indent(4, first=true)}}
+  tls:
+    secret_name: "{{gateway.tls.secret_name}}"
+    issuer_name: "{{gateway.tls.issuer_name}}"

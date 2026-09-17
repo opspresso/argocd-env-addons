@@ -10,9 +10,7 @@ argo-cd:
           release: prometheus-{{cluster}}
 
   server:
-{%- if role == "k3s" %}
-    replicas: 1
-{%- endif %}
+    replicas: {{argocd.replicas.server}}
     ingress:
       enabled: false
       hostname: "{{argocd.hostname}}"
@@ -22,15 +20,14 @@ argo-cd:
         alb.ingress.kubernetes.io/scheme: "internet-facing"
         alb.ingress.kubernetes.io/target-type: "ip"
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-        alb.ingress.kubernetes.io/certificate-arn: "{{argocd.acm_arn}}"
+        alb.ingress.kubernetes.io/certificate-arn: "{{argocd.acm_arn | default('')}}"
         alb.ingress.kubernetes.io/actions.ssl-redirect: |
           {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
 
     httproute:
-      enabled: true
+      enabled: {{argocd.http_route.enabled}}
       parentRefs:
-        - name: argocd-gateway
-          namespace: argocd
+{{argocd.http_route.parent_refs | to_yaml | indent(8, first=true)}}
       hostnames:
         - "{{argocd.hostname}}"
 
@@ -45,9 +42,7 @@ argo-cd:
           release: prometheus-{{cluster}}
 
   repoServer:
-{%- if role == "k3s" %}
-    replicas: 1
-{%- endif %}
+    replicas: {{argocd.replicas.repo_server}}
     metrics:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
@@ -55,9 +50,7 @@ argo-cd:
           release: prometheus-{{cluster}}
 
   dex:
-{%- if role == "k3s" %}
-    enabled: false
-{%- endif %}
+    enabled: {{argocd.dex.enabled}}
     metrics:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
@@ -65,9 +58,7 @@ argo-cd:
           release: prometheus-{{cluster}}
 
   notifications:
-{%- if role == "k3s" %}
-    enabled: false
-{%- endif %}
+    enabled: {{argocd.notifications.enabled}}
     argocdUrl: https://{{argocd.hostname}}
 
   configs:

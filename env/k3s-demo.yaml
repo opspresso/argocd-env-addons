@@ -15,6 +15,18 @@ hostname:
 
 argocd:
   hostname: argocd.demo.opsp.dev
+  replicas:
+    server: 1
+    repo_server: 1
+  dex:
+    enabled: false
+  notifications:
+    enabled: false
+  http_route:
+    enabled: true
+    parent_refs:
+      - name: traefik-gateway
+        namespace: traefik-gateway
   github:
     org: opspresso
     team: sre
@@ -25,3 +37,14 @@ argocd:
 prometheus:
   serviceMonitor:
     enabled: false
+
+gateway:
+  name: traefik-gateway
+  namespace: traefik-gateway
+  class_name: traefik
+  hosts:
+    - '*.demo.opsp.dev'
+    - demo.opsp.dev
+  tls:
+    secret_name: traefik-gateway-tls
+    issuer_name: letsencrypt-prod

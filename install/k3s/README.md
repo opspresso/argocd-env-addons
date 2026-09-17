@@ -48,7 +48,7 @@ cert-manager가 사용하는 EC2 Instance Profile에는 최소한 다음 권한�
 1. Argo와 cert-manager Helm repository를 등록하고 갱신한다.
 2. cert-manager와 Route53 DNS-01 방식의 `letsencrypt-prod` ClusterIssuer를 설치한다.
 3. `install/k3s/values.yaml`로 HTTPS Argo CD를 설치한다.
-4. `*.demo.opsp.dev` 인증서를 `argocd-server-tls` Secret으로 발급 요청한다.
+4. `*.demo.opsp.dev` 인증서를 `traefik-gateway-tls` Secret으로 발급 요청한다.
 5. `addons`, `apps` AppProject를 생성한다.
 6. 저장소 루트의 `addons-k3s.yaml`을 등록한다.
 
@@ -65,6 +65,6 @@ kubectl -n argocd get secret argocd-initial-admin-secret \
 인증서 발급 상태는 다음 명령으로 확인한다.
 
 ```bash
-kubectl get certificate -n argocd
-kubectl describe certificate -n argocd argocd-server-tls
+kubectl get certificate -n traefik-gateway
+kubectl describe certificate -n traefik-gateway traefik-gateway-tls
 ```

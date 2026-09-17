@@ -25,10 +25,10 @@ argo-cd:
           {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
 
     httproute:
-      enabled: true
+      enabled: True
       parentRefs:
-        - name: argocd-gateway
-          namespace: argocd
+        - name: traefik-gateway
+          namespace: traefik-gateway
       hostnames:
         - "argocd.demo.opsp.dev"
 
@@ -51,7 +51,7 @@ argo-cd:
           release: prometheus-k3s-demo
 
   dex:
-    enabled: false
+    enabled: False
     metrics:
       serviceMonitor:
         enabled: False
@@ -59,7 +59,7 @@ argo-cd:
           release: prometheus-k3s-demo
 
   notifications:
-    enabled: false
+    enabled: False
     argocdUrl: https://argocd.demo.opsp.dev
 
   configs:

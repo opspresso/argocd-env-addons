@@ -5,6 +5,12 @@ set -euo pipefail
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SCRIPT_DIR}/../.." && pwd)
 
+ENV_FILE="${ROOT_DIR}/env/k3s-demo.yaml"
+ARGOCD_HOSTNAME=$(awk '/^argocd:/{found=1; next} found && /^  hostname:/{print $2; exit}' "${ENV_FILE}")
+VALUES_FILE=$(mktemp)
+trap 'rm -f "${VALUES_FILE}"' EXIT
+sed "s/ARGOCD_HOSTNAME/${ARGOCD_HOSTNAME}/g" "${SCRIPT_DIR}/values.yaml" > "${VALUES_FILE}"
+
 if [ -z "${KUBECONFIG:-}" ] && [ -r /etc/rancher/k3s/k3s.yaml ]; then
   export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 fi
@@ -44,13 +50,10 @@ step "Argo CD 설치"
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
   --create-namespace \
-  --values "${SCRIPT_DIR}/values.yaml"
+  --values "${VALUES_FILE}"
 
 step "Argo CD 준비 대기"
 kubectl -n argocd rollout status deployment/argocd-server --timeout=5m
-
-step "Argo CD 와일드카드 인증서 요청"
-kubectl apply -f "${SCRIPT_DIR}/certificate.yaml"
 
 step "AppProject 생성"
 kubectl apply -f "${SCRIPT_DIR}/projects.yaml"
@@ -65,7 +68,7 @@ cat <<'EOF'
 접속 주소: https://argocd.demo.opsp.dev
 
 인증서 상태 확인:
-  kubectl -n argocd get certificate argocd-server-tls
+  kubectl -n traefik-gateway get certificate traefik-gateway-tls
 admin 비밀번호 확인:
   kubectl -n argocd get secret argocd-initial-admin-secret \
     -o jsonpath='{.data.password}' | base64 -d; echo

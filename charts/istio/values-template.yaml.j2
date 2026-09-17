@@ -16,8 +16,6 @@ gateway:
     minReplicas: {{istio.gateway.min}}
     maxReplicas: {{istio.gateway.max}}
 
-{%- if role != "k3s" %}
-
 tgb:
   resources:
     - apiVersion: eks.amazonaws.com/v1
@@ -53,7 +51,7 @@ tgb:
           port: http2
         targetGroupARN: "{{target_group.public_grpc}}"
         targetType: ip
-{% endif %}{% endif %}
+{% endif %}
 
 raw:
   resources:
