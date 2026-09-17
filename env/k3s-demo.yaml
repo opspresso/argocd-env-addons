@@ -7,6 +7,11 @@ group: k3s-demo
 role: k3s
 aws_region: ap-northeast-2
 
+resources:
+  enabled: false
+autoscaling:
+  enabled: false
+
 # k3s에서는 EKS Pod Identity와 AWS ALB/EBS를 사용하지 않습니다.
 external_secrets: true
 
@@ -20,6 +25,10 @@ argocd:
     server: 1
     repo_server: 1
     application_set: 1
+  resources:
+    enabled: false
+  autoscaling:
+    enabled: false
   dex:
     enabled: false
   notifications:

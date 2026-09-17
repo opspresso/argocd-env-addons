@@ -9,8 +9,20 @@ argo-cd:
         selector:
           release: prometheus-k3s-demo
 
+    resources: null
+    autoscaling:
+      enabled: false
+
+
   server:
     replicas: 1
+
+    resources: null
+
+
+    autoscaling:
+      enabled: false
+
     ingress:
       enabled: false
       hostname: "argocd.demo.opsp.dev"
@@ -40,6 +52,13 @@ argo-cd:
 
   repoServer:
     replicas: 1
+
+    resources: null
+
+
+    autoscaling:
+      enabled: false
+
     metrics:
       serviceMonitor:
         enabled: False
@@ -49,8 +68,18 @@ argo-cd:
   applicationSet:
     replicas: 1
 
+    resources: null
+
+
+    autoscaling:
+      enabled: false
+
+
   dex:
     enabled: False
+
+    resources: null
+
     metrics:
       serviceMonitor:
         enabled: False
@@ -60,6 +89,9 @@ argo-cd:
   notifications:
     enabled: False
     argocdUrl: https://argocd.demo.opsp.dev
+
+    resources: null
+
 
   configs:
     rbac:

@@ -10,9 +10,21 @@ argo-cd:
         enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
           release: prometheus-{{cluster}}
+{% if not argocd.resources.enabled %}
+    resources: null
+    autoscaling:
+      enabled: false
+{% endif %}
 
   server:
     replicas: {{argocd.replicas.server}}
+{% if not argocd.resources.enabled %}
+    resources: null
+{% endif %}
+{% if not argocd.autoscaling.enabled %}
+    autoscaling:
+      enabled: false
+{% endif %}
     ingress:
       enabled: false
       hostname: "{{argocd.hostname}}"
@@ -41,6 +53,13 @@ argo-cd:
 
   repoServer:
     replicas: {{argocd.replicas.repo_server}}
+{% if not argocd.resources.enabled %}
+    resources: null
+{% endif %}
+{% if not argocd.autoscaling.enabled %}
+    autoscaling:
+      enabled: false
+{% endif %}
     metrics:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
@@ -49,9 +68,19 @@ argo-cd:
 
   applicationSet:
     replicas: {{argocd.replicas.application_set}}
+{% if not argocd.resources.enabled %}
+    resources: null
+{% endif %}
+{% if not argocd.autoscaling.enabled %}
+    autoscaling:
+      enabled: false
+{% endif %}
 
   dex:
     enabled: {{argocd.dex.enabled}}
+{% if not argocd.resources.enabled %}
+    resources: null
+{% endif %}
     metrics:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
@@ -61,6 +90,9 @@ argo-cd:
   notifications:
     enabled: {{argocd.notifications.enabled}}
     argocdUrl: https://{{argocd.hostname}}
+{% if not argocd.resources.enabled %}
+    resources: null
+{% endif %}
 
   configs:
     rbac:

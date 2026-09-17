@@ -1,5 +1,12 @@
 external-secrets:
   fullnameOverride: external-secrets
+{% if resources is defined and not resources.enabled %}
+  resources: null
+  webhook:
+    resources: null
+  certController:
+    resources: null
+{% endif %}
 
 {% if operation is defined %}
 {% if operation.nodeSelector is defined %}

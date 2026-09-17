@@ -6,6 +6,11 @@ env: eks
 group: eks-demo
 role: mgmt
 
+resources:
+  enabled: true
+autoscaling:
+  enabled: false
+
 aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 
@@ -28,6 +33,10 @@ argocd:
     server: 2
     repo_server: 2
     application_set: 1
+  resources:
+    enabled: true
+  autoscaling:
+    enabled: false
   dex:
     enabled: true
   notifications:

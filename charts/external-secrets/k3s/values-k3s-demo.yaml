@@ -1,6 +1,13 @@
 external-secrets:
   fullnameOverride: external-secrets
 
+  resources: null
+  webhook:
+    resources: null
+  certController:
+    resources: null
+
+
 
 
 
