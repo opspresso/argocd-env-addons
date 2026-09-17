@@ -19,7 +19,7 @@ argo-cd:
         #   release: prometheus-{{cluster}}
 
   server:
-    replicas: 2
+    replicas: 1
 
     # resources:
     #   requests:
@@ -47,7 +47,7 @@ argo-cd:
   # which is manifest generation, so it slows every sync. Requests still reserve
   # the capacity; only the ceiling is gone. Memory keeps its limit.
   repoServer:
-    replicas: 2
+    replicas: 1
 
     # autoscaling:
     #   enabled: true
@@ -71,13 +71,13 @@ argo-cd:
         # selector:
         #   release: prometheus-{{cluster}}
 
-  applicationSet:
-    # resources:
-    #   requests:
-    #     cpu: 50m
-    #     memory: 128Mi
-    #   limits:
-    #     memory: 128Mi
+  # applicationSet:
+  #   # resources:
+  #   #   requests:
+  #   #     cpu: 50m
+  #   #     memory: 128Mi
+  #   #   limits:
+  #   #     memory: 128Mi
 
   dex:
     # resources:
