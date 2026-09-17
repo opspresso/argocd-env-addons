@@ -16,6 +16,8 @@ gateway:
     minReplicas: {{istio.gateway.min}}
     maxReplicas: {{istio.gateway.max}}
 
+{%- if role != "k3s" %}
+
 tgb:
   resources:
     - apiVersion: eks.amazonaws.com/v1
@@ -51,7 +53,7 @@ tgb:
           port: http2
         targetGroupARN: "{{target_group.public_grpc}}"
         targetType: ip
-{% endif %}
+{% endif %}{% endif %}
 
 raw:
   resources:
@@ -135,6 +137,8 @@ raw:
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
                       pack_trace_reason: false
+
+{%- if prometheus.serviceMonitor.enabled %}
 
     # Prometheus only adopts a ServiceMonitor carrying its release label, so
     # without it these are collected by nobody and the istio dashboards stay
@@ -227,3 +231,4 @@ raw:
     #       matchExpressions:
     #         - key: istio
     #           operator: DoesNotExist
+{%- endif -%}
