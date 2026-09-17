@@ -23,7 +23,7 @@ spec:
     spec:
       project: addons
       destination:
-        name: "{{cluster}}"
+        name: in-cluster
         namespace: addon-gateway-api-crds
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
