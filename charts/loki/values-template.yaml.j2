@@ -1,6 +1,7 @@
 loki:
   fullnameOverride: loki
 
+{% if loki is defined %}
   # The chart labels its own metrics cluster=<release>, which lands as
   # cluster="loki" and puts this one job outside every cluster filter.
   clusterLabelOverride: {{cluster}}
@@ -24,7 +25,6 @@ loki:
 {% endif %}
 {% endif %}
 
-{% if loki is defined %}
 raw:
   resources:
     - apiVersion: gateway.networking.k8s.io/v1
