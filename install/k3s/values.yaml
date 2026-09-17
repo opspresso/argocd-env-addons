@@ -1,0 +1,35 @@
+fullnameOverride: argocd
+
+global:
+  domain: argocd.demo.opsp.dev
+
+server:
+  replicas: 1
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    hostname: argocd.demo.opsp.dev
+    tls: true
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+
+repoServer:
+  replicas: 1
+
+controller:
+  replicas: 1
+
+dex:
+  enabled: false
+
+notifications:
+  enabled: false
+
+configs:
+  params:
+    server.insecure: true
+
+  cm:
+    url: https://argocd.demo.opsp.dev
