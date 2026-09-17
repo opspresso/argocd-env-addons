@@ -3,6 +3,7 @@ gateway:
   name: "{{gateway.name}}"
   namespace: "{{gateway.namespace}}"
   class_name: "{{gateway.class_name}}"
+  listener_port: {{gateway.listener_port}}
   hosts:
 {{gateway.hosts | to_yaml | indent(4, first=true)}}
   tls:

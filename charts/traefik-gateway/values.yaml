@@ -3,6 +3,7 @@ gateway:
   name: traefik-gateway
   namespace: traefik-gateway
   class_name: traefik
+  listener_port: 8443
   hosts: []
   tls:
     secret_name: ""

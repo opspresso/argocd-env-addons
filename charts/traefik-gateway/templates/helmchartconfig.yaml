@@ -35,7 +35,7 @@ spec:
     {{- range $index, $host := .Values.gateway.hosts }}
     - name: https-{{ $index }}
       hostname: {{ $host | quote }}
-      port: 443
+      port: {{ $.Values.gateway.listener_port }}
       protocol: HTTPS
       tls:
         mode: Terminate

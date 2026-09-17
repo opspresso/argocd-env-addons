@@ -42,6 +42,7 @@ gateway:
   name: traefik-gateway
   namespace: traefik-gateway
   class_name: traefik
+  listener_port: 8443
   hosts:
     - '*.demo.opsp.dev'
     - demo.opsp.dev
