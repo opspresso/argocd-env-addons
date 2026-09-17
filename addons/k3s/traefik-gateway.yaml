@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: traefik-gateway
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/k3s-demo.yaml"
+
+  template:
+    metadata:
+      name: "traefik-gateway-{{cluster}}"
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        opspresso.com/cluster: "{{cluster}}"
+        opspresso.com/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: in-cluster
+        namespace: kube-system
+      source:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/traefik-gateway
+        helm:
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

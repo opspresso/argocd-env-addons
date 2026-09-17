@@ -1,0 +1,5 @@
+apiVersion: v2
+description: Enable the Traefik Kubernetes Gateway API provider
+name: traefik-gateway
+type: application
+version: "0.1.0"

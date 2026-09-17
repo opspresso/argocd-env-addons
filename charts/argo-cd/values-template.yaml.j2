@@ -34,6 +34,10 @@ argo-cd:
       hostnames:
         - "{{argocd.hostname}}"
 
+    gateway:
+      enabled: {{role == "k3s"}}
+      hostname: "{{argocd.hostname}}"
+
     metrics:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}

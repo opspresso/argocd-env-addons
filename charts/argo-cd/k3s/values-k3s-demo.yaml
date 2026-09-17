@@ -32,6 +32,10 @@ argo-cd:
       hostnames:
         - "argocd.demo.opsp.dev"
 
+    gateway:
+      enabled: True
+      hostname: "argocd.demo.opsp.dev"
+
     metrics:
       serviceMonitor:
         enabled: False
