@@ -9,7 +9,7 @@ role: mgmt
 aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 
-vpcId: vpc-0ac1c5fb50e3b5a41
+vpcId: vpc-04945243dfefd3988
 
 hostname:
   internal: demo-in.opspresso.com
@@ -63,9 +63,9 @@ istio:
   target_group_grpc: grpc_0
 
 target_group:
-  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-0/723b1031f0f96bb6
-  public_grpc: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-grpc-0/1459156887f1f5ec
-  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-0/aeb517d33a3c9300
+  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-0/0d4f00b02e40b1ea
+  public_grpc: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-grpc-0/fcc43993e23ea20a
+  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-0/26f5e280286879a2
 
 grafana:
   hostname: grafana.demo.opspresso.com
