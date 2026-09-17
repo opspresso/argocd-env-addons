@@ -1,0 +1,80 @@
+alloy:
+  fullnameOverride: alloy
+
+
+
+
+  alloy:
+    configMap:
+      content: |
+        prometheus.remote_write "grafana_cloud" {
+          endpoint {
+            url = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+            basic_auth {
+              username = "2124611"
+              password = sys.env("GCLOUD_RW_API_KEY")
+            }
+          }
+        }
+
+        prometheus.scrape "agent_studio" {
+          targets = [{
+            "__address__" = "agent-studio.agent-studio.svc.cluster.local:80",
+            "instance"    = "k3s-demo",
+          }]
+
+          metrics_path    = "/api/metrics"
+          scrape_interval = "15s"
+          scrape_timeout  = "5s"
+          job_name        = "agent-studio"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        prometheus.scrape "agent_memory" {
+          targets = [{
+            "__address__" = "agent-memory.agent-memory.svc.cluster.local:80",
+            "instance"    = "k3s-demo",
+          }]
+
+          metrics_path    = "/api/metrics"
+          scrape_interval = "15s"
+          scrape_timeout  = "5s"
+          job_name        = "agent-memory"
+          bearer_token     = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
+          forward_to       = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+    extraEnv:
+      - name: NODE_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: spec.nodeName
+    envFrom:
+      - secretRef:
+          name: alloy-grafana-cloud
+    resources: {}
+
+  controller:
+    type: daemonset
+
+  extraObjects:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: alloy-grafana-cloud
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: alloy-grafana-cloud
+          creationPolicy: Owner
+        data:
+          - secretKey: GCLOUD_RW_API_KEY
+            remoteRef:
+              key: /k8s/common/grafana-cloud/remote-write-api-key
+          - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
+            remoteRef:
+              key: /k8s/k3s-demo/agent-memory/metrics-bearer-token

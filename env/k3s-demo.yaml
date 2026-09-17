@@ -7,6 +7,10 @@ group: k3s-demo
 role: k3s
 aws_region: ap-northeast-2
 
+grafana_cloud:
+  remote_write_url: https://prometheus-us-central1.grafana.net/api/prom/push
+  remote_write_username: "2124611"
+
 resources:
   enabled: false
 autoscaling:
