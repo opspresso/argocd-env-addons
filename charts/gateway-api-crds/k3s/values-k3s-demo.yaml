@@ -1,1 +1,3 @@
-# no cluster-specific overrides
+gateway:
+  enabled: True
+  hostname: "argocd.demo.opsp.dev"

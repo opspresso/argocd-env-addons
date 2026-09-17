@@ -1,1 +1,3 @@
-# Kubernetes Gateway API CRDs (standard channel) - no configurable values
+# Kubernetes Gateway API CRDs (standard channel)
+gateway:
+  enabled: false

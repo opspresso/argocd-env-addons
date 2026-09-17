@@ -1,1 +1,3 @@
-# no cluster-specific overrides
+gateway:
+  enabled: False
+  hostname: "demo.opspresso.com"

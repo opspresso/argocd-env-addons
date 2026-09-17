@@ -26,8 +26,8 @@ argo-cd:
     httproute:
       enabled: true
       parentRefs:
-        - name: istio-ingressgateway
-          namespace: istio-system
+        - name: argocd-gateway
+          namespace: argocd
       hostnames:
         - "argocd.demo.opspresso.com"
 
