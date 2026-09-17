@@ -22,8 +22,8 @@ loki:
     nodeSelector:
       group: "{{monitoring.nodeSelector}}"
 {% endif %}
-{% endif %}
 
+{% if loki is defined %}
 raw:
   resources:
     - apiVersion: gateway.networking.k8s.io/v1
@@ -40,3 +40,4 @@ raw:
           - backendRefs:
               - name: loki
                 port: 3100
+{% endif %}
