@@ -9,7 +9,7 @@ server:
   ingress:
     enabled: true
     ingressClassName: traefik
-      hostname: ARGOCD_HOSTNAME
+    hostname: ARGOCD_HOSTNAME
     tls: true
     annotations:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure

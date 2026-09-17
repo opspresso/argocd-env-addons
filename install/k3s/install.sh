@@ -29,6 +29,15 @@ require_command() {
 
 require_command helm
 require_command kubectl
+require_command aws
+require_command jq
+require_command argocd
+
+step "SSM 관리자 계정 조회"
+export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
+export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
+export ARGOCD_PASSWORD=$(aws ssm get-parameter --name /k8s/common/argocd-password --with-decryption | jq .Parameter.Value -r)
+export ARGOCD_MTIME=$(aws ssm get-parameter --name /k8s/common/argocd-mtime --with-decryption | jq .Parameter.Value -r)
 
 step "Helm repository 등록"
 helm repo add argo https://argoproj.github.io/argo-helm --force-update
@@ -50,7 +59,9 @@ step "Argo CD 설치"
 helm upgrade --install argocd argo/argo-cd \
   --namespace argocd \
   --create-namespace \
-  --values "${VALUES_FILE}"
+  --values "${VALUES_FILE}" \
+  --set-string "configs.secret.argocdServerAdminPassword=${ARGOCD_PASSWORD}" \
+  --set-string "configs.secret.argocdServerAdminPasswordMtime=${ARGOCD_MTIME}"
 
 step "Argo CD 준비 대기"
 kubectl -n argocd rollout status deployment/argocd-server --timeout=5m
@@ -61,6 +72,13 @@ kubectl apply -f "${SCRIPT_DIR}/projects.yaml"
 step "k3s addons 등록"
 kubectl apply -f "${ROOT_DIR}/addons-k3s.yaml"
 
+step "Argo CD 로그인"
+argocd login "${ARGOCD_HOSTNAME}" \
+  --grpc-web \
+  --skip-test-tls \
+  --username "${ADMIN_USERNAME}" \
+  --password "${ADMIN_PASSWORD}"
+
 cat <<'EOF'
 
 설치가 완료되었습니다.
@@ -69,7 +87,5 @@ cat <<'EOF'
 
 인증서 상태 확인:
   kubectl -n traefik-gateway get certificate traefik-gateway-tls
-admin 비밀번호 확인:
-  kubectl -n argocd get secret argocd-initial-admin-secret \
-    -o jsonpath='{.data.password}' | base64 -d; echo
+관리자 계정은 AWS SSM Parameter Store의 /k8s/common/admin-user, /k8s/common/admin-password를 사용합니다.
 EOF

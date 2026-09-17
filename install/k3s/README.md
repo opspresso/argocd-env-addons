@@ -10,6 +10,7 @@ Traefik이 기본 Ingress Controller인 단일 노드 k3s에 Argo CD와 이 저�
 - k3s가 설치되어 있어야 한다.
 - `kubectl`이 대상 k3s 클러스터를 가리켜야 한다.
 - `helm`이 설치되어 있어야 한다.
+- `aws`, `jq`, `argocd` CLI가 설치되어 있어야 한다.
 - `argocd.demo.opsp.dev`가 `13.124.244.200`을 가리켜야 한다.
 - Route53 `demo.opsp.dev` Hosted Zone이 있어야 한다.
 - EC2 Instance Profile에 cert-manager용 Route53 권한이 있어야 한다.
@@ -46,20 +47,25 @@ cert-manager가 사용하는 EC2 Instance Profile에는 최소한 다음 권한�
 스크립트는 다음을 수행한다.
 
 1. Argo와 cert-manager Helm repository를 등록하고 갱신한다.
-2. cert-manager와 Route53 DNS-01 방식의 `letsencrypt-prod` ClusterIssuer를 설치한다.
-3. `install/k3s/values.yaml`로 HTTPS Argo CD를 설치한다.
-4. `*.demo.opsp.dev` 인증서를 `traefik-gateway-tls` Secret으로 발급 요청한다.
-5. `addons`, `apps` AppProject를 생성한다.
-6. 저장소 루트의 `addons-k3s.yaml`을 등록한다.
+2. AWS SSM에서 Argo CD 관리자 계정과 bcrypt 비밀번호를 조회한다.
+3. cert-manager와 Route53 DNS-01 방식의 `letsencrypt-prod` ClusterIssuer를 설치한다.
+4. `install/k3s/values.yaml`로 HTTPS Argo CD를 설치한다.
+5. `*.demo.opsp.dev` 인증서를 `traefik-gateway-tls` Secret으로 발급 요청한다.
+6. `addons`, `apps` AppProject를 생성한다.
+7. 저장소 루트의 `addons-k3s.yaml`을 등록하고 SSM 관리자 계정으로 로그인한다.
 
 ## 접속
 
-주소는 `https://argocd.demo.opsp.dev`이다. 초기 admin 비밀번호는 다음 명령으로
-확인한다.
+주소는 `https://argocd.demo.opsp.dev`이다. 관리자 계정은 AWS SSM Parameter Store의
+다음 파라미터를 사용한다.
 
 ```bash
-kubectl -n argocd get secret argocd-initial-admin-secret \
-  -o jsonpath='{.data.password}' | base64 -d; echo
+export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
+export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
+
+argocd login argocd.demo.opsp.dev \
+  --grpc-web --skip-test-tls \
+  --username "$ADMIN_USERNAME" --password "$ADMIN_PASSWORD"
 ```
 
 인증서 발급 상태는 다음 명령으로 확인한다.
