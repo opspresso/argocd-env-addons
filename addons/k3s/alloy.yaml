@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: alloy-k3s
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
 spec:
   project: addons
   destination:
@@ -19,8 +17,8 @@ spec:
         - values.yaml
         - k3s/values-k3s-demo.yaml
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
+    # automated:
+    #   prune: true
+    #   selfHeal: true
     syncOptions:
       - CreateNamespace=true
