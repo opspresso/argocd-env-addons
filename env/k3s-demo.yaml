@@ -75,7 +75,7 @@ gateway:
   hosts:
     - demo.opsp.dev
     - '*.demo.opsp.dev'
-    - '*.opspresso.com'
+    # - '*.opspresso.com'
   tls:
     secret_name: traefik-gateway-tls
     issuer_name: letsencrypt-prod
