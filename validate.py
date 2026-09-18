@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Render every ApplicationSet the way Argo CD would, and fail on any error.
+"""Render every Application or ApplicationSet the way Argo CD would, and fail on any error.
 
 Reads addons/**/*.yaml, expands the git files generator against the env files it
 names, and runs `helm template` with the exact valueFiles Argo CD passes. A
@@ -11,7 +11,7 @@ Also enforces that every <env>/values-<cluster>.yaml has a values-template.yaml.
 to come from - a hand-written one is indistinguishable from a render and drifts
 without anyone noticing.
 
-    ./validate.py                 # every ApplicationSet in addons/{eks,k3s}/
+    ./validate.py                 # every Application or ApplicationSet in addons/{eks,k3s}/
     ./validate.py -r grafana      # one chart
     ./validate.py -d addons -d backup
 
@@ -75,7 +75,7 @@ def expand(text, env):
 
 
 def load_targets(dirs):
-    """One entry per ApplicationSet: chart, env files and valueFiles."""
+    """One entry per Application or ApplicationSet: chart and value files."""
     targets = []
 
     for directory in dirs:
@@ -88,23 +88,32 @@ def load_targets(dirs):
                 with open(path, "r") as file:
                     doc = yaml.safe_load(file)
 
-                if not doc or doc.get("kind") != "ApplicationSet":
+                if not doc or doc.get("kind") not in {"Application", "ApplicationSet"}:
                     continue
 
-                template = doc["spec"]["template"]
-                source = template["spec"]["source"]
+                if doc["kind"] == "ApplicationSet":
+                    template = doc["spec"]["template"]
+                    source = template["spec"]["source"]
+                    env_files = [
+                        entry["path"]
+                        for generator in doc["spec"]["generators"]
+                        for entry in generator["git"]["files"]
+                    ]
+                    name = template["metadata"]["name"]
+                    namespace = template["spec"]["destination"]["namespace"]
+                else:
+                    source = doc["spec"]["source"]
+                    env_files = [None]
+                    name = doc["metadata"]["name"]
+                    namespace = doc["spec"]["destination"]["namespace"]
 
                 targets.append({
                     "appset": path,
                     "chart": source["path"],
                     "value_files": source.get("helm", {}).get("valueFiles", []),
-                    "env_files": [
-                        entry["path"]
-                        for generator in doc["spec"]["generators"]
-                        for entry in generator["git"]["files"]
-                    ],
-                    "name": template["metadata"]["name"],
-                    "namespace": template["spec"]["destination"]["namespace"],
+                    "env_files": env_files,
+                    "name": name,
+                    "namespace": namespace,
                 })
 
     return targets
@@ -162,9 +171,11 @@ def update_dependencies(chart):
 
 
 def render(target, env_file):
-    """helm template one ApplicationSet against one env file."""
-    with open(env_file, "r") as file:
-        env = yaml.safe_load(file)
+    """helm template one Application or ApplicationSet target."""
+    env = {}
+    if env_file:
+        with open(env_file, "r") as file:
+            env = yaml.safe_load(file)
 
     args = ["helm", "template", expand(target["name"], env), target["chart"]]
     args += ["--namespace", expand(target["namespace"], env)]
@@ -220,7 +231,7 @@ def main():
                 continue
 
         for env_file in target["env_files"]:
-            print("# render {} {}".format(target["appset"], env_file), flush=True)
+            print("# render {} {}".format(target["appset"], env_file or "direct"), flush=True)
 
             try:
                 error = render(target, env_file)
