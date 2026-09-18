@@ -50,6 +50,15 @@ prometheus:
   serviceMonitor:
     enabled: false
 
+grafana:
+  hostname: grafana.demo.opsp.dev
+  auth:
+    github:
+      enabled: false
+      org: opspresso
+    google:
+      enabled: false
+
 gateway:
   name: traefik-gateway
   namespace: traefik-gateway

@@ -52,8 +52,10 @@ grafana:
       deleteDatasources:
         - name: Prometheus
           orgId: 1
+{% if loki is defined %}
         - name: Loki
           orgId: 1
+{% endif %}
 
       datasources:
       # The uids are pinned because the provisioned alert rules in values.yaml
@@ -62,14 +64,20 @@ grafana:
       - name: Prometheus
         type: prometheus
         uid: prometheus
+{% if env == 'k3s' %}
+        url: http://victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
+{% else %}
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
+{% endif %}
         access: proxy
         isDefault: true
+{% if loki is defined %}
       - name: Loki
         type: loki
         uid: loki
         url: http://loki.addon-loki.svc.cluster.local:3100
         access: proxy
+{% endif %}
 {% if grafana.datasource is defined %}
 {% if grafana.datasource.demo is defined %}
       - name: demo
@@ -158,8 +166,13 @@ raw:
           link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
       spec:
         parentRefs:
+{% if env == 'k3s' %}
+          - name: "{{gateway.name}}"
+            namespace: "{{gateway.namespace}}"
+{% else %}
           - name: istio-ingressgateway
             namespace: istio-system
+{% endif %}
         hostnames:
           - "{{grafana.hostname}}"
         rules:
