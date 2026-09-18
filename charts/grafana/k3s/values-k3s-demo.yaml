@@ -81,7 +81,9 @@ grafana:
 
 
   serviceMonitor:
-    enabled: True
+
+    enabled: false
+
     labels:
 
       release: victoria-metrics-k3s-demo
