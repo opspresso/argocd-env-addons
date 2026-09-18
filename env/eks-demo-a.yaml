@@ -49,5 +49,8 @@ prometheus:
   serviceMonitor:
     enabled: true
 
+metrics:
+  backend: prometheus
+
 loki:
   hostname: loki.demo-in.opspresso.com

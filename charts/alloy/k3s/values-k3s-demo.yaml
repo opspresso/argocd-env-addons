@@ -13,12 +13,9 @@ alloy:
           }
 
           endpoint {
-            url = "https://prometheus-us-central1.grafana.net/api/prom/push"
 
-            basic_auth {
-              username = "2124611"
-              password = sys.env("GCLOUD_RW_API_KEY")
-            }
+            url = "http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428/api/v1/write"
+
           }
         }
 

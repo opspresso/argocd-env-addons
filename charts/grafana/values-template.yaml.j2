@@ -86,8 +86,8 @@ grafana:
       - name: Prometheus
         type: prometheus
         uid: prometheus
-{% if env == 'k3s' %}
-        url: http://victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+        url: http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
 {% else %}
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
 {% endif %}
@@ -122,7 +122,11 @@ grafana:
 {% endif %}
 
   serviceMonitor:
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+    enabled: false
+{% else %}
     enabled: {{prometheus.serviceMonitor.enabled}}
+{% endif %}
     labels:
       release: prometheus-{{cluster}}
 

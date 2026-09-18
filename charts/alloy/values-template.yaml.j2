@@ -100,12 +100,16 @@ alloy:
           }
 
           endpoint {
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+            url = "http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428/api/v1/write"
+{% else %}
             url = "{{grafana_cloud.remote_write_url}}"
 
             basic_auth {
               username = "{{grafana_cloud.remote_write_username}}"
               password = sys.env("GCLOUD_RW_API_KEY")
             }
+{% endif %}
           }
         }
 

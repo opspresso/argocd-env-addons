@@ -73,7 +73,7 @@ grafana:
         type: prometheus
         uid: prometheus
 
-        url: http://victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
+        url: http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
 
         access: proxy
         isDefault: true
@@ -81,7 +81,9 @@ grafana:
 
 
   serviceMonitor:
-    enabled: False
+
+    enabled: false
+
     labels:
       release: prometheus-k3s-demo
 

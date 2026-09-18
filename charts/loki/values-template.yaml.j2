@@ -8,7 +8,11 @@ loki:
 
   monitoring:
     serviceMonitor:
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+      enabled: false
+{% else %}
       enabled: {{prometheus.serviceMonitor.enabled}}
+{% endif %}
       labels:
         release: prometheus-{{cluster}}
 

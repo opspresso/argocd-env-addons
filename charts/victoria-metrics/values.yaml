@@ -4,6 +4,10 @@ victoria-metrics:
   grafana:
     enabled: false
 
+  victoria-metrics-operator:
+    operator:
+      disable_prometheus_converter: false
+
   vmsingle:
     enabled: true
     spec:
@@ -16,6 +20,8 @@ victoria-metrics:
             storage: 5Gi
 
   vmagent:
+    rbac:
+      namespaced: false
     enabled: true
     spec:
       scrapeInterval: 30s

@@ -48,7 +48,10 @@ argocd:
 
 prometheus:
   serviceMonitor:
-    enabled: false
+    enabled: true
+
+metrics:
+  backend: victoria-metrics
 
 grafana:
   hostname: grafana.demo.opsp.dev
