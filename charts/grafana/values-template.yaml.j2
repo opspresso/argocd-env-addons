@@ -1,6 +1,17 @@
 grafana:
   fullnameOverride: grafana
 
+{% if resources is defined and not resources.enabled %}
+  resources:
+    limits: null
+    requests: null
+{% endif %}
+
+{% if autoscaling is defined %}
+  autoscaling:
+    enabled: {{autoscaling.enabled}}
+{% endif %}
+
 {% if grafana is defined %}
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"

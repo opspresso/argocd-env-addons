@@ -2,6 +2,13 @@ grafana:
   fullnameOverride: grafana
 
 
+
+
+  autoscaling:
+    enabled: False
+
+
+
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
 

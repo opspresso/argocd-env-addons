@@ -2,6 +2,17 @@ grafana:
   fullnameOverride: grafana
 
 
+  resources:
+    limits: null
+    requests: null
+
+
+
+  autoscaling:
+    enabled: False
+
+
+
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
 
