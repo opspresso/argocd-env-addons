@@ -193,21 +193,6 @@ alloy:
           forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
         }
 
-        prometheus.scrape "cadvisor" {
-          targets           = discovery.relabel.kubelet.output
-          scheme            = "https"
-          metrics_path      = "/metrics/cadvisor"
-          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-          tls_config {
-            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-            insecure_skip_verify = true
-          }
-          scrape_interval = "30s"
-          scrape_timeout  = "10s"
-          job_name        = "cadvisor"
-          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
-        }
-
     extraEnv:
       - name: NODE_NAME
         valueFrom:
