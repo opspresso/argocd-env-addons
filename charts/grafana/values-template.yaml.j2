@@ -13,6 +13,17 @@ grafana:
 {% endif %}
 
 {% if grafana is defined %}
+{% if grafana.persistence is defined %}
+  persistence:
+    enabled: {{grafana.persistence.enabled}}
+{% if grafana.persistence.size is defined %}
+    size: {{grafana.persistence.size}}
+{% endif %}
+{% if grafana.persistence.storageClassName is defined %}
+    storageClassName: "{{grafana.persistence.storageClassName}}"
+{% endif %}
+{% endif %}
+
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
 

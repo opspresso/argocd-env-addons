@@ -13,6 +13,17 @@ grafana:
 
 
 
+
+  persistence:
+    enabled: True
+
+    size: 2Gi
+
+
+    storageClassName: "local-path"
+
+
+
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
 
