@@ -5,8 +5,9 @@ gateway:
   class_name: "traefik"
   listener_port: 8443
   hosts:
-    - '*.demo.opsp.dev'
     - demo.opsp.dev
+    - '*.demo.opsp.dev'
+    - '*.opspresso.com'
   tls:
     secret_name: "traefik-gateway-tls"
     issuer_name: "letsencrypt-prod"
