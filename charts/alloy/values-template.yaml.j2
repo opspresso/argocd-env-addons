@@ -215,7 +215,9 @@ alloy:
         - name: host-root
           mountPath: /host/root
           readOnly: true
-    resources: {}
+{% if resources is defined and not resources.enabled %}
+    resources: null
+{% endif %}
 
   controller:
     type: daemonset

@@ -128,7 +128,9 @@ alloy:
         - name: host-root
           mountPath: /host/root
           readOnly: true
-    resources: {}
+
+    resources: null
+
 
   controller:
     type: daemonset
