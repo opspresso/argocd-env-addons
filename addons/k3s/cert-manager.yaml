@@ -15,6 +15,7 @@ spec:
     targetRevision: HEAD
     path: charts/cert-manager
     helm:
+      releaseName: cert-manager
       valueFiles:
         - values.yaml
         - k3s/values-k3s-demo.yaml
