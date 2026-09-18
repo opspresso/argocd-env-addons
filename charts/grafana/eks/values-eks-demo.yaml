@@ -77,11 +77,11 @@ grafana:
 
 
   serviceMonitor:
-
     enabled: True
-
     labels:
+
       release: prometheus-eks-demo
+
 
 
 

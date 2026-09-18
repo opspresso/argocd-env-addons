@@ -7,7 +7,9 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-          release: prometheus-k3s-demo
+
+          release: victoria-metrics-k3s-demo
+
 
     resources: null
     autoscaling:
@@ -48,7 +50,9 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-          release: prometheus-k3s-demo
+
+          release: victoria-metrics-k3s-demo
+
 
   repoServer:
     replicas: 1
@@ -63,7 +67,9 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-          release: prometheus-k3s-demo
+
+          release: victoria-metrics-k3s-demo
+
 
   applicationSet:
     replicas: 1
@@ -84,7 +90,9 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-          release: prometheus-k3s-demo
+
+          release: victoria-metrics-k3s-demo
+
 
   notifications:
     enabled: False

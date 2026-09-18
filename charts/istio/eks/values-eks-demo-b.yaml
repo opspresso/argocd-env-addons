@@ -132,7 +132,9 @@ raw:
       metadata:
         labels:
           app: istio-ingressgateway
+
           release: prometheus-eks-demo-b
+
         name: istio-ingressgateway-metrics
       spec:
         endpoints:
@@ -153,7 +155,9 @@ raw:
       metadata:
         labels:
           app: istio-components
+
           release: prometheus-eks-demo-b
+
         name: istio-components-metrics
       spec:
         endpoints:
