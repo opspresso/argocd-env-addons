@@ -76,7 +76,7 @@ argo-cd:
 
 
   dex:
-    enabled: False
+    enabled: True
 
     resources: null
 
