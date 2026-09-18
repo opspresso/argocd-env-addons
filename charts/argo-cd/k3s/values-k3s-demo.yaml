@@ -5,7 +5,7 @@ argo-cd:
   controller:
     metrics:
       serviceMonitor:
-        enabled: False
+        enabled: True
         selector:
           release: prometheus-k3s-demo
 
@@ -46,7 +46,7 @@ argo-cd:
 
     metrics:
       serviceMonitor:
-        enabled: False
+        enabled: True
         selector:
           release: prometheus-k3s-demo
 
@@ -61,7 +61,7 @@ argo-cd:
 
     metrics:
       serviceMonitor:
-        enabled: False
+        enabled: True
         selector:
           release: prometheus-k3s-demo
 
@@ -82,7 +82,7 @@ argo-cd:
 
     metrics:
       serviceMonitor:
-        enabled: False
+        enabled: True
         selector:
           release: prometheus-k3s-demo
 
