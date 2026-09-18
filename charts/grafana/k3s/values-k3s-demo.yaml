@@ -140,5 +140,11 @@ raw:
           - "grafana.demo.opsp.dev"
         rules:
           - backendRefs:
-              - name: grafana
+              - group: ''
+                kind: Service
+                name: grafana
                 port: 80
+            matches:
+              - path:
+                  type: PathPrefix
+                  value: /
