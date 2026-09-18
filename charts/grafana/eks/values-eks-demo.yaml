@@ -126,8 +126,10 @@ raw:
           link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
       spec:
         parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
 
-          - name: istio-ingressgateway
+            name: istio-ingressgateway
             namespace: istio-system
 
         hostnames:
