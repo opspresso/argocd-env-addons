@@ -58,7 +58,7 @@ grafana:
     storageClassName: local-path
   auth:
     github:
-      enabled: false
+      enabled: true
       org: opspresso
     google:
       enabled: false
