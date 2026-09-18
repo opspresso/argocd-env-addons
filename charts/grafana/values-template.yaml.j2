@@ -122,13 +122,13 @@ grafana:
 {% endif %}
 
   serviceMonitor:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-    enabled: false
-{% else %}
     enabled: {{prometheus.serviceMonitor.enabled}}
-{% endif %}
     labels:
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+      release: victoria-metrics-{{cluster}}
+{% else %}
       release: prometheus-{{cluster}}
+{% endif %}
 
 {% if monitoring is defined %}
 {% if monitoring.nodeSelector is defined %}
@@ -194,7 +194,7 @@ raw:
         parentRefs:
           - group: gateway.networking.k8s.io
             kind: Gateway
-{% if env == 'k3s' %}
+{% if gateway is defined %}
             name: "{{gateway.name}}"
             namespace: "{{gateway.namespace}}"
 {% else %}

@@ -81,11 +81,11 @@ grafana:
 
 
   serviceMonitor:
-
-    enabled: false
-
+    enabled: True
     labels:
-      release: prometheus-k3s-demo
+
+      release: victoria-metrics-k3s-demo
+
 
 
 

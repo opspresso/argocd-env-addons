@@ -67,6 +67,7 @@ grafana:
       enabled: false
 
 gateway:
+  enabled: true
   name: traefik-gateway
   namespace: traefik-gateway
   class_name: traefik

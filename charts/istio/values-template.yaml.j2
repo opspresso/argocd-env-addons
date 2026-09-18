@@ -146,7 +146,11 @@ raw:
       metadata:
         labels:
           app: istio-ingressgateway
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+          release: victoria-metrics-{{cluster}}
+{% else %}
           release: prometheus-{{cluster}}
+{% endif %}
         name: istio-ingressgateway-metrics
       spec:
         endpoints:
@@ -167,7 +171,11 @@ raw:
       metadata:
         labels:
           app: istio-components
+{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
+          release: victoria-metrics-{{cluster}}
+{% else %}
           release: prometheus-{{cluster}}
+{% endif %}
         name: istio-components-metrics
       spec:
         endpoints:
