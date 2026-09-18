@@ -95,6 +95,10 @@ alloy:
     configMap:
       content: |
         prometheus.remote_write "grafana_cloud" {
+          external_labels = {
+            cluster = "{{cluster}}",
+          }
+
           endpoint {
             url = "{{grafana_cloud.remote_write_url}}"
 
@@ -132,6 +136,78 @@ alloy:
           forward_to       = [prometheus.remote_write.grafana_cloud.receiver]
         }
 
+        // Collect host-level CPU, memory, filesystem, network and disk metrics
+        // from the node where this DaemonSet instance is running.
+        prometheus.exporter.unix "node" {
+          procfs_path = "/host/proc"
+          sysfs_path  = "/host/sys"
+          rootfs_path = "/host/root"
+        }
+
+        prometheus.scrape "node" {
+          targets    = prometheus.exporter.unix.node.targets
+          job_name   = "node"
+          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        // Kubelet exposes both kubelet metrics and cAdvisor container metrics.
+        discovery.kubernetes "nodes" {
+          role = "node"
+
+          // Each DaemonSet instance reports only its own node. This prevents
+          // duplicate kubelet and cAdvisor series on multi-node clusters.
+          selectors {
+            role  = "node"
+            field = "metadata.name=" + sys.env("NODE_NAME")
+          }
+        }
+
+        discovery.relabel "kubelet" {
+          targets = discovery.kubernetes.nodes.targets
+
+          rule {
+            source_labels = ["__meta_kubernetes_node_address_InternalIP"]
+            regex         = "(.+)"
+            replacement   = "$1:10250"
+            target_label  = "__address__"
+          }
+
+          rule {
+            target_label = "cluster"
+            replacement  = "{{cluster}}"
+          }
+        }
+
+        prometheus.scrape "kubelet" {
+          targets           = discovery.relabel.kubelet.output
+          scheme            = "https"
+          metrics_path      = "/metrics"
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          tls_config {
+            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+            insecure_skip_verify = true
+          }
+          scrape_interval = "30s"
+          scrape_timeout  = "10s"
+          job_name        = "kubelet"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        prometheus.scrape "cadvisor" {
+          targets           = discovery.relabel.kubelet.output
+          scheme            = "https"
+          metrics_path      = "/metrics/cadvisor"
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          tls_config {
+            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+            insecure_skip_verify = true
+          }
+          scrape_interval = "30s"
+          scrape_timeout  = "10s"
+          job_name        = "cadvisor"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
     extraEnv:
       - name: NODE_NAME
         valueFrom:
@@ -140,10 +216,40 @@ alloy:
     envFrom:
       - secretRef:
           name: alloy-grafana-cloud
+    mounts:
+      varlog: true
+      extra:
+        - name: alloy-data
+          mountPath: /var/lib/alloy
+        - name: host-proc
+          mountPath: /host/proc
+          readOnly: true
+        - name: host-sys
+          mountPath: /host/sys
+          readOnly: true
+        - name: host-root
+          mountPath: /host/root
+          readOnly: true
     resources: {}
 
   controller:
     type: daemonset
+
+    volumes:
+      extra:
+        - name: alloy-data
+          hostPath:
+            path: /var/lib/alloy
+            type: DirectoryOrCreate
+        - name: host-proc
+          hostPath:
+            path: /proc
+        - name: host-sys
+          hostPath:
+            path: /sys
+        - name: host-root
+          hostPath:
+            path: /
 
   extraObjects:
     - apiVersion: external-secrets.io/v1
