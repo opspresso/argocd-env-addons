@@ -188,11 +188,13 @@ raw:
           link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
       spec:
         parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
 {% if env == 'k3s' %}
-          - name: "{{gateway.name}}"
+            name: "{{gateway.name}}"
             namespace: "{{gateway.namespace}}"
 {% else %}
-          - name: istio-ingressgateway
+            name: istio-ingressgateway
             namespace: istio-system
 {% endif %}
         hostnames:
