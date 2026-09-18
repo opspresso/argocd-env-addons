@@ -1,0 +1,8 @@
+victoria-metrics:
+  global:
+    clusterLabel: cluster
+
+  vmagent:
+    spec:
+      externalLabels:
+        cluster: "{{cluster}}"

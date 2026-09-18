@@ -1,0 +1,30 @@
+victoria-metrics:
+  fullnameOverride: victoria-metrics
+
+  grafana:
+    enabled: false
+
+  vmsingle:
+    enabled: true
+    spec:
+      retentionPeriod: 10d
+      storage:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+
+  vmagent:
+    enabled: true
+    spec:
+      scrapeInterval: 30s
+
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeProxy:
+    enabled: false
+  kubeEtcd:
+    enabled: false

@@ -97,6 +97,12 @@
       "current": "91.4.1",
       "version": "91.4.1"
     },
+    "victoria-metrics": {
+      "app_version": "v1.149.0",
+      "chart": "victoria-metrics/victoria-metrics-k8s-stack",
+      "current": "0.90.2",
+      "version": "0.90.2"
+    },
     "vllm-stack": {
       "app_version": "",
       "chart": "vllm/vllm-stack",

@@ -16,9 +16,6 @@ resources:
 autoscaling:
   enabled: false
 
-# k3s에서는 EKS Pod Identity와 AWS ALB/EBS를 사용하지 않습니다.
-external_secrets: true
-
 hostname:
   internal: demo-in.opsp.dev
   public: demo.opsp.dev
@@ -34,7 +31,7 @@ argocd:
   autoscaling:
     enabled: false
   dex:
-    enabled: false
+    enabled: true
   notifications:
     enabled: false
   http_route:

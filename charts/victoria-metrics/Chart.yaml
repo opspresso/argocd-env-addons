@@ -1,0 +1,11 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: victoria-metrics
+type: application
+version: "0.90.2" # helm chart victoria-metrics-k8s-stack version
+
+dependencies:
+- name: victoria-metrics-k8s-stack
+  repository: https://victoriametrics.github.io/helm-charts
+  version: "0.90.2" # helm chart victoria-metrics-k8s-stack version
+  alias: victoria-metrics
