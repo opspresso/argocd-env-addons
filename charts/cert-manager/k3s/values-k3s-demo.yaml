@@ -1,0 +1,12 @@
+cert-manager:
+  fullnameOverride: cert-manager
+
+  crds:
+    enabled: true
+
+
+  resources: null
+  webhook:
+    resources: null
+  cainjector:
+    resources: null

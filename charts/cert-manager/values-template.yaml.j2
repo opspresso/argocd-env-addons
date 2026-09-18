@@ -1,0 +1,13 @@
+cert-manager:
+  fullnameOverride: cert-manager
+
+  crds:
+    enabled: true
+
+{% if resources is defined and not resources.enabled %}
+  resources: null
+  webhook:
+    resources: null
+  cainjector:
+    resources: null
+{% endif %}

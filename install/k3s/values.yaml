@@ -7,13 +7,15 @@ server:
   replicas: 1
 
   ingress:
+    enabled: false
+
+  httproute:
     enabled: true
-    ingressClassName: traefik
-    hostname: ARGOCD_HOSTNAME
-    tls: true
-    annotations:
-      traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      traefik.ingress.kubernetes.io/router.tls: "true"
+    parentRefs:
+      - name: traefik-gateway
+        namespace: traefik-gateway
+    hostnames:
+      - ARGOCD_HOSTNAME
 
 repoServer:
   replicas: 1
