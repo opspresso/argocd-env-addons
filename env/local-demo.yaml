@@ -1,10 +1,10 @@
-cluster: orb-demo
+cluster: local-demo
 
 active: 'true'
 country: kr
-env: orb
-group: orb-demo
-role: orb
+env: local
+group: local-demo
+role: local
 
 aws_region: ap-northeast-2
 aws_local:

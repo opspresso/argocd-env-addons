@@ -7,7 +7,7 @@
 
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/eks/>
 * k3s 설치는 <https://github.com/opspresso/argocd-env-addons/tree/main/install/k3s/> 참고
-* OrbStack GitOps 개발 환경(Argo CD·PostgreSQL·MinIO·Neo4j·MCP) 설치는 [install/orb](install/orb/README.md)를 참고한다. Studio·Memory는 Mac에서 `pnpm`으로 실행한다.
+* 로컬 Kubernetes GitOps 개발 환경(OrbStack·Docker Desktop)(Argo CD·PostgreSQL·MinIO·Neo4j·MCP) 설치는 [install/local](install/local/README.md)를 참고한다. Studio·Memory는 Mac에서 `pnpm`으로 실행한다.
 
 ## addons
 
@@ -43,7 +43,7 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 ## env
 
 `env/<cluster>.yaml` 은 git files generator 입력이자 jinja2 렌더 입력이다.
-파일 이름은 클러스터 이름이고 `cluster` 필드와 일치해야 한다. `env` 필드는 `eks`, `k3s`, `orb`이며
+파일 이름은 클러스터 이름이고 `cluster` 필드와 일치해야 한다. `env` 필드는 `eks`, `k3s`, `local`이며
 valueFiles의 디렉토리가 된다.
 
 `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 AWS 를 조회해 갱신한다.
@@ -56,10 +56,10 @@ valueFiles의 디렉토리가 된다.
 ## 리소스·autoscaling 규칙
 
 공통 `values.yaml`은 EKS를 기본으로 한다. EKS는 기존 chart 기본값과 env 설정을 사용한다.
-`k3s`·`orb`는 `resources.enabled: false`, `autoscaling.enabled: false`로 선언하고,
+`k3s`·`local`는 `resources.enabled: false`, `autoscaling.enabled: false`로 선언하고,
 모든 chart가 이 두 전역 값을 따른다. Argo CD도 별도 resource/autoscaling 스위치를 두지 않는다.
 
-k3s·orb에서는 CPU·메모리 requests/limits와 HPA·VPA·KEDA autoscaler를 생성하지 않는다.
+k3s·local에서는 CPU·메모리 requests/limits와 HPA·VPA·KEDA autoscaler를 생성하지 않는다.
 PVC의 storage 요청은 유지한다. VictoriaMetrics의 `useDefaultResources`와 k3s Traefik의
 `HelmChartConfig`도 같은 규칙을 적용해 operator·upstream 기본값이 리소스를 다시 주입하지 않게 한다.
 `validate.py`는 실제 렌더 결과의 컨테이너·초기화 컨테이너·Job·operator CR까지 검사한다.

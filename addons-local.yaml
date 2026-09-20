@@ -1,23 +1,21 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: addons-local
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
+  labels:
+    opspresso.com/group: addons
 spec:
   project: addons
+  source:
+    repoURL: https://github.com/opspresso/argocd-env-addons
+    targetRevision: HEAD
+    path: addons/local
+    directory:
+      recurse: true
   destination:
     name: in-cluster
     namespace: argocd
-  source:
-    repoURL: https://github.com/opspresso/argocd-env-addons.git
-    targetRevision: HEAD
-    path: charts/argo-cd
-    helm:
-      valueFiles:
-        - values.yaml
-        - orb/values-orb-demo.yaml
   syncPolicy:
     automated:
       prune: true

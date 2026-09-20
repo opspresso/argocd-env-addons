@@ -8,7 +8,7 @@ external-secrets:
     resources: null
 {% endif %}
 
-{% if env == 'orb' %}
+{% if env == 'local' %}
   extraEnv:
     - name: AWS_PROFILE
       value: "{{aws_local.profile}}"

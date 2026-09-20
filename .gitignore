@@ -45,3 +45,6 @@ values.output.yaml
 realm.output.json
 
 .prompt.md
+
+# Local installation credentials and generated connection files
+install/*/.local/

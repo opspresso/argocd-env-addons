@@ -137,7 +137,7 @@ def check_templates(only=None):
         if only and name != only:
             continue
 
-        for platform in ("eks", "k3s", "orb"):
+        for platform in ("eks", "k3s", "local"):
             chart = os.path.join(chart_root, platform)
             if not os.path.isdir(chart):
                 continue

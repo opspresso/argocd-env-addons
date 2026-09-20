@@ -17,14 +17,14 @@ class LocalAWSTests(unittest.TestCase):
         template = environment.get_template("values-template.yaml.j2")
         for path in (ROOT / "env").glob("*.yaml"):
             context = yaml.safe_load(path.read_text())
-            if context["env"] != "orb":
+            if context["env"] != "local":
                 context["aws_local"] = {"profile": "unused", "config_file": "/unused/config", "credentials_file": "/unused/credentials"}
             values = yaml.safe_load(template.render(context))
             with self.subTest(cluster=context["cluster"]):
                 for store in values["raw"]["resources"]:
                     self.assertNotIn("auth", store["spec"]["provider"]["aws"])
                 controller = values["external-secrets"]
-                if context["env"] != "orb":
+                if context["env"] != "local":
                     self.assertNotIn("extraVolumes", controller)
                     continue
                 local = context["aws_local"]
@@ -43,7 +43,7 @@ class LocalAWSTests(unittest.TestCase):
                 self.assertNotIn("extraVolumes", controller["certController"])
 
     def test_bootstrap_does_not_export_or_copy_aws_keys(self):
-        script = (ROOT / "install/orb/install.sh").read_text()
+        script = (ROOT / "install/local/install.sh").read_text()
         self.assertNotIn("configure export-credentials", script)
         self.assertNotIn("create secret generic", script)
         self.assertNotIn("AWS_ACCESS_KEY_ID", script)
