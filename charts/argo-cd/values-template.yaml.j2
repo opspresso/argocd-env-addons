@@ -14,18 +14,20 @@ argo-cd:
 {% else %}
           release: prometheus-{{cluster}}
 {% endif %}
-{% if not argocd.resources.enabled %}
+{% if resources is defined and not resources.enabled %}
     resources: null
+{% endif %}
+{% if autoscaling is defined and not autoscaling.enabled %}
     autoscaling:
       enabled: false
 {% endif %}
 
   server:
     replicas: {{argocd.replicas.server}}
-{% if not argocd.resources.enabled %}
+{% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
-{% if not argocd.autoscaling.enabled %}
+{% if autoscaling is defined and not autoscaling.enabled %}
     autoscaling:
       enabled: false
 {% endif %}
@@ -61,10 +63,10 @@ argo-cd:
 
   repoServer:
     replicas: {{argocd.replicas.repo_server}}
-{% if not argocd.resources.enabled %}
+{% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
-{% if not argocd.autoscaling.enabled %}
+{% if autoscaling is defined and not autoscaling.enabled %}
     autoscaling:
       enabled: false
 {% endif %}
@@ -80,17 +82,17 @@ argo-cd:
 
   applicationSet:
     replicas: {{argocd.replicas.application_set}}
-{% if not argocd.resources.enabled %}
+{% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
-{% if not argocd.autoscaling.enabled %}
+{% if autoscaling is defined and not autoscaling.enabled %}
     autoscaling:
       enabled: false
 {% endif %}
 
   dex:
     enabled: {{argocd.dex.enabled}}
-{% if not argocd.resources.enabled %}
+{% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
     metrics:
@@ -105,8 +107,8 @@ argo-cd:
 
   notifications:
     enabled: {{argocd.notifications.enabled}}
-    argocdUrl: https://{{argocd.hostname}}
-{% if not argocd.resources.enabled %}
+    argocdUrl: {{argocd.scheme | default('https')}}://{{argocd.hostname}}
+{% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
 
@@ -146,9 +148,9 @@ argo-cd:
         g, mcp, role:mcp
 
     cm:
-      url: https://{{argocd.hostname}}
+      url: {{argocd.scheme | default('https')}}://{{argocd.hostname}}
 
-      statusbadge.url: https://{{argocd.hostname}}/
+      statusbadge.url: {{argocd.scheme | default('https')}}://{{argocd.hostname}}/
 
       help.chatUrl: "{{argocd.chatUrl}}"
       help.chatText: "Chat now!"

@@ -27,6 +27,8 @@ import sys
 
 import yaml
 
+from workload_policy import policy_errors, target_platform
+
 
 APPSET_DIR = "addons"
 CHARTS_DIR = "charts"
@@ -135,7 +137,7 @@ def check_templates(only=None):
         if only and name != only:
             continue
 
-        for platform in ("eks", "k3s"):
+        for platform in ("eks", "k3s", "orb"):
             chart = os.path.join(chart_root, platform)
             if not os.path.isdir(chart):
                 continue
@@ -198,7 +200,8 @@ def render(target, env_file):
     if result.returncode != 0:
         return result.stderr.strip() or result.stdout.strip()
 
-    return None
+    errors = policy_errors(result.stdout, target_platform(target, env))
+    return "\n".join(errors) if errors else None
 
 
 def main():

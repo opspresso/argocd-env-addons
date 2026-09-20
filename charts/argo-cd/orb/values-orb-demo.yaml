@@ -5,10 +5,10 @@ argo-cd:
   controller:
     metrics:
       serviceMonitor:
-        enabled: True
+        enabled: False
         selector:
 
-          release: victoria-metrics-k3s-demo
+          release: prometheus-orb-demo
 
 
     resources: null
@@ -29,10 +29,10 @@ argo-cd:
 
     ingress:
       enabled: false
-      hostname: "argocd.demo.opsp.dev"
+      hostname: "argocd-server.argocd.svc.cluster.local"
       annotations:
         kubernetes.io/ingress.class: "alb"
-        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.opsp.dev"
+        external-dns.alpha.kubernetes.io/hostname: "argocd-server.argocd.svc.cluster.local"
         alb.ingress.kubernetes.io/scheme: "internet-facing"
         alb.ingress.kubernetes.io/target-type: "ip"
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
@@ -41,19 +41,18 @@ argo-cd:
           {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
 
     httproute:
-      enabled: True
+      enabled: False
       parentRefs:
-        - name: traefik-gateway
-          namespace: traefik-gateway
+        []
       hostnames:
-        - "argocd.demo.opsp.dev"
+        - "argocd-server.argocd.svc.cluster.local"
 
     metrics:
       serviceMonitor:
-        enabled: True
+        enabled: False
         selector:
 
-          release: victoria-metrics-k3s-demo
+          release: prometheus-orb-demo
 
 
   repoServer:
@@ -67,14 +66,14 @@ argo-cd:
 
     metrics:
       serviceMonitor:
-        enabled: True
+        enabled: False
         selector:
 
-          release: victoria-metrics-k3s-demo
+          release: prometheus-orb-demo
 
 
   applicationSet:
-    replicas: 1
+    replicas: 0
 
     resources: null
 
@@ -84,21 +83,21 @@ argo-cd:
 
 
   dex:
-    enabled: True
+    enabled: False
 
     resources: null
 
     metrics:
       serviceMonitor:
-        enabled: True
+        enabled: False
         selector:
 
-          release: victoria-metrics-k3s-demo
+          release: prometheus-orb-demo
 
 
   notifications:
     enabled: False
-    argocdUrl: https://argocd.demo.opsp.dev
+    argocdUrl: http://argocd-server.argocd.svc.cluster.local
 
     resources: null
 
@@ -139,9 +138,9 @@ argo-cd:
         g, mcp, role:mcp
 
     cm:
-      url: https://argocd.demo.opsp.dev
+      url: http://argocd-server.argocd.svc.cluster.local
 
-      statusbadge.url: https://argocd.demo.opsp.dev/
+      statusbadge.url: http://argocd-server.argocd.svc.cluster.local/
 
       help.chatUrl: ""
       help.chatText: "Chat now!"
@@ -166,12 +165,12 @@ argo-cd:
         - id: argo-workflows-sso
           name: Argo Workflow
           redirectURIs:
-            - https://workflows.demo.opsp.dev/oauth2/callback
+            - https://workflows.svc.cluster.local/oauth2/callback
           secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
         - id: oauth2-proxy-sso
           name: OAuth2 Proxy
           redirectURIs:
-            - https://auth.demo.opsp.dev/oauth2/callback
+            - https://auth.svc.cluster.local/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
 raw:

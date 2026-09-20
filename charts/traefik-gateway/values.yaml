@@ -8,3 +8,8 @@ gateway:
   tls:
     secret_name: ""
     issuer_name: ""
+
+resources:
+  enabled: true
+autoscaling:
+  enabled: true

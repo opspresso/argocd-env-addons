@@ -2,7 +2,37 @@ victoria-metrics:
   global:
     clusterLabel: cluster
 
+
+  victoria-metrics-operator:
+    resources: null
+    crds:
+      cleanup:
+        resources: null
+      upgrade:
+        resources: null
+  syncJob:
+    resources: null
+  vmsingle:
+    spec:
+      resources: null
+      useDefaultResources: false
+  vmalert:
+    spec:
+      resources: null
+      configReloaderResources: null
+      useDefaultResources: false
+  alertmanager:
+    spec:
+      resources: null
+      configReloaderResources: null
+      useDefaultResources: false
+
   vmagent:
     spec:
+
+      resources: null
+      configReloaderResources: null
+      useDefaultResources: false
+
       externalLabels:
         cluster: "k3s-demo"

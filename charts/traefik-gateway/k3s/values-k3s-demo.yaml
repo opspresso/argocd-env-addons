@@ -12,3 +12,8 @@ gateway:
   tls:
     secret_name: "traefik-gateway-tls"
     issuer_name: "letsencrypt-prod"
+
+resources:
+  enabled: False
+autoscaling:
+  enabled: False

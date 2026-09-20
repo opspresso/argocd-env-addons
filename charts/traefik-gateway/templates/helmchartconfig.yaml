@@ -6,6 +6,13 @@ metadata:
   namespace: kube-system
 spec:
   valuesContent: |-
+{{- if not .Values.resources.enabled }}
+    resources: null
+{{- end }}
+{{- if not .Values.autoscaling.enabled }}
+    autoscaling:
+      enabled: false
+{{- end }}
     providers:
       kubernetesGateway:
         enabled: true

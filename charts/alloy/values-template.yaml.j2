@@ -261,5 +261,5 @@ alloy:
               key: /k8s/common/grafana-cloud/remote-write-api-key
           - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
             remoteRef:
-              key: /k8s/k3s-demo/agent-memory/metrics-bearer-token
+              key: /k8s/{{cluster}}/agent-memory/metrics-bearer-token
 {% endif %}

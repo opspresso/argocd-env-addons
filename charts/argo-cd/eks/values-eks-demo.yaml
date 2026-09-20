@@ -12,6 +12,10 @@ argo-cd:
 
 
 
+    autoscaling:
+      enabled: false
+
+
   server:
     replicas: 2
 

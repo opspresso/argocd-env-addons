@@ -9,3 +9,8 @@ gateway:
   tls:
     secret_name: "{{gateway.tls.secret_name}}"
     issuer_name: "{{gateway.tls.issuer_name}}"
+
+resources:
+  enabled: {{resources.enabled | default(true)}}
+autoscaling:
+  enabled: {{autoscaling.enabled | default(true)}}

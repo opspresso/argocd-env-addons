@@ -10,6 +10,7 @@ EKS 클러스터의 **addon** 을 Argo CD 로 배포하는 GitOps 저장소.
 ```
 addons-eks.yaml        # EKS App of Apps. `addons/eks/` 를 sync
 addons-k3s.yaml        # k3s App of Apps. `addons/k3s/` 를 sync
+addons-orb.yaml        # OrbStack App of Apps. `addons/orb/` 를 sync
 addons/eks/<addon>.yaml # EKS addon 별 ApplicationSet
 addons/k3s/<addon>.yaml # k3s addon 별 ApplicationSet
 backup/<addon>.yaml    # 배포하지 않는 addon 의 ApplicationSet 보관소
@@ -19,6 +20,7 @@ charts/<addon>/k3s/    # k3s 렌더 결과
 env/<cluster>.yaml     # 클러스터별 변수. git files generator 입력이자 Jinja2 렌더 입력
 install/eks/           # EKS Argo CD 최초 부트스트랩
 install/k3s/           # k3s Argo CD 최초 부트스트랩
+install/orb/           # OrbStack Argo CD 최초 부트스트랩
 gen_chart.py           # addons/<platform>/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
 gen_values.py          # 공용 템플릿 × env/*.yaml → charts/<addon>/<env>/...
 validate.py            # ApplicationSet 과 같은 조합으로 helm template 검증
@@ -90,10 +92,20 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ## env/<cluster>.yaml
 
 - 파일 이름이 클러스터 이름이고, 안의 `cluster` 필드와 일치해야 한다 (`{{cluster}}` 로 치환됨).
-- `env` 는 플랫폼(`eks` 또는 `k3s`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
+- 클러스터별 SSM 경로는 템플릿의 `{{cluster}}`에서 만든다. 공통 `values.yaml`에 특정 클러스터의 경로를 기본값으로 두지 않는다.
+- `env` 는 플랫폼(`eks`, `k3s`, `orb`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
 - `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 손으로 넣지 말고
   `./update_env.sh` 로 갱신한다. 이미 값이 들어 있는 키만 교체하므로, 새 키는 먼저 추가해야 한다.
 - `env` 를 바꾸면 렌더 출력 디렉토리도 함께 바뀐다. 옛 디렉토리에 남은 파일은 손으로 지운다.
+
+## 플랫폼 공통 리소스 규칙
+
+- 공통 `values.yaml`은 EKS 기본값이다. EKS의 명시적 env 설정과 기존 autoscaling 동작을 유지한다.
+- `k3s`, `orb`는 전역 `resources.enabled: false`, `autoscaling.enabled: false`를 사용한다.
+  Argo CD를 포함해 chart별로 같은 스위치를 중복 선언하지 않는다.
+- 컨테이너·초기화 컨테이너·Job·operator가 만드는 Pod의 requests/limits를 제거한다.
+  HPA·VPA·KEDA를 만들지 않으며 PVC의 storage 요청은 유지한다.
+- 새 chart와 upstream 갱신도 `validate.py`의 렌더 결과 검사로 이 규칙을 확인한다.
 
 ## addons/<platform>/<addon>.yaml
 

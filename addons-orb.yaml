@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: addons-orb
+  namespace: argocd
+  labels:
+    opspresso.com/group: addons
+spec:
+  project: addons
+  source:
+    repoURL: https://github.com/opspresso/argocd-env-addons
+    targetRevision: HEAD
+    path: addons/orb
+    directory:
+      recurse: true
+  destination:
+    name: in-cluster
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

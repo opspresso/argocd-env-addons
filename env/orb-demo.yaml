@@ -1,0 +1,47 @@
+cluster: orb-demo
+
+active: 'true'
+country: kr
+env: orb
+group: orb-demo
+role: orb
+
+aws_region: ap-northeast-2
+aws_local:
+  profile: default
+  config_file: /Users/nalbam/.aws/config
+  credentials_file: /Users/nalbam/.aws/credentials
+
+resources:
+  enabled: false
+autoscaling:
+  enabled: false
+
+hostname:
+  internal: svc.cluster.local
+  public: svc.cluster.local
+
+argocd:
+  hostname: argocd-server.argocd.svc.cluster.local
+  scheme: http
+  replicas:
+    server: 1
+    repo_server: 1
+    application_set: 0
+  dex:
+    enabled: false
+  notifications:
+    enabled: false
+  http_route:
+    enabled: false
+    parent_refs: []
+  github:
+    org: opspresso
+    team: sre
+  google:
+    enabled: false
+  chatUrl: ''
+
+prometheus:
+  serviceMonitor:
+    enabled: false

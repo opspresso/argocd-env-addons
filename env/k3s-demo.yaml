@@ -26,10 +26,6 @@ argocd:
     server: 1
     repo_server: 1
     application_set: 1
-  resources:
-    enabled: false
-  autoscaling:
-    enabled: false
   dex:
     enabled: true
   notifications:
