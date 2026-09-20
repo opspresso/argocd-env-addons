@@ -6,6 +6,16 @@ Traefik Gateway API를 사용하는 단일 노드 k3s에 Argo CD와 이 저장�
 의존하지 않지만, 관리자 인증 정보와 cert-manager 권한 조회를 위해 AWS SSM과 Instance Profile을
 사용한다.
 
+## 운영 환경
+
+현재 대상은 AWS EC2의 단일 노드 k3s다. `argocd-env-addons`가 클러스터 addon을,
+`argocd-env-demo`가 Agent Studio 등 애플리케이션을 배포한다.
+운영 호스트에는 다음 SSH 명령으로 접속한다.
+
+```bash
+ssh -i ~/.ssh/id_ed25519_bruce ec2-user@100.113.136.122
+```
+
 ## 사전 조건
 
 - k3s가 설치되어 있어야 한다.

@@ -14,24 +14,24 @@ victoria-metrics:
     resources: null
   vmsingle:
     spec:
-      resources: null
+      resources: {}
       useDefaultResources: false
   vmalert:
     spec:
-      resources: null
-      configReloaderResources: null
+      resources: {}
+      configReloaderResources: {}
       useDefaultResources: false
   alertmanager:
     spec:
-      resources: null
-      configReloaderResources: null
+      resources: {}
+      configReloaderResources: {}
       useDefaultResources: false
 {% endif %}
   vmagent:
     spec:
 {% if resources is defined and not resources.enabled %}
-      resources: null
-      configReloaderResources: null
+      resources: {}
+      configReloaderResources: {}
       useDefaultResources: false
 {% endif %}
       externalLabels:

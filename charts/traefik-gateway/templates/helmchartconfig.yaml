@@ -7,7 +7,9 @@ metadata:
 spec:
   valuesContent: |-
 {{- if not .Values.resources.enabled }}
-    resources: null
+    resources:
+      requests: null
+      limits: null
 {{- end }}
 {{- if not .Values.autoscaling.enabled }}
     autoscaling:
