@@ -23,11 +23,6 @@ mcp-argocd:
   service: mcp-argocd
   ports: ["8081:80"]
   url: http://localhost:8081/mcp
-mcp-brave-search:
-  namespace: agent-mcps
-  service: mcp-brave-search
-  ports: ["8082:80"]
-  url: http://localhost:8082/mcp
 mcp-cloudwatch:
   namespace: agent-mcps
   service: mcp-cloudwatch
