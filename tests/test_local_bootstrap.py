@@ -1,4 +1,5 @@
 import os
+import json
 import re
 import shlex
 import shutil
@@ -20,6 +21,9 @@ def test_existing_argocd_is_reused_without_reinstalling_or_reading_credentials(t
         executable.write_text(f'#!/bin/sh\nprintf "%s\\n" "{name} $*" >> "$COMMAND_LOG"\n')
         if name == "helm":
             executable.write_text(executable.read_text() + 'case "$*" in *" get manifest "*) printf "kind: ConfigMap\\nmetadata: {name: fixture}\\n" ;; *) printf "argocd\\n" ;; esac\n')
+        if name == "kubectl":
+            sources = json.dumps({"data": {key: "Zml4dHVyZQ==" for key in ["POSTGRES_PASSWORD", "MINIO_ROOT_USER", "MINIO_ROOT_PASSWORD", "NEO4J_AUTH", "ARGOCD_API_TOKEN"]}})
+            executable.write_text(executable.read_text() + f"case \"$*\" in *\"get secret local-\"*) printf '%s\\n' '{sources}' ;; esac\n")
         executable.chmod(0o755)
     subprocess.run(
         ["bash", str(ROOT / "install/local/install.sh")], check=True, capture_output=True, text=True,

@@ -74,6 +74,7 @@ run_kubectl wait --for=create deployment/external-secrets-webhook -n addon-exter
 run_kubectl rollout status deployment/external-secrets-webhook -n addon-external-secrets --timeout=180s
 run_kubectl wait --for=create clustersecretstore/parameter-store --timeout=180s
 run_kubectl wait --for=condition=Ready clustersecretstore/parameter-store --timeout=180s
+python3 "${SCRIPT_DIR}/credentials.py" "$KUBE_CONTEXT"
 run_kubectl apply -f "${DEMO_DIR}/apps-local.yaml"
 
 echo "Argo CD: http://localhost:8080 (python3 install/local/connect.py --only argocd)"

@@ -35,23 +35,29 @@ CPU·메모리 requests/limits와 autoscaler를 선언하지 않는다. PVC의 s
 
 ## 자격 증명
 
-기존 `parameter-store` ClusterSecretStore와 AWS SSM을 사용한다. 다음 파라미터를 준비한다.
+로컬 데이터 서비스는 `local` namespace의 기존 Kubernetes Secret을 사용한다.
+비밀번호와 토큰은 Git에 저장하지 않으며, 로컬 전용 SSM 파라미터를 만들지 않는다.
+`credentials.example.yaml`을 `.local/credentials.yaml`에 복사해 실제 값으로 채우고 선택한
+context에 적용한다. 기존 설치에서는 값을 그대로 재사용한다.
 
-| SSM 경로 | 내용 |
+| 원천 Secret | 필요한 키 |
 | --- | --- |
-| `/k8s/common/*` | 새 Argo CD 설치의 관리자 비밀번호, Brave key, 기존 Grafana 관리자 계정 |
-| `/k8s/local-demo/agent-studio/postgres-password` | 공유 PostgreSQL의 `agent_studio` 사용자 비밀번호 |
-| `/k8s/local-demo/agent-studio/minio-root-user` | MinIO 사용자 |
-| `/k8s/local-demo/agent-studio/minio-root-password` | MinIO 비밀번호 |
-| `/k8s/local-demo/agent-memory/neo4j-auth` | `neo4j/PASSWORD` 형식 |
-| `/k8s/local-demo/mcp-argocd/argocd-api-token` | 기존 로컬 Argo CD의 읽기 전용 `mcp` 계정 토큰 |
+| `local/local-credentials` | `POSTGRES_PASSWORD`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, `NEO4J_AUTH` |
+| `local/local-mcp-argocd` | `ARGOCD_API_TOKEN` |
 
-Grafana MCP 대상은 apps 저장소 `env/local-demo.yaml`의 `grafana_url`이다. 기본값은 기존
-AWS k3s의 `https://grafana.demo.opsp.dev`이며, 기존 common Grafana 계정을 사용한다.
+`NEO4J_AUTH`는 `neo4j/PASSWORD` 형식이다. Argo CD 토큰은 선택한 클러스터의 기존 `mcp`
+계정 토큰이어야 한다. 다른 Argo CD 인스턴스의 토큰을 공유하지 않는다. 새 설치는 Argo CD를
+bootstrap한 뒤 해당 계정의 토큰을 준비하고 설치 스크립트를 다시 실행한다.
 
-로컬 Argo CD는 기존 서명 키·관리자 비밀번호·`mcp` 계정 권한을 유지한다.
-MCP에는 해당 로컬 계정의 토큰을 사용하며, 다른 Argo CD 인스턴스의 공통 토큰을 연결하지 않는다.
-`install/eks/token.sh`는 공통 Argo CD 토큰의 관리 절차이므로 로컬 인증 설정을 바꾸는 데 사용하지 않는다.
+설치 스크립트의 `credentials.py`가 위 값을 서비스별 namespace의
+`postgresql-credentials`, `minio-credentials`, `memory-neo4j-auth`, `mcp-argocd-external`로
+복사한다. 기존 대상 값이 다르면 멈추며, 데이터베이스 비밀번호를 조용히 교체하지 않는다.
+데이터 차트와 Argo CD MCP는 local에서 ExternalSecret을 생성하지 않는다. EKS·k3s는 기존
+클러스터별 SSM 경로를 유지한다.
+
+Brave Search와 Grafana MCP는 기존 `/k8s/common/*` 값을 External Secrets로 읽는다.
+Grafana 대상은 apps 저장소 `env/local-demo.yaml`의 `grafana_url`이며 기본값은
+`https://grafana.demo.opsp.dev`이다. 로컬 Argo CD의 관리자·서명 키·계정 권한은 유지한다.
 
 설치 스크립트의 AWS CLI는 로컬 credential chain을 사용한다. External Secrets와
 CloudWatch MCP도 로컬 `~/.aws/config`, `~/.aws/credentials`를 읽기 전용 `hostPath`로
@@ -131,7 +137,7 @@ python3 install/local/connect.py --context orbstack
 | Studio / Memory | `http://localhost:3000` / `http://localhost:3100` |
 
 `agent-studio.env.example`, `agent-memory.env.example`의 연결 값을 각 앱의 `.env.local`에
-반영하고 자격 증명은 위 SSM 값과 맞춘다. 기존 인증·암호화·모델 설정은 유지한다.
+반영하고 자격 증명은 위 `local` namespace의 원천 Secret과 맞춘다. 기존 인증·암호화·모델 설정은 유지한다.
 PostgreSQL 사용자 `agent_studio`가 `agent_studio`, `agent_memory` database를 사용하며,
 MinIO bucket도 두 앱 이름으로 나눈다. Agent Studio는 이 저장소에서 실행하지 않고 앱 저장소에서 실행한다.
 
