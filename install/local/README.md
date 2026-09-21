@@ -55,7 +55,7 @@ bootstrap한 뒤 해당 계정의 토큰을 준비하고 설치 스크립트를 
 데이터 차트와 Argo CD MCP는 local에서 ExternalSecret을 생성하지 않는다. EKS·k3s는 기존
 클러스터별 SSM 경로를 유지한다.
 
-Brave Search와 Grafana MCP는 기존 `/k8s/common/*` 값을 External Secrets로 읽는다.
+Grafana MCP는 기존 `/k8s/common/*` 값을 External Secrets로 읽는다.
 Grafana 대상은 apps 저장소 `env/local-demo.yaml`의 `grafana_url`이며 기본값은
 `https://grafana.demo.opsp.dev`이다. 로컬 Argo CD의 관리자·서명 키·계정 권한은 유지한다.
 
@@ -130,7 +130,6 @@ python3 install/local/connect.py --context orbstack
 | S3 | `http://localhost:9000` |
 | Neo4j Bolt / Browser | `bolt://localhost:7687` / `http://localhost:7474` |
 | Argo CD MCP | `http://localhost:8081/mcp` |
-| Brave Search MCP | `http://localhost:8082/mcp` |
 | CloudWatch MCP | `http://localhost:8083/mcp` |
 | Kubernetes MCP | `http://localhost:8084/mcp` |
 | Grafana MCP | `http://localhost:8000/mcp` |
