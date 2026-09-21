@@ -19,7 +19,7 @@ run_kubectl get nodes >/dev/null
 test -f "${DEMO_DIR}/apps-local.yaml"
 
 # Keep an existing local control plane and its credentials intact.
-EXISTING_RELEASE=$(run_helm list --all --namespace argocd --filter '^argocd$' -q)
+EXISTING_RELEASE=$(run_helm list --deployed --failed --pending --uninstalling --namespace argocd --filter '^argocd$' -q)
 if [ "$EXISTING_RELEASE" = "argocd" ]; then
   echo "Using existing Argo CD release argocd in argocd"
 else
@@ -66,8 +66,14 @@ PY
 
 fi
 
+python3 "${SCRIPT_DIR}/runtime.py" "$KUBE_CONTEXT" --check-argocd
 run_kubectl apply -f "${SCRIPT_DIR}/projects.yaml"
 run_kubectl apply -f "${ROOT_DIR}/addons-local.yaml"
+# ExternalSecret admission must be available before registering dependent apps.
+run_kubectl wait --for=create deployment/external-secrets-webhook -n addon-external-secrets --timeout=180s
+run_kubectl rollout status deployment/external-secrets-webhook -n addon-external-secrets --timeout=180s
+run_kubectl wait --for=create clustersecretstore/parameter-store --timeout=180s
+run_kubectl wait --for=condition=Ready clustersecretstore/parameter-store --timeout=180s
 run_kubectl apply -f "${DEMO_DIR}/apps-local.yaml"
 
 echo "Argo CD: http://localhost:8080 (python3 install/local/connect.py --only argocd)"

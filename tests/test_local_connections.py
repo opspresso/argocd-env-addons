@@ -13,7 +13,7 @@ sys.path.insert(0, str(SCRIPT_DIR))
 spec = importlib.util.spec_from_file_location("local_connect", SCRIPT_DIR / "connect.py")
 connect = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(connect)
-from runtime import resolve_context
+from runtime import check_argocd_policy, resolve_context
 
 
 @pytest.mark.parametrize("context", ["orbstack", "docker-desktop"])
@@ -54,3 +54,13 @@ def test_port_collision_is_reported_and_preflight_socket_is_closed():
         with pytest.raises(RuntimeError, match="5432 is unavailable"):
             connect.check_ports({"postgres": {"ports": ["5432:5432"]}})
     listener.close.assert_called_once()
+
+
+def test_existing_argocd_memory_limit_is_not_silently_accepted():
+    manifest = yaml.safe_dump({"kind": "Deployment", "metadata": {"name": "argocd-repo-server"},
+                               "spec": {"template": {"spec": {"containers": [
+                                   {"name": "repo-server", "resources": {"limits": {"memory": "512Mi"}}},
+                               ]}}}})
+    with patch("runtime.subprocess.check_output", return_value=manifest):
+        with pytest.raises(ValueError, match="violates local workload policy"):
+            check_argocd_policy("orbstack")

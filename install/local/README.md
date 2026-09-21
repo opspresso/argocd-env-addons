@@ -96,8 +96,10 @@ KUBE_CONTEXT=docker-desktop bash install/local/install.sh
 ```
 
 기존 `argocd` Helm release가 있으면 재설치와 관리자 자격 증명 변경을 건너뛴다.
+기존 설치도 requests/limits·autoscaling 정책을 검사하며, 불일치하면 Helm 설정을 맞춘 뒤 다시 실행한다.
 새 설치에서만 로컬 AWS 권한으로 SSM 관리자 계정을 조회해 bootstrap한다.
-이후 로컬 `addons`, `apps` AppProject와 `addons-local`, `apps-local`를 등록한다. External Secrets와
+이후 `addons`, `apps` AppProject와 `addons-local`을 등록한다.
+External Secrets webhook과 `parameter-store`가 준비된 뒤 `apps-local`을 등록한다.
 데이터·MCP workload는 등록된 GitOps Application이 동기화한다.
 
 ## Mac 접속과 앱 실행
