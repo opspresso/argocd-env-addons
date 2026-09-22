@@ -108,6 +108,18 @@ kubectl apply -f ingress-class.yaml
 > Argocd 를 설치 합니다.
 > addons 를 위해 ApplicationSet 도 함께 설치 합니다.
 
+전체 설치는 `./install.sh` 로 실행합니다. 필요한 Helm repository를 등록하고,
+external-dns와 Argo CD 리소스가 준비될 때까지 기다립니다. 로그인은 SSM의
+`/k8s/common/argocd-hostname`에 있는 호스트의 `/healthz`가 HTTP 200을 반환한 뒤
+진행하므로 ALB 대상 등록과 DNS 전파 지연도 기다립니다.
+
+기본 대기 시간은 Helm 설치마다 10분, HTTPS 접속 준비에 600초입니다.
+시간 초과 시 Pod·Ingress·ALB·DNS 상태를 확인한 뒤 다시 실행합니다.
+환경에 따라 `HELM_TIMEOUT=15m ARGOCD_READY_TIMEOUT=900 ./install.sh`로 조정할 수 있습니다.
+기존 필수 도구 외에 접속 확인용 `curl`이 필요합니다.
+
+아래는 Argo CD만 수동으로 설치하는 명령입니다.
+
 ```bash
 # helm repo add argo https://argoproj.github.io/argo-helm
 
