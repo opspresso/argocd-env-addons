@@ -25,10 +25,10 @@
       "version": "2.0.8"
     },
     "atlantis": {
-      "app_version": "v0.47.1",
+      "app_version": "v0.48.0",
       "chart": "atlantis/atlantis",
       "current": "6.15.1",
-      "version": "6.15.1"
+      "version": "6.16.0"
     },
     "cert-manager": {
       "app_version": "v1.21.2",
