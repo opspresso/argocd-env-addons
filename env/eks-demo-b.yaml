@@ -8,8 +8,9 @@ role: service
 
 aws_account_id: "396608815058"
 aws_region: ap-northeast-2
+aws_environment: demo
 
-vpcId: vpc-04945243dfefd3988
+vpcId: vpc-077dc86403278b4d6
 
 hostname:
   internal: demo-in.opspresso.com
@@ -42,8 +43,8 @@ istio:
   target_group_public: h1_b
 
 target_group:
-  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-b/66e060cf1886a0a1
-  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-b/72529ca227ddc8ef
+  internal_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-in-http-b/63a0a58b6373d062
+  public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-b/098e0d176c6bd24a
 
 prometheus:
   serviceMonitor:

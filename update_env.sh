@@ -2,11 +2,11 @@
 
 # Update env/*.yaml with current AWS data (vpcId, acm_arn, target_group).
 # Values are looked up by convention:
-#   vpcId                     : VPC tagged Name=vpc-{env}
+#   vpcId                     : VPC tagged Name=vpc-{aws_environment}
 #   argocd.acm_arn            : ACM cert whose domain == argocd.hostname
 #   atlantis.acm_arn          : ACM cert whose domain == hostname.public
-#   target_group.public_http  : target group named {env}-{istio.target_group}
-#   target_group.internal_http: target group named {env}-in-{istio.target_group}
+#   target_group.public_http  : target group named {aws_environment}-{istio.target_group}
+#   target_group.internal_http: target group named {aws_environment}-in-{istio.target_group}
 # Existing values are replaced in place, preserving file formatting.
 
 set -euo pipefail
@@ -72,7 +72,6 @@ update() {
 for FILE in ${SHELL_DIR}/env/*.yaml; do
   step "Processing ${FILE}"
 
-  ENV=$(yq '.env' ${FILE})
   ACCOUNT_ID=$(yq '.aws_account_id' ${FILE})
   REGION=$(yq '.aws_region' ${FILE})
 
@@ -81,11 +80,16 @@ for FILE in ${SHELL_DIR}/env/*.yaml; do
     continue
   fi
 
+  # The platform (eks) is not the Terraform environment (demo).
+  ENV=$(yq '.aws_environment // ""' "${FILE}")
+  [ -n "${ENV}" ] || die "${FILE}: aws_environment is required"
+
   # vpcId
   lookup "ec2 describe-vpcs --filters Name=tag:Name,Values=vpc-${ENV}"
   VPC_ID=$(aws ec2 describe-vpcs --region ${REGION} \
     --filters "Name=tag:Name,Values=vpc-${ENV}" \
     --query 'Vpcs[0].VpcId' --output text)
+  [ -n "${VPC_ID}" ] && [ "${VPC_ID}" != "None" ] || die "${FILE}: VPC vpc-${ENV} not found"
   update ${FILE} "vpcId" "$(yq '.vpcId // ""' ${FILE})" "${VPC_ID}"
 
   # acm_arn
@@ -118,7 +122,7 @@ for FILE in ${SHELL_DIR}/env/*.yaml; do
   if [ -n "${SUFFIX}" ]; then
     lookup "elbv2 describe-target-groups --names ${ENV}-${PUBLIC_SUFFIX}"
     PUBLIC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${PUBLIC_SUFFIX}" \
-      --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
+      --query 'TargetGroups[0].TargetGroupArn' --output text)
     update ${FILE} "target_group.public_http" "$(yq '.target_group.public_http // ""' ${FILE})" "${PUBLIC_TG}"
 
     # gRPC needs h2 to the backend, which an HTTP1 group cannot carry, so it has
@@ -126,13 +130,13 @@ for FILE in ${SHELL_DIR}/env/*.yaml; do
     if [ -n "${GRPC_SUFFIX}" ]; then
       lookup "elbv2 describe-target-groups --names ${ENV}-${GRPC_SUFFIX}"
       GRPC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${GRPC_SUFFIX}" \
-        --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
+        --query 'TargetGroups[0].TargetGroupArn' --output text)
       update ${FILE} "target_group.public_grpc" "$(yq '.target_group.public_grpc // ""' ${FILE})" "${GRPC_TG}"
     fi
 
     lookup "elbv2 describe-target-groups --names ${ENV}-in-${SUFFIX}"
     INTERNAL_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-in-${SUFFIX}" \
-      --query 'TargetGroups[0].TargetGroupArn' --output text 2>/dev/null || true)
+      --query 'TargetGroups[0].TargetGroupArn' --output text)
     update ${FILE} "target_group.internal_http" "$(yq '.target_group.internal_http // ""' ${FILE})" "${INTERNAL_TG}"
   fi
 done

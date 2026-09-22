@@ -47,10 +47,14 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 valueFiles의 디렉토리가 된다.
 
 `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 AWS 를 조회해 갱신한다.
-이미 값이 들어 있는 키만 교체한다.
+이미 값이 들어 있는 키만 교체한다. AWS 리소스 이름에는 `aws_environment`(예: `demo`)를
+사용하며, 배포 플랫폼인 `env`(예: `eks`)와 구분한다. VPC나 Target Group 조회에
+실패하면 중단한다. 인프라를 재생성한 뒤에는 다음 두 명령으로 ARN과 배포 값을
+갱신하고 변경분을 Git에 반영한 뒤 addons를 동기화한다.
 
 ```bash
 ./update_env.sh
+GITHUB_PUSH=false ./build.sh
 ```
 
 ## 리소스·autoscaling 규칙
