@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: eks-network-policy
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+  template:
+    metadata:
+      name: "eks-network-policy-{{cluster}}"
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        opspresso.com/cluster: "{{cluster}}"
+        opspresso.com/group: addons
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: kube-system
+      source:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/eks-network-policy
+        helm:
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true

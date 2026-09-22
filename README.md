@@ -42,6 +42,21 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 
 ## env
 
+### EKS Auto Mode NetworkPolicy
+
+`addons/eks/eks-network-policy.yaml`은 `kube-system/amazon-vpc-cni` ConfigMap으로
+관리형 Network Policy Controller를 활성화한다. NodeClass의 `networkPolicy: DefaultAllow`만으로는
+NetworkPolicy가 적용되지 않는다. [AWS 설정 계약](https://docs.aws.amazon.com/eks/latest/userguide/auto-net-pol.html)을 따른다.
+AWS가 controller와 node agent를 관리하므로 별도 CNI·DaemonSet을 설치하지 않는다.
+
+활성화하면 클러스터에 이미 선언된 모든 NetworkPolicy가 적용 대상이 된다. 동기화 후
+`kubectl get policyendpoints -A`와 실제 허용·차단 경로를 확인한다. Agent Studio Pod에서
+Workspace Docker API의 `/_ping`은 성공해야 하고, Agent Memory 같은 다른 namespace에서는
+같은 호출이 차단돼야 한다. Argo CD 내부 통신과 Studio → MCP 경로도 확인한다.
+k3s의 정책 처리는 k3s가 소유하며 이 EKS 설정을 배포하지 않는다.
+
+### 클러스터 입력
+
 `env/<cluster>.yaml` 은 git files generator 입력이자 jinja2 렌더 입력이다.
 파일 이름은 클러스터 이름이고 `cluster` 필드와 일치해야 한다. `env` 필드는 `eks`, `k3s`, `local`이며
 valueFiles의 디렉토리가 된다.
