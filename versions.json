@@ -22,7 +22,7 @@
       "app_version": "v4.1.4",
       "chart": "argo/argo-workflows",
       "current": "2.0.6",
-      "version": "2.0.7"
+      "version": "2.0.8"
     },
     "atlantis": {
       "app_version": "v0.47.1",
@@ -43,10 +43,10 @@
       "version": "1.22.0"
     },
     "external-secrets": {
-      "app_version": "v2.10.0",
+      "app_version": "v2.11.0",
       "chart": "external-secrets/external-secrets",
       "current": "2.10.0",
-      "version": "2.10.0"
+      "version": "2.11.0"
     },
     "grafana": {
       "app_version": "12.3.1",
@@ -55,11 +55,11 @@
       "version": "10.5.15"
     },
     "istiod": {
-      "app_version": "1.30.4",
+      "app_version": "1.30.5",
       "chart": "istio/istiod",
       "current": "1.30.4",
       "path": "istio",
-      "version": "1.30.4"
+      "version": "1.30.5"
     },
     "kite": {
       "app_version": "v0.15.1",
@@ -98,10 +98,10 @@
       "version": "91.4.1"
     },
     "victoria-metrics": {
-      "app_version": "v1.151.0",
+      "app_version": "v1.152.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
       "current": "0.90.2",
-      "version": "0.92.1"
+      "version": "0.93.0"
     },
     "vllm-stack": {
       "app_version": "",
