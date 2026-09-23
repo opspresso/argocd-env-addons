@@ -159,7 +159,7 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.0 | 10.7.0 (7.15.3) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack | ✅ | 91.4.1 | 91.4.1 (v0.94.0) |
+| prometheus-stack |  | 91.4.1 | 91.5.0 (v0.94.0) |
 | victoria-metrics |  | 0.90.2 | 0.93.0 (v1.152.0) |
 | vllm-stack |  |  | 0.1.12 |
 <!--- END_VERSION --->
