@@ -6,12 +6,12 @@ set -euo pipefail
 
 GITHUB_PUSH=${GITHUB_PUSH:-false}
 
-SHELL_DIR=$(dirname "$0")
+SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 GIT_USERNAME="nalbam-bot"
 GIT_USEREMAIL="bot@nalbam.com"
 
-cd "${SHELL_DIR}"
+cd "${SHELL_DIR}/.."
 
 # find charts
 for CHART_DIR in charts/*/; do
@@ -20,7 +20,7 @@ for CHART_DIR in charts/*/; do
     if [ -f "${CHART_DIR}/values-template.yaml.j2" ] && [ -d "${CHART_DIR}/${PLATFORM}" ]; then
       echo
       echo "Processing.. ${CHART}/${PLATFORM}"
-      python3 gen_values.py -p "${PLATFORM}" -r "${CHART}"
+      python3 "${SHELL_DIR}/gen_values.py" -p "${PLATFORM}" -r "${CHART}"
     fi
   done
 done

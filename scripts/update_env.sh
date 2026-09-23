@@ -11,7 +11,8 @@
 
 set -euo pipefail
 
-SHELL_DIR=$(dirname $0)
+SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+ROOT_DIR=$(cd "${SHELL_DIR}/.." && pwd)
 
 # Step logging colors. Disabled when stdout is not a terminal.
 if [ -t 1 ]; then
@@ -69,7 +70,7 @@ update() {
   changed "${KEY}: ${OLD} -> ${NEW}"
 }
 
-for FILE in ${SHELL_DIR}/env/*.yaml; do
+for FILE in "${ROOT_DIR}"/env/*.yaml; do
   step "Processing ${FILE}"
 
   ACCOUNT_ID=$(yq '.aws_account_id' ${FILE})

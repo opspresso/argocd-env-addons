@@ -3,6 +3,24 @@
 * <https://argo-cd.readthedocs.io/en/stable/getting_started/>
 * <https://argocd-applicationset.readthedocs.io/en/stable/Getting-Started/>
 
+## 저장소 구조
+
+```text
+addons-*.yaml     # App of Apps 설치 진입점
+addons/           # 플랫폼별 Argo CD Application/ApplicationSet
+backup/           # 배포하지 않는 addon 보관본
+charts/           # 공용 wrapper Helm chart와 렌더 결과
+env/              # 클러스터별 설정
+scripts/          # 빌드·생성·갱신·검증 스크립트
+config/           # Helm 저장소 목록과 chart 버전 감시 목록
+requirements/     # Python 실행 의존성(runtime.txt)
+install/          # 플랫폼별 Argo CD 최초 부트스트랩
+tests/            # 자동화 테스트
+```
+
+아래 명령은 저장소 루트 기준이다. 스크립트는 다른 디렉터리에서도 경로를 지정해 실행할 수 있다.
+Python 의존성은 `python3 -m pip install -r requirements/runtime.txt`로 설치한다.
+
 ## see argocd
 
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/eks/>
@@ -33,7 +51,7 @@ charts/<addon>/
 ```
 
 `<env>/values-<cluster>.yaml` 은 **언제나** `values-template.yaml.j2` 의 렌더 결과다.
-직접 고치지 말고 템플릿을 고친 뒤 `./build.sh` 를 돌린다.
+직접 고치지 말고 템플릿을 고친 뒤 `./scripts/build.sh` 를 돌린다.
 덮어쓸 값이 없는 chart 도 템플릿을 둔다 — ApplicationSet 의 `valueFiles` 에 적힌 파일이 없으면
 sync 에 실패하기 때문이다.
 
@@ -68,8 +86,8 @@ valueFiles의 디렉토리가 된다.
 갱신하고 변경분을 Git에 반영한 뒤 addons를 동기화한다.
 
 ```bash
-./update_env.sh
-GITHUB_PUSH=false ./build.sh
+./scripts/update_env.sh
+GITHUB_PUSH=false ./scripts/build.sh
 ```
 
 ## 리소스·autoscaling 규칙
@@ -81,7 +99,7 @@ GITHUB_PUSH=false ./build.sh
 k3s·local에서는 CPU·메모리 requests/limits와 HPA·VPA·KEDA autoscaler를 생성하지 않는다.
 PVC의 storage 요청은 유지한다. VictoriaMetrics의 `useDefaultResources`와 k3s Traefik의
 `HelmChartConfig`도 같은 규칙을 적용해 operator·upstream 기본값이 리소스를 다시 주입하지 않게 한다.
-`validate.py`는 실제 렌더 결과의 컨테이너·초기화 컨테이너·Job·operator CR까지 검사한다.
+`scripts/validate.py`는 실제 렌더 결과의 컨테이너·초기화 컨테이너·Job·operator CR까지 검사한다.
 
 ## gen chart
 
@@ -89,18 +107,18 @@ PVC의 storage 요청은 유지한다. VictoriaMetrics의 `useDefaultResources`�
 기존 chart 에 돌리면 손으로 다듬은 주석·alias·추가 dependency 가 사라지므로 새 addon 을 만들 때만 쓴다.
 
 ```bash
-./gen_chart.py -r grafana
+./scripts/gen_chart.py -r grafana
 ```
 
 ## gen values
 
 `values-template.yaml.j2` 를 `env/*.yaml` 마다 렌더해 `charts/<addon>/<env>/` 에 저장한다.
-`./build.sh` 는 모든 chart 에 대해 이것을 실행한다.
+`./scripts/build.sh` 는 모든 chart 에 대해 이것을 실행한다.
 
 ```bash
-./gen_values.py
+./scripts/gen_values.py
 
-./gen_values.py -p eks -r grafana
+./scripts/gen_values.py -p eks -r grafana
 ```
 
 ## validate
@@ -109,15 +127,15 @@ ApplicationSet 이 지정한 것과 같은 valueFiles 조합으로 `helm templat
 values 파일 누락이나 chart 오류를 Argo CD sync 가 아니라 CI 에서 잡기 위한 것이다.
 
 ```bash
-./validate.py
+./scripts/validate.py
 
-./validate.py -r grafana
-./validate.py -d addons -d backup   # 미배포 addon 까지
+./scripts/validate.py -r grafana
+./scripts/validate.py -d addons -d backup   # 미배포 addon 까지
 ```
 
 ## versions
 
-아래 표는 `update_versions.py` 가 `versions.json` 을 기준으로 생성한다. 여기서 직접 고치지 않는다.
+아래 표는 `scripts/update_versions.py` 가 `config/versions.json` 을 기준으로 생성한다. 여기서 직접 고치지 않는다.
 `versions` workflow 가 매일 UTC 00 에 실행해 갱신분을 main 에 커밋하므로, `Chart.yaml` 버전을
 올리면 늦어도 다음 날 표에 반영된다.
 
@@ -128,10 +146,10 @@ values 파일 누락이나 chart 오류를 Argo CD sync 가 아니라 CI 에서 
 바로 갱신하려면 수동으로 돌린다.
 
 ```bash
-cat repos.txt | xargs -I {} bash -c 'helm repo add {}'
+cat config/repos.txt | xargs -I {} bash -c 'helm repo add {}'
 helm repo update
 
-./update_versions.py
+./scripts/update_versions.py
 ```
 
 `karpenter` 처럼 `public.ecr.aws` 의 OCI chart 를 조회하려면 로그인이 필요하다.

@@ -21,14 +21,17 @@ env/<cluster>.yaml     # 클러스터별 변수. git files generator 입력이�
 install/eks/           # EKS Argo CD 최초 부트스트랩
 install/k3s/           # k3s Argo CD 최초 부트스트랩
 install/local/           # 로컬 Kubernetes Argo CD 부트스트랩
-gen_chart.py           # addons/<platform>/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
-gen_values.py          # 공용 템플릿 × env/*.yaml → charts/<addon>/<env>/...
-validate.py            # ApplicationSet 과 같은 조합으로 helm template 검증
-build.sh               # 모든 chart 에 gen_values.py 실행. CI 에서 결과를 자동 커밋
-update_env.sh          # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
-update_versions.py     # versions.json 기준으로 upstream 최신 버전 조회, README 버전 테이블 갱신
-versions.json          # update_versions.py 의 감시 목록. upstream chart 경로 + 버전 캐시
-repos.txt              # update_versions.py 가 조회할 helm repo 목록 (helm repo add 입력)
+scripts/gen_chart.py       # addons/<platform>/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
+scripts/gen_values.py      # 공용 템플릿 × env/*.yaml → charts/<addon>/<env>/...
+scripts/validate.py        # ApplicationSet 과 같은 조합으로 helm template 검증
+scripts/workload_policy.py # 플랫폼별 workload 정책 검사
+scripts/build.sh           # 모든 chart 에 scripts/gen_values.py 실행. CI 에서 결과를 자동 커밋
+scripts/update_env.sh      # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
+scripts/update_versions.py # config/versions.json 기준으로 upstream 최신 버전 조회, README 버전 테이블 갱신
+config/versions.json       # scripts/update_versions.py 의 감시 목록. upstream chart 경로 + 버전 캐시
+config/repos.txt           # scripts/update_versions.py 가 조회할 helm repo 목록 (helm repo add 입력)
+requirements/runtime.txt  # Python 실행 의존성
+tests/                    # 자동화 테스트
 ```
 
 `charts/` 의 모든 chart 는 `addons/` 나 `backup/` 에 ApplicationSet 을 가진다. 어느 쪽에도 없는
@@ -62,8 +65,8 @@ charts/<addon>/
 | `<env>/values-<cluster>.yaml` | **X** — 언제나 생성물 |
 
 **`<env>/values-<cluster>.yaml` 은 예외 없이 `values-template.yaml.j2` 의 렌더 결과다.**
-클러스터별 값을 바꾸려면 템플릿을 고치고 `./build.sh` 를 돌린다. 렌더 결과를 직접 고치면
-다음 build 에서 덮어써진다. `validate.py` 가 이 규칙을 검사하므로, 템플릿 없이 env 디렉토리만
+클러스터별 값을 바꾸려면 템플릿을 고치고 `./scripts/build.sh` 를 돌린다. 렌더 결과를 직접 고치면
+다음 build 에서 덮어써진다. `scripts/validate.py` 가 이 규칙을 검사하므로, 템플릿 없이 env 디렉토리만
 있는 chart 는 CI 에서 실패한다.
 
 클러스터별로 덮어쓸 값이 없는 chart 도 템플릿을 둔다 (`# no cluster-specific overrides` 한 줄).
@@ -77,7 +80,7 @@ ApplicationSet 의 `valueFiles` 에 적힌 파일이 없으면 Argo CD 가 sync 
   (예: `kube-prometheus-stack` → `prometheus-stack`). 한 chart 를 두 번 쓰면 `alias` 로 구분한다
   (istio 의 `raw` / `tgb`).
 - 버전 옆 `# helm chart <name> version` 주석을 유지한다.
-- `gen_chart.py -r <addon>` 은 ApplicationSet 에서 Chart.yaml 초안을 만들어 주는 도구다.
+- `scripts/gen_chart.py -r <addon>` 은 ApplicationSet 에서 Chart.yaml 초안을 만들어 주는 도구다.
   기존 chart 를 갱신할 때 돌리면 손으로 다듬은 내용(주석·alias·추가 dependency)이 날아간다.
 
 ### values 병합 순서
@@ -95,7 +98,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - 클러스터별 SSM 경로는 템플릿의 `{{cluster}}`에서 만든다. 공통 `values.yaml`에 특정 클러스터의 경로를 기본값으로 두지 않는다.
 - `env` 는 플랫폼(`eks`, `k3s`, `local`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
 - `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 손으로 넣지 말고
-  `./update_env.sh` 로 갱신한다. 이미 값이 들어 있는 키만 교체하므로, 새 키는 먼저 추가해야 한다.
+  `./scripts/update_env.sh` 로 갱신한다. 이미 값이 들어 있는 키만 교체하므로, 새 키는 먼저 추가해야 한다.
 - `env` 를 바꾸면 렌더 출력 디렉토리도 함께 바뀐다. 옛 디렉토리에 남은 파일은 손으로 지운다.
 
 ## 플랫폼 공통 리소스 규칙
@@ -105,7 +108,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
   Argo CD를 포함해 chart별로 같은 스위치를 중복 선언하지 않는다.
 - 컨테이너·초기화 컨테이너·Job·operator가 만드는 Pod의 requests/limits를 제거한다.
   HPA·VPA·KEDA를 만들지 않으며 PVC의 storage 요청은 유지한다.
-- 새 chart와 upstream 갱신도 `validate.py`의 렌더 결과 검사로 이 규칙을 확인한다.
+- 새 chart와 upstream 갱신도 `scripts/validate.py`의 렌더 결과 검사로 이 규칙을 확인한다.
 
 ## addons/<platform>/<addon>.yaml
 
@@ -122,30 +125,30 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ## 재생성 · 검증
 
 ```bash
-./gen_values.py -p eks -r grafana   # EKS chart 렌더
-./gen_values.py -p k3s -r argo-cd   # k3s chart 렌더
-./build.sh                   # 전체 chart 렌더
-./validate.py                # helm template 로 전체 검증
-./validate.py -r grafana     # 한 chart 만
+./scripts/gen_values.py -p eks -r grafana   # EKS chart 렌더
+./scripts/gen_values.py -p k3s -r argo-cd   # k3s chart 렌더
+./scripts/build.sh                   # 전체 chart 렌더
+./scripts/validate.py                # helm template 로 전체 검증
+./scripts/validate.py -r grafana     # 한 chart 만
 ```
 
-`main` 에 push 하면 `.github/workflows/push.yml` 이 `build.sh` 를 돌려 렌더 결과를
+`main` 에 push 하면 `.github/workflows/push.yml` 이 `scripts/build.sh` 를 돌려 렌더 결과를
 `nalbam-bot` 이름으로 자동 커밋한다. 템플릿만 고쳐 push 해도 되지만, 로컬에서 렌더해
 함께 커밋하면 diff 로 결과를 검토할 수 있다.
 
-`.github/workflows/validate.yml` 이 PR 과 main push 에서 `build.sh` → `validate.py` 를 돌린다.
+`.github/workflows/validate.yml` 이 PR 과 main push 에서 `scripts/build.sh` → `scripts/validate.py` 를 돌린다.
 렌더한 뒤 검증하므로 PR 에 렌더 결과가 빠져 있어도 템플릿 변경분이 검사된다.
 기본 대상은 `addons/` 뿐이다 — `backup/` 은 배포되지 않으므로 그쪽 upstream chart 가 사라져도
 무관한 변경을 막지 않는다.
 
-`validate.py` 는 `helm dependency update` 로 upstream chart 를 내려받는다.
+`scripts/validate.py` 는 `helm dependency update` 로 upstream chart 를 내려받는다.
 결과물(`charts/*/charts/`, `charts/*/Chart.lock`)은 `.gitignore` 처리되어 있다.
 
 ## README 버전 테이블
 
-`<!--- BEGIN_VERSION --->` ~ `<!--- END_VERSION --->` 구간은 이 저장소의 `update_versions.py` 가
-`versions.json` 을 기준으로 생성한다. 직접 고치면 다음 실행에서 덮어써진다.
-`update_versions.py` 는 `Chart.yaml` 을 절대 수정하지 않는 순수 감시 도구다 — 버전 업그레이드는
+`<!--- BEGIN_VERSION --->` ~ `<!--- END_VERSION --->` 구간은 이 저장소의 `scripts/update_versions.py` 가
+`config/versions.json` 을 기준으로 생성한다. 직접 고치면 다음 실행에서 덮어써진다.
+`scripts/update_versions.py` 는 `Chart.yaml` 을 절대 수정하지 않는 순수 감시 도구다 — 버전 업그레이드는
 사람이 `Chart.yaml` 을 고치는 것으로 한다.
 
 `.github/workflows/versions.yml` 이 매일 UTC 00 에 이 스크립트를 돌려 갱신분을 `nalbam-bot`
@@ -156,7 +159,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - `LATEST` — upstream 저장소의 최신 버전 (괄호는 app version)
 - ✅ 최신 / 빈칸 업그레이드 가능 / 🔒 잠금 / ⚪ 비활성
 
-표의 행 목록은 `versions.json` 의 감시 목록이지 배포 목록이 아니다 — chart 디렉토리가 없는 항목
+표의 행 목록은 `config/versions.json` 의 감시 목록이지 배포 목록이 아니다 — chart 디렉토리가 없는 항목
 (`karpenter`)도 들어 있고, 배포 여부는 알 수 없다. 배포 여부는 `addons/` 에 ApplicationSet 이
 있는지로 판단한다. 감시 목록의 key 가 chart 디렉토리 이름과 다르면 `path` 필드로 맞춘다
 (`istiod` → `istio`).
@@ -165,10 +168,10 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 표와 `Chart.yaml` 이 다르면 `Chart.yaml` 이 기준이다.
 
 ```bash
-cat repos.txt | xargs -I {} bash -c 'helm repo add {}'
+cat config/repos.txt | xargs -I {} bash -c 'helm repo add {}'
 helm repo update
 
-./update_versions.py
+./scripts/update_versions.py
 ```
 
 `karpenter`(`public.ecr.aws` OCI) 조회는 `aws ecr-public get-login-password` 로

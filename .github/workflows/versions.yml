@@ -30,14 +30,14 @@ jobs:
           python-version: "3.x"
 
       - name: Install dependencies 📦
-        run: pip install -r requirements.txt
+        run: pip install -r requirements/runtime.txt
 
       - name: Install Helm 📝
         uses: azure/setup-helm@v5
 
       - name: Add helm repos 🗂️
         run: |
-          cat repos.txt | xargs -I {} bash -c 'helm repo add {}'
+          cat config/repos.txt | xargs -I {} bash -c 'helm repo add {}'
           helm repo update
 
       # continue-on-error so partial lookup failures (e.g. an OCI registry
@@ -45,15 +45,15 @@ jobs:
       # failed afterwards.
       - name: Update versions 🔄
         id: update
-        run: ./update_versions.py
+        run: ./scripts/update_versions.py
         continue-on-error: true
 
       - name: Push versions 🚀
         run: |
-          if [ -n "$(git status --porcelain README.md versions.json)" ]; then
+          if [ -n "$(git status --porcelain README.md config/versions.json)" ]; then
             git config user.name "nalbam-bot"
             git config user.email "bot@nalbam.com"
-            git add README.md versions.json
+            git add README.md config/versions.json
             git commit -m "Update chart versions"
             git push origin HEAD:main
           fi

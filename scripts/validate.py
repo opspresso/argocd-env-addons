@@ -11,9 +11,9 @@ Also enforces that every <env>/values-<cluster>.yaml has a values-template.yaml.
 to come from - a hand-written one is indistinguishable from a render and drifts
 without anyone noticing.
 
-    ./validate.py                 # every Application or ApplicationSet in addons/{eks,k3s}/
-    ./validate.py -r grafana      # one chart
-    ./validate.py -d addons -d backup
+    ./scripts/validate.py                 # every Application or ApplicationSet in addons/{eks,k3s}/
+    ./scripts/validate.py -r grafana      # one chart
+    ./scripts/validate.py -d addons -d backup
 
 backup/ is not checked by default: those addons are not deployed, and an
 upstream chart that has gone away there should not block unrelated changes.
@@ -207,7 +207,7 @@ def render(target, env_file):
 def main():
     args = parse_args()
 
-    root = os.path.dirname(os.path.abspath(__file__))
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(root)
 
     targets = load_targets(args.dirs or [APPSET_DIR])

@@ -118,6 +118,8 @@ def gen_chart(args):
 def main():
     args = parse_args()
 
+    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     gen_chart(args)
 
 

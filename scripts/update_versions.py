@@ -4,8 +4,8 @@
 """
 Chart Version Updater
 
-Looks up the latest upstream version of every chart listed in versions.json,
-then rewrites versions.json and the version table in README.md. Chart.yaml
+Looks up the latest upstream version of every chart listed in config/versions.json,
+then rewrites config/versions.json and the version table in README.md. Chart.yaml
 files are never modified — upgrading a chart stays a manual edit.
 """
 
@@ -390,10 +390,10 @@ def main() -> int:
     if args.verbose:
         logger.setLevel(logging.DEBUG)
 
-    # Resolve versions.json, charts/ and README.md from the repository root
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # Resolve config/versions.json, charts/ and README.md from the repository root
+    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-    versions_file = "versions.json"
+    versions_file = "config/versions.json"
 
     if not os.path.exists(versions_file):
         logger.error(f"versions.json not found")

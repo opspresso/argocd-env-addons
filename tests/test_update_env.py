@@ -37,7 +37,8 @@ class UpdateEnvTest(unittest.TestCase):
     def run_update(self, scenario="ready", environment=True):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            shutil.copy2(ROOT / "update_env.sh", root / "update_env.sh")
+            (root / "scripts").mkdir()
+            shutil.copy2(ROOT / "scripts/update_env.sh", root / "scripts/update_env.sh")
             (root / "env").mkdir()
             config = (ROOT / "env/eks-demo.yaml").read_text()
             config = config.replace('aws_account_id: "396608815058"', 'aws_account_id: "123456789012"')
@@ -50,7 +51,7 @@ class UpdateEnvTest(unittest.TestCase):
             aws.write_text(f"#!{sys.executable}\n{AWS}")
             aws.chmod(0o755)
             env = dict(os.environ, PATH=f"{root / 'bin'}:{os.environ['PATH']}", SCENARIO=scenario)
-            result = subprocess.run(["bash", str(root / "update_env.sh")], env=env, capture_output=True, text=True)
+            result = subprocess.run(["bash", str(root / "scripts/update_env.sh")], env=env, capture_output=True, text=True)
             return result, target.read_text(), config
 
     def test_platform_is_distinct_from_aws_environment(self):

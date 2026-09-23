@@ -76,6 +76,8 @@ def gen_values(t, reponame, platform):
 def main():
     args = parse_args()
 
+    os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     os.makedirs("build", exist_ok=True)
     os.makedirs("charts", exist_ok=True)
 
