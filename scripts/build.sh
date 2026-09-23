@@ -4,12 +4,7 @@
 
 set -euo pipefail
 
-GITHUB_PUSH=${GITHUB_PUSH:-false}
-
 SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-
-GIT_USERNAME="nalbam-bot"
-GIT_USEREMAIL="bot@nalbam.com"
 
 cd "${SHELL_DIR}/.."
 
@@ -24,22 +19,3 @@ for CHART_DIR in charts/*/; do
     fi
   done
 done
-
-if [ "${GITHUB_PUSH}" == "true" ]; then
-  git config user.name "${GIT_USERNAME}"
-  git config user.email "${GIT_USEREMAIL}"
-
-  git add --all
-
-  if git diff --cached --quiet; then
-    echo
-    echo "Nothing to commit."
-    exit 0
-  fi
-
-  echo
-  echo "Pushing to GitHub..."
-
-  git commit -m "$(date +%Y%m%d-%H%M)"
-  git push origin "HEAD:${MAIN_BRANCH:-main}"
-fi

@@ -7,12 +7,14 @@
 #   atlantis.acm_arn          : ACM cert whose domain == hostname.public
 #   target_group.public_http  : target group named {aws_environment}-{istio.target_group}
 #   target_group.internal_http: target group named {aws_environment}-in-{istio.target_group}
-# Existing values are replaced in place, preserving file formatting.
+# Existing keys are updated together after all lookups for that file succeed.
 
 set -euo pipefail
 
 SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 ROOT_DIR=$(cd "${SHELL_DIR}/.." && pwd)
+WORK_FILE=""
+trap 'if [ -n "${WORK_FILE}" ]; then rm -f -- "${WORK_FILE}"; fi' EXIT
 
 # Step logging colors. Disabled when stdout is not a terminal.
 if [ -t 1 ]; then
@@ -46,10 +48,10 @@ CURRENT_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 echo -e "${C_DIM}  account ${CURRENT_ACCOUNT_ID}${C_OFF}"
 
 update() {
-  FILE=$1
-  KEY=$2
-  OLD=$3
-  NEW=$4
+  local FILE="$1"
+  local KEY="$2"
+  local OLD="$3"
+  local NEW="$4"
 
   if [ -z "${NEW}" ] || [ "${NEW}" == "None" ] || [ "${NEW}" == "null" ]; then
     skip "${KEY}: not found in aws, skipped"
@@ -66,15 +68,15 @@ update() {
     return
   fi
 
-  perl -pi -e "s|\Q${OLD}\E|${NEW}|" ${FILE}
+  NEW_VALUE="${NEW}" yq -i ".${KEY} = strenv(NEW_VALUE)" "${FILE}"
   changed "${KEY}: ${OLD} -> ${NEW}"
 }
 
 for FILE in "${ROOT_DIR}"/env/*.yaml; do
   step "Processing ${FILE}"
 
-  ACCOUNT_ID=$(yq '.aws_account_id' ${FILE})
-  REGION=$(yq '.aws_region' ${FILE})
+  ACCOUNT_ID=$(yq '.aws_account_id' "${FILE}")
+  REGION=$(yq '.aws_region' "${FILE}")
 
   if [ "${ACCOUNT_ID}" != "${CURRENT_ACCOUNT_ID}" ]; then
     skip "skipped: aws_account_id ${ACCOUNT_ID} != current account ${CURRENT_ACCOUNT_ID}"
@@ -85,29 +87,32 @@ for FILE in "${ROOT_DIR}"/env/*.yaml; do
   ENV=$(yq '.aws_environment // ""' "${FILE}")
   [ -n "${ENV}" ] || die "${FILE}: aws_environment is required"
 
+  WORK_FILE=$(mktemp "${FILE}.tmp.XXXXXX")
+  cp -p "${FILE}" "${WORK_FILE}"
+
   # vpcId
   lookup "ec2 describe-vpcs --filters Name=tag:Name,Values=vpc-${ENV}"
-  VPC_ID=$(aws ec2 describe-vpcs --region ${REGION} \
+  VPC_ID=$(aws ec2 describe-vpcs --region "${REGION}" \
     --filters "Name=tag:Name,Values=vpc-${ENV}" \
     --query 'Vpcs[0].VpcId' --output text)
   [ -n "${VPC_ID}" ] && [ "${VPC_ID}" != "None" ] || die "${FILE}: VPC vpc-${ENV} not found"
-  update ${FILE} "vpcId" "$(yq '.vpcId // ""' ${FILE})" "${VPC_ID}"
+  update "${WORK_FILE}" "vpcId" "$(yq '.vpcId // ""' "${FILE}")" "${VPC_ID}"
 
   # acm_arn
   lookup "acm list-certificates --certificate-statuses ISSUED"
-  CERTS=$(aws acm list-certificates --region ${REGION} --certificate-statuses ISSUED \
+  CERTS=$(aws acm list-certificates --region "${REGION}" --certificate-statuses ISSUED \
     --query 'CertificateSummaryList[].[DomainName,CertificateArn]' --output text)
 
-  ARGOCD_HOST=$(yq '.argocd.hostname // ""' ${FILE})
+  ARGOCD_HOST=$(yq '.argocd.hostname // ""' "${FILE}")
   if [ -n "${ARGOCD_HOST}" ]; then
     ARN=$(echo "${CERTS}" | awk -v d="${ARGOCD_HOST}" '$1==d {print $2; exit}')
-    update ${FILE} "argocd.acm_arn" "$(yq '.argocd.acm_arn // ""' ${FILE})" "${ARN}"
+    update "${WORK_FILE}" "argocd.acm_arn" "$(yq '.argocd.acm_arn // ""' "${FILE}")" "${ARN}"
   fi
 
-  PUBLIC_HOST=$(yq '.hostname.public // ""' ${FILE})
-  if [ "$(yq '.atlantis.acm_arn // ""' ${FILE})" != "" ]; then
+  PUBLIC_HOST=$(yq '.hostname.public // ""' "${FILE}")
+  if [ "$(yq '.atlantis.acm_arn // ""' "${FILE}")" != "" ]; then
     ARN=$(echo "${CERTS}" | awk -v d="${PUBLIC_HOST}" '$1==d {print $2; exit}')
-    update ${FILE} "atlantis.acm_arn" "$(yq '.atlantis.acm_arn // ""' ${FILE})" "${ARN}"
+    update "${WORK_FILE}" "atlantis.acm_arn" "$(yq '.atlantis.acm_arn // ""' "${FILE}")" "${ARN}"
   fi
 
   # target_group
@@ -116,30 +121,32 @@ for FILE in "${ROOT_DIR}"/env/*.yaml; do
   # renamed to *-h1-* when they moved to protocol_version HTTP1 (an ALB cannot
   # change that in place, so the group is replaced and the name has to differ).
   # `target_group_public` overrides for that; unset keeps the old shared name.
-  SUFFIX=$(yq '.istio.target_group // ""' ${FILE} | tr '_' '-')
-  PUBLIC_SUFFIX=$(yq '.istio.target_group_public // ""' ${FILE} | tr '_' '-')
+  SUFFIX=$(yq '.istio.target_group // ""' "${FILE}" | tr '_' '-')
+  PUBLIC_SUFFIX=$(yq '.istio.target_group_public // ""' "${FILE}" | tr '_' '-')
   [ -z "${PUBLIC_SUFFIX}" ] && PUBLIC_SUFFIX="${SUFFIX}"
-  GRPC_SUFFIX=$(yq '.istio.target_group_grpc // ""' ${FILE} | tr '_' '-')
+  GRPC_SUFFIX=$(yq '.istio.target_group_grpc // ""' "${FILE}" | tr '_' '-')
   if [ -n "${SUFFIX}" ]; then
     lookup "elbv2 describe-target-groups --names ${ENV}-${PUBLIC_SUFFIX}"
-    PUBLIC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${PUBLIC_SUFFIX}" \
+    PUBLIC_TG=$(aws elbv2 describe-target-groups --region "${REGION}" --names "${ENV}-${PUBLIC_SUFFIX}" \
       --query 'TargetGroups[0].TargetGroupArn' --output text)
-    update ${FILE} "target_group.public_http" "$(yq '.target_group.public_http // ""' ${FILE})" "${PUBLIC_TG}"
+    update "${WORK_FILE}" "target_group.public_http" "$(yq '.target_group.public_http // ""' "${FILE}")" "${PUBLIC_TG}"
 
     # gRPC needs h2 to the backend, which an HTTP1 group cannot carry, so it has
     # its own. Optional: an env without one simply has no gRPC host.
     if [ -n "${GRPC_SUFFIX}" ]; then
       lookup "elbv2 describe-target-groups --names ${ENV}-${GRPC_SUFFIX}"
-      GRPC_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-${GRPC_SUFFIX}" \
+      GRPC_TG=$(aws elbv2 describe-target-groups --region "${REGION}" --names "${ENV}-${GRPC_SUFFIX}" \
         --query 'TargetGroups[0].TargetGroupArn' --output text)
-      update ${FILE} "target_group.public_grpc" "$(yq '.target_group.public_grpc // ""' ${FILE})" "${GRPC_TG}"
+      update "${WORK_FILE}" "target_group.public_grpc" "$(yq '.target_group.public_grpc // ""' "${FILE}")" "${GRPC_TG}"
     fi
 
     lookup "elbv2 describe-target-groups --names ${ENV}-in-${SUFFIX}"
-    INTERNAL_TG=$(aws elbv2 describe-target-groups --region ${REGION} --names "${ENV}-in-${SUFFIX}" \
+    INTERNAL_TG=$(aws elbv2 describe-target-groups --region "${REGION}" --names "${ENV}-in-${SUFFIX}" \
       --query 'TargetGroups[0].TargetGroupArn' --output text)
-    update ${FILE} "target_group.internal_http" "$(yq '.target_group.internal_http // ""' ${FILE})" "${INTERNAL_TG}"
+    update "${WORK_FILE}" "target_group.internal_http" "$(yq '.target_group.internal_http // ""' "${FILE}")" "${INTERNAL_TG}"
   fi
+  mv "${WORK_FILE}" "${FILE}"
+  WORK_FILE=""
 done
 
 ok "Done. Review with: git diff env/"

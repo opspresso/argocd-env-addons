@@ -36,6 +36,9 @@
 
 set -euo pipefail
 
+SSM_ERROR_FILE=$(mktemp)
+trap 'rm -f "$SSM_ERROR_FILE"' EXIT
+
 ACCOUNT="mcp"
 
 SECRET_KEY_PARAM="/k8s/common/argocd-server-secret"
@@ -57,13 +60,27 @@ ok() { echo -e "${C_OK}✔ $*${C_OFF}"; }
 
 # 조회한 값은 시크릿이므로 파라미터 이름만 출력합니다.
 ssm() {
+  local response value status
   echo -e "${C_CMD}  ssm  ${1}${C_OFF}" >&2
-  aws ssm get-parameter --name "$1" --with-decryption 2>/dev/null | jq .Parameter.Value -r
+  if response=$(aws ssm get-parameter --name "$1" --with-decryption --output json 2>"$SSM_ERROR_FILE"); then
+    if ! value=$(printf '%s' "$response" | jq -er '.Parameter.Value | select(type == "string" and length > 0)'); then
+      echo "SSM 값이 비어 있거나 문자열이 아닙니다: $1" >&2
+      return 1
+    fi
+    printf '%s' "$value"
+  else
+    status=$?
+    if grep -Fq 'An error occurred (ParameterNotFound) when calling the GetParameter operation:' "$SSM_ERROR_FILE"; then
+      return 0
+    fi
+    echo "SSM 조회 실패: $1 (종료 코드 $status)" >&2
+    return "$status"
+  fi
 }
 
 put() {
   echo -e "${C_CMD}  put  ${1}${C_OFF}"
-  aws ssm put-parameter --name "$1" --value "$2" --type SecureString --overwrite | jq .Version -r
+  aws ssm put-parameter --name "$1" --value "$2" --type SecureString --output json "${@:3}" | jq -er .Version
 }
 
 # JWT 는 padding 없는 base64url 을 씁니다.
@@ -112,21 +129,19 @@ fi
 
 step "SSM 파라미터 조회"
 
-SERVER_SECRET="$(ssm ${SECRET_KEY_PARAM} || true)"
+SERVER_SECRET="$(ssm "$SECRET_KEY_PARAM")"
+STORED_TOKEN="$(ssm "$TOKEN_PARAM")"
+STORED_TOKENS="$(ssm "$TOKENS_PARAM")"
 
-if [ -z "${SERVER_SECRET}" ] || [ "${SERVER_SECRET}" = "None" ]; then
-  # hex 로 만드는 이유: build.sh 가 이 값을 sed 구분자 / 로 치환하기 때문에
-  # base64 의 / 가 섞이면 values.output.yaml 이 깨집니다.
+if [ -z "${SERVER_SECRET}" ]; then
   step "${SECRET_KEY_PARAM} 생성"
 
   SERVER_SECRET="$(openssl rand -hex 32)"
+  # Do not overwrite a key created by another installer after our read.
   put "${SECRET_KEY_PARAM}" "${SERVER_SECRET}" >/dev/null
 
   ok "새로 만들었습니다. (32 bytes, hex)"
 fi
-
-STORED_TOKEN="$(ssm ${TOKEN_PARAM} || true)"
-STORED_TOKENS="$(ssm ${TOKENS_PARAM} || true)"
 
 if [ "${ROTATE}" = "false" ] && verify "${STORED_TOKEN}" "${STORED_TOKENS}" "${SERVER_SECRET}"; then
   ok "이미 고정된 토큰이 유효합니다. (${TOKEN_PARAM})"
@@ -150,8 +165,8 @@ TOKENS="$(jq -cn --arg id "${JTI}" --argjson iat "${IAT}" '[{id: $id, iat: $iat}
 
 step "SSM 파라미터 저장"
 
-put "${TOKENS_PARAM}" "${TOKENS}" >/dev/null
-put "${TOKEN_PARAM}" "${TOKEN}" >/dev/null
+put "${TOKENS_PARAM}" "${TOKENS}" --overwrite >/dev/null
+put "${TOKEN_PARAM}" "${TOKEN}" --overwrite >/dev/null
 
 step "검증"
 

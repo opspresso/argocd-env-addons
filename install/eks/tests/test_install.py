@@ -54,6 +54,8 @@ elif name == "curl":
         print("200", end="")
 elif name == "argocd" and args[0] == "login" and scenario == "login_failure":
     sys.exit(20)
+elif name == "python3" and scenario == "python_dependency_missing":
+    sys.exit(1)
 '''
 
 
@@ -64,7 +66,7 @@ class InstallTest(unittest.TestCase):
             bin_dir = root / "bin"
             bin_dir.mkdir()
             shutil.copy2(INSTALLER, root / "install.sh")
-            for name in ("aws", "helm", "kubectl", "argocd", "curl", "openssl", "uuidgen", "token.sh", "build.sh"):
+            for name in ("aws", "helm", "kubectl", "argocd", "curl", "openssl", "uuidgen", "python3", "token.sh", "build.sh"):
                 path = root / name if name.endswith(".sh") else bin_dir / name
                 path.write_text(f"#!{sys.executable}\n{COMMAND}")
                 path.chmod(0o755)
@@ -129,6 +131,12 @@ class InstallTest(unittest.TestCase):
         result, commands = self.run_installer(timeout="0")
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(commands, [])
+
+    def test_missing_python_dependency_stops_before_ssm_writes(self):
+        result, commands = self.run_installer("python_dependency_missing")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("PyYAML이 필요합니다", result.stderr)
+        self.assertEqual(commands, [["python3", "-c", "import yaml"]])
 
 
 if __name__ == "__main__":

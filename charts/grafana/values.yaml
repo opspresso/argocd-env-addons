@@ -596,7 +596,7 @@ grafana:
                       editorMode: code
                       instant: true
                       range: false
-                      expr: sum by (cluster, namespace, job_name) (kube_job_status_failed)
+                      expr: max by (cluster, namespace, job_name) (kube_job_failed{condition="true"})
                   - refId: C
                     datasourceUid: __expr__
                     model:
@@ -686,7 +686,11 @@ grafana:
                       instant: true
                       range: false
                       expr: |
-                        100 * sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source",response_code!~"5.."}[5m]))
+                        100 * (
+                          sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source",response_code!~"5.."}[5m]))
+                          or on (cluster, destination_service)
+                          (0 * sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source"}[5m])))
+                        )
                         / sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source"}[5m]))
                         and on (cluster, destination_service)
                         sum by (cluster, destination_service) (rate(istio_requests_total{reporter="source"}[5m])) > 0.1

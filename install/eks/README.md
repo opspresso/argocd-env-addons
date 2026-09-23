@@ -84,6 +84,10 @@ Argo CD 는 API 토큰을 자기 `server.secretkey` 로 서명 하고, `jti` 가
 만들어도 **같은 토큰이 그대로 통하므로, 재설치에 토큰 발급 절차가 붙지 않습니다.**
 `argocd account generate-token` 은 목록을 클러스터 안에만 남기기 때문에 쓰지 않습니다.
 
+SSM의 `ParameterNotFound`만 미생성 상태로 처리한다. 접근 거부·통신 오류·빈 응답은
+서명 키나 토큰을 쓰기 전에 중단한다. 새 서명 키는 덮어쓰기 없이 생성하므로,
+다른 설치 작업이 먼저 만든 키도 보존한다.
+
 > **`argocd-server-secret` 은 이미 있으면 건드리지 않습니다.** 바꾸면 발급된 토큰과
 > 로그인 세션이 모두 무효가 되기 때문입니다. 위 'Set variables' 를 돌렸다면 거기서
 > 이미 만들어져 있고, 이 스크립트는 그대로 읽어 씁니다. 새 계정이라 건너뛰었다면
@@ -107,6 +111,17 @@ kubectl apply -f ingress-class.yaml
 
 > Argocd 를 설치 합니다.
 > addons 를 위해 ApplicationSet 도 함께 설치 합니다.
+
+Python 3와 PyYAML이 필요하다. `install/eks/`에서 다음 명령으로 실행 의존성을 설치한다.
+
+```bash
+python3 -m pip install -r ../../requirements/runtime.txt
+```
+
+`build.sh`는 SSM 조회·값 검증을 모두 마친 뒤 `values.output.yaml`을 원자적으로 교체한다.
+특수문자가 포함된 시크릿도 문자열로 보존하며 출력 파일 권한은 `0600`이다.
+조회 실패나 빈 필수 값이 있으면 기존 출력 파일을 유지하고 실패한다.
+ACM 인증서는 발급 완료 상태이며 `DomainName`이 Argo CD 호스트와 정확히 일치해야 한다.
 
 전체 설치는 `./install.sh` 로 실행합니다. 필요한 Helm repository를 등록하고,
 external-dns와 Argo CD 리소스가 준비될 때까지 기다립니다. 로그인은 SSM의

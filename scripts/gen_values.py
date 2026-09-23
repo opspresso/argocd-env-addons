@@ -3,9 +3,10 @@
 
 import argparse
 import os
+import sys
 import yaml
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateError
 
 
 REPONAME = "sample-addon"
@@ -23,6 +24,9 @@ def to_yaml(value):
     """Render an env block as YAML so a template can pass it through whole
     with `{{ block | to_yaml | indent(2, first=true) }}` instead of mapping
     every key by hand."""
+    if isinstance(value, StrictUndefined):
+        # Let Jinja identify the missing field before PyYAML rejects the object.
+        value = str(value)
     return yaml.safe_dump(value, default_flow_style=False, allow_unicode=True).rstrip("\n")
 
 
@@ -34,43 +38,56 @@ def gen_repos(args, ext="yaml"):
     if os.path.exists(template_path):
         print("# gen_values", template_path)
 
-        e = Environment(loader=FileSystemLoader("{}/".format(chart_path)))
+        e = Environment(
+            loader=FileSystemLoader("{}/".format(chart_path)),
+            undefined=StrictUndefined,
+        )
         e.filters["to_yaml"] = to_yaml
-        t = e.get_template(template_name)
+        try:
+            t = e.get_template(template_name)
+        except TemplateError as error:
+            raise ValueError("{}: {}".format(template_path, error)) from error
 
         gen_values(t, args.reponame, args.platform)
+        return True
+    return False
 
 
 def gen_values(t, reponame, platform):
-    for env_file in os.listdir("env"):
+    outputs = []
+    for env_file in sorted(os.listdir("env")):
         if env_file.endswith(".yaml"):
-            # print("")
-
             env_path = "env/{}".format(env_file)
-            # print("# env ", env_path)
+            try:
+                with open(env_path, "r") as variables:
+                    v = yaml.safe_load(variables)
+            except yaml.YAMLError as error:
+                raise ValueError("{}: invalid YAML: {}".format(env_path, error)) from error
 
-            with open(env_path, "r") as vars:
-                v = yaml.safe_load(vars)
+            if not isinstance(v, dict):
+                raise ValueError("{} must contain a YAML mapping".format(env_path))
+            if v.get("env") not in ("eks", "k3s", "local"):
+                raise ValueError("{}: 'env' must be eks, k3s, or local".format(env_path))
+            if v.get("cluster") != env_file[:-5]:
+                raise ValueError("{}: 'cluster' must match the filename ({})".format(env_path, env_file[:-5]))
 
-                # The ApplicationSet reads "{{env}}/values-{{cluster}}.yaml",
-                # so the directory has to follow the env field.
-                if "env" not in v:
-                    raise KeyError("{} has no 'env' field".format(env_path))
+            if v["env"] != platform:
+                continue
 
-                if v.get("env") != platform:
-                    continue
+            try:
+                rendered = t.render(v)
+            except (TemplateError, yaml.YAMLError) as error:
+                raise ValueError("{} with charts/{}/{}: {}".format(env_path, reponame, t.name, error)) from error
+            outputs.append((env_file, rendered))
 
-                d = t.render(v)
-
-                if d != None:
-                    save_root = "charts/{}/{}".format(reponame, platform)
-                    save_path = "{}/values-{}".format(save_root, env_file)
-
-                    os.makedirs(save_root, exist_ok=True)
-
-                    with open(save_path, "w") as file:
-                        print("# save", save_path)
-                        file.write(d)
+    # Validate every environment before replacing any existing output for this template.
+    save_root = "charts/{}/{}".format(reponame, platform)
+    for env_file, rendered in outputs:
+        save_path = "{}/values-{}".format(save_root, env_file)
+        os.makedirs(save_root, exist_ok=True)
+        with open(save_path, "w") as file:
+            print("# save", save_path)
+            file.write(rendered)
 
 
 def main():
@@ -81,9 +98,16 @@ def main():
     os.makedirs("build", exist_ok=True)
     os.makedirs("charts", exist_ok=True)
 
-    gen_repos(args, "yaml")
-    gen_repos(args, "yaml.j2")
+    try:
+        found_yaml = gen_repos(args, "yaml")
+        found_jinja = gen_repos(args, "yaml.j2")
+        if not (found_yaml or found_jinja):
+            raise ValueError("charts/{}: values template not found".format(args.reponame))
+    except (OSError, ValueError) as error:
+        print("ERROR: {}".format(error), file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

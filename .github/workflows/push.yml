@@ -9,6 +9,10 @@ on:
 # race for the same branch.
 concurrency:
   group: build
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -26,14 +30,27 @@ jobs:
           python-version: "3.x"
 
       - name: Install dependencies 📦
-        run: pip install -r requirements/runtime.txt
+        run: python3 -m pip install -r requirements/dev.txt
 
-      - name: Build and Push 🚀
-        run: |
-          bash ./scripts/build.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_PUSH: "true"
+      - name: Install Helm 📝
+        uses: azure/setup-helm@v5
+
+      - name: Test 🧪
+        run: python3 -m pytest -q
+
+      - name: Build
+        run: bash ./scripts/build.sh
 
       - name: Validate 🧪
         run: python3 ./scripts/validate.py
+
+      - name: Push validated values 🚀
+        run: |
+          git diff --check
+          git add -- ':(glob)charts/*/*/values-*.yaml'
+          if ! git diff --cached --quiet; then
+            git config user.name "nalbam-bot"
+            git config user.email "bot@nalbam.com"
+            git commit -m "chore: regenerate chart values"
+            git push origin HEAD:main
+          fi

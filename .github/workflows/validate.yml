@@ -1,0 +1,43 @@
+name: validate
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Python 🐍
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies 📦
+        run: python3 -m pip install -r requirements/dev.txt
+
+      - name: Install Helm 📝
+        uses: azure/setup-helm@v5
+
+      - name: Test 🧪
+        run: python3 -m pytest -q
+
+      - name: Build
+        run: bash ./scripts/build.sh
+
+      - name: Validate 🧪
+        run: python3 ./scripts/validate.py
+
+      - name: Check diff
+        run: git diff --check

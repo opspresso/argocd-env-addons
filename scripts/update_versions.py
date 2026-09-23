@@ -478,7 +478,8 @@ def main() -> int:
     if args.chart:
         logger.info("Skipping README update for single-chart run")
     else:
-        update_version_in_readme("\n".join(version_contents), dry_run=args.dry_run)
+        if not update_version_in_readme("\n".join(version_contents), dry_run=args.dry_run):
+            return 1
 
     # Summary
     print(f"\n{GREEN}Summary:{RESET}")

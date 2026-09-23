@@ -10,7 +10,6 @@ EKS 클러스터의 **addon** 을 Argo CD 로 배포하는 GitOps 저장소.
 ```
 addons-eks.yaml        # EKS App of Apps. `addons/eks/` 를 sync
 addons-k3s.yaml        # k3s App of Apps. `addons/k3s/` 를 sync
-addons-local.yaml        # 로컬 Kubernetes App of Apps. `addons/local/` 를 sync
 addons/eks/<addon>.yaml # EKS addon 별 ApplicationSet
 addons/k3s/<addon>.yaml # k3s addon 별 ApplicationSet
 backup/<addon>.yaml    # 배포하지 않는 addon 의 ApplicationSet 보관소
@@ -20,22 +19,23 @@ charts/<addon>/k3s/    # k3s 렌더 결과
 env/<cluster>.yaml     # 클러스터별 변수. git files generator 입력이자 Jinja2 렌더 입력
 install/eks/           # EKS Argo CD 최초 부트스트랩
 install/k3s/           # k3s Argo CD 최초 부트스트랩
-install/local/           # 로컬 Kubernetes Argo CD 부트스트랩
 scripts/gen_chart.py       # addons/<platform>/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
 scripts/gen_values.py      # 공용 템플릿 × env/*.yaml → charts/<addon>/<env>/...
 scripts/validate.py        # ApplicationSet 과 같은 조합으로 helm template 검증
 scripts/workload_policy.py # 플랫폼별 workload 정책 검사
-scripts/build.sh           # 모든 chart 에 scripts/gen_values.py 실행. CI 에서 결과를 자동 커밋
+scripts/build.sh           # 모든 chart 에 scripts/gen_values.py 실행. Git 상태는 변경하지 않음
 scripts/update_env.sh      # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
 scripts/update_versions.py # config/versions.json 기준으로 upstream 최신 버전 조회, README 버전 테이블 갱신
 config/versions.json       # scripts/update_versions.py 의 감시 목록. upstream chart 경로 + 버전 캐시
 config/repos.txt           # scripts/update_versions.py 가 조회할 helm repo 목록 (helm repo add 입력)
-requirements/runtime.txt  # Python 실행 의존성
+requirements/{runtime,dev}.txt # Python 실행·테스트 의존성
 tests/                    # 자동화 테스트
 ```
 
-`charts/` 의 모든 chart 는 `addons/` 나 `backup/` 에 ApplicationSet 을 가진다. 어느 쪽에도 없는
-chart 는 배포 경로가 없다는 뜻이므로, 새로 만들 때는 ApplicationSet 을 함께 둔다.
+배포 여부는 `addons/`의 Application/ApplicationSet으로 판단한다. `charts/`에만 있는
+chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소다.
+현재 배포 대상은 EKS와 k3s다. `local` 템플릿·정책 지원은 남아 있지만
+로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
 `argo-cd` 의 Dex 설정에는 `argo-workflows-sso` OIDC 클라이언트가 남아 있다. argo-workflows 는
 배포되지 않으므로 지금은 쓰이지 않는다.
@@ -118,8 +118,8 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - namespace 는 `addon-<name>`. upstream 관례가 강한 것만 예외(`istio-system`, `argocd`).
 - label `opspresso.com/group: addons`, `opspresso.com/cluster: {{cluster}}` 를 유지한다.
 - 배포를 멈출 때는 파일을 지우지 말고 `backup/` 으로 옮긴다. 되살릴 때는 반대로 옮긴다.
-- `syncPolicy.automated` 는 대부분 켜져 있다. `argo-cd` 만 수동 sync 인데, Argo CD 가 자기 자신을
-  올리는 앱이라 실패하면 되돌릴 수단까지 같이 사라지기 때문이다. 켜져 있는 addon 을 임의로 끄거나
+- `syncPolicy.automated` 는 대부분 켜져 있다. EKS의 `argo-cd`는 수동 sync이고 k3s는 자동 sync다.
+  Argo CD 자체의 변경은 복구 경로에 영향을 준다. 켜져 있는 addon 을 임의로 끄거나
   꺼져 있는 addon 을 임의로 켜지 않는다.
 
 ## 재생성 · 검증
@@ -130,13 +130,16 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ./scripts/build.sh                   # 전체 chart 렌더
 ./scripts/validate.py                # helm template 로 전체 검증
 ./scripts/validate.py -r grafana     # 한 chart 만
+python3 -m pip install -r requirements/dev.txt
+python3 -m pytest -q          # scripts 및 설치 회귀 테스트
 ```
 
-`main` 에 push 하면 `.github/workflows/push.yml` 이 `scripts/build.sh` 를 돌려 렌더 결과를
-`nalbam-bot` 이름으로 자동 커밋한다. 템플릿만 고쳐 push 해도 되지만, 로컬에서 렌더해
+`scripts/build.sh`는 값만 생성하며 Git index·커밋·원격 저장소를 변경하지 않는다.
+`main` 에 push 하면 `.github/workflows/push.yml`이 테스트 → 생성 → Helm 검증을 실행한 뒤,
+생성된 `charts/*/*/values-*.yaml`만 `nalbam-bot` 이름으로 커밋한다. 로컬에서 렌더해
 함께 커밋하면 diff 로 결과를 검토할 수 있다.
 
-`.github/workflows/validate.yml` 이 PR 과 main push 에서 `scripts/build.sh` → `scripts/validate.py` 를 돌린다.
+`.github/workflows/validate.yml`은 PR에서 같은 검사를 읽기 권한으로 실행한다.
 렌더한 뒤 검증하므로 PR 에 렌더 결과가 빠져 있어도 템플릿 변경분이 검사된다.
 기본 대상은 `addons/` 뿐이다 — `backup/` 은 배포되지 않으므로 그쪽 upstream chart 가 사라져도
 무관한 변경을 막지 않는다.
@@ -151,7 +154,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 `scripts/update_versions.py` 는 `Chart.yaml` 을 절대 수정하지 않는 순수 감시 도구다 — 버전 업그레이드는
 사람이 `Chart.yaml` 을 고치는 것으로 한다.
 
-`.github/workflows/versions.yml` 이 매일 UTC 00 에 이 스크립트를 돌려 갱신분을 `nalbam-bot`
+`.github/workflows/versions.yml` 이 매일 UTC 22:00에 이 스크립트를 돌려 갱신분을 `nalbam-bot`
 이름으로 main 에 커밋한다. 조회 실패가 있으면 run 은 실패로 표시되지만 성공한 chart 의
 갱신분은 그대로 커밋된다.
 
@@ -160,7 +163,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - ✅ 최신 / 빈칸 업그레이드 가능 / 🔒 잠금 / ⚪ 비활성
 
 표의 행 목록은 `config/versions.json` 의 감시 목록이지 배포 목록이 아니다 — chart 디렉토리가 없는 항목
-(`karpenter`)도 들어 있고, 배포 여부는 알 수 없다. 배포 여부는 `addons/` 에 ApplicationSet 이
+(`vllm-stack`)도 들어 있고, 배포 여부는 알 수 없다. 배포 여부는 `addons/` 에 Application/ApplicationSet 이
 있는지로 판단한다. 감시 목록의 key 가 chart 디렉토리 이름과 다르면 `path` 필드로 맞춘다
 (`istiod` → `istio`).
 

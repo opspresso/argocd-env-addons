@@ -81,6 +81,9 @@ def load_targets(dirs):
     targets = []
 
     for directory in dirs:
+        if not os.path.isdir(directory):
+            raise FileNotFoundError("Application directory does not exist: {}".format(directory))
+
         for current, _, names in os.walk(directory):
             for name in sorted(names):
                 if not name.endswith(".yaml"):
@@ -115,6 +118,7 @@ def load_targets(dirs):
                     "value_files": source.get("helm", {}).get("valueFiles", []),
                     "env_files": env_files,
                     "name": name,
+                    "release_name": source.get("helm", {}).get("releaseName", name),
                     "namespace": namespace,
                 })
 
@@ -167,7 +171,9 @@ def update_dependencies(chart):
     )
 
     if result.returncode != 0:
-        return result.stderr.strip() or result.stdout.strip()
+        return result.stderr.strip() or result.stdout.strip() or (
+            "helm dependency update failed with exit code {}".format(result.returncode)
+        )
 
     return None
 
@@ -179,7 +185,8 @@ def render(target, env_file):
         with open(env_file, "r") as file:
             env = yaml.safe_load(file)
 
-    args = ["helm", "template", expand(target["name"], env), target["chart"]]
+    release_name = target.get("release_name", target["name"])
+    args = ["helm", "template", expand(release_name, env), target["chart"]]
     args += ["--namespace", expand(target["namespace"], env)]
 
     for api_version in API_VERSIONS:
@@ -198,7 +205,9 @@ def render(target, env_file):
     result = subprocess.run(args, capture_output=True, text=True)
 
     if result.returncode != 0:
-        return result.stderr.strip() or result.stdout.strip()
+        return result.stderr.strip() or result.stdout.strip() or (
+            "helm template failed with exit code {}".format(result.returncode)
+        )
 
     errors = policy_errors(result.stdout, target_platform(target, env))
     return "\n".join(errors) if errors else None
@@ -210,7 +219,15 @@ def main():
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     os.chdir(root)
 
-    targets = load_targets(args.dirs or [APPSET_DIR])
+    try:
+        targets = load_targets(args.dirs or [APPSET_DIR])
+    except OSError as exception:
+        print("FAIL {}".format(exception))
+        return 1
+
+    if not targets:
+        print("FAIL no Applications or ApplicationSets found")
+        return 1
 
     if args.reponame:
         wanted = "charts/{}".format(args.reponame)
@@ -222,16 +239,18 @@ def main():
 
     failures = check_templates(args.reponame)
     rendered = 0
-    prepared = set()
+    dependency_errors = {}
 
     for target in targets:
-        if target["chart"] not in prepared:
+        if target["chart"] not in dependency_errors:
             error = update_dependencies(target["chart"])
-            prepared.add(target["chart"])
+            dependency_errors[target["chart"]] = error
 
             if error:
                 failures.append((target["chart"], error))
-                continue
+
+        if dependency_errors[target["chart"]]:
+            continue
 
         for env_file in target["env_files"]:
             print("# render {} {}".format(target["appset"], env_file or "direct"), flush=True)
@@ -247,6 +266,9 @@ def main():
                 failures.append(
                     ("{} {}".format(target["appset"], env_file), error)
                 )
+
+    if not rendered and not failures:
+        failures.append(("targets", "no Application environments were rendered"))
 
     print("\n{} renders, {} failures".format(rendered, len(failures)))
 

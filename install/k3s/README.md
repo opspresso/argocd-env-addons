@@ -21,7 +21,7 @@ ssh -i ~/.ssh/id_ed25519_bruce ec2-user@100.113.136.122
 - k3s가 설치되어 있어야 한다.
 - `kubectl`이 대상 k3s 클러스터를 가리켜야 한다.
 - `../terraform-env-demo/demo/9-agent-studio/bootstrap-k3s.sh`를 먼저 실행해야 한다.
-- bootstrap이 설치한 `helm`, `aws`, `jq`, `argocd` CLI가 PATH에 있어야 한다.
+- bootstrap이 설치한 `helm`, `aws`, `jq`, `argocd` CLI와 접속 확인용 `curl`이 PATH에 있어야 한다.
 - `argocd.demo.opsp.dev`가 k3s 인스턴스의 public IP를 가리켜야 한다.
 - Route53 `demo.opsp.dev` Hosted Zone이 있어야 한다.
 - EC2 Instance Profile에 cert-manager용 Route53 권한이 있어야 한다.
@@ -63,15 +63,18 @@ cert-manager가 사용하는 EC2 Instance Profile에는 최소한 다음 권한�
 
 스크립트는 다음을 수행한다.
 
-1. Argo와 cert-manager Helm repository를 등록하고 갱신한다.
-2. AWS SSM에서 Argo CD 관리자 계정과 bcrypt 비밀번호를 조회한다.
+1. AWS SSM에서 Argo CD 관리자 계정과 bcrypt 비밀번호를 조회·검증한다.
+2. Argo와 cert-manager Helm repository를 등록하고 갱신한다.
 3. cert-manager와 Route53 DNS-01 방식의 `letsencrypt-prod` ClusterIssuer를 설치한다.
 4. Gateway API CRD를 설치한다.
 5. `install/k3s/values.yaml`로 HTTPRoute 기반 Argo CD를 설치한다.
-6. `*.demo.opsp.dev` 인증서를 `traefik-gateway-tls` Secret으로 발급 요청한다.
-7. `addons`, `apps` AppProject를 생성한다.
-8. 저장소 루트의 `addons-k3s.yaml`을 등록하고 SSM 관리자 계정으로 로그인한다.
-9. 이전 설치에서 남은 `argocd-server` Ingress를 삭제한다.
+6. `addons`, `apps` AppProject를 생성하고 저장소 루트의 `addons-k3s.yaml`을 등록한다.
+7. `traefik-gateway` addon이 Gateway와 `traefik-gateway-tls` 인증서를 생성한다.
+8. 이전 설치에서 남은 `argocd-server` Ingress를 삭제한다.
+9. HTTPS `/healthz` 응답이 준비되면 SSM 관리자 계정으로 로그인한다.
+
+SSM 조회 실패나 빈 값이 있으면 Helm 설치 전에 중단한다. HTTPS 준비는 기본 600초까지
+기다리며 `ARGOCD_READY_TIMEOUT=900 ./install/k3s/install.sh`로 조정할 수 있다.
 
 Argo CD는 `Ingress`를 생성하지 않는다. `traefik-gateway` Gateway와
 `argocd-server` HTTPRoute가 HTTPS를 종료하고 Argo CD Service의 HTTP 포트로 전달한다.

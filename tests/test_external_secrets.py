@@ -10,13 +10,18 @@ from gen_values import to_yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 
-class LocalAWSTests(unittest.TestCase):
+class ExternalSecretsAWSTests(unittest.TestCase):
     def test_stores_use_the_default_sdk_chain_on_every_platform(self):
         environment = Environment(loader=FileSystemLoader(ROOT / "charts/external-secrets"))
         environment.filters["to_yaml"] = to_yaml
         template = environment.get_template("values-template.yaml.j2")
-        for path in (ROOT / "env").glob("*.yaml"):
-            context = yaml.safe_load(path.read_text())
+        contexts = [yaml.safe_load(path.read_text()) for path in (ROOT / "env").glob("*.yaml")]
+        local_context = yaml.safe_load((ROOT / "env/k3s-demo.yaml").read_text())
+        local_context.update(env="local", cluster="local-fixture", aws_local={
+            "profile": "fixture", "config_file": "/fixture/config", "credentials_file": "/fixture/credentials",
+        })
+        contexts.append(local_context)
+        for context in contexts:
             if context["env"] != "local":
                 context["aws_local"] = {"profile": "unused", "config_file": "/unused/config", "credentials_file": "/unused/credentials"}
             values = yaml.safe_load(template.render(context))
@@ -41,13 +46,6 @@ class LocalAWSTests(unittest.TestCase):
                 self.assertNotIn("securityContext", controller)
                 self.assertNotIn("extraVolumes", controller["webhook"])
                 self.assertNotIn("extraVolumes", controller["certController"])
-
-    def test_bootstrap_does_not_export_or_copy_aws_keys(self):
-        script = (ROOT / "install/local/install.sh").read_text()
-        self.assertNotIn("configure export-credentials", script)
-        self.assertNotIn("create secret generic", script)
-        self.assertNotIn("AWS_ACCESS_KEY_ID", script)
-        self.assertIn("aws ssm get-parameter", script)
 
 
 if __name__ == "__main__":

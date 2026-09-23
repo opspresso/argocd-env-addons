@@ -30,7 +30,7 @@ grafana:
       token_url: https://github.com/login/oauth/access_token
       api_url: https://api.github.com/user
       allowed_organizations: opspresso
-      # team_ids: sre
+      # Set team_ids here to restrict access to specific GitHub teams.
 
 
 

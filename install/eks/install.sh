@@ -70,7 +70,7 @@ wait_for_argocd() {
 }
 
 step "필수 명령 확인"
-for command in aws jq kubectl helm argocd curl openssl uuidgen; do
+for command in aws jq kubectl helm argocd curl openssl uuidgen python3; do
   if ! command -v "$command" >/dev/null 2>&1; then
     echo "필수 명령을 찾을 수 없습니다: $command" >&2
     exit 1
@@ -79,6 +79,11 @@ done
 
 if ! [[ "$ARGOCD_READY_TIMEOUT" =~ ^[1-9][0-9]*$ ]]; then
   echo "ARGOCD_READY_TIMEOUT은 초 단위의 양의 정수여야 합니다." >&2
+  exit 1
+fi
+
+if ! python3 -c 'import yaml' >/dev/null 2>&1; then
+  echo "PyYAML이 필요합니다. 저장소 루트에서 python3 -m pip install -r requirements/runtime.txt 로 설치하세요." >&2
   exit 1
 fi
 

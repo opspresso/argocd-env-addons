@@ -13,7 +13,7 @@ charts/           # 공용 wrapper Helm chart와 렌더 결과
 env/              # 클러스터별 설정
 scripts/          # 빌드·생성·갱신·검증 스크립트
 config/           # Helm 저장소 목록과 chart 버전 감시 목록
-requirements/     # Python 실행 의존성(runtime.txt)
+requirements/     # Python 실행(runtime.txt)·테스트(dev.txt) 의존성
 install/          # 플랫폼별 Argo CD 최초 부트스트랩
 tests/            # 자동화 테스트
 ```
@@ -25,7 +25,9 @@ Python 의존성은 `python3 -m pip install -r requirements/runtime.txt`로 설�
 
 * See <https://github.com/opspresso/argocd-env-addons/tree/main/install/eks/>
 * k3s 설치는 <https://github.com/opspresso/argocd-env-addons/tree/main/install/k3s/> 참고
-* 로컬 Kubernetes GitOps 개발 환경(OrbStack·Docker Desktop)(Argo CD·PostgreSQL·MinIO·Neo4j·MCP) 설치는 [install/local](install/local/README.md)를 참고한다. Studio·Memory는 Mac에서 `pnpm`으로 실행한다.
+
+현재 배포·설치 대상은 EKS와 k3s다. `local`은 공통 템플릿과 정책 검사에서만 지원하며,
+로컬 클러스터용 env·Application·설치 스크립트는 제공하지 않는다.
 
 ## addons
 
@@ -87,7 +89,7 @@ valueFiles의 디렉토리가 된다.
 
 ```bash
 ./scripts/update_env.sh
-GITHUB_PUSH=false ./scripts/build.sh
+./scripts/build.sh
 ```
 
 ## 리소스·autoscaling 규칙
@@ -114,9 +116,10 @@ PVC의 storage 요청은 유지한다. VictoriaMetrics의 `useDefaultResources`�
 
 `values-template.yaml.j2` 를 `env/*.yaml` 마다 렌더해 `charts/<addon>/<env>/` 에 저장한다.
 `./scripts/build.sh` 는 모든 chart 에 대해 이것을 실행한다.
+이 스크립트는 파일만 생성하며 Git index·커밋·원격 저장소를 변경하지 않는다.
 
 ```bash
-./scripts/gen_values.py
+./scripts/build.sh
 
 ./scripts/gen_values.py -p eks -r grafana
 ```
@@ -133,10 +136,24 @@ values 파일 누락이나 chart 오류를 Argo CD sync 가 아니라 CI 에서 
 ./scripts/validate.py -d addons -d backup   # 미배포 addon 까지
 ```
 
+필수 템플릿 변수가 없거나 `env/<cluster>.yaml`의 파일명과 `cluster`가 다르면 생성에 실패한다.
+검증 디렉터리가 없거나 검사할 Application이 하나도 없을 때도 실패로 처리한다.
+
+자동화 테스트는 다음 명령으로 실행한다. 테스트에는 Helm, jq, yq v4, OpenSSL이 필요하며
+AWS·Kubernetes 변경은 모의 명령으로 대체한다.
+
+```bash
+python3 -m pip install -r requirements/dev.txt
+python3 -m pytest -q
+```
+
+PR과 main push에서 테스트 → 값 생성 → Helm 검증을 실행한다. main workflow는 모든 검사가
+성공한 뒤 생성된 `charts/*/*/values-*.yaml`만 커밋·푸시한다.
+
 ## versions
 
 아래 표는 `scripts/update_versions.py` 가 `config/versions.json` 을 기준으로 생성한다. 여기서 직접 고치지 않는다.
-`versions` workflow 가 매일 UTC 00 에 실행해 갱신분을 main 에 커밋하므로, `Chart.yaml` 버전을
+`versions` workflow 가 매일 UTC 22:00(한국 시간 다음 날 07:00)에 실행해 갱신분을 main 에 커밋하므로, `Chart.yaml` 버전을
 올리면 늦어도 다음 날 표에 반영된다.
 
 * `CURRENT` — `charts/<NAME>/Chart.yaml` 의 version. 비어 있으면 그 chart 가 아직 없다는 뜻
