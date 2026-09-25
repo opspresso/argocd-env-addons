@@ -26,6 +26,7 @@ scripts/workload_policy.py # 플랫폼별 workload 정책 검사
 scripts/build.sh           # 모든 chart 에 scripts/gen_values.py 실행. Git 상태는 변경하지 않음
 scripts/update_env.sh      # AWS 조회 결과로 env/*.yaml 의 vpcId·acm_arn·target_group 갱신
 scripts/update_versions.py # config/versions.json 기준으로 upstream 최신 버전 조회, README 버전 테이블 갱신
+scripts/update_charts.sh  # 기록된 최신 버전을 charts/*/Chart.yaml 에 반영
 config/versions.json       # scripts/update_versions.py 의 감시 목록. upstream chart 경로 + 버전 캐시
 config/repos.txt           # scripts/update_versions.py 가 조회할 helm repo 목록 (helm repo add 입력)
 requirements/{runtime,dev}.txt # Python 실행·테스트 의존성
@@ -151,8 +152,9 @@ python3 -m pytest -q          # scripts 및 설치 회귀 테스트
 
 `<!--- BEGIN_VERSION --->` ~ `<!--- END_VERSION --->` 구간은 이 저장소의 `scripts/update_versions.py` 가
 `config/versions.json` 을 기준으로 생성한다. 직접 고치면 다음 실행에서 덮어써진다.
-`scripts/update_versions.py` 는 `Chart.yaml` 을 절대 수정하지 않는 순수 감시 도구다 — 버전 업그레이드는
-사람이 `Chart.yaml` 을 고치는 것으로 한다.
+`scripts/update_versions.py` 는 `Chart.yaml` 을 수정하지 않는 감시 도구다.
+버전 업그레이드는 `scripts/update_charts.sh` 로 기록된 최신 버전을 `Chart.yaml` 에 반영한다.
+쉘은 같은 upstream 저장소의 동일 버전 dependency 를 함께 갱신하고, 잠금·비활성 항목과 로컬 chart 가 없는 항목은 건너뛴다.
 
 `.github/workflows/versions.yml` 이 매일 UTC 22:00에 이 스크립트를 돌려 갱신분을 `nalbam-bot`
 이름으로 main 에 커밋한다. 조회 실패가 있으면 run 은 실패로 표시되지만 성공한 chart 의

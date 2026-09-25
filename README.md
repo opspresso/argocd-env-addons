@@ -169,6 +169,19 @@ helm repo update
 ./scripts/update_versions.py
 ```
 
+기록된 최신 버전을 실제 wrapper chart 의 `Chart.yaml` 에 반영하려면 다음 쉘을 실행한다.
+`jq` 와 `yq` v4가 필요하다. `--chart` 에는 감시 목록의 key 또는 chart 디렉토리 이름을 지정할 수 있다.
+
+```bash
+./scripts/update_charts.sh --dry-run
+./scripts/update_charts.sh --chart istio
+# 전체 chart 를 반영하려면: ./scripts/update_charts.sh
+```
+
+쉘은 `config/versions.json` 의 `version` 을 사용하며, `locked`·`disabled` 항목과 로컬 chart 가 없는 항목은 건너뛴다.
+기록된 `current` 와 `Chart.yaml` 이 다르면 갱신을 중단하므로 먼저 `update_versions.py` 를 실행한다.
+반영 후 버전 표의 `CURRENT` 는 다음 `update_versions.py` 실행 때 갱신된다.
+
 `karpenter` 처럼 `public.ecr.aws` 의 OCI chart 를 조회하려면 로그인이 필요하다.
 CI 는 익명으로 조회를 시도하고, 실패하면 해당 chart 만 건너뛴다.
 
