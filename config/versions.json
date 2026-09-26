@@ -1,33 +1,33 @@
 {
   "versions": {
     "alloy": {
-      "app_version": "v1.19.2",
+      "app_version": "v1.20.0",
       "chart": "grafana/alloy",
       "current": "1.12.1",
-      "version": "1.12.1"
+      "version": "1.13.0"
     },
     "argo-cd": {
       "app_version": "v3.5.3",
       "chart": "argo/argo-cd",
-      "current": "10.9.1",
+      "current": "10.9.2",
       "version": "10.9.2"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
       "chart": "argo/argo-rollouts",
-      "current": "2.43.1",
+      "current": "2.43.2",
       "version": "2.43.2"
     },
     "argo-workflows": {
       "app_version": "v4.1.4",
       "chart": "argo/argo-workflows",
-      "current": "2.0.6",
+      "current": "2.0.8",
       "version": "2.0.8"
     },
     "atlantis": {
       "app_version": "v0.48.0",
       "chart": "atlantis/atlantis",
-      "current": "6.15.1",
+      "current": "6.16.0",
       "version": "6.16.0"
     },
     "cert-manager": {
@@ -45,7 +45,7 @@
     "external-secrets": {
       "app_version": "v2.11.0",
       "chart": "external-secrets/external-secrets",
-      "current": "2.10.0",
+      "current": "2.11.0",
       "version": "2.11.0"
     },
     "grafana": {
@@ -57,7 +57,7 @@
     "istiod": {
       "app_version": "1.30.5",
       "chart": "istio/istiod",
-      "current": "1.30.4",
+      "current": "1.30.5",
       "path": "istio",
       "version": "1.30.5"
     },
@@ -94,13 +94,13 @@
     "prometheus-stack": {
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
-      "current": "91.4.1",
-      "version": "91.5.2"
+      "current": "91.5.2",
+      "version": "91.5.3"
     },
     "victoria-metrics": {
       "app_version": "v1.152.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
-      "current": "0.90.2",
+      "current": "0.93.0",
       "version": "0.93.0"
     },
     "vllm-stack": {
