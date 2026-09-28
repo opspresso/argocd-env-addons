@@ -95,109 +95,148 @@ alloy:
     configMap:
       content: |
         prometheus.remote_write "grafana_cloud" {
-          external_labels = {
-            cluster = "{{cluster}}",
-          }
+          external_labels = { "cluster" = "{{cluster}}" }
 
           endpoint {
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-            url = "http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428/api/v1/write"
-{% else %}
             url = "{{grafana_cloud.remote_write_url}}"
-
             basic_auth {
               username = "{{grafana_cloud.remote_write_username}}"
               password = sys.env("GCLOUD_RW_API_KEY")
             }
-{% endif %}
+
+            // Bound Cloud series usage while retaining the dashboard metrics.
+            write_relabel_config {
+              source_labels = ["job", "__name__"]
+              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
+              action = "keep"
+            }
+          }
+        }
+
+        prometheus.exporter.unix "node" {
+          procfs_path    = "/host/proc"
+          rootfs_path    = "/host/root"
+          sysfs_path     = "/host/sys"
+          udev_data_path = "/host/root/run/udev/data"
+
+          filesystem {
+            mount_points_exclude = "^/(dev|proc|sys|run/credentials/.+|var/lib/kubelet/.+|var/lib/rancher/k3s/.+)($|/)"
+            mount_timeout        = "5s"
+          }
+        }
+
+        discovery.relabel "node" {
+          targets = prometheus.exporter.unix.node.targets
+          rule {
+            target_label = "instance"
+            replacement  = sys.env("GCLOUD_FM_COLLECTOR_ID")
+          }
+          rule {
+            target_label = "job"
+            replacement  = "integrations/node_exporter"
+          }
+        }
+
+        prometheus.scrape "node" {
+          targets         = discovery.relabel.node.output
+          scrape_interval = "15s"
+          forward_to      = [prometheus.relabel.node.receiver]
+        }
+
+        prometheus.relabel "node" {
+          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+          rule {
+            source_labels = ["__name__"]
+            regex         = "node_scrape_collector_.+"
+            action        = "drop"
+          }
+        }
+
+        prometheus.scrape "kubelet" {
+          targets = [{
+            "__address__"      = "kubernetes.default.svc:443",
+            "__metrics_path__" = "/api/v1/nodes/" + sys.env("NODE_NAME") + "/proxy/metrics",
+            "instance"         = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+          }]
+          scheme            = "https"
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          tls_config {
+            ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          }
+          job_name        = "kubelet"
+          scrape_interval = "30s"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+        }
+
+        // Use the API server's verified TLS endpoint to reach this node's kubelet.
+        prometheus.scrape "cadvisor" {
+          targets = [{
+            "__address__"      = "kubernetes.default.svc:443",
+            "__metrics_path__" = "/api/v1/nodes/" + sys.env("NODE_NAME") + "/proxy/metrics/cadvisor",
+            "instance"         = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+          }]
+          scheme            = "https"
+          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+          tls_config {
+            ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          }
+          job_name        = "integrations/cadvisor"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.relabel.cadvisor.receiver]
+        }
+
+        prometheus.relabel "cadvisor" {
+          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+          rule {
+            source_labels = ["namespace"]
+            regex         = ""
+            action        = "drop"
+          }
+          // Keep pod network metrics, including the sandbox, under the workload name.
+          rule {
+            source_labels = ["container"]
+            target_label  = "service"
+          }
+          rule {
+            source_labels = ["pod"]
+            regex         = "(.+)-[a-z0-9]+-[a-z0-9]+"
+            target_label  = "service"
+            replacement   = "$1"
+          }
+          rule {
+            source_labels = ["pod"]
+            regex         = "(.+)-[0-9]+"
+            target_label  = "service"
+            replacement   = "$1"
           }
         }
 
         prometheus.scrape "agent_studio" {
           targets = [{
-            "__address__" = "agent-studio.agent-studio.svc.cluster.local:80",
-            "instance"    = "k3s-demo",
+            "__address__" = "agent-studio.agent-studio.svc:80",
+            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
           }]
-
           metrics_path    = "/api/metrics"
-          scrape_interval = "15s"
-          scrape_timeout  = "5s"
           job_name        = "agent-studio"
+          scrape_interval = "15s"
           forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
         }
 
         prometheus.scrape "agent_memory" {
           targets = [{
-            "__address__" = "agent-memory.agent-memory.svc.cluster.local:80",
-            "instance"    = "k3s-demo",
+            "__address__" = "agent-memory.agent-memory.svc:80",
+            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
           }]
-
           metrics_path    = "/api/metrics"
-          scrape_interval = "15s"
-          scrape_timeout  = "5s"
+          bearer_token    = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
           job_name        = "agent-memory"
-          bearer_token     = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
-          forward_to       = [prometheus.remote_write.grafana_cloud.receiver]
-        }
-
-        // Collect host-level CPU, memory, filesystem, network and disk metrics
-        // from the node where this DaemonSet instance is running.
-        prometheus.exporter.unix "node" {
-          procfs_path = "/host/proc"
-          sysfs_path  = "/host/sys"
-          rootfs_path = "/host/root"
-        }
-
-        prometheus.scrape "node" {
-          targets    = prometheus.exporter.unix.node.targets
-          job_name   = "node"
-          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
-        }
-
-        // Kubelet exposes both kubelet metrics and cAdvisor container metrics.
-        discovery.kubernetes "nodes" {
-          role = "node"
-
-          // Each DaemonSet instance reports only its own node. This prevents
-          // duplicate kubelet and cAdvisor series on multi-node clusters.
-          selectors {
-            role  = "node"
-            field = "metadata.name=" + sys.env("NODE_NAME")
-          }
-        }
-
-        discovery.relabel "kubelet" {
-          targets = discovery.kubernetes.nodes.targets
-
-          rule {
-            source_labels = ["__meta_kubernetes_node_address_InternalIP"]
-            regex         = "(.+)"
-            replacement   = "$1:10250"
-            target_label  = "__address__"
-          }
-
-          rule {
-            target_label = "cluster"
-            replacement  = "{{cluster}}"
-          }
-        }
-
-        prometheus.scrape "kubelet" {
-          targets           = discovery.relabel.kubelet.output
-          scheme            = "https"
-          metrics_path      = "/metrics"
-          bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
-          tls_config {
-            ca_file              = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
-            insecure_skip_verify = true
-          }
-          scrape_interval = "30s"
-          scrape_timeout  = "10s"
-          job_name        = "kubelet"
+          scrape_interval = "15s"
           forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
         }
 
     extraEnv:
+      - name: GCLOUD_FM_COLLECTOR_ID
+        value: "{{cluster}}"
       - name: NODE_NAME
         valueFrom:
           fieldRef:
@@ -206,7 +245,7 @@ alloy:
       - secretRef:
           name: alloy-grafana-cloud
     mounts:
-      varlog: true
+      varlog: false
       extra:
         - name: alloy-data
           mountPath: /var/lib/alloy
@@ -219,12 +258,30 @@ alloy:
         - name: host-root
           mountPath: /host/root
           readOnly: true
+          mountPropagation: HostToContainer
 {% if resources is defined and not resources.enabled %}
+    resources: null
+{% endif %}
+
+  rbac:
+    rules:
+      - apiGroups: [""]
+        resources: ["nodes"]
+        verbs: ["get"]
+    clusterRules:
+      - apiGroups: [""]
+        resources: ["nodes/proxy"]
+        verbs: ["get"]
+
+{% if resources is defined and not resources.enabled %}
+  configReloader:
     resources: null
 {% endif %}
 
   controller:
     type: daemonset
+    hostNetwork: true
+    dnsPolicy: ClusterFirstWithHostNet
 
     volumes:
       extra:
