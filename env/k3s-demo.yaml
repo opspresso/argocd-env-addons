@@ -73,6 +73,10 @@ gateway:
     - '*.demo.opsp.dev'
     - memory.opsp.dev
     - studio.opsp.dev
+    - demo.agrt.dev
+    - '*.demo.agrt.dev'
+    - memory.agrt.dev
+    - studio.agrt.dev
   tls:
     secret_name: traefik-gateway-tls
     issuer_name: letsencrypt-prod
