@@ -95,13 +95,13 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "91.8.0"
+      "version": "91.8.1"
     },
     "victoria-metrics": {
-      "app_version": "v1.152.0",
+      "app_version": "v1.153.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
       "current": "0.93.0",
-      "version": "0.93.0"
+      "version": "0.95.0"
     },
     "vllm-stack": {
       "app_version": "",
