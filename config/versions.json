@@ -10,7 +10,7 @@
       "app_version": "v3.5.3",
       "chart": "argo/argo-cd",
       "current": "10.9.2",
-      "version": "10.9.2"
+      "version": "10.9.4"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
@@ -95,7 +95,7 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "91.8.1"
+      "version": "91.8.2"
     },
     "victoria-metrics": {
       "app_version": "v1.153.0",
