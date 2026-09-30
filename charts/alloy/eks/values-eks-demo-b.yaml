@@ -81,7 +81,7 @@ alloy:
 
         loki.write "default" {
           endpoint {
-            url = "http://loki.demo-in.opspresso.com/loki/api/v1/push"
+            url = "http://loki.addon-loki.svc.cluster.local:3100/loki/api/v1/push"
           }
 
           external_labels = {
