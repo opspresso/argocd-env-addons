@@ -11,7 +11,9 @@ def test_k3s_exporter_exposes_only_required_read_only_state():
     chart = ROOT / "charts/workspace-metrics"
     output = subprocess.run(["helm", "template", "workspace-metrics", str(chart),
                              "-f", str(chart / "values.yaml"), "-f", str(chart / "k3s/values-k3s-demo.yaml")],
-                            capture_output=True, text=True, check=True).stdout
+                            capture_output=True, text=True)
+    assert output.returncode == 0, output.stderr
+    output = output.stdout
     docs = [doc for doc in yaml.safe_load_all(output) if doc]
     role = next(doc for doc in docs if doc["kind"] == "ClusterRole")
     assert {resource for rule in role["rules"] for resource in rule["resources"]} == {"pods", "nodes", "resourcequotas", "deployments"}

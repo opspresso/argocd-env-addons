@@ -136,7 +136,7 @@ python3 -m pytest -q          # scripts 및 설치 회귀 테스트
 ```
 
 `scripts/build.sh`는 값만 생성하며 Git index·커밋·원격 저장소를 변경하지 않는다.
-`main` 에 push 하면 `.github/workflows/push.yml`이 테스트 → 생성 → Helm 검증을 실행한 뒤,
+`main` 에 push 하면 `.github/workflows/push.yml`이 생성 → Helm 검증 → 테스트을 실행한 뒤,
 생성된 `charts/*/*/values-*.yaml`만 `nalbam-bot` 이름으로 커밋한다. 로컬에서 렌더해
 함께 커밋하면 diff 로 결과를 검토할 수 있다.
 

@@ -35,14 +35,15 @@ jobs:
       - name: Install Helm 📝
         uses: azure/setup-helm@v5
 
-      - name: Test 🧪
-        run: python3 -m pytest -q
-
       - name: Build
         run: bash ./scripts/build.sh
 
       - name: Validate 🧪
         run: python3 ./scripts/validate.py
+
+      # Rendered-policy tests consume the dependencies prepared by validation.
+      - name: Test 🧪
+        run: python3 -m pytest -q
 
       - name: Push validated values 🚀
         run: |
