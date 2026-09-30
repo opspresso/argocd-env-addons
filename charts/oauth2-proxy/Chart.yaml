@@ -8,3 +8,7 @@ dependencies:
 - name: oauth2-proxy
   repository: https://oauth2-proxy.github.io/manifests
   version: "10.7.0" # helm chart oauth2-proxy version
+
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5" # helm chart raw version

@@ -10,7 +10,30 @@ atlantis:
     annotations:
       link.argocd.argoproj.io/external-link: "https://atlantis.demo.opspresso.com"
 
-  extraManifests:
+  route:
+    main:
+      enabled: true
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
+      hostnames:
+        - "atlantis.demo.opspresso.com"
+    public:
+      enabled: true
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: istio-ingressgateway
+          namespace: istio-system
+      hostnames:
+        - "atlantis-public.demo.opspresso.com"
+      matches:
+        - path:
+            type: PathPrefix
+            value: /events
+
+raw:
+  resources:
     - apiVersion: v1
       kind: ConfigMap
       metadata:
@@ -41,42 +64,6 @@ atlantis:
             remoteRef:
               key: /k8s/common/github/nalbam-bot/secret
 
-
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: atlantis
-      spec:
-        parentRefs:
-          - name: istio-ingressgateway
-            namespace: istio-system
-        hostnames:
-          - "atlantis.demo.opspresso.com"
-        rules:
-          - backendRefs:
-              - name: atlantis
-                port: 80
-
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: atlantis-public
-      spec:
-        parentRefs:
-          - group: gateway.networking.k8s.io
-            kind: Gateway
-            name: istio-ingressgateway
-            namespace: istio-system
-        hostnames:
-          - "atlantis-public.demo.opspresso.com"
-        rules:
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /events
-            backendRefs:
-              - name: atlantis
-                port: 80
 
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy

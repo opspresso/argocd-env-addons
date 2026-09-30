@@ -25,27 +25,19 @@ argo-workflows:
     ingress:
       enabled: false
 
+    # Match the redirectURI of Argo CD's argo-workflows-sso staticClient.
+    httproute:
+      enabled: true
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
+      hostnames:
+        - "workflows.demo.opspresso.com"
+
 
 
 raw:
   resources:
-    # The host has to match the redirectURI on argo-cd's argo-workflows-sso
-    # staticClient, or the sso round trip lands nowhere.
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: argo-workflows
-      spec:
-        parentRefs:
-          - name: istio-ingressgateway
-            namespace: istio-system
-        hostnames:
-          - "workflows.demo.opspresso.com"
-        rules:
-          - backendRefs:
-              - name: argo-workflows-server
-                port: 2746
-
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:

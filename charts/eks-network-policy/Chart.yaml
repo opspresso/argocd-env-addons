@@ -3,3 +3,8 @@ name: eks-network-policy
 description: Enable the managed EKS Auto Mode Network Policy Controller
 type: application
 version: 1.0.0
+
+dependencies:
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5" # helm chart raw version

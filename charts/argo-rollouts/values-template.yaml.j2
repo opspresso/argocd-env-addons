@@ -18,25 +18,18 @@ argo-rollouts:
       hosts:
         - "rollouts.{{hostname.public}}"
 
+    httproute:
+      enabled: true
+      annotations:
+        link.argocd.argoproj.io/external-link: "https://rollouts.{{hostname.public}}"
+      parentRefs:
+        - name: istio-ingressgateway
+          namespace: istio-system
+      hostnames:
+        - "rollouts.{{hostname.public}}"
+
 route:
   resources:
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: argo-rollouts-dashboard
-        annotations:
-          link.argocd.argoproj.io/external-link: "https://rollouts.{{hostname.public}}"
-      spec:
-        parentRefs:
-          - name: istio-ingressgateway
-            namespace: istio-system
-        hostnames:
-          - "rollouts.{{hostname.public}}"
-        rules:
-          - backendRefs:
-              - name: argo-rollouts-dashboard
-                port: 3100
-
     - apiVersion: security.istio.io/v1beta1
       kind: AuthorizationPolicy
       metadata:

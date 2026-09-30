@@ -36,7 +36,20 @@ def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting
 
 def test_prometheus_rules_use_the_shared_policy_with_existing_node_labels():
     groups = yaml.safe_load((ROOT / "config/workspace-alerts.yaml").read_text())["groups"]
-    values = yaml.safe_load((ROOT / "charts/prometheus-stack/eks/values-eks-demo.yaml").read_text())
-    assert values["workspaceAlerts"]["groups"] == groups
+    chart = ROOT / "charts/prometheus-stack"
+    output = subprocess.run(
+        ["helm", "template", "prometheus-eks-demo", str(chart), "--namespace", "addon-prometheus",
+         "-f", str(chart / "values.yaml"), "-f", str(chart / "eks/values-eks-demo.yaml")],
+        capture_output=True, text=True,
+    )
+    assert output.returncode == 0, output.stderr
+    docs = [doc for doc in yaml.safe_load_all(output.stdout) if doc]
+    rule = next(doc for doc in docs if doc["kind"] == "PrometheusRule"
+                and doc["metadata"]["name"] == "prometheus-agent-studio-workspaces")
+    assert rule["spec"]["groups"] == groups
+    prometheus = next(doc for doc in docs if doc["kind"] == "Prometheus")
+    selector = prometheus["spec"]["ruleSelector"]["matchLabels"]
+    assert selector
+    assert all(rule["metadata"]["labels"].get(key) == value for key, value in selector.items())
     base = yaml.safe_load((ROOT / "charts/prometheus-stack/values.yaml").read_text())
     assert any("nodes=[*]" in arg for arg in base["kube-prometheus-stack"]["kube-state-metrics"]["extraArgs"])

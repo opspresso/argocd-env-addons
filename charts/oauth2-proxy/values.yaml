@@ -7,7 +7,8 @@ oauth2-proxy:
     google:
       existingSecret: oauth2-proxy-secret
 
-  extraObjects:
+raw:
+  resources:
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:

@@ -99,10 +99,10 @@ alloy:
       - apiGroups: [""]
         resources: ["pods"]
         verbs: ["list", "watch"]
-
-  # Auto Mode DefaultDeny also applies to infrastructure DaemonSets.
-  # DNS rules follow Loki's load balancer addresses without allowing all HTTP.
-  extraObjects:
+raw:
+  resources:
+    # Auto Mode DefaultDeny also applies to infrastructure DaemonSets.
+    # DNS rules follow Loki's load balancer addresses without allowing all HTTP.
     - apiVersion: networking.k8s.aws/v1alpha1
       kind: ApplicationNetworkPolicy
       metadata:
@@ -145,5 +145,3 @@ alloy:
             ports:
               - protocol: TCP
                 port: 80
-
-

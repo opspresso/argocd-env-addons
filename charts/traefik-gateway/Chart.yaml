@@ -3,3 +3,8 @@ description: Enable the Traefik Kubernetes Gateway API provider
 name: traefik-gateway
 type: application
 version: "0.1.0"
+
+dependencies:
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5" # helm chart raw version

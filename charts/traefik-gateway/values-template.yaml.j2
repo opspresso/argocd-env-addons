@@ -1,16 +1,62 @@
-enabled: {{gateway.enabled}}
-gateway:
-  name: "{{gateway.name}}"
-  namespace: "{{gateway.namespace}}"
-  class_name: "{{gateway.class_name}}"
-  listener_port: {{gateway.listener_port}}
-  hosts:
-{{gateway.hosts | to_yaml | indent(4, first=true)}}
-  tls:
-    secret_name: "{{gateway.tls.secret_name}}"
-    issuer_name: "{{gateway.tls.issuer_name}}"
+raw:
+{%- if gateway.enabled %}
+  resources:
+    # k3s owns the Traefik installation; configure its bundled chart.
+    - apiVersion: helm.cattle.io/v1
+      kind: HelmChartConfig
+      metadata:
+        name: traefik
+        namespace: kube-system
+      spec:
+        valuesContent: |-
+{%- if not (resources.enabled | default(true)) %}
+          resources:
+            requests: null
+            limits: null
+{%- endif %}
+{%- if not (autoscaling.enabled | default(true)) %}
+          autoscaling:
+            enabled: false
+{%- endif %}
+          providers:
+            kubernetesGateway:
+              enabled: true
 
-resources:
-  enabled: {{resources.enabled | default(true)}}
-autoscaling:
-  enabled: {{autoscaling.enabled | default(true)}}
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: "{{gateway.tls.secret_name}}"
+        namespace: "{{gateway.namespace}}"
+      spec:
+        secretName: "{{gateway.tls.secret_name}}"
+        issuerRef:
+          name: "{{gateway.tls.issuer_name}}"
+          kind: ClusterIssuer
+        dnsNames:
+{{gateway.hosts | to_yaml | indent(10, first=true)}}
+
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: Gateway
+      metadata:
+        name: "{{gateway.name}}"
+        namespace: "{{gateway.namespace}}"
+      spec:
+        gatewayClassName: "{{gateway.class_name}}"
+        listeners:
+{%- for host in gateway.hosts %}
+          - name: https-{{loop.index0}}
+            hostname: "{{host}}"
+            port: {{gateway.listener_port}}
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "{{gateway.tls.secret_name}}"
+            allowedRoutes:
+              namespaces:
+                from: All
+{%- endfor %}
+{%- else %}
+  resources: []
+{%- endif %}

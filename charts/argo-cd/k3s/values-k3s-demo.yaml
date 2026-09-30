@@ -1,7 +1,6 @@
 argo-cd:
   fullnameOverride: argocd
 
-
   controller:
     metrics:
       serviceMonitor:
@@ -165,8 +164,72 @@ argo-cd:
             - https://auth.demo.opsp.dev/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
+
+
+
 raw:
   resources:
+    - apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: addons
+      spec:
+        clusterResourceWhitelist:
+          - group: "*"
+            kind: "*"
+        destinations:
+          - name: "*"
+            namespace: "*"
+            server: "*"
+        sourceRepos:
+          - "https://github.com/opspresso/argocd-env-addons"
+
+    - apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: apps
+      spec:
+        clusterResourceWhitelist:
+          - group: "*"
+            kind: "*"
+        destinations:
+          - name: "*"
+            namespace: "*"
+            server: "*"
+        sourceRepos:
+          - "https://github.com/opspresso/argocd-env-demo"
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: argocd-notifications-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: argocd-notifications-secret
+        data:
+          - secretKey: slack-token
+            remoteRef:
+              key: /k8s/common/argocd-noti-token
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: argocd-applicationset-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: argocd-applicationset-secret
+        data:
+          - secretKey: webhook.github.secret
+            remoteRef:
+              key: /k8s/common/argocd-webhook
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:

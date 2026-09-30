@@ -8,3 +8,7 @@ dependencies:
 - name: alloy
   repository: https://grafana.github.io/helm-charts
   version: "1.12.1" # helm chart alloy version
+
+- name: raw
+  repository: https://charts.helm.sh/incubator
+  version: "0.2.5" # helm chart raw version

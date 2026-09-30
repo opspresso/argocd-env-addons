@@ -1,15 +1,2 @@
-enabled: false
-gateway:
-  name: traefik-gateway
-  namespace: traefik-gateway
-  class_name: traefik
-  listener_port: 8443
-  hosts: []
-  tls:
-    secret_name: ""
-    issuer_name: ""
-
-resources:
-  enabled: true
-autoscaling:
-  enabled: true
+raw:
+  resources: []

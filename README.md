@@ -60,6 +60,29 @@ sync 에 실패하기 때문이다.
 ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병합한다.
 이 저장소에는 `values-<phase>.yaml` 이 없다 — phase 는 `argocd-env-demo` 전용 개념이다.
 
+차트 구성은 다음 순서를 따른다.
+
+1. addon의 전용 chart와 values 옵션을 우선 사용한다. HTTPRoute, ServiceMonitor,
+   PrometheusRule처럼 chart가 제공하는 리소스를 별도로 중복 정의하지 않는다.
+2. 전용 옵션이 없는 리소스는 `https://charts.helm.sh/incubator`의 `raw` chart
+   `0.2.5`를 dependency로 추가하고 `raw.resources`에 선언한다. 일반 리소스를
+   addon의 `extraObjects`·`extraManifests`에 넣지 않는다.
+3. wrapper의 `templates/`는 만들지 않는 것을 기본으로 한다. 환경 분기는
+   `values-template.yaml.j2`에서 처리하며, Helm 평가가 꼭 필요한 경우에는
+   `raw.templates`를 사용한다. 공통·환경별 리소스 목록이 함께 필요하면 raw alias로
+   분리한다. Helm의 values 목록은 병합되지 않고 뒤의 목록으로 교체된다.
+
+현재 23개 wrapper chart는 모두 dependency와 values로 구성한다. k3s Traefik은
+기본 설치된 chart를 소유하므로 별도 controller를 설치하지 않고 raw의
+`HelmChartConfig`로 설정한다. EKS Auto Mode의 `TargetGroupBinding`과 Alloy의
+`ApplicationNetworkPolicy`도 전용 chart가 지원하지 않는 API이므로 raw가 관리한다.
+
+Grafana·Atlantis의 `route`, Argo CD·Rollouts·Workflows의 `httproute`, Prometheus의
+`route`와 `additionalPrometheusRulesMap`은 각 addon chart가 렌더링한다.
+리소스 이름도 upstream 규칙을 따른다. Prometheus HTTPRoute는 `prometheus-prometheus`,
+Workspace PrometheusRule은 `prometheus-agent-studio-workspaces`, Workflows HTTPRoute는
+`argo-workflows-server`다. URL·backend Service·경보 그룹은 환경 설정에서 관리한다.
+
 ## env
 
 ### EKS Auto Mode NetworkPolicy
@@ -136,6 +159,9 @@ values 파일 누락이나 chart 오류를 Argo CD sync 가 아니라 CI 에서 
 ./scripts/validate.py -d addons -d backup   # 미배포 addon 까지
 ```
 
+PR·main CI는 `addons`와 `backup`을 함께 검증해 보관 중인 addon의 전용 route와
+추가 리소스도 검사한다. 이 단계에서 준비한 고정 버전의 Helm 의존성을 pytest가 사용한다.
+
 필수 템플릿 변수가 없거나 `env/<cluster>.yaml`의 파일명과 `cluster`가 다르면 생성에 실패한다.
 검증 디렉터리가 없거나 검사할 Application이 하나도 없을 때도 실패로 처리한다.
 
@@ -147,7 +173,7 @@ python3 -m pip install -r requirements/dev.txt
 python3 -m pytest -q
 ```
 
-PR과 main push에서 테스트 → 값 생성 → Helm 검증을 실행한다. main workflow는 모든 검사가
+PR과 main push에서 값 생성 → Helm 검증 → 테스트를 실행한다. main workflow는 모든 검사가
 성공한 뒤 생성된 `charts/*/*/values-*.yaml`만 커밋·푸시한다.
 
 ## versions

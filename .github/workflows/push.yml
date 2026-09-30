@@ -39,7 +39,7 @@ jobs:
         run: bash ./scripts/build.sh
 
       - name: Validate 🧪
-        run: python3 ./scripts/validate.py
+        run: python3 ./scripts/validate.py -d addons -d backup
 
       # Rendered-policy tests consume the dependencies prepared by validation.
       - name: Test 🧪

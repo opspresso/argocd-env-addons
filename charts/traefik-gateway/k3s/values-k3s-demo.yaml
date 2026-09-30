@@ -1,23 +1,143 @@
-enabled: True
-gateway:
-  name: "traefik-gateway"
-  namespace: "traefik-gateway"
-  class_name: "traefik"
-  listener_port: 8443
-  hosts:
-    - demo.opsp.dev
-    - '*.demo.opsp.dev'
-    - memory.opsp.dev
-    - studio.opsp.dev
-    - demo.agrt.dev
-    - '*.demo.agrt.dev'
-    - memory.agrt.dev
-    - studio.agrt.dev
-  tls:
-    secret_name: "traefik-gateway-tls"
-    issuer_name: "letsencrypt-prod"
+raw:
+  resources:
+    # k3s owns the Traefik installation; configure its bundled chart.
+    - apiVersion: helm.cattle.io/v1
+      kind: HelmChartConfig
+      metadata:
+        name: traefik
+        namespace: kube-system
+      spec:
+        valuesContent: |-
+          resources:
+            requests: null
+            limits: null
+          autoscaling:
+            enabled: false
+          providers:
+            kubernetesGateway:
+              enabled: true
 
-resources:
-  enabled: False
-autoscaling:
-  enabled: False
+    - apiVersion: cert-manager.io/v1
+      kind: Certificate
+      metadata:
+        name: "traefik-gateway-tls"
+        namespace: "traefik-gateway"
+      spec:
+        secretName: "traefik-gateway-tls"
+        issuerRef:
+          name: "letsencrypt-prod"
+          kind: ClusterIssuer
+        dnsNames:
+          - demo.opsp.dev
+          - '*.demo.opsp.dev'
+          - memory.opsp.dev
+          - studio.opsp.dev
+          - demo.agrt.dev
+          - '*.demo.agrt.dev'
+          - memory.agrt.dev
+          - studio.agrt.dev
+
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: Gateway
+      metadata:
+        name: "traefik-gateway"
+        namespace: "traefik-gateway"
+      spec:
+        gatewayClassName: "traefik"
+        listeners:
+          - name: https-0
+            hostname: "demo.opsp.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-1
+            hostname: "*.demo.opsp.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-2
+            hostname: "memory.opsp.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-3
+            hostname: "studio.opsp.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-4
+            hostname: "demo.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-5
+            hostname: "*.demo.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-6
+            hostname: "memory.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-7
+            hostname: "studio.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All

@@ -62,6 +62,24 @@ grafana:
   ingress:
     enabled: false
 
+  route:
+    main:
+      enabled: true
+      annotations:
+        link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+{% if gateway is defined %}
+          name: "{{gateway.name}}"
+          namespace: "{{gateway.namespace}}"
+{% else %}
+          name: istio-ingressgateway
+          namespace: istio-system
+{% endif %}
+      hostnames:
+        - "{{grafana.hostname}}"
+
   datasources:
     datasources.yaml:
       apiVersion: 1
@@ -178,44 +196,13 @@ raw:
           - secretKey: github-secret
             remoteRef:
               key: /k8s/{{grafana.auth.github.org}}/grafana-github-secret
-{% endif %}
-{% if grafana.auth.google.enabled %}
+{%- endif %}
+{%- if grafana.auth.google.enabled %}
           - secretKey: google-id
             remoteRef:
               key: /common/google/client_id
           - secretKey: google-secret
             remoteRef:
               key: /common/google/client_secret
-{% endif %}
-
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: grafana
-        annotations:
-          link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
-      spec:
-        parentRefs:
-          - group: gateway.networking.k8s.io
-            kind: Gateway
-{% if gateway is defined %}
-            name: "{{gateway.name}}"
-            namespace: "{{gateway.namespace}}"
-{% else %}
-            name: istio-ingressgateway
-            namespace: istio-system
-{% endif %}
-        hostnames:
-          - "{{grafana.hostname}}"
-        rules:
-          - backendRefs:
-              - group: ''
-                kind: Service
-                name: grafana
-                port: 80
-                weight: 1
-            matches:
-              - path:
-                  type: PathPrefix
-                  value: /
-{% endif %}
+{%- endif %}
+{%- endif %}
