@@ -106,3 +106,7 @@ raw:
                 name: prometheus-prometheus
                 port: 9090
                 weight: 1
+
+workspaceAlerts:
+  groups:
+{{ workspace_alert_groups | to_yaml | indent(4, first=true) }}

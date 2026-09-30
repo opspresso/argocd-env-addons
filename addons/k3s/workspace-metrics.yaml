@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: workspace-metrics-k3s
+  namespace: argocd
+  labels:
+    opspresso.com/group: addons
+    opspresso.com/cluster: k3s-demo
+spec:
+  project: addons
+  destination:
+    name: in-cluster
+    namespace: addon-workspace-metrics
+  source:
+    repoURL: https://github.com/opspresso/argocd-env-addons.git
+    targetRevision: HEAD
+    path: charts/workspace-metrics
+    helm:
+      releaseName: workspace-metrics
+      valueFiles:
+        - values.yaml
+        - k3s/values-k3s-demo.yaml
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

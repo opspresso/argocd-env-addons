@@ -3,6 +3,7 @@
 
 import argparse
 import os
+from pathlib import Path
 import sys
 import yaml
 
@@ -43,6 +44,9 @@ def gen_repos(args, ext="yaml"):
             undefined=StrictUndefined,
         )
         e.filters["to_yaml"] = to_yaml
+        if args.reponame == "prometheus-stack":
+            alerts = Path(__file__).resolve().parents[1] / "config" / "workspace-alerts.yaml"
+            e.globals["workspace_alert_groups"] = yaml.safe_load(alerts.read_text())["groups"]
         try:
             t = e.get_template(template_name)
         except TemplateError as error:

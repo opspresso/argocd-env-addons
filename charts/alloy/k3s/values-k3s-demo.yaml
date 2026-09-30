@@ -20,7 +20,7 @@ alloy:
             // Bound Cloud series usage while retaining the dashboard metrics.
             write_relabel_config {
               source_labels = ["job", "__name__"]
-              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
+              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
               action = "keep"
             }
           }
@@ -122,6 +122,19 @@ alloy:
             target_label  = "service"
             replacement   = "$1"
           }
+          rule {
+            source_labels = ["pod"]
+            regex         = "studio-ws-[a-f0-9]{40}"
+            target_label  = "service"
+            replacement   = "agent-studio-sandbox"
+          }
+        }
+
+        prometheus.scrape "workspace_state" {
+          targets = [{ "__address__" = "workspace-metrics.addon-workspace-metrics.svc.cluster.local:8080" }]
+          job_name        = "workspace-state"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
         }
 
         prometheus.scrape "agent_studio" {
