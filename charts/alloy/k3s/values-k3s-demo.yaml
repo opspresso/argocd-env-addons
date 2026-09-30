@@ -193,6 +193,7 @@ alloy:
 
   controller:
     type: daemonset
+    priorityClassName: null
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
 

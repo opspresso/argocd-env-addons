@@ -81,13 +81,24 @@ alloy:
 
         loki.write "default" {
           endpoint {
-            url = "http://{{loki.hostname}}/loki/api/v1/push"
+            url = "http://loki.addon-loki.svc.cluster.local:3100/loki/api/v1/push"
           }
 
           external_labels = {
             cluster = "{{cluster}}",
           }
         }
+
+  rbac:
+    # The chart concatenates both lists; an empty list breaks its ClusterRole YAML.
+    rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["get"]
+    clusterRules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["list", "watch"]
 {% endif %}
 
 {% if grafana_cloud is defined %}
@@ -280,6 +291,7 @@ alloy:
 
   controller:
     type: daemonset
+    priorityClassName: null
     hostNetwork: true
     dnsPolicy: ClusterFirstWithHostNet
 

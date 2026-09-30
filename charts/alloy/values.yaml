@@ -34,6 +34,9 @@ alloy:
   controller:
     type: daemonset
 
+    nodeSelector:
+      kubernetes.io/os: linux
+
     # A node's log collector has to be scheduled before the workloads whose logs
     # it tails; without this it loses the last slot on a full node and that
     # node's logs go uncollected.

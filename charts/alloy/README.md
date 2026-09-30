@@ -1,8 +1,32 @@
 # Alloy
 
-k3s의 메트릭을 Grafana Cloud로 전송합니다. `addons/k3s/alloy.yaml`이
-`addon-alloy` namespace에 배포하며, 연결 정보는 `env/k3s-demo.yaml`의
-`grafana_cloud`에서 읽습니다. 수집 설정은 `values-template.yaml.j2`에서 관리합니다.
+환경별로 다음 대상을 수집합니다. 모두 Linux 노드의 `addon-alloy` namespace에
+DaemonSet으로 배포하며, 수집 설정은 `values-template.yaml.j2`에서 관리합니다.
+
+| 환경 | 배포 정의 | 수집 대상 | 전송 대상 |
+| --- | --- | --- | --- |
+| EKS | `addons/eks/alloy.yaml` | Pod 로그 | Loki |
+| k3s | `addons/k3s/alloy.yaml` | 호스트·컨테이너·앱 메트릭 | Grafana Cloud |
+
+## EKS 로그
+
+`eks-demo`의 모든 노드에서 해당 노드의 Pod만 탐색하고, 읽기 전용으로 마운트한
+`/var/log/pods`의 CRI 로그를 수집합니다. RBAC는 Pod의 get/list/watch만 허용합니다.
+노드의 `/var/lib/alloy`에 읽기 위치를 보관해 Pod 재시작 후 이어서 수집합니다.
+
+로그에는 `cluster`, `namespace`, `pod`, `container`, `app`, `job` 라벨을 붙입니다.
+Grafana의 Loki 데이터소스에서 다음 쿼리로 확인합니다.
+
+```logql
+{cluster="eks-demo", namespace="agent-studio"}
+```
+
+## k3s 메트릭
+
+연결 정보는 `env/k3s-demo.yaml`의 `grafana_cloud`에서 읽습니다.
+호스트 메트릭 수집에 필요한 `/proc`, `/sys`, 호스트 루트는 읽기 전용으로 마운트하고,
+host network를 사용합니다. CPU·메모리 requests/limits와 시스템 우선순위는 지정하지 않습니다.
+현재 k3s 환경에는 Loki 전송 대상이 없어 로그를 수집하지 않습니다.
 
 ## 수집 대상
 
@@ -38,17 +62,23 @@ Secret을 환경변수로 읽으므로 토큰 교체 후 Alloy Pod를 재시작�
 저장소 루트에서 실행합니다. 생성된 values는 직접 수정하지 않습니다.
 
 ```bash
+./scripts/gen_values.py -p eks -r alloy
 ./scripts/gen_values.py -p k3s -r alloy
 ./scripts/validate.py -r alloy
 ```
 
-Git에 반영하면 `addons-k3s`가 Application을 자동 동기화합니다.
-Alloy의 WAL은 노드의 `/var/lib/alloy`에 유지됩니다.
+Git에 반영하면 각 환경의 addons Application이 자동 동기화합니다.
+EKS 로그 읽기 위치와 k3s 메트릭 WAL은 노드의 `/var/lib/alloy`에 유지됩니다.
 
 ```bash
+kubectl --context eks-demo get application alloy-eks-demo -n argocd
+kubectl --context eks-demo get daemonset,pods -n addon-alloy
+kubectl --context eks-demo logs -n addon-alloy daemonset/alloy -c alloy --tail=50
+
+# Run against the k3s cluster.
 kubectl get application alloy-k3s -n argocd
 kubectl get pods,externalsecret -n addon-alloy
 kubectl logs -n addon-alloy daemonset/alloy -c alloy --tail=50
 ```
 
-Grafana 대시보드에서 `instance=k3s-demo`를 선택합니다.
+k3s 메트릭은 Grafana Cloud 대시보드에서 `instance=k3s-demo`를 선택합니다.
