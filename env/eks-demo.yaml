@@ -114,3 +114,13 @@ metrics:
 
 loki:
   hostname: loki.demo-in.opspresso.com
+
+# Auto Mode node subnets and stable Service IPs used by the Alloy policy.
+alloy_network_policy:
+  node_cidrs:
+    - 10.10.112.0/20
+    - 10.10.144.0/20
+  dns_cidrs:
+    - 172.20.0.10/32
+  api_server_cidrs:
+    - 172.20.0.1/32

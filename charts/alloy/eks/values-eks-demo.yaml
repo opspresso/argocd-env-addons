@@ -100,4 +100,50 @@ alloy:
         resources: ["pods"]
         verbs: ["list", "watch"]
 
+  # Auto Mode DefaultDeny also applies to infrastructure DaemonSets.
+  # DNS rules follow Loki's load balancer addresses without allowing all HTTP.
+  extraObjects:
+    - apiVersion: networking.k8s.aws/v1alpha1
+      kind: ApplicationNetworkPolicy
+      metadata:
+        name: alloy-network
+      spec:
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: alloy
+            app.kubernetes.io/instance: alloy
+        policyTypes:
+          - Ingress
+          - Egress
+        ingress:
+          - from:
+              - ipBlock:
+                  cidr: 10.10.112.0/20
+              - ipBlock:
+                  cidr: 10.10.144.0/20
+            ports:
+              - protocol: TCP
+                port: 12345
+        egress:
+          - to:
+              - ipBlock:
+                  cidr: 172.20.0.10/32
+            ports:
+              - protocol: UDP
+                port: 53
+              - protocol: TCP
+                port: 53
+          - to:
+              - ipBlock:
+                  cidr: 172.20.0.1/32
+            ports:
+              - protocol: TCP
+                port: 443
+          - to:
+              - domainNames:
+                  - loki.demo-in.opspresso.com
+            ports:
+              - protocol: TCP
+                port: 80
+
 

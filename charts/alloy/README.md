@@ -14,6 +14,20 @@ DaemonSet으로 배포하며, 수집 설정은 `values-template.yaml.j2`에서 �
 `/var/log/pods`의 CRI 로그를 수집합니다. RBAC는 Pod의 get/list/watch만 허용합니다.
 노드의 `/var/lib/alloy`에 읽기 위치를 보관해 Pod 재시작 후 이어서 수집합니다.
 
+`eks-demo`는 `env/eks-demo.yaml`의 `alloy_network_policy`로 EKS Auto Mode의
+`ApplicationNetworkPolicy`를 생성합니다. `workspaces` NodeClass의 `DefaultDeny`는
+Sandbox뿐 아니라 Alloy에도 적용되므로 다음 통신을 명시적으로 허용합니다.
+
+- 노드 서브넷 → Alloy TCP 12345: kubelet readiness 검사
+- Alloy → cluster DNS UDP/TCP 53, Kubernetes API Service TCP 443: Pod 탐색
+- Alloy → `loki.hostname` TCP 80: Loki 로그 전송. DNS 정책이 로드밸런서 IP 변경을 추적합니다.
+
+정책은 `addon-alloy`의 Alloy Pod만 선택합니다. 노드의 기본 차단과
+`agent-studio-workspaces`의 격리 정책은 유지합니다. 노드 서브넷이나 Service CIDR을
+변경하면 env의 허용 CIDR도 갱신합니다. 정책은 EKS Auto Mode의 Network Policy Controller와
+`ApplicationNetworkPolicy` CRD가 필요하며, k3s에는 생성하지 않습니다.
+컨트롤러의 기본 차단·DNS 정책 동작은 [AWS 문서](https://docs.aws.amazon.com/eks/latest/userguide/auto-net-pol.html)를 따릅니다.
+
 로그에는 `cluster`, `namespace`, `pod`, `container`, `app`, `job` 라벨을 붙입니다.
 Grafana의 Loki 데이터소스에서 다음 쿼리로 확인합니다.
 
@@ -73,6 +87,7 @@ EKS 로그 읽기 위치와 k3s 메트릭 WAL은 노드의 `/var/lib/alloy`에 �
 ```bash
 kubectl --context eks-demo get application alloy-eks-demo -n argocd
 kubectl --context eks-demo get daemonset,pods -n addon-alloy
+kubectl --context eks-demo get applicationnetworkpolicies,policyendpoints -n addon-alloy
 kubectl --context eks-demo logs -n addon-alloy daemonset/alloy -c alloy --tail=50
 
 # Run against the k3s cluster.
