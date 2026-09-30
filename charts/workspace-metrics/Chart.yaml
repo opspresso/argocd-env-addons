@@ -1,0 +1,9 @@
+apiVersion: v2
+name: workspace-metrics
+description: Read-only Workspace and node state metrics for the k3s Grafana Cloud path.
+type: application
+version: "8.5.0" # helm chart kube-state-metrics version
+dependencies:
+- name: kube-state-metrics
+  repository: https://prometheus-community.github.io/helm-charts
+  version: "8.5.0" # helm chart kube-state-metrics version

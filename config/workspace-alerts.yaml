@@ -1,0 +1,55 @@
+groups:
+  - name: agent-studio-workspaces
+    rules:
+      - alert: StudioSandboxFailed
+        expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-studio-workspaces",phase="Failed"}) == 1
+        for: 0m
+        labels: {severity: warning, service: agent-studio}
+        annotations:
+          summary: "Sandbox {{ $labels.pod }} failed or was evicted"
+          description: "Inspect Pod reason, events and Workspace interrupted status; never replay an uncertain operation."
+      - alert: StudioSandboxPending
+        expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-studio-workspaces",phase="Pending"}) == 1
+        for: 2m
+        labels: {severity: warning, service: agent-studio}
+        annotations:
+          summary: "Sandbox {{ $labels.pod }} exceeded its provisioning deadline"
+          description: "Check scheduling, quota, image pull and Auto Mode capacity."
+      - alert: StudioSandboxOOM
+        expr: max by (cluster, namespace, pod) (kube_pod_container_status_last_terminated_reason{namespace="agent-studio-workspaces",reason="OOMKilled"}) == 1
+        for: 0m
+        labels: {severity: warning, service: agent-studio}
+        annotations:
+          summary: "Sandbox {{ $labels.pod }} exceeded its memory limit"
+      - alert: StudioSandboxQuota
+        expr: kube_resourcequota{namespace="agent-studio-workspaces",resource="pods",type="used"} / ignoring(type) kube_resourcequota{namespace="agent-studio-workspaces",resource="pods",type="hard"} > 0.8
+        for: 5m
+        labels: {severity: warning, service: agent-studio}
+        annotations:
+          summary: "Workspace Pod quota is nearly exhausted"
+          description: "Verify idle checkpoint/cleanup and orphan sweeps before increasing capacity."
+      - alert: StudioWorkspaceNodeDiskPressure
+        expr: (kube_node_status_condition{condition="DiskPressure",status="true"} == 1) and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"} or kube_node_labels{cluster=~"k3s-.+"})
+        for: 1m
+        labels: {severity: critical, service: agent-studio}
+        annotations:
+          summary: "Workspace node {{ $labels.node }} is under disk pressure"
+          description: "Inspect kubelet image GC, emptyDir usage and evictions; retain DB checkpoints and legacy PVCs."
+      - alert: StudioWorkspaceNodeUnavailable
+        expr: (kube_node_status_condition{condition="Ready",status=~"false|unknown"} == 1) and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"} or kube_node_labels{cluster=~"k3s-.+"})
+        for: 1m
+        labels: {severity: critical, service: agent-studio}
+        annotations:
+          summary: "Workspace node {{ $labels.node }} is unavailable"
+      - alert: StudioWorkspaceWorkerUnavailable
+        expr: (kube_deployment_status_replicas_available{namespace="agent-studio",deployment="agent-studio-workspace-worker"} < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-studio",deployment="agent-studio-workspace-worker"} > 0)
+        for: 2m
+        labels: {severity: critical, service: agent-studio}
+        annotations:
+          summary: "Workspace worker is unavailable; runs and cleanup cannot progress"
+      - alert: StudioWorkspaceStateMetricsUnavailable
+        expr: up{job="workspace-state"} == 0
+        for: 2m
+        labels: {severity: warning, service: agent-studio}
+        annotations:
+          summary: "Workspace state metrics are unavailable"

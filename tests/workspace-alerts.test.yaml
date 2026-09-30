@@ -1,0 +1,33 @@
+rule_files:
+  - ../config/workspace-alerts.yaml
+evaluation_interval: 1m
+tests:
+  - name: pod failure and maintenance suppression
+    interval: 1m
+    input_series:
+      - series: 'kube_pod_status_phase{cluster="eks-demo",namespace="agent-studio-workspaces",pod="sandbox-1",phase="Failed"}'
+        values: '0 1 1 1'
+      - series: 'kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}'
+        values: '0+0x4'
+      - series: 'kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}'
+        values: '0+0x4'
+    promql_expr_test:
+      - expr: 'ALERTS{alertname="StudioSandboxFailed",alertstate="firing"}'
+        eval_time: 2m
+        exp_samples:
+          - labels: 'ALERTS{alertname="StudioSandboxFailed",alertstate="firing",cluster="eks-demo",namespace="agent-studio-workspaces",pod="sandbox-1",service="agent-studio",severity="warning"}'
+            value: 1
+      - expr: 'ALERTS{alertname="StudioWorkspaceWorkerUnavailable"}'
+        eval_time: 3m
+        exp_samples: []
+  - name: node scope never crosses clusters
+    interval: 1m
+    input_series:
+      - series: 'kube_node_status_condition{cluster="eks-demo",node="shared-name",condition="DiskPressure",status="true"}'
+        values: '1+0x4'
+      - series: 'kube_node_labels{cluster="other-cluster",node="shared-name",label_karpenter_sh_nodepool="workspaces"}'
+        values: '1+0x4'
+    promql_expr_test:
+      - expr: 'ALERTS{alertname="StudioWorkspaceNodeDiskPressure"}'
+        eval_time: 3m
+        exp_samples: []
