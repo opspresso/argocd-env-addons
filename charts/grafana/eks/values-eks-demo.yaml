@@ -76,10 +76,6 @@ grafana:
 
 
 
-
-
-
-
   serviceMonitor:
 
     enabled: True
