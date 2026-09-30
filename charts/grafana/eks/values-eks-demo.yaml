@@ -71,7 +71,7 @@ grafana:
       - name: Loki
         type: loki
         uid: loki
-        url: http://loki.addon-loki.svc.cluster.local:3100
+        url: http://loki.demo-in.opspresso.com
         access: proxy
 
 
