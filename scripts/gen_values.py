@@ -3,6 +3,7 @@
 
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import sys
@@ -54,6 +55,12 @@ def gen_repos(args, ext="yaml"):
                 digest.update(dashboard.name.encode())
                 digest.update(dashboard.read_bytes())
             e.globals["grafana_dashboard_checksum"] = digest.hexdigest()
+            e.globals["grafana_dashboard_json"] = {
+                dashboard.stem: json.dumps(
+                    json.loads(dashboard.read_text()), ensure_ascii=False, separators=(",", ":")
+                )
+                for dashboard in dashboards
+            }
             alerts = Path(__file__).resolve().parents[1] / "config" / "node-health-alerts.yaml"
             e.globals["node_health_alerting"] = yaml.safe_load(alerts.read_text())
             alerts = Path(__file__).resolve().parents[1] / "config" / "workload-health-alerts.yaml"

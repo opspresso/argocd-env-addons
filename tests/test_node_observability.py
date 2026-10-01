@@ -53,7 +53,7 @@ def run_promtool(tmp_path):
 
 
 def test_dashboard_change_updates_the_pod_template(tmp_path):
-    """A JSON-only GitOps change must restart the URL downloader."""
+    """A JSON-only GitOps change must update mounted dashboards and the Pod template."""
     chart = tmp_path / "charts/grafana"
     shutil.copytree(ROOT / "charts/grafana", chart, ignore=shutil.ignore_patterns("charts"))
     shutil.copytree(ROOT / "env", tmp_path / "env")
@@ -97,3 +97,15 @@ def test_host_collection_renders_node_labels_and_short_scrapes():
 def test_eks_job_alerts_are_not_provisioned_on_k3s():
     values = yaml.safe_load((ROOT / "charts/grafana/k3s/values-k3s-demo.yaml").read_text())
     assert "node-health.yaml" not in values["grafana"].get("alerting", {})
+
+
+def test_managed_dashboard_configmap_contains_exact_repository_json(rendered_grafana):
+    config = next(doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"
+                  and doc["metadata"]["name"] == "grafana-dashboards-addons")
+    for name in ["kube-cluster", "kube-workload"]:
+        expected = json.loads((ROOT / f"charts/grafana/dashboards/{name}.json").read_text())
+        assert json.loads(config["data"][name + ".json"]) == expected
+    main = next(doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"
+                and doc["metadata"]["name"] == "grafana")
+    assert "opspresso/argocd-env-addons" not in main["data"]["download_dashboards.sh"]
+    assert len(json.dumps(config["data"]).encode()) < 1024 * 1024

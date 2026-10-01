@@ -78,9 +78,10 @@ node-exporter와 kubelet probes는 15초마다 수집한다. 기존에 수집한
 
 ### 반영과 검증
 
-JSON URL은 Grafana의 init container가 Pod 시작 시 내려받는다. `scripts/build.sh`는
-저장소의 대시보드 JSON 해시를 Pod annotation에 기록하므로 JSON만 바꿔도 GitOps 동기화 시
-Grafana가 다시 시작되어 내용을 읽는다. `Recreate` 전략으로 이때 Grafana가 잠시 중단된다.
+`charts/grafana/dashboards/*.json`이 원본이다. `scripts/build.sh`는 이 JSON을 환경별 values에
+포함하고 Grafana chart가 `grafana-dashboards-addons` ConfigMap으로 렌더한다. 두 대시보드는
+배포한 Git revision의 ConfigMap 파일을 읽으므로 GitHub raw URL 캐시나 최신 main 내용에
+영향받지 않는다. JSON 변경 checksum으로 Grafana가 갱신되며 `Recreate` 중 잠시 중단된다.
 JSON과 생성 values를 같은 변경에 포함하고, 동기화 후 실제 dashboard와 provisioned rules를
 확인한다. UI에서 provisioned dashboard를 수정해도 다음 프로비저닝으로 덮어써질 수 있다.
 

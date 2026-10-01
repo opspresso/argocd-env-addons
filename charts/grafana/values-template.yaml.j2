@@ -13,6 +13,15 @@ grafana:
 {% endif %}
 
 {% if grafana is defined %}
+  # Native dashboard ConfigMaps carry the JSON from the same GitOps revision.
+  dashboards:
+    addons:
+{% for name, dashboard in grafana_dashboard_json.items() %}
+      {{name}}:
+        json: |
+{{ dashboard | indent(10, first=true) }}
+{% endfor %}
+
   alerting:
     workload-health.yaml:
       secret:
@@ -37,7 +46,7 @@ grafana:
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
-    # URL dashboards are downloaded only at pod startup.
+    # Keep changes to the canonical dashboard files visible to the rollout.
     checksum/managed-dashboards: "{{grafana_dashboard_checksum}}"
 
   grafana.ini:
