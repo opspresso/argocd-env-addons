@@ -62,7 +62,7 @@
         "x": 0,
         "y": 1,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
       "targets": [
@@ -137,7 +137,7 @@
         "x": 4,
         "y": 1,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "description": "Available / desired replicas for the selected controller kind. A zero desired count or a Job is not an outage.",
       "targets": [
@@ -158,10 +158,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No replica target",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -185,7 +182,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No replica target",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -197,17 +194,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 303,
@@ -221,7 +226,7 @@
         "x": 8,
         "y": 1,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "description": "Total usage relative to selected-container requests. Requests are reservations, not a hard limit; exceeding 100% alone does not prove failure. Missing usage or denominator coverage stays gray.",
       "targets": [
@@ -242,10 +247,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No requests / coverage",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -269,7 +271,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No requests / coverage",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -281,17 +283,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 304,
@@ -305,7 +315,7 @@
         "x": 12,
         "y": 1,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "description": "Total usage relative to selected-container limits. Check the worst-container gauge below for individual pressure. Missing usage or denominator coverage stays gray.",
       "targets": [
@@ -326,10 +336,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No limits / coverage",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -353,7 +360,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No limits / coverage",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -365,17 +372,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 305,
@@ -389,7 +404,7 @@
         "x": 16,
         "y": 1,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "description": "Total usage relative to selected-container requests. Requests are reservations, not a hard limit; exceeding 100% alone does not prove failure. Missing usage or denominator coverage stays gray.",
       "targets": [
@@ -410,10 +425,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No requests / coverage",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -437,7 +449,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No requests / coverage",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -449,17 +461,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 306,
@@ -473,7 +493,7 @@
         "x": 20,
         "y": 1,
         "w": 4,
-        "h": 5
+        "h": 4
       },
       "description": "Total usage relative to selected-container limits. Check the worst-container gauge below for individual pressure. Missing usage or denominator coverage stays gray.",
       "targets": [
@@ -494,10 +514,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No limits / coverage",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -521,7 +538,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No limits / coverage",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -533,17 +550,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 100,
@@ -552,7 +577,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 5,
         "w": 24,
         "h": 1
       },
@@ -568,7 +593,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 7,
+        "y": 6,
         "w": 24,
         "h": 2
       },
@@ -662,7 +687,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 9,
+        "y": 8,
         "w": 4,
         "h": 4
       },
@@ -740,7 +765,7 @@
       },
       "gridPos": {
         "x": 4,
-        "y": 9,
+        "y": 8,
         "w": 4,
         "h": 4
       },
@@ -818,7 +843,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 9,
+        "y": 8,
         "w": 4,
         "h": 4
       },
@@ -900,7 +925,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 9,
+        "y": 8,
         "w": 4,
         "h": 4
       },
@@ -978,7 +1003,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 9,
+        "y": 8,
         "w": 4,
         "h": 4
       },
@@ -1001,10 +1026,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No traffic / metrics",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1028,7 +1050,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No traffic / metrics",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -1040,17 +1062,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 106,
@@ -1062,7 +1092,7 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 9,
+        "y": 8,
         "w": 4,
         "h": 4
       },
@@ -1085,10 +1115,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No limit / metrics",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1112,7 +1139,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No limit / metrics",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -1124,17 +1151,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 110,
@@ -1146,7 +1181,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 13,
+        "y": 12,
         "w": 24,
         "h": 7
       },
@@ -1291,7 +1326,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 19,
         "w": 24,
         "h": 1
       },
@@ -1307,7 +1342,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 20,
         "w": 12,
         "h": 7
       },
@@ -1424,7 +1459,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 21,
+        "y": 20,
         "w": 12,
         "h": 7
       },
@@ -1525,7 +1560,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 28,
+        "y": 27,
         "w": 12,
         "h": 7
       },
@@ -1626,7 +1661,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 28,
+        "y": 27,
         "w": 12,
         "h": 7
       },
@@ -1872,7 +1907,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 35,
+        "y": 34,
         "w": 24,
         "h": 7
       },
@@ -1977,7 +2012,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 41,
         "w": 24,
         "h": 1
       },
@@ -1993,7 +2028,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 42,
         "w": 12,
         "h": 8
       },
@@ -2086,7 +2121,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 43,
+        "y": 42,
         "w": 12,
         "h": 8
       },
@@ -2187,7 +2222,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 50,
         "w": 12,
         "h": 8
       },
@@ -2280,7 +2315,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 51,
+        "y": 50,
         "w": 12,
         "h": 8
       },
@@ -2381,7 +2416,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 58,
         "w": 24,
         "h": 8
       },
@@ -2622,7 +2657,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 67,
+        "y": 66,
         "w": 24,
         "h": 1
       },
@@ -2638,7 +2673,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 67,
         "w": 8,
         "h": 8
       },
@@ -2731,7 +2766,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 68,
+        "y": 67,
         "w": 8,
         "h": 8
       },
@@ -2832,7 +2867,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 68,
+        "y": 67,
         "w": 8,
         "h": 8
       },
@@ -2949,7 +2984,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 76,
+        "y": 75,
         "w": 12,
         "h": 7
       },
@@ -3042,7 +3077,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 76,
+        "y": 75,
         "w": 12,
         "h": 7
       },
@@ -3144,7 +3179,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 83,
+        "y": 82,
         "w": 24,
         "h": 1
       },
@@ -3160,7 +3195,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 84,
+        "y": 83,
         "w": 24,
         "h": 6
       },
@@ -3317,7 +3352,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 90,
+        "y": 89,
         "w": 24,
         "h": 1
       },
@@ -3388,7 +3423,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 91,
+        "y": 90,
         "w": 24,
         "h": 8
       },
@@ -3637,5 +3672,5 @@
   "timezone": "browser",
   "title": "Kubernetes Workload - Prometheus",
   "uid": "kube-workload",
-  "version": 4
+  "version": 5
 }

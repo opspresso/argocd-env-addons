@@ -146,13 +146,14 @@
           "decimals": 1,
           "mappings": [
             {
+              "type": "special",
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "N/A"
+                  "text": "N/A",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
+              }
             }
           ],
           "max": 100,
@@ -175,9 +176,7 @@
             ]
           },
           "unit": "percent",
-          "color": {
-            "mode": "thresholds"
-          }
+          "noValue": "N/A"
         },
         "overrides": []
       },
@@ -191,16 +190,22 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
+        "showThresholdMarkers": true,
+        "text": {}
       },
       "pluginVersion": "9.0.4",
       "targets": [
@@ -231,13 +236,14 @@
           "decimals": 1,
           "mappings": [
             {
+              "type": "special",
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "N/A"
+                  "text": "N/A",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
+              }
             }
           ],
           "max": 100,
@@ -260,9 +266,7 @@
             ]
           },
           "unit": "percent",
-          "color": {
-            "mode": "thresholds"
-          }
+          "noValue": "N/A"
         },
         "overrides": []
       },
@@ -276,16 +280,22 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
+        "showThresholdMarkers": true,
+        "text": {}
       },
       "pluginVersion": "9.0.4",
       "targets": [
@@ -316,13 +326,14 @@
           "decimals": 1,
           "mappings": [
             {
+              "type": "special",
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "N/A"
+                  "text": "N/A",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
+              }
             }
           ],
           "max": 100,
@@ -345,9 +356,7 @@
             ]
           },
           "unit": "percent",
-          "color": {
-            "mode": "thresholds"
-          }
+          "noValue": "N/A"
         },
         "overrides": []
       },
@@ -361,16 +370,22 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
+        "showThresholdMarkers": true,
+        "text": {}
       },
       "pluginVersion": "9.0.4",
       "targets": [
@@ -495,7 +510,7 @@
         "x": 0,
         "y": 6,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "description": "Worst node CPU busy percentage. CPU pressure and load trends are shown below.",
       "targets": [
@@ -515,10 +530,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No data",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -542,7 +554,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No data",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -554,17 +566,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 101,
@@ -578,7 +598,7 @@
         "x": 6,
         "y": 6,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "description": "Worst measured host memory usage, including kernel memory. Check failed targets before treating absent node data as recovery.",
       "targets": [
@@ -598,10 +618,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No data",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -625,7 +642,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No data",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -637,17 +654,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 102,
@@ -661,7 +686,7 @@
         "x": 12,
         "y": 6,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "description": "Includes kernel BPF map allocations. Sustained growth can exhaust a node while pod memory looks normal.",
       "targets": [
@@ -681,10 +706,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No data",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -708,7 +730,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No data",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -720,17 +742,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 205,
@@ -744,7 +774,7 @@
         "x": 18,
         "y": 6,
         "w": 6,
-        "h": 5
+        "h": 4
       },
       "description": "Worst writable root/data filesystem usage; readonly OS images are excluded.",
       "targets": [
@@ -764,10 +794,7 @@
         "defaults": {
           "unit": "percent",
           "decimals": 1,
-          "noValue": "No data",
-          "color": {
-            "mode": "thresholds"
-          },
+          "noValue": "N/A",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -791,7 +818,7 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No data",
+                  "text": "N/A",
                   "color": "gray"
                 }
               }
@@ -803,17 +830,25 @@
         "overrides": []
       },
       "options": {
-        "reduceOptions": {
+        "fieldOptions": {
           "calcs": [
             "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
           ],
           "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": false
-      }
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
     },
     {
       "id": 103,
@@ -825,7 +860,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 11,
+        "y": 10,
         "w": 6,
         "h": 3
       },
@@ -906,7 +941,7 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 11,
+        "y": 10,
         "w": 6,
         "h": 3
       },
@@ -987,7 +1022,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 11,
+        "y": 10,
         "w": 6,
         "h": 3
       },
@@ -1068,7 +1103,7 @@
       },
       "gridPos": {
         "x": 18,
-        "y": 11,
+        "y": 10,
         "w": 6,
         "h": 3
       },
@@ -1149,7 +1184,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 14,
+        "y": 13,
         "w": 24,
         "h": 7
       },
@@ -1469,7 +1504,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 20,
         "w": 24,
         "h": 1
       },
@@ -1485,7 +1520,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 21,
         "w": 8,
         "h": 8
       },
@@ -1574,7 +1609,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 22,
+        "y": 21,
         "w": 8,
         "h": 8
       },
@@ -1655,7 +1690,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 22,
+        "y": 21,
         "w": 8,
         "h": 8
       },
@@ -1755,7 +1790,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 29,
         "w": 8,
         "h": 7
       },
@@ -1847,7 +1882,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 30,
+        "y": 29,
         "w": 8,
         "h": 7
       },
@@ -1936,7 +1971,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 30,
+        "y": 29,
         "w": 8,
         "h": 7
       },
@@ -2025,7 +2060,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 36,
         "w": 12,
         "h": 7
       },
@@ -2110,7 +2145,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 37,
+        "y": 36,
         "w": 12,
         "h": 7
       },
@@ -2199,7 +2234,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 44,
+        "y": 43,
         "w": 12,
         "h": 7
       },
@@ -2288,7 +2323,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 44,
+        "y": 43,
         "w": 12,
         "h": 7
       },
@@ -2366,7 +2401,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 50,
         "w": 24,
         "h": 1
       },
@@ -2382,7 +2417,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 52,
+        "y": 51,
         "w": 8,
         "h": 8
       },
@@ -2483,7 +2518,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 52,
+        "y": 51,
         "w": 8,
         "h": 8
       },
@@ -2588,7 +2623,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 52,
+        "y": 51,
         "w": 8,
         "h": 8
       },
@@ -2823,6 +2858,6 @@
   "timezone": "browser",
   "title": "Kubernetes Cluster - Prometheus",
   "uid": "kube-cluster",
-  "version": 5,
+  "version": 6,
   "weekStart": ""
 }
