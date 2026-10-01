@@ -480,3 +480,89 @@ groups:
             type: gt
             params:
             - 90
+  - uid: addons-node-pressure
+    title: Node under memory or PID pressure
+    condition: C
+    for: 1m
+    noDataState: OK
+    execErrState: Alerting
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Node pressure can evict pods or prevent new processes. Inspect node conditions and move workloads.
+      __dashboardUid__: kube-cluster
+      __panelId__: '206'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by(cluster,node,condition)(kube_node_status_condition{condition=~"MemoryPressure|PIDPressure",status="true"})
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-node-disk-critical
+    title: Writable node filesystem above 95% used
+    condition: C
+    for: 2m
+    noDataState: OK
+    execErrState: Alerting
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Writable node disk is nearly full. Free space or add capacity before pod eviction.
+      __dashboardUid__: kube-cluster
+      __panelId__: '205'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by(cluster,instance,mountpoint)(100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
+          / node_filesystem_size_bytes{job="node-exporter",mountpoint=~"/|/local"}) and on(cluster,instance,device,mountpoint)
+          (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"} == 0))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 95

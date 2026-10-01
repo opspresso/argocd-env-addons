@@ -40,7 +40,7 @@
     {
       "id": 300,
       "type": "row",
-      "title": "Scheduling capacity — selected workload",
+      "title": "Resource usage / reservations / limits \u2014 selected workload",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -51,170 +51,6 @@
       "panels": []
     },
     {
-      "id": 301,
-      "title": "Desired Replicas",
-      "type": "stat",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 1,
-        "w": 4,
-        "h": 4
-      },
-      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "No replica metrics",
-          "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
-          },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "mappings": [
-            {
-              "type": "special",
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "No replica metrics",
-                  "color": "gray"
-                }
-              }
-            }
-          ]
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
-      }
-    },
-    {
-      "id": 302,
-      "title": "Replicas Available",
-      "type": "gauge",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 4,
-        "y": 1,
-        "w": 4,
-        "h": 4
-      },
-      "description": "Available / desired replicas for the selected controller kind. A zero desired count or a Job is not an outage.",
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * (sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))) / (sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\"))) > 0)",
-          "legendFormat": "",
-          "instant": true,
-          "range": false,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 1,
-          "noValue": "N/A",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              },
-              {
-                "color": "green",
-                "value": 100
-              }
-            ]
-          },
-          "mappings": [
-            {
-              "type": "special",
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A",
-                  "color": "gray"
-                }
-              }
-            }
-          ],
-          "min": 0,
-          "max": 100
-        },
-        "overrides": []
-      },
-      "options": {
-        "fieldOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "horizontal",
-        "reduceOptions": {
-          "calcs": [
-            "last"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
-      },
-      "pluginVersion": "9.0.4",
-      "maxDataPoints": 100
-    },
-    {
       "id": 303,
       "title": "CPU / Requests",
       "type": "gauge",
@@ -223,9 +59,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 8,
+        "x": 0,
         "y": 1,
-        "w": 4,
+        "w": 6,
         "h": 4
       },
       "description": "Total usage relative to selected-container requests. Requests are reservations, not a hard limit; exceeding 100% alone does not prove failure. Missing usage or denominator coverage stays gray.",
@@ -312,9 +148,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 12,
+        "x": 6,
         "y": 1,
-        "w": 4,
+        "w": 6,
         "h": 4
       },
       "description": "Total usage relative to selected-container limits. Check the worst-container gauge below for individual pressure. Missing usage or denominator coverage stays gray.",
@@ -401,9 +237,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 16,
+        "x": 12,
         "y": 1,
-        "w": 4,
+        "w": 6,
         "h": 4
       },
       "description": "Total usage relative to selected-container requests. Requests are reservations, not a hard limit; exceeding 100% alone does not prove failure. Missing usage or denominator coverage stays gray.",
@@ -490,9 +326,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 20,
+        "x": 18,
         "y": 1,
-        "w": 4,
+        "w": 6,
         "h": 4
       },
       "description": "Total usage relative to selected-container limits. Check the worst-container gauge below for individual pressure. Missing usage or denominator coverage stays gray.",
@@ -678,6 +514,170 @@
       }
     },
     {
+      "id": 301,
+      "title": "Desired Replicas",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No replica metrics",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 302,
+      "title": "Replicas Available",
+      "type": "gauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 8,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Available / desired replicas for the selected controller kind. A zero desired count or a Job is not an outage.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * (sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))) / (sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\"))) > 0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "N/A",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "N/A",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "fieldOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "last"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "text": {}
+      },
+      "pluginVersion": "9.0.4",
+      "maxDataPoints": 100
+    },
+    {
       "id": 101,
       "title": "Unavailable Replicas",
       "type": "stat",
@@ -686,7 +686,7 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 0,
+        "x": 8,
         "y": 8,
         "w": 4,
         "h": 4
@@ -764,7 +764,7 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 4,
+        "x": 12,
         "y": 8,
         "w": 4,
         "h": 4
@@ -842,7 +842,7 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 8,
+        "x": 16,
         "y": 8,
         "w": 4,
         "h": 4
@@ -924,7 +924,7 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 12,
+        "x": 20,
         "y": 8,
         "w": 4,
         "h": 4
@@ -1002,9 +1002,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 16,
-        "y": 8,
-        "w": 4,
+        "x": 0,
+        "y": 12,
+        "w": 12,
         "h": 4
       },
       "description": "5xx and response code 0. No traffic or no mesh telemetry remains N/A, never 100% successful.",
@@ -1091,9 +1091,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 20,
-        "y": 8,
-        "w": 4,
+        "x": 12,
+        "y": 12,
+        "w": 12,
         "h": 4
       },
       "description": "Worst container including sidecars. Only containers with a positive limit participate.",
@@ -1172,6 +1172,33 @@
       "maxDataPoints": 100
     },
     {
+      "id": 400,
+      "type": "alertlist",
+      "title": "Active workload alerts \u2014 all namespaces",
+      "description": "Live alert state across this monitoring scope; independent of the resource selectors above. Includes pending, firing, collection errors and missing data.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 6
+      },
+      "options": {
+        "viewMode": "list",
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "dashboardAlerts": false,
+        "alertInstanceLabelFilter": "{scope=\"workload\"}",
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "noData": true,
+          "error": true,
+          "normal": false
+        }
+      }
+    },
+    {
       "id": 110,
       "title": "Active pod issues",
       "type": "table",
@@ -1181,7 +1208,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 22,
         "w": 24,
         "h": 7
       },
@@ -1326,7 +1353,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 19,
+        "y": 29,
         "w": 24,
         "h": 1
       },
@@ -1342,7 +1369,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 30,
         "w": 12,
         "h": 7
       },
@@ -1459,7 +1486,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 20,
+        "y": 30,
         "w": 12,
         "h": 7
       },
@@ -1560,7 +1587,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 37,
         "w": 12,
         "h": 7
       },
@@ -1661,7 +1688,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 27,
+        "y": 37,
         "w": 12,
         "h": 7
       },
@@ -1907,7 +1934,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 34,
+        "y": 44,
         "w": 24,
         "h": 7
       },
@@ -2002,17 +2029,17 @@
           }
         }
       ],
-      "title": "Last container termination — reason and time",
+      "title": "Last container termination \u2014 reason and time",
       "type": "table"
     },
     {
       "id": 115,
       "type": "row",
-      "title": "Container resources — sidecars included",
+      "title": "Container resources \u2014 sidecars included",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 41,
+        "y": 51,
         "w": 24,
         "h": 1
       },
@@ -2028,7 +2055,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 52,
         "w": 12,
         "h": 8
       },
@@ -2121,7 +2148,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 42,
+        "y": 52,
         "w": 12,
         "h": 8
       },
@@ -2222,7 +2249,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 50,
+        "y": 60,
         "w": 12,
         "h": 8
       },
@@ -2315,7 +2342,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 50,
+        "y": 60,
         "w": 12,
         "h": 8
       },
@@ -2416,7 +2443,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 58,
+        "y": 68,
         "w": 24,
         "h": 8
       },
@@ -2657,7 +2684,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 66,
+        "y": 76,
         "w": 24,
         "h": 1
       },
@@ -2673,7 +2700,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 67,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -2766,7 +2793,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 67,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -2867,7 +2894,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 67,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -2984,7 +3011,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 75,
+        "y": 85,
         "w": 12,
         "h": 7
       },
@@ -3077,7 +3104,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 75,
+        "y": 85,
         "w": 12,
         "h": 7
       },
@@ -3179,7 +3206,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 82,
+        "y": 92,
         "w": 24,
         "h": 1
       },
@@ -3195,7 +3222,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 83,
+        "y": 93,
         "w": 24,
         "h": 6
       },
@@ -3352,7 +3379,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 89,
+        "y": 99,
         "w": 24,
         "h": 1
       },
@@ -3423,7 +3450,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 90,
+        "y": 100,
         "w": 24,
         "h": 8
       },

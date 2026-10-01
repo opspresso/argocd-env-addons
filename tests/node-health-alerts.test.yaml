@@ -194,3 +194,37 @@ tests:
         alertname: addons-node-restart-burst
         exp_alerts:
           - exp_labels: {cluster: demo, node: bad}
+  - name: critical pressure and storage distinguish affected resources
+    interval: 1m
+    input_series:
+    - series: kube_node_status_condition{cluster="demo",node="bad",condition="PIDPressure",status="true"}
+      values: 1+0x5
+    - series: kube_node_status_condition{cluster="demo",node="good",condition="PIDPressure",status="true"}
+      values: 0+0x5
+    - series: node_filesystem_avail_bytes{cluster="demo",instance="bad",job="node-exporter",device="disk",mountpoint="/"}
+      values: 4+0x5
+    - series: node_filesystem_size_bytes{cluster="demo",instance="bad",job="node-exporter",device="disk",mountpoint="/"}
+      values: 100+0x5
+    - series: node_filesystem_readonly{cluster="demo",instance="bad",job="node-exporter",device="disk",mountpoint="/"}
+      values: 0+0x5
+    - series: node_filesystem_avail_bytes{cluster="demo",instance="readonly",job="node-exporter",device="disk",mountpoint="/"}
+      values: 1+0x5
+    - series: node_filesystem_size_bytes{cluster="demo",instance="readonly",job="node-exporter",device="disk",mountpoint="/"}
+      values: 100+0x5
+    - series: node_filesystem_readonly{cluster="demo",instance="readonly",job="node-exporter",device="disk",mountpoint="/"}
+      values: 1+0x5
+    alert_rule_test:
+    - eval_time: 3m
+      alertname: addons-node-pressure
+      exp_alerts:
+      - exp_labels:
+          cluster: demo
+          node: bad
+          condition: PIDPressure
+    - eval_time: 3m
+      alertname: addons-node-disk-critical
+      exp_alerts:
+      - exp_labels:
+          cluster: demo
+          instance: bad
+          mountpoint: /

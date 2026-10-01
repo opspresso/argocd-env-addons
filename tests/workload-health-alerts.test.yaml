@@ -313,3 +313,22 @@ tests:
       panel_id: 306
     eval_time: 4m
     exp_samples: []
+- name: critical pressure and storage distinguish affected resources
+  interval: 1m
+  input_series:
+  - series: kubelet_volume_stats_used_bytes{cluster="demo",namespace="apps",persistentvolumeclaim="full"}
+    values: 96+0x5
+  - series: kubelet_volume_stats_capacity_bytes{cluster="demo",namespace="apps",persistentvolumeclaim="full"}
+    values: 100+0x5
+  - series: kubelet_volume_stats_used_bytes{cluster="demo",namespace="apps",persistentvolumeclaim="safe"}
+    values: 90+0x5
+  - series: kubelet_volume_stats_capacity_bytes{cluster="demo",namespace="apps",persistentvolumeclaim="safe"}
+    values: 100+0x5
+  alert_rule_test:
+  - eval_time: 3m
+    alertname: addons-pvc-critical
+    exp_alerts:
+    - exp_labels:
+        cluster: demo
+        namespace: apps
+        persistentvolumeclaim: full

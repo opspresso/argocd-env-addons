@@ -55,7 +55,7 @@
     {
       "id": 72,
       "type": "row",
-      "title": "Scheduling capacity — requests are reservations",
+      "title": "Resource reservations and current host usage",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -486,19 +486,6 @@
       "description": "Unschedulable nodes, not a readiness or connectivity check."
     },
     {
-      "id": 100,
-      "type": "row",
-      "title": "Current cluster health",
-      "collapsed": false,
-      "gridPos": {
-        "x": 0,
-        "y": 5,
-        "w": 24,
-        "h": 1
-      },
-      "panels": []
-    },
-    {
       "id": 204,
       "title": "Max Host CPU Busy",
       "type": "gauge",
@@ -508,7 +495,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 5,
         "w": 6,
         "h": 4
       },
@@ -596,7 +583,7 @@
       },
       "gridPos": {
         "x": 6,
-        "y": 6,
+        "y": 5,
         "w": 6,
         "h": 4
       },
@@ -684,7 +671,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 6,
+        "y": 5,
         "w": 6,
         "h": 4
       },
@@ -772,7 +759,7 @@
       },
       "gridPos": {
         "x": 18,
-        "y": 6,
+        "y": 5,
         "w": 6,
         "h": 4
       },
@@ -849,6 +836,19 @@
       },
       "pluginVersion": "9.0.4",
       "maxDataPoints": 100
+    },
+    {
+      "id": 100,
+      "type": "row",
+      "title": "Current cluster health",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 9,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
     },
     {
       "id": 103,
@@ -1137,12 +1137,8 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
-              },
-              {
                 "color": "red",
-                "value": 3
+                "value": 1
               }
             ]
           },
@@ -1175,9 +1171,9 @@
       }
     },
     {
-      "id": 200,
-      "title": "Nodes needing attention — current values",
-      "type": "table",
+      "id": 206,
+      "title": "Nodes Under Pressure",
+      "type": "stat",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1185,6 +1181,110 @@
       "gridPos": {
         "x": 0,
         "y": 13,
+        "w": 24,
+        "h": 3
+      },
+      "description": "Nodes reporting MemoryPressure, DiskPressure or PIDPressure. One node is counted once.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,node)(kube_node_status_condition{cluster=~\"$cluster\",condition=~\"MemoryPressure|DiskPressure|PIDPressure\",status=\"true\"}))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 400,
+      "type": "alertlist",
+      "title": "Active alerts \u2014 all clusters",
+      "description": "Live alert state across this monitoring scope; independent of the resource selectors above. Includes pending, firing, collection errors and missing data.",
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 3
+      },
+      "options": {
+        "viewMode": "list",
+        "groupMode": "default",
+        "maxItems": 20,
+        "sortOrder": 1,
+        "dashboardAlerts": false,
+        "alertInstanceLabelFilter": "{scope=\"cluster\"}",
+        "stateFilter": {
+          "firing": true,
+          "pending": true,
+          "noData": true,
+          "error": true,
+          "normal": false
+        }
+      }
+    },
+    {
+      "id": 200,
+      "title": "Nodes needing attention \u2014 current values",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 19,
         "w": 24,
         "h": 7
       },
@@ -1504,7 +1604,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 26,
         "w": 24,
         "h": 1
       },
@@ -1520,7 +1620,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 21,
+        "y": 27,
         "w": 8,
         "h": 8
       },
@@ -1609,7 +1709,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 21,
+        "y": 27,
         "w": 8,
         "h": 8
       },
@@ -1690,7 +1790,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 21,
+        "y": 27,
         "w": 8,
         "h": 8
       },
@@ -1790,7 +1890,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 29,
+        "y": 35,
         "w": 8,
         "h": 7
       },
@@ -1882,7 +1982,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 29,
+        "y": 35,
         "w": 8,
         "h": 7
       },
@@ -1971,7 +2071,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 29,
+        "y": 35,
         "w": 8,
         "h": 7
       },
@@ -2060,7 +2160,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 36,
+        "y": 42,
         "w": 12,
         "h": 7
       },
@@ -2145,7 +2245,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 36,
+        "y": 42,
         "w": 12,
         "h": 7
       },
@@ -2234,7 +2334,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 49,
         "w": 12,
         "h": 7
       },
@@ -2323,7 +2423,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 43,
+        "y": 49,
         "w": 12,
         "h": 7
       },
@@ -2401,7 +2501,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 50,
+        "y": 56,
         "w": 24,
         "h": 1
       },
@@ -2417,7 +2517,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 57,
         "w": 8,
         "h": 8
       },
@@ -2518,7 +2618,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 51,
+        "y": 57,
         "w": 8,
         "h": 8
       },
@@ -2623,7 +2723,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 51,
+        "y": 57,
         "w": 8,
         "h": 8
       },

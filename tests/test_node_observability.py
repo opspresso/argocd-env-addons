@@ -99,13 +99,11 @@ def test_eks_job_alerts_are_not_provisioned_on_k3s():
     assert "node-health.yaml" not in values["grafana"].get("alerting", {})
 
 
-def test_managed_dashboard_configmap_contains_exact_repository_json(rendered_grafana):
-    config = next(doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"
-                  and doc["metadata"]["name"] == "grafana-dashboards-addons")
+def test_managed_dashboards_download_public_json_without_embedding(rendered_grafana):
+    configs = [doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"]
+    assert not any(key.endswith(".json") for doc in configs for key in (doc.get("data") or {}))
+    main = next(doc for doc in configs if doc["metadata"]["name"] == "grafana")
+    script = main["data"]["download_dashboards.sh"]
     for name in ["kube-cluster", "kube-workload"]:
-        expected = json.loads((ROOT / f"charts/grafana/dashboards/{name}.json").read_text())
-        assert json.loads(config["data"][name + ".json"]) == expected
-    main = next(doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"
-                and doc["metadata"]["name"] == "grafana")
-    assert "opspresso/argocd-env-addons" not in main["data"]["download_dashboards.sh"]
-    assert len(json.dumps(config["data"]).encode()) < 1024 * 1024
+        assert f"https://raw.githubusercontent.com/opspresso/argocd-env-addons/refs/heads/main/charts/grafana/dashboards/{name}.json" in script
+        assert f"{name}.json" in script
