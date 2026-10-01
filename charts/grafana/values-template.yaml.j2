@@ -13,13 +13,13 @@ grafana:
 {% endif %}
 
 {% if grafana is defined %}
-  # A content-specific URL prevents stale GitHub raw responses during rollout.
+  # Use the committed dashboard revision; branch URLs can return stale JSON.
   dashboards:
     addons:
       kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/charts/grafana/dashboards/kube-cluster.json?v={{grafana_dashboard_checksum}}
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/charts/grafana/dashboards/kube-workload.json?v={{grafana_dashboard_checksum}}
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-workload.json
 
   alerting:
     workload-health.yaml:

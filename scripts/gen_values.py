@@ -6,6 +6,7 @@ import hashlib
 import os
 from pathlib import Path
 import sys
+import subprocess
 import yaml
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateError
@@ -54,6 +55,13 @@ def gen_repos(args, ext="yaml"):
                 digest.update(dashboard.name.encode())
                 digest.update(dashboard.read_bytes())
             e.globals["grafana_dashboard_checksum"] = digest.hexdigest()
+            revision = subprocess.check_output(
+                ["git", "-C", str(Path(__file__).resolve().parents[1]), "log", "-1", "--format=%H",
+                 "--", "charts/grafana/dashboards"], text=True,
+            ).strip()
+            if not revision:
+                raise ValueError("Grafana dashboards have no committed Git revision")
+            e.globals["grafana_dashboard_revision"] = revision
             alerts = Path(__file__).resolve().parents[1] / "config" / "node-health-alerts.yaml"
             e.globals["node_health_alerting"] = yaml.safe_load(alerts.read_text())
             alerts = Path(__file__).resolve().parents[1] / "config" / "workload-health-alerts.yaml"

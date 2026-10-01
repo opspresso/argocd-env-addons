@@ -1,6 +1,7 @@
 """Validate deployed alert expressions with synthetic healthy/failure time series."""
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -105,5 +106,8 @@ def test_managed_dashboards_download_public_json_without_embedding(rendered_graf
     main = next(doc for doc in configs if doc["metadata"]["name"] == "grafana")
     script = main["data"]["download_dashboards.sh"]
     for name in ["kube-cluster", "kube-workload"]:
-        assert f"https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/charts/grafana/dashboards/{name}.json" in script
-        assert f"{name}.json?v=" in script
+        assert re.search(
+            rf"https://raw\.githubusercontent\.com/opspresso/argocd-env-addons/[0-9a-f]{{40}}/charts/grafana/dashboards/{name}\.json",
+            script,
+        )
+        assert f"{name}.json?v=" not in script
