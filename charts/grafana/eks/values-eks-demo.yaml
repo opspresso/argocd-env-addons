@@ -1067,7 +1067,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
     # URL dashboards are downloaded only at pod startup.
-    checksum/managed-dashboards: "cb38fca5d976e78929adfcfa970bd0847c510bab363c9ceccf6b08ad2e7e0791"
+    checksum/managed-dashboards: "0837a45492c82f7ee807cdab021314954886601065ec6340665666ca34152485"
 
   grafana.ini:
     server:
