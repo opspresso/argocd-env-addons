@@ -450,7 +450,7 @@ groups:
     annotations:
       summary: A node is CPU busy for ten minutes. Inspect workload CPU, throttling and load before increasing capacity.
       __dashboardUid__: kube-cluster
-      __panelId__: '111'
+      __panelId__: '204'
     data:
     - refId: A
       relativeTimeRange:

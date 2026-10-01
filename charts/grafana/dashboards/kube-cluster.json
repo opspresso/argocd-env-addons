@@ -174,7 +174,10 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
@@ -188,22 +191,16 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "fieldOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "last"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
         },
+        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": false
       },
       "pluginVersion": "9.0.4",
       "targets": [
@@ -217,7 +214,9 @@
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Pod Requests / Allocatable",
@@ -260,7 +259,10 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
@@ -274,22 +276,16 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "fieldOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "last"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
         },
+        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": false
       },
       "pluginVersion": "9.0.4",
       "targets": [
@@ -303,7 +299,9 @@
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "CPU Requests / Allocatable",
@@ -346,7 +344,10 @@
               }
             ]
           },
-          "unit": "percent"
+          "unit": "percent",
+          "color": {
+            "mode": "thresholds"
+          }
         },
         "overrides": []
       },
@@ -360,22 +361,16 @@
       "links": [],
       "maxDataPoints": 100,
       "options": {
-        "fieldOptions": {
-          "calcs": [
-            "lastNotNull"
-          ]
-        },
-        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
-            "last"
+            "lastNotNull"
           ],
           "fields": "",
           "values": false
         },
+        "orientation": "auto",
         "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "text": {}
+        "showThresholdMarkers": false
       },
       "pluginVersion": "9.0.4",
       "targets": [
@@ -389,7 +384,9 @@
           "interval": "",
           "intervalFactor": 1,
           "legendFormat": "",
-          "refId": "A"
+          "refId": "A",
+          "instant": true,
+          "range": false
         }
       ],
       "title": "Memory Requests / Allocatable",
@@ -487,9 +484,9 @@
       "panels": []
     },
     {
-      "id": 101,
-      "title": "Min Available RAM",
-      "type": "stat",
+      "id": 204,
+      "title": "Max Host CPU Busy",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -497,10 +494,10 @@
       "gridPos": {
         "x": 0,
         "y": 6,
-        "w": 4,
-        "h": 4
+        "w": 6,
+        "h": 5
       },
-      "description": "Worst host, including kernel memory. Below 15% leaves little headroom; below 8% is critical.",
+      "description": "Worst node CPU busy percentage. CPU pressure and load trends are shown below.",
       "targets": [
         {
           "refId": "A",
@@ -508,7 +505,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "min(100 * max by (cluster, instance) (node_memory_MemAvailable_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}) / max by (cluster, instance) (node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}))",
+          "expr": "max(100 * (1 - avg by(cluster,instance)(rate(node_cpu_seconds_total{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\",mode=\"idle\"}[2m]))))",
           "legendFormat": "",
           "instant": true,
           "range": false
@@ -526,16 +523,16 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "red",
+                "color": "green",
                 "value": null
               },
               {
                 "color": "orange",
-                "value": 8
+                "value": 80
               },
               {
-                "color": "green",
-                "value": 15
+                "color": "red",
+                "value": 90
               }
             ]
           },
@@ -550,7 +547,9 @@
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -562,24 +561,107 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
-      "id": 102,
-      "title": "Max Kernel / RAM",
-      "type": "stat",
+      "id": 101,
+      "title": "Max Host Memory Used",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 4,
+        "x": 6,
         "y": 6,
-        "w": 4,
-        "h": 4
+        "w": 6,
+        "h": 5
+      },
+      "description": "Worst measured host memory usage, including kernel memory. Check failed targets before treating absent node data as recovery.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 - (min(100 * max by (cluster, instance) (node_memory_MemAvailable_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}) / max by (cluster, instance) (node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"})))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 92
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
+      }
+    },
+    {
+      "id": 102,
+      "title": "Max Kernel / RAM",
+      "type": "gauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 6,
+        "w": 6,
+        "h": 5
       },
       "description": "Includes kernel BPF map allocations. Sustained growth can exhaust a node while pod memory looks normal.",
       "targets": [
@@ -631,7 +713,9 @@
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -643,9 +727,92 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
+      }
+    },
+    {
+      "id": 205,
+      "title": "Max Writable Disk Used",
+      "type": "gauge",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 18,
+        "y": 6,
+        "w": 6,
+        "h": 5
+      },
+      "description": "Worst writable root/data filesystem usage; readonly OS images are excluded.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(max by (cluster, instance) (100 * (1 - node_filesystem_avail_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=~\"/|/local\"} / node_filesystem_size_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=~\"/|/local\"}) and on(cluster,instance,device,mountpoint) (node_filesystem_readonly{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=~\"/|/local\"} == 0)))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "min": 0,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
@@ -657,10 +824,10 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 8,
-        "y": 6,
-        "w": 4,
-        "h": 4
+        "x": 0,
+        "y": 11,
+        "w": 6,
+        "h": 3
       },
       "description": "Core monitoring targets with at least one failed scrape in the last 5 minutes; this is not the number of nodes.",
       "targets": [
@@ -679,7 +846,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No data",
           "color": {
             "mode": "thresholds"
@@ -738,10 +905,10 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 12,
-        "y": 6,
-        "w": 4,
-        "h": 4
+        "x": 6,
+        "y": 11,
+        "w": 6,
+        "h": 3
       },
       "description": "Cluster-wide count across all namespaces. A last termination reason of Completed does not hide a liveness restart.",
       "targets": [
@@ -819,10 +986,10 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 16,
-        "y": 6,
-        "w": 4,
-        "h": 4
+        "x": 12,
+        "y": 11,
+        "w": 6,
+        "h": 3
       },
       "description": "Failed liveness checks in the last 5 minutes. Zero is supplied only for a successfully scraped kubelet probes endpoint.",
       "targets": [
@@ -900,10 +1067,10 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 20,
-        "y": 6,
-        "w": 4,
-        "h": 4
+        "x": 18,
+        "y": 11,
+        "w": 6,
+        "h": 3
       },
       "description": "Ready can remain true during a short node stall; also inspect host memory, PSI, and scrape failures.",
       "targets": [
@@ -922,7 +1089,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No data",
           "color": {
             "mode": "thresholds"
@@ -982,7 +1149,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 10,
+        "y": 14,
         "w": 24,
         "h": 7
       },
@@ -1302,7 +1469,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 17,
+        "y": 21,
         "w": 24,
         "h": 1
       },
@@ -1318,7 +1485,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 18,
+        "y": 22,
         "w": 8,
         "h": 8
       },
@@ -1407,7 +1574,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 18,
+        "y": 22,
         "w": 8,
         "h": 8
       },
@@ -1488,7 +1655,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 18,
+        "y": 22,
         "w": 8,
         "h": 8
       },
@@ -1588,7 +1755,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 30,
         "w": 8,
         "h": 7
       },
@@ -1680,7 +1847,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 26,
+        "y": 30,
         "w": 8,
         "h": 7
       },
@@ -1769,7 +1936,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 26,
+        "y": 30,
         "w": 8,
         "h": 7
       },
@@ -1858,7 +2025,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 33,
+        "y": 37,
         "w": 12,
         "h": 7
       },
@@ -1943,7 +2110,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 33,
+        "y": 37,
         "w": 12,
         "h": 7
       },
@@ -2032,7 +2199,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 40,
+        "y": 44,
         "w": 12,
         "h": 7
       },
@@ -2121,7 +2288,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 40,
+        "y": 44,
         "w": 12,
         "h": 7
       },
@@ -2199,7 +2366,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 47,
+        "y": 51,
         "w": 24,
         "h": 1
       },
@@ -2215,7 +2382,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 48,
+        "y": 52,
         "w": 8,
         "h": 8
       },
@@ -2316,7 +2483,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 48,
+        "y": 52,
         "w": 8,
         "h": 8
       },
@@ -2421,7 +2588,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 48,
+        "y": 52,
         "w": 8,
         "h": 8
       },
@@ -2656,6 +2823,6 @@
   "timezone": "browser",
   "title": "Kubernetes Cluster - Prometheus",
   "uid": "kube-cluster",
-  "version": 4,
+  "version": 5,
   "weekStart": ""
 }

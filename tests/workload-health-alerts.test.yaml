@@ -201,7 +201,7 @@ tests:
     eval_time: 4m
     exp_samples:
     - labels: '{}'
-      value: 1000
+      value: 95
 - name: missing and zero limits are excluded instead of becoming healthy zero or infinity
   interval: 1m
   input_series:
@@ -297,3 +297,19 @@ tests:
     exp_samples:
     - labels: '{}'
       value: 0
+- name: aggregate gauges reject partial container limit coverage
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
+    values: 1+0x10
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="apps",pod="shared-0",container="app"}
+    values: 100+0x10
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="apps",pod="shared-0",container="unlimited"}
+    values: 5000+0x10
+  - series: kube_pod_container_resource_limits{cluster="demo",namespace="apps",pod="shared-0",container="app",resource="memory"}
+    values: 1000+0x10
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 306
+    eval_time: 4m
+    exp_samples: []

@@ -1030,7 +1030,7 @@ grafana:
             uid: addons-node-not-ready
           - annotations:
               __dashboardUid__: kube-cluster
-              __panelId__: '111'
+              __panelId__: '204'
               summary: A node is CPU busy for ten minutes. Inspect workload CPU, throttling
                 and load before increasing capacity.
             condition: C
@@ -1077,7 +1077,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
     # URL dashboards are downloaded only at pod startup.
-    checksum/managed-dashboards: "80bfa6c7a34623d29b2d01d7d80761ed08caef862ee5316f1389dde881c4da3f"
+    checksum/managed-dashboards: "db575272c805a4ca38464acd3e5fba5eaf8d0ba63ddae000b7b0ab07ffe2bf3b"
 
   grafana.ini:
     server:

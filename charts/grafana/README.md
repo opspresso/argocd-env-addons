@@ -147,3 +147,8 @@ HTTP 수치가 없어도 replica·Pod 상태는 별도로 확인해야 한다. k
 Scheduling capacity의 컨테이너 자원 합계에는 일반 컨테이너와 현재 Running인 init/native sidecar를 포함하고,
 완료된 init 컨테이너는 제외한다. scheduler의 init 단계별 최대치나 Pod overhead를 재구성한 값은 아니다.
 메모리·재시작·OOM·waiting 사유는 init-container 지표도 확인하여 native sidecar의 문제를 놓치지 않는다.
+
+비율에 기준값이 있는 항목은 게이지로 표시한다. 워크로드 상단은 가용 복제본 비율과
+CPU·메모리 사용/requests·limits 비율을 보여주고, 실제 requests/limits 수치는 컨테이너 표에서 확인한다.
+requests는 상한이 아니므로 100% 초과와 장애를 동일시하지 않는다. 일부 컨테이너에 분모나 사용량이
+없으면 합계 게이지를 정상 비율로 표시하지 않고 회색으로 표시한다. 재시작·실패 건수는 숫자, 추이는 시계열로 유지한다.

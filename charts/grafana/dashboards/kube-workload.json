@@ -62,7 +62,7 @@
         "x": 0,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 5
       },
       "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
       "targets": [
@@ -82,7 +82,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No replica metrics",
           "color": {
             "mode": "fixed",
@@ -127,8 +127,8 @@
     },
     {
       "id": 302,
-      "title": "Available Replicas",
-      "type": "stat",
+      "title": "Replicas Available",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -137,9 +137,9 @@
         "x": 4,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 5
       },
-      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
+      "description": "Available / desired replicas for the selected controller kind. A zero desired count or a Job is not an outage.",
       "targets": [
         {
           "refId": "A",
@@ -147,7 +147,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))",
+          "expr": "100 * (sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))) / (sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\"))) > 0)",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -156,19 +156,26 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "short",
+          "unit": "percent",
           "decimals": 1,
-          "noValue": "No replica metrics",
+          "noValue": "No replica target",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "thresholds"
           },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
+                "color": "red",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "green",
+                "value": 100
               }
             ]
           },
@@ -178,12 +185,14 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No replica metrics",
+                  "text": "No replica target",
                   "color": "gray"
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -195,15 +204,15 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
       "id": 303,
-      "title": "CPU Requests",
-      "type": "stat",
+      "title": "CPU / Requests",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -212,9 +221,9 @@
         "x": 8,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 5
       },
-      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
+      "description": "Total usage relative to selected-container requests. Requests are reservations, not a hard limit; exceeding 100% alone does not prove failure. Missing usage or denominator coverage stays gray.",
       "targets": [
         {
           "refId": "A",
@@ -222,7 +231,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "expr": "((100 * sum(max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) / sum((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0))) unless on() (count((max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0)) > 0)) unless on() (count((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))) > 0)",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -231,12 +240,11 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "cores",
+          "unit": "percent",
           "decimals": 1,
-          "noValue": "No Pods / requests",
+          "noValue": "No requests / coverage",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "thresholds"
           },
           "thresholds": {
             "mode": "absolute",
@@ -244,6 +252,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 150
               }
             ]
           },
@@ -253,12 +269,14 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No Pods / requests",
+                  "text": "No requests / coverage",
                   "color": "gray"
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 200
         },
         "overrides": []
       },
@@ -270,15 +288,15 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
       "id": 304,
-      "title": "CPU Limits",
-      "type": "stat",
+      "title": "CPU / Limits",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -287,9 +305,9 @@
         "x": 12,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 5
       },
-      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
+      "description": "Total usage relative to selected-container limits. Check the worst-container gauge below for individual pressure. Missing usage or denominator coverage stays gray.",
       "targets": [
         {
           "refId": "A",
@@ -297,7 +315,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "expr": "((100 * sum(max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) / sum((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0))) unless on() (count((max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0)) > 0)) unless on() (count((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))) > 0)",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -306,12 +324,11 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "cores",
+          "unit": "percent",
           "decimals": 1,
-          "noValue": "No Pods / limits",
+          "noValue": "No limits / coverage",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "thresholds"
           },
           "thresholds": {
             "mode": "absolute",
@@ -319,6 +336,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 90
+              },
+              {
+                "color": "red",
+                "value": 95
               }
             ]
           },
@@ -328,12 +353,14 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No Pods / limits",
+                  "text": "No limits / coverage",
                   "color": "gray"
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -345,15 +372,15 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
       "id": 305,
-      "title": "Memory Requests",
-      "type": "stat",
+      "title": "Memory / Requests",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -362,9 +389,9 @@
         "x": 16,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 5
       },
-      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
+      "description": "Total usage relative to selected-container requests. Requests are reservations, not a hard limit; exceeding 100% alone does not prove failure. Missing usage or denominator coverage stays gray.",
       "targets": [
         {
           "refId": "A",
@@ -372,7 +399,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "expr": "((100 * sum(max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) / sum((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0))) unless on() (count((max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0)) > 0)) unless on() (count((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))) > 0)",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -381,12 +408,11 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes",
+          "unit": "percent",
           "decimals": 1,
-          "noValue": "No Pods / requests",
+          "noValue": "No requests / coverage",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "thresholds"
           },
           "thresholds": {
             "mode": "absolute",
@@ -394,6 +420,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 100
+              },
+              {
+                "color": "red",
+                "value": 150
               }
             ]
           },
@@ -403,12 +437,14 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No Pods / requests",
+                  "text": "No requests / coverage",
                   "color": "gray"
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 200
         },
         "overrides": []
       },
@@ -420,15 +456,15 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
       "id": 306,
-      "title": "Memory Limits",
-      "type": "stat",
+      "title": "Memory / Limits",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -437,9 +473,9 @@
         "x": 20,
         "y": 1,
         "w": 4,
-        "h": 4
+        "h": 5
       },
-      "description": "Current selected-workload totals. Resources include ordinary containers and currently running init/native sidecars; completed init containers are excluded. These are container totals, not a reconstruction of scheduler init-phase maxima or Pod overhead.",
+      "description": "Total usage relative to selected-container limits. Check the worst-container gauge below for individual pressure. Missing usage or denominator coverage stays gray.",
       "targets": [
         {
           "refId": "A",
@@ -447,7 +483,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "expr": "((100 * sum(max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) / sum((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0))) unless on() (count((max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0)) > 0)) unless on() (count((max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) > 0) unless on(cluster,namespace,pod,container) (max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))) > 0)",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -456,12 +492,11 @@
       ],
       "fieldConfig": {
         "defaults": {
-          "unit": "bytes",
+          "unit": "percent",
           "decimals": 1,
-          "noValue": "No Pods / limits",
+          "noValue": "No limits / coverage",
           "color": {
-            "mode": "fixed",
-            "fixedColor": "blue"
+            "mode": "thresholds"
           },
           "thresholds": {
             "mode": "absolute",
@@ -469,6 +504,14 @@
               {
                 "color": "green",
                 "value": null
+              },
+              {
+                "color": "orange",
+                "value": 90
+              },
+              {
+                "color": "red",
+                "value": 95
               }
             ]
           },
@@ -478,12 +521,14 @@
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "No Pods / limits",
+                  "text": "No limits / coverage",
                   "color": "gray"
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -495,9 +540,9 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "value",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
@@ -507,7 +552,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 6,
         "w": 24,
         "h": 1
       },
@@ -523,7 +568,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 7,
         "w": 24,
         "h": 2
       },
@@ -617,7 +662,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 9,
         "w": 4,
         "h": 4
       },
@@ -639,7 +684,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No replica metrics",
           "color": {
             "mode": "thresholds"
@@ -695,7 +740,7 @@
       },
       "gridPos": {
         "x": 4,
-        "y": 8,
+        "y": 9,
         "w": 4,
         "h": 4
       },
@@ -717,7 +762,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No data",
           "color": {
             "mode": "thresholds"
@@ -773,7 +818,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 8,
+        "y": 9,
         "w": 4,
         "h": 4
       },
@@ -855,7 +900,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 8,
+        "y": 9,
         "w": 4,
         "h": 4
       },
@@ -926,14 +971,14 @@
     {
       "id": 105,
       "title": "HTTP / Transport Errors",
-      "type": "stat",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
       "gridPos": {
         "x": 16,
-        "y": 8,
+        "y": 9,
         "w": 4,
         "h": 4
       },
@@ -988,7 +1033,9 @@
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -1000,22 +1047,22 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
       "id": 106,
       "title": "Max Memory / Limit",
-      "type": "stat",
+      "type": "gauge",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
       },
       "gridPos": {
         "x": 20,
-        "y": 8,
+        "y": 9,
         "w": 4,
         "h": 4
       },
@@ -1070,7 +1117,9 @@
                 }
               }
             }
-          ]
+          ],
+          "min": 0,
+          "max": 100
         },
         "overrides": []
       },
@@ -1082,9 +1131,9 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
-        "textMode": "auto"
+        "orientation": "auto",
+        "showThresholdLabels": false,
+        "showThresholdMarkers": false
       }
     },
     {
@@ -1097,7 +1146,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 13,
         "w": 24,
         "h": 7
       },
@@ -1242,7 +1291,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 19,
+        "y": 20,
         "w": 24,
         "h": 1
       },
@@ -1258,7 +1307,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 21,
         "w": 12,
         "h": 7
       },
@@ -1375,7 +1424,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 20,
+        "y": 21,
         "w": 12,
         "h": 7
       },
@@ -1476,7 +1525,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 28,
         "w": 12,
         "h": 7
       },
@@ -1577,7 +1626,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 27,
+        "y": 28,
         "w": 12,
         "h": 7
       },
@@ -1823,7 +1872,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 34,
+        "y": 35,
         "w": 24,
         "h": 7
       },
@@ -1928,7 +1977,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 41,
+        "y": 42,
         "w": 24,
         "h": 1
       },
@@ -1944,7 +1993,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 43,
         "w": 12,
         "h": 8
       },
@@ -2037,7 +2086,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 42,
+        "y": 43,
         "w": 12,
         "h": 8
       },
@@ -2138,7 +2187,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 50,
+        "y": 51,
         "w": 12,
         "h": 8
       },
@@ -2231,7 +2280,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 50,
+        "y": 51,
         "w": 12,
         "h": 8
       },
@@ -2332,7 +2381,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 58,
+        "y": 59,
         "w": 24,
         "h": 8
       },
@@ -2393,6 +2442,18 @@
             "uid": "${datasource}"
           },
           "expr": "max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "F",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) ((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -2501,6 +2562,22 @@
                 "value": "Not set"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU limit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "cores"
+              },
+              {
+                "id": "noValue",
+                "value": "Not set"
+              }
+            ]
           }
         ]
       },
@@ -2531,7 +2608,8 @@
               "Value #B": "Memory used",
               "Value #C": "CPU request",
               "Value #D": "Memory request",
-              "Value #E": "Memory limit"
+              "Value #E": "Memory limit",
+              "Value #F": "CPU limit"
             }
           }
         }
@@ -2544,7 +2622,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 66,
+        "y": 67,
         "w": 24,
         "h": 1
       },
@@ -2560,7 +2638,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 67,
+        "y": 68,
         "w": 8,
         "h": 8
       },
@@ -2653,7 +2731,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 67,
+        "y": 68,
         "w": 8,
         "h": 8
       },
@@ -2754,7 +2832,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 67,
+        "y": 68,
         "w": 8,
         "h": 8
       },
@@ -2871,7 +2949,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 75,
+        "y": 76,
         "w": 12,
         "h": 7
       },
@@ -2964,7 +3042,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 75,
+        "y": 76,
         "w": 12,
         "h": 7
       },
@@ -3066,7 +3144,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 82,
+        "y": 83,
         "w": 24,
         "h": 1
       },
@@ -3082,7 +3160,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 83,
+        "y": 84,
         "w": 24,
         "h": 6
       },
@@ -3239,7 +3317,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 89,
+        "y": 90,
         "w": 24,
         "h": 1
       },
@@ -3310,7 +3388,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 90,
+        "y": 91,
         "w": 24,
         "h": 8
       },
@@ -3559,5 +3637,5 @@
   "timezone": "browser",
   "title": "Kubernetes Workload - Prometheus",
   "uid": "kube-workload",
-  "version": 3
+  "version": 4
 }
