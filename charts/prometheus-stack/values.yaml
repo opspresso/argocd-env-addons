@@ -156,6 +156,17 @@ kube-prometheus-stack:
   prometheus-node-exporter:
     fullnameOverride: prometheus-node-exporter
 
+    # Host memory/PSI include kernel allocations absent from pod working sets.
+    # Keep collection frequent enough to see a short node stall before restart.
+    prometheus:
+      monitor:
+        interval: 15s
+        scrapeTimeout: 10s
+        relabelings:
+          - action: replace
+            sourceLabels: [__meta_kubernetes_pod_node_name]
+            targetLabel: node
+
     # image:
     #   repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
 
@@ -184,6 +195,7 @@ kube-prometheus-stack:
 
   kubelet:
     serviceMonitor:
+      interval: 15s
       relabelings:
         - action: replace
           sourceLabels: [__metrics_path__]

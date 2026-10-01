@@ -14,6 +14,7 @@ grafana:
 
 
 
+
   persistence:
     enabled: True
 
@@ -26,6 +27,8 @@ grafana:
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
+    # URL dashboards are downloaded only at pod startup.
+    checksum/managed-dashboards: "97388dc04b8ed26d9ec25527300753f08337f7a5b6ea30bb12a52a60d059941d"
 
   grafana.ini:
     server:

@@ -37,6 +37,9 @@ jobs:
         run: python3 ./scripts/validate.py -d addons -d backup
 
       # Rendered-policy tests consume the dependencies prepared by validation.
+      - name: Prepare PromQL rule tests
+        run: docker pull quay.io/prometheus/prometheus:v3.14.0-distroless
+
       - name: Test 🧪
         run: python3 -m pytest -q
 

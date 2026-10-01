@@ -1,0 +1,154 @@
+rule_files: [rules.yaml]
+evaluation_interval: 30s
+tests:
+  - name: one pressured host is not hidden by a healthy host
+    interval: 1m
+    input_series:
+      - series: 'node_memory_MemTotal_bytes{cluster="demo",instance="bad:9100",job="node-exporter"}'
+        values: '8589934592+0x10'
+      - series: 'node_memory_MemAvailable_bytes{cluster="demo",instance="bad:9100",job="node-exporter"}'
+        values: '536870912+0x10'
+      - series: 'node_memory_MemTotal_bytes{cluster="demo",instance="good:9100",job="node-exporter"}'
+        values: '8589934592+0x10'
+      - series: 'node_memory_MemAvailable_bytes{cluster="demo",instance="good:9100",job="node-exporter"}'
+        values: '4294967296+0x10'
+    alert_rule_test:
+      - eval_time: 6m
+        alertname: addons-node-memory-high
+        exp_alerts:
+          - exp_labels: {cluster: demo, instance: 'bad:9100'}
+      - eval_time: 3m
+        alertname: addons-node-memory-critical
+        exp_alerts:
+          - exp_labels: {cluster: demo, instance: 'bad:9100'}
+
+  - name: growing kernel memory alerts while stable kernel allocations stay quiet
+    interval: 1m
+    input_series:
+      - series: 'node_memory_VmallocUsed_bytes{cluster="demo",instance="growing:9100",job="node-exporter"}'
+        values: '536870912+1048576x420'
+      - series: 'node_memory_VmallocUsed_bytes{cluster="demo",instance="stable:9100",job="node-exporter"}'
+        values: '536870912+0x420'
+    alert_rule_test:
+      - eval_time: 6h16m
+        alertname: addons-node-kernel-memory-growth
+        exp_alerts:
+          - exp_labels: {cluster: demo, instance: 'growing:9100'}
+
+  - name: high kernel share alerts independently of pod usage
+    interval: 1m
+    input_series:
+      - series: 'node_memory_VmallocUsed_bytes{cluster="demo",instance="bad:9100",job="node-exporter"}'
+        values: '3221225472+0x20'
+      - series: 'node_memory_MemTotal_bytes{cluster="demo",instance="bad:9100",job="node-exporter"}'
+        values: '8589934592+0x20'
+      - series: 'node_memory_VmallocUsed_bytes{cluster="demo",instance="good:9100",job="node-exporter"}'
+        values: '536870912+0x20'
+      - series: 'node_memory_MemTotal_bytes{cluster="demo",instance="good:9100",job="node-exporter"}'
+        values: '8589934592+0x20'
+    alert_rule_test:
+      - eval_time: 16m
+        alertname: addons-node-kernel-memory-high
+        exp_alerts:
+          - exp_labels: {cluster: demo, instance: 'bad:9100'}
+
+  - name: a single short scrape failure is visible after recovery
+    interval: 30s
+    input_series:
+      - series: 'up{cluster="demo",job="node-exporter",instance="bad:9100"}'
+        values: '1 0 1+0x8'
+      - series: 'up{cluster="demo",job="node-exporter",instance="good:9100"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: addons-core-target-down
+        exp_alerts:
+          - exp_labels: {cluster: demo, job: node-exporter, instance: 'bad:9100'}
+      - eval_time: 3m
+        alertname: addons-core-target-down
+        exp_alerts: []
+
+  - name: disappearing service discovery is different from a successful scrape
+    interval: 30s
+    input_series:
+      - series: 'up{job="node-exporter",instance="node:9100"}'
+        values: '1+0x10'
+      - series: 'up{job="kubelet",instance="node:10250"}'
+        values: '1+0x10'
+      - series: 'up{job="apiserver",instance="api:443"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: addons-core-job-missing
+        exp_alerts:
+          - exp_labels: {job: kube-state-metrics}
+
+  - name: healthy scrape jobs and absent failure counters do not alert
+    interval: 30s
+    input_series:
+      - series: 'up{cluster="demo",job="node-exporter",instance="node:9100"}'
+        values: '1+0x10'
+      - series: 'up{cluster="demo",job="kubelet",instance="node:10250",metrics_path="/metrics/probes"}'
+        values: '1+0x10'
+      - series: 'up{cluster="demo",job="apiserver",instance="api:443"}'
+        values: '1+0x10'
+      - series: 'up{cluster="demo",job="kube-state-metrics",instance="ksm:8080"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: addons-core-job-missing
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: addons-core-target-down
+        exp_alerts: []
+      - eval_time: 3m
+        alertname: addons-node-liveness-burst
+        exp_alerts: []
+
+  - name: restart burst includes Completed exits and preserves node and cluster identity
+    interval: 1m
+    input_series:
+      - series: 'kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="a",container="app"}'
+        values: '0 0 1+0x8'
+      - series: 'kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="b",container="app"}'
+        values: '0 0 1+0x8'
+      - series: 'kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="c",container="app"}'
+        values: '0 0 1+0x8'
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="a",node="bad"}'
+        values: '1+0x10'
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="b",node="bad"}'
+        values: '1+0x10'
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="c",node="bad"}'
+        values: '1+0x10'
+      - series: 'kube_pod_container_status_restarts_total{cluster="other",namespace="apps",pod="a",container="app"}'
+        values: '0+0x10'
+      - series: 'kube_pod_info{cluster="other",namespace="apps",pod="a",node="bad"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 3m
+        alertname: addons-node-restart-burst
+        exp_alerts:
+          - exp_labels: {cluster: demo, node: bad}
+
+  - name: node stalls and liveness failures are detected without an OOM kill
+    interval: 30s
+    input_series:
+      - series: 'node_pressure_memory_waiting_seconds_total{cluster="demo",instance="bad:9100",job="node-exporter"}'
+        values: '0+6x20'
+      - series: 'prober_probe_total{cluster="demo",instance="bad:10250",probe_type="Liveness",result="failed"}'
+        values: '0 0 4+0x18'
+      - series: 'up{cluster="demo",instance="bad:10250",job="kubelet",metrics_path="/metrics/probes"}'
+        values: '1+0x20'
+    alert_rule_test:
+      # The 2m rate first crosses 10% at 90s; it then must remain pending for 2m.
+      - eval_time: 3m
+        alertname: addons-node-memory-stalls
+        exp_alerts: []
+      - eval_time: 4m
+        alertname: addons-node-memory-stalls
+        exp_alerts:
+          - exp_labels: {cluster: demo, instance: 'bad:9100'}
+      - eval_time: 2m
+        alertname: addons-node-liveness-burst
+        exp_alerts:
+          - exp_labels: {cluster: demo, instance: 'bad:10250'}

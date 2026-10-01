@@ -388,9 +388,9 @@ grafana:
             folder: addons
             interval: 1m
             rules:
-              # Stands in for the dashboard's container restart rate. A restart
-              # counter climbs for a rolling update too; CrashLoopBackOff only
-              # appears when the kubelet has given up and is backing off.
+              # Restart counters belong to a container within one Pod. Pod
+              # replacement during a rollout creates a new counter.
+              # CrashLoopBackOff specifically captures repeated fast failures.
               - uid: addons-pod-crash-looping
                 title: Pod in CrashLoopBackOff
                 condition: C

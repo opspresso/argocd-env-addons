@@ -35,7 +35,7 @@
       }
     ]
   },
-  "description": "Dashboard for Kubernetes cluster with Prometheus.",
+  "description": "Host health uses cluster and Host instance; capacity uses cluster and label_group; workload counts use cluster and namespace. Requests describe scheduling, not actual host consumption. Gaps mean missing samples, not recovery.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "gnetId": 9797,
@@ -56,6 +56,1389 @@
   "liveNow": false,
   "panels": [
     {
+      "id": 100,
+      "type": "row",
+      "title": "Host health — early warning",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 101,
+      "title": "Min Available RAM",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Worst host, including kernel memory. Below 15% leaves little headroom; below 8% is critical.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "min(100 * node_memory_MemAvailable_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 8
+              },
+              {
+                "color": "green",
+                "value": 15
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 102,
+      "title": "Max Kernel / RAM",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Includes kernel BPF map allocations. Sustained growth can exhaust a node while pod memory looks normal.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max(100 * node_memory_VmallocUsed_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 103,
+      "title": "Failed Targets (5m)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Core monitoring targets with at least one failed scrape in the last 5 minutes; this is not the number of nodes.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(1 - min_over_time(up{cluster=~\"$cluster\",job=~\"node-exporter|kubelet|apiserver|kube-state-metrics\"}[5m]))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 104,
+      "title": "Restarts (10m)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Cluster-wide count across all namespaces. A last termination reason of Completed does not hide a liveness restart.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(sum by (cluster, node) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"})))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 105,
+      "title": "Liveness Fails (5m)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Failed liveness checks in the last 5 minutes. Zero is supplied only for a successfully scraped kubelet probes endpoint.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(sum by (cluster, instance) (increase(prober_probe_total{cluster=~\"$cluster\",probe_type=\"Liveness\",result=\"failed\"}[5m])) or on (cluster, instance) (0 * max by (cluster, instance) (up{cluster=~\"$cluster\",job=\"kubelet\",metrics_path=\"/metrics/probes\"} == 1)))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 106,
+      "title": "Nodes Not Ready",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Ready can remain true during a short node stall; also inspect host memory, PSI, and scrape failures.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=~\"false|unknown\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 107,
+      "title": "Host Memory Available by Instance",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 8,
+        "h": 8
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * node_memory_MemAvailable_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 8
+              },
+              {
+                "color": "green",
+                "value": 15
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "min"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 108,
+      "title": "Kernel Vmalloc by Instance",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 5,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Kernel virtual allocations backed by memory, including BPF hash maps. Look for growth across hours or days; not equivalent to pod RSS.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "node_memory_VmallocUsed_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 109,
+      "title": "Memory / I/O Stall Time (PSI)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 5,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Percentage of wall time with tasks stalled on memory or I/O. Missing PSI is not a zero.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * rate(node_pressure_memory_waiting_seconds_total{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}[2m])",
+          "legendFormat": "Memory {{instance}}",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * rate(node_pressure_io_waiting_seconds_total{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}[2m])",
+          "legendFormat": "I/O {{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 10
+              },
+              {
+                "color": "red",
+                "value": 20
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 110,
+      "title": "Swap In / Out by Instance",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Pages per second. Swap activity can indicate host pressure even when Kubernetes MemoryPressure stays false.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(node_vmstat_pswpin{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}[2m])",
+          "legendFormat": "In {{instance}}",
+          "instant": false,
+          "range": true
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(node_vmstat_pswpout{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}[2m])",
+          "legendFormat": "Out {{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 111,
+      "title": "Load per CPU Core",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 13,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Runnable and uninterruptible tasks per CPU core; includes I/O waits, unlike CPU utilization.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "node_load1{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"} / on (cluster, instance) group_left count by (cluster, instance) (node_cpu_seconds_total{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\",mode=\"idle\"})",
+          "legendFormat": "{{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 2
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 112,
+      "title": "Liveness Failures by Instance (5m)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 13,
+        "w": 8,
+        "h": 8
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (cluster, instance) (increase(prober_probe_total{cluster=~\"$cluster\",probe_type=\"Liveness\",result=\"failed\"}[5m])) or on (cluster, instance) (0 * max by (cluster, instance) (up{cluster=~\"$cluster\",job=\"kubelet\",metrics_path=\"/metrics/probes\"} == 1))",
+          "legendFormat": "{{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 113,
+      "title": "Core Target Scrape Health",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 12,
+        "h": 7
+      },
+      "description": "1 = successful scrape, 0 = failure, gap = missing samples. Includes both API servers and worker monitoring endpoints.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "up{cluster=~\"$cluster\",job=~\"node-exporter|kubelet|apiserver|kube-state-metrics\"}",
+          "legendFormat": "{{job}} {{instance}} {{metrics_path}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 114,
+      "title": "Container Restarts by Node (10m)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 21,
+        "w": 12,
+        "h": 7
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (cluster, node) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"}))",
+          "legendFormat": "{{node}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 115,
+      "title": "Kernel Vmalloc / Physical RAM",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 12,
+        "h": 7
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * node_memory_VmallocUsed_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}",
+          "legendFormat": "{{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 30
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 116,
+      "title": "Major Page Faults by Instance",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 28,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Major faults per second require fetching pages; correlate with swap activity and memory PSI.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "rate(node_vmstat_pgmajfault{job=\"node-exporter\",cluster=~\"$cluster\",instance=~\"$instance\"}[2m])",
+          "legendFormat": "{{instance}}",
+          "instant": false,
+          "range": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 8,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "PBFA97CFB590B2093"
@@ -64,7 +1447,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 0
+        "y": 36
       },
       "id": 72,
       "targets": [
@@ -114,7 +1497,7 @@
         "h": 4,
         "w": 4,
         "x": 0,
-        "y": 1
+        "y": 37
       },
       "id": 50,
       "links": [],
@@ -140,7 +1523,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_info * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_info{cluster=~\"$cluster\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -196,7 +1579,7 @@
         "h": 4,
         "w": 5,
         "x": 4,
-        "y": 1
+        "y": 37
       },
       "id": 4,
       "links": [],
@@ -226,7 +1609,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_info * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"pods\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum(kube_pod_info{cluster=~\"$cluster\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"pods\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -282,7 +1665,7 @@
         "h": 4,
         "w": 5,
         "x": 9,
-        "y": 1
+        "y": 37
       },
       "id": 5,
       "links": [],
@@ -312,7 +1695,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"cpu\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"cpu\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum(kube_pod_container_resource_requests{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -368,7 +1751,7 @@
         "h": 4,
         "w": 5,
         "x": 14,
-        "y": 1
+        "y": 37
       },
       "id": 6,
       "links": [],
@@ -398,7 +1781,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"memory\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"memory\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum(kube_pod_container_resource_requests{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -406,8 +1789,9 @@
           "refId": "A"
         }
       ],
-      "title": "Memory Requests / Aallocatable",
-      "type": "gauge"
+      "title": "Memory Requests / Allocatable",
+      "type": "gauge",
+      "description": "Scheduling reservation only. Kernel memory, page cache, and usage above requests are not represented."
     },
     {
       "datasource": {
@@ -454,7 +1838,7 @@
         "h": 4,
         "w": 5,
         "x": 19,
-        "y": 1
+        "y": 37
       },
       "id": 7,
       "links": [],
@@ -483,7 +1867,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(node_filesystem_size_bytes{mountpoint=\"/local\"} - node_filesystem_avail_bytes{mountpoint=\"/local\"}) /\nsum(node_filesystem_size_bytes{mountpoint=\"/local\"}) * 100",
+          "expr": "sum(node_filesystem_size_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=\"/local\"} - node_filesystem_avail_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=\"/local\"}) /\nsum(node_filesystem_size_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=\"/local\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -533,7 +1917,7 @@
         "h": 3,
         "w": 4,
         "x": 0,
-        "y": 5
+        "y": 41
       },
       "id": 61,
       "links": [],
@@ -559,7 +1943,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_spec_unschedulable * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_spec_unschedulable{cluster=~\"$cluster\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -567,8 +1951,9 @@
           "refId": "A"
         }
       ],
-      "title": "Unavailable",
-      "type": "stat"
+      "title": "Cordoned Nodes",
+      "type": "stat",
+      "description": "Unschedulable nodes, not a readiness or connectivity check."
     },
     {
       "datasource": {
@@ -630,7 +2015,7 @@
         "h": 5,
         "w": 5,
         "x": 4,
-        "y": 5
+        "y": 41
       },
       "id": 9,
       "links": [],
@@ -652,7 +2037,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_node_status_allocatable{resource=~\"pods\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_allocatable{resource=~\"pods\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -664,7 +2049,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_node_status_capacity{resource=~\"pods\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_capacity{resource=~\"pods\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -675,7 +2060,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_pod_info * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_pod_info{cluster=~\"$cluster\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -746,7 +2131,7 @@
         "h": 5,
         "w": 5,
         "x": 9,
-        "y": 5
+        "y": 41
       },
       "id": 10,
       "links": [],
@@ -768,7 +2153,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_node_status_capacity{cluster=~\"$cluster\",resource=~\"cpu\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_capacity{cluster=~\"$cluster\",resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -780,7 +2165,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_node_status_allocatable{cluster=~\"$cluster\",resource=~\"cpu\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_allocatable{cluster=~\"$cluster\",resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -792,7 +2177,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",resource=~\"cpu\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -804,7 +2189,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",container!~\"POD|istio-proxy|\"}[2m]) * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",container!~\"POD|istio-proxy|\"}[2m]) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "hide": false,
           "interval": "",
           "legendFormat": "usage",
@@ -815,7 +2200,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace!~\"addon-[a-z0-9-]+\",resource=~\"cpu\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) by (namespace)",
+          "expr": "sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace!~\"addon-[a-z0-9-]+\",resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) by (namespace)",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -887,7 +2272,7 @@
         "h": 5,
         "w": 5,
         "x": 14,
-        "y": 5
+        "y": 41
       },
       "id": 11,
       "links": [],
@@ -909,7 +2294,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_node_status_allocatable{resource=~\"memory\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_allocatable{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -921,7 +2306,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_node_status_capacity{resource=~\"memory\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_capacity{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -933,7 +2318,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"memory\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_pod_container_resource_requests{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -944,15 +2329,16 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(container_memory_working_set_bytes * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(container_memory_working_set_bytes{cluster=~\"$cluster\",container!=\"\",container!=\"POD\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "hide": true,
           "interval": "",
-          "legendFormat": "usage",
+          "legendFormat": "Pod working set",
           "refId": "D"
         }
       ],
-      "title": "Memory Capacity",
-      "type": "timeseries"
+      "title": "Pod Memory / Capacity",
+      "type": "timeseries",
+      "description": "Pod working sets exclude host kernel allocations. Container and parent cgroup values must not be added together; see Host health above for actual node pressure."
     },
     {
       "datasource": {
@@ -1014,7 +2400,7 @@
         "h": 5,
         "w": 5,
         "x": 19,
-        "y": 5
+        "y": 41
       },
       "id": 12,
       "links": [],
@@ -1035,7 +2421,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(node_filesystem_size_bytes{mountpoint=\"/local\"} - node_filesystem_avail_bytes{mountpoint=\"/local\"})",
+          "expr": "sum(node_filesystem_size_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=\"/local\"} - node_filesystem_avail_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=\"/local\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1046,7 +2432,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(node_filesystem_size_bytes{mountpoint=\"/local\"})",
+          "expr": "sum(node_filesystem_size_bytes{cluster=~\"$cluster\",instance=~\"$instance\",mountpoint=\"/local\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1096,7 +2482,7 @@
         "h": 2,
         "w": 4,
         "x": 0,
-        "y": 8
+        "y": 44
       },
       "id": 62,
       "links": [],
@@ -1122,7 +2508,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_status_condition{condition=\"DiskPressure\",status=\"true\"} * on (node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
+          "expr": "sum(kube_node_status_condition{condition=\"DiskPressure\",status=\"true\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"})",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1142,7 +2528,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 10
+        "y": 46
       },
       "id": 60,
       "panels": [],
@@ -1186,7 +2572,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1217,7 +2603,7 @@
         "h": 6,
         "w": 12,
         "x": 0,
-        "y": 11
+        "y": 47
       },
       "id": 70,
       "options": {
@@ -1293,7 +2679,7 @@
               "type": "linear"
             },
             "showPoints": "never",
-            "spanNulls": true,
+            "spanNulls": false,
             "stacking": {
               "group": "A",
               "mode": "none"
@@ -1324,7 +2710,7 @@
         "h": 6,
         "w": 12,
         "x": 12,
-        "y": 11
+        "y": 47
       },
       "id": 74,
       "options": {
@@ -1370,7 +2756,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 17
+        "y": 53
       },
       "id": 58,
       "panels": [],
@@ -1420,7 +2806,7 @@
         "h": 3,
         "w": 4,
         "x": 0,
-        "y": 18
+        "y": 54
       },
       "id": 73,
       "links": [],
@@ -1498,7 +2884,7 @@
         "h": 3,
         "w": 5,
         "x": 4,
-        "y": 18
+        "y": 54
       },
       "id": 18,
       "links": [],
@@ -1575,7 +2961,7 @@
         "h": 3,
         "w": 5,
         "x": 9,
-        "y": 18
+        "y": 54
       },
       "id": 64,
       "links": [],
@@ -1652,7 +3038,7 @@
         "h": 3,
         "w": 5,
         "x": 14,
-        "y": 18
+        "y": 54
       },
       "id": 19,
       "links": [],
@@ -1733,7 +3119,7 @@
         "h": 3,
         "w": 5,
         "x": 19,
-        "y": 18
+        "y": 54
       },
       "id": 20,
       "links": [],
@@ -1784,7 +3170,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 57
       },
       "id": 56,
       "panels": [
@@ -1822,7 +3208,7 @@
             "h": 3,
             "w": 4,
             "x": 0,
-            "y": 17
+            "y": 53
           },
           "id": 30,
           "links": [],
@@ -1902,7 +3288,7 @@
             "h": 3,
             "w": 5,
             "x": 4,
-            "y": 17
+            "y": 53
           },
           "id": 31,
           "links": [],
@@ -1981,7 +3367,7 @@
             "h": 3,
             "w": 5,
             "x": 9,
-            "y": 17
+            "y": 53
           },
           "id": 34,
           "links": [],
@@ -2060,7 +3446,7 @@
             "h": 3,
             "w": 5,
             "x": 14,
-            "y": 17
+            "y": 53
           },
           "id": 32,
           "links": [],
@@ -2135,7 +3521,7 @@
             "h": 3,
             "w": 5,
             "x": 19,
-            "y": 17
+            "y": 53
           },
           "id": 33,
           "links": [],
@@ -2197,7 +3583,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 22
+        "y": 58
       },
       "id": 54,
       "panels": [
@@ -2235,7 +3621,7 @@
             "h": 3,
             "w": 5,
             "x": 0,
-            "y": 24
+            "y": 60
           },
           "id": 38,
           "links": [],
@@ -2311,7 +3697,7 @@
             "h": 3,
             "w": 5,
             "x": 5,
-            "y": 24
+            "y": 60
           },
           "id": 39,
           "links": [],
@@ -2391,7 +3777,7 @@
             "h": 3,
             "w": 5,
             "x": 10,
-            "y": 24
+            "y": 60
           },
           "id": 63,
           "links": [],
@@ -2439,7 +3825,7 @@
           },
           "fieldConfig": {
             "defaults": {
-              "decimals": 0,
+              "decimals": 1,
               "mappings": [
                 {
                   "options": {
@@ -2471,7 +3857,7 @@
             "h": 3,
             "w": 5,
             "x": 15,
-            "y": 24
+            "y": 60
           },
           "id": 41,
           "links": [],
@@ -2502,7 +3888,7 @@
               "datasource": {
                 "uid": "${datasource}"
               },
-              "expr": "sum(rate(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace!=\"kube-system\"}[2m]))",
+              "expr": "sum(increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]))",
               "format": "time_series",
               "interval": "",
               "intervalFactor": 1,
@@ -2510,8 +3896,9 @@
               "refId": "A"
             }
           ],
-          "title": "Containers Restarts (2m)",
-          "type": "stat"
+          "title": "Container Restarts (10m)",
+          "type": "stat",
+          "description": "Number of restarts during the last 10 minutes, including kube-system; not restarts per second."
         },
         {
           "datasource": {
@@ -2547,7 +3934,7 @@
             "h": 3,
             "w": 4,
             "x": 20,
-            "y": 24
+            "y": 60
           },
           "id": 40,
           "links": [],
@@ -2608,7 +3995,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 59
       },
       "id": 52,
       "panels": [
@@ -2646,7 +4033,7 @@
             "h": 3,
             "w": 5,
             "x": 0,
-            "y": 22
+            "y": 58
           },
           "id": 47,
           "links": [],
@@ -2720,7 +4107,7 @@
             "h": 3,
             "w": 5,
             "x": 5,
-            "y": 22
+            "y": 58
           },
           "id": 48,
           "links": [],
@@ -2800,7 +4187,7 @@
             "h": 3,
             "w": 5,
             "x": 10,
-            "y": 22
+            "y": 58
           },
           "id": 49,
           "links": [],
@@ -2866,7 +4253,7 @@
         "current": {
           "selected": false,
           "text": "Prometheus",
-          "value": "Prometheus"
+          "value": "prometheus"
         },
         "hide": 0,
         "includeAll": false,
@@ -2909,8 +4296,8 @@
       {
         "current": {
           "selected": false,
-          "text": "workers",
-          "value": "workers"
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
@@ -2960,11 +4347,36 @@
         "sort": 1,
         "type": "query",
         "useTags": false
+      },
+      {
+        "name": "instance",
+        "label": "Host instance",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(up{job=\"node-exporter\",cluster=~\"$cluster\"},instance)",
+        "query": {
+          "query": "label_values(up{job=\"node-exporter\",cluster=~\"$cluster\"},instance)",
+          "refId": "node-instance"
+        },
+        "includeAll": true,
+        "allValue": ".*",
+        "multi": true,
+        "refresh": 1,
+        "sort": 1,
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "options": []
       }
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-6h",
     "to": "now"
   },
   "timepicker": {
@@ -2994,6 +4406,6 @@
   "timezone": "browser",
   "title": "Kubernetes Cluster - Prometheus",
   "uid": "kube-cluster",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

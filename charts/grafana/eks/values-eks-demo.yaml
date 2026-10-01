@@ -10,9 +10,416 @@ grafana:
 
 
 
+  # These target names and host collectors belong to the EKS Prometheus stack.
+  # Keep k3s/VictoriaMetrics from alerting on exporters it does not run.
+  alerting:
+    node-health.yaml:
+      secret:
+        apiVersion: 1
+        groups:
+        - folder: addons
+          interval: 30s
+          name: node-health
+          orgId: 1
+          rules:
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '107'
+              summary: Host memory availability is below 15%. Inspect kernel vmalloc, PSI
+                and swap; pod working sets do not include all host memory.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"}
+                  / node_memory_MemTotal_bytes{job="node-exporter"}))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 85
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 5m
+            labels:
+              severity: warning
+            noDataState: NoData
+            title: Host memory usage above 85%
+            uid: addons-node-memory-high
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '107'
+              summary: Host memory availability is below 8%. Add capacity and move workloads
+                before probe failures spread.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"}
+                  / node_memory_MemTotal_bytes{job="node-exporter"}))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 92
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              severity: critical
+            noDataState: NoData
+            title: Host memory usage above 92%
+            uid: addons-node-memory-critical
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '115'
+              summary: Large kernel allocations reduce workload headroom. Inspect BPF maps
+                and vmalloc growth; process or pod restarts may not reclaim them.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance) (100 * node_memory_VmallocUsed_bytes{job="node-exporter"}
+                  / node_memory_MemTotal_bytes{job="node-exporter"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 20
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 15m
+            labels:
+              severity: warning
+            noDataState: NoData
+            title: Kernel vmalloc above 20% of RAM
+            uid: addons-node-kernel-memory-high
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '108'
+              summary: Kernel vmalloc grew by more than 256 MiB compared with six hours ago.
+                Requires six hours of history; inspect BPF lifecycle cleanup before host memory
+                is exhausted.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: (max by (cluster, instance) (node_memory_VmallocUsed_bytes{job="node-exporter"})
+                  - max by (cluster, instance) (node_memory_VmallocUsed_bytes{job="node-exporter"}
+                  offset 6h)) / 1024 / 1024
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 256
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 15m
+            labels:
+              severity: warning
+            noDataState: OK
+            title: Kernel vmalloc growing over 6 hours
+            uid: addons-node-kernel-memory-growth
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '109'
+              summary: Tasks spend more than 10% of wall time waiting on memory. Correlate
+                swap, vmalloc and load; PSI requires kernel support.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance) (100 * rate(node_pressure_memory_waiting_seconds_total{job="node-exporter"}[2m]))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 10
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              severity: warning
+            noDataState: OK
+            title: Tasks stalled on memory above 10%
+            uid: addons-node-memory-stalls
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '113'
+              summary: A core target failed a scrape within the last two minutes. Short node
+                stalls can recover before a pending period elapses; inspect the scrape-health
+                panel.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: min by (cluster, job, instance, metrics_path) (min_over_time(up{job=~"node-exporter|kubelet|apiserver|kube-state-metrics"}[2m]))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 1
+                    type: lt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 0s
+            labels:
+              severity: warning
+            noDataState: NoData
+            title: Core monitoring target scrape failed
+            uid: addons-core-target-down
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '114'
+              summary: More than two container restarts on the same node within 10 minutes.
+                Check node pressure and liveness failures even when exit reason is Completed.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: sum by (cluster, node) (increase(kube_pod_container_status_restarts_total[10m])
+                  * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace,
+                  pod, node) (kube_pod_info))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 2
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 0s
+            labels:
+              severity: critical
+            noDataState: NoData
+            title: Multiple containers restarting on one node
+            uid: addons-node-restart-burst
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '112'
+              summary: More than two failed liveness checks within 5 minutes on one kubelet.
+                Check host pressure and networking before restarting applications.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: sum by (cluster, instance) (increase(prober_probe_total{probe_type="Liveness",result="failed"}[5m]))
+                  or on (cluster, instance) (0 * max by (cluster, instance) (up{job="kubelet",metrics_path="/metrics/probes"}
+                  == 1))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 2
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 0s
+            labels:
+              severity: critical
+            noDataState: NoData
+            title: Repeated liveness probe failures
+            uid: addons-node-liveness-burst
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '113'
+              summary: A required EKS monitoring job disappeared from service discovery. Check
+                ServiceMonitor selection and target discovery; an empty result for this absent()
+                rule means all required jobs exist.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: absent(up{job="node-exporter"}) or absent(up{job="kubelet"}) or absent(up{job="apiserver"})
+                  or absent(up{job="kube-state-metrics"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              severity: critical
+            noDataState: OK
+            title: Core monitoring job has no targets
+            uid: addons-core-job-missing
+
+
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
+    # URL dashboards are downloaded only at pod startup.
+    checksum/managed-dashboards: "97388dc04b8ed26d9ec25527300753f08337f7a5b6ea30bb12a52a60d059941d"
 
   grafana.ini:
     server:

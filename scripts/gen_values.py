@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import hashlib
 import os
 from pathlib import Path
 import sys
@@ -44,6 +45,17 @@ def gen_repos(args, ext="yaml"):
             undefined=StrictUndefined,
         )
         e.filters["to_yaml"] = to_yaml
+        if args.reponame == "grafana":
+            dashboards = sorted(Path(chart_path, "dashboards").glob("*.json"))
+            if not dashboards:
+                raise ValueError("Grafana dashboards are missing")
+            digest = hashlib.sha256()
+            for dashboard in dashboards:
+                digest.update(dashboard.name.encode())
+                digest.update(dashboard.read_bytes())
+            e.globals["grafana_dashboard_checksum"] = digest.hexdigest()
+            alerts = Path(__file__).resolve().parents[1] / "config" / "node-health-alerts.yaml"
+            e.globals["node_health_alerting"] = yaml.safe_load(alerts.read_text())
         if args.reponame == "prometheus-stack":
             alerts = Path(__file__).resolve().parents[1] / "config" / "workspace-alerts.yaml"
             e.globals["workspace_alert_groups"] = yaml.safe_load(alerts.read_text())["groups"]
