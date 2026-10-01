@@ -181,3 +181,16 @@ tests:
       - exp_labels:
           cluster: demo
           instance: bad:9100
+
+  - name: native sidecar restart bursts count toward node incidents
+    interval: 1m
+    input_series:
+      - series: 'kube_pod_init_container_status_restarts_total{cluster="demo",namespace="apps",pod="app-0",container="istio-proxy"}'
+        values: '0 4+0x9'
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="app-0",node="bad"}'
+        values: '1+0x10'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: addons-node-restart-burst
+        exp_alerts:
+          - exp_labels: {cluster: demo, node: bad}

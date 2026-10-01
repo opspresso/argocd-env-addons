@@ -298,7 +298,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum((kube_pod_container_resource_requests{resource=~\"cpu\"} or (kube_pod_init_container_resource_requests{resource=~\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1))) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -384,7 +384,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum((kube_pod_container_resource_requests{resource=~\"memory\"} or (kube_pod_init_container_resource_requests{resource=~\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1))) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -751,7 +751,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(sum by (cluster, node) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"})))",
+          "expr": "sum(sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\"}[10m])) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"})))",
           "legendFormat": "",
           "instant": true,
           "range": false
@@ -1955,7 +1955,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (cluster, node) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"}))",
+          "expr": "sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\"}[10m])) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"}))",
           "legendFormat": "{{node}}",
           "instant": false,
           "range": true

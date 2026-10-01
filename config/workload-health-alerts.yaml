@@ -143,12 +143,15 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: ((max by (cluster,namespace,pod,container)(increase(kube_pod_container_status_restarts_total[10m]))
-          * on(cluster,namespace,pod,container) max by(cluster,namespace,pod,container)(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
-          == 1)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace,
-          pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)) or on(cluster,namespace,pod,container)
-          (max by(cluster,namespace,pod,container) (increase(kube_pod_container_status_restarts_total[10m]) * on(cluster,namespace,pod,container)
-          group_left(reason) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} == 1)))
+        expr: ((max by (cluster,namespace,pod,container)((increase(kube_pod_container_status_restarts_total[10m])
+          or increase(kube_pod_init_container_status_restarts_total[10m]))) * on(cluster,namespace,pod,container)
+          max by(cluster,namespace,pod,container)((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+          or kube_pod_init_container_status_last_terminated_reason{reason="OOMKilled"}) == 1)) * on (cluster, namespace,
+          pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
+          or on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container) ((increase(kube_pod_container_status_restarts_total[10m])
+          or increase(kube_pod_init_container_status_restarts_total[10m])) * on(cluster,namespace,pod,container)
+          group_left(reason) ((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"} or kube_pod_init_container_status_last_terminated_reason{reason="OOMKilled"})
+          == 1)))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -194,7 +197,8 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by(cluster,namespace,pod,container,reason)(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"})
+        expr: max by(cluster,namespace,pod,container,reason)((kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}
+          or kube_pod_init_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}))
           * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload,
           workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
     - refId: C
@@ -243,9 +247,10 @@ groups:
         instant: true
         range: false
         expr: (100 * max by(cluster,namespace,pod,container)(container_memory_working_set_bytes{container!="",container!="POD"})
-          / on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)(kube_pod_container_resource_limits{resource="memory"})
-          > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod,
-          workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
+          / on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{resource="memory"}
+          or (kube_pod_init_container_resource_limits{resource="memory"} and on(cluster,namespace,pod,container)
+          (kube_pod_init_container_status_running == 1)))) > 0)) * on (cluster, namespace, pod) group_left(workload,
+          workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
     - refId: C
       datasourceUid: __expr__
       model:
@@ -335,7 +340,8 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by (cluster, namespace, pod, container) (kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"})
+        expr: max by (cluster, namespace, pod, container) ((kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}
+          or kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -505,11 +511,13 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: 'max by (cluster, namespace, pod, container, reason) (increase(kube_pod_container_status_restarts_total[10m])
+        expr: 'max by (cluster, namespace, pod, container, reason) ((increase(kube_pod_container_status_restarts_total[10m])
+          or increase(kube_pod_init_container_status_restarts_total[10m]))
 
           * on (cluster, namespace, pod, container) group_left(reason)
 
-          (kube_pod_container_status_last_terminated_reason{reason="Error"} == 1))
+          ((kube_pod_container_status_last_terminated_reason{reason="Error"} or kube_pod_init_container_status_last_terminated_reason{reason="Error"})
+          == 1))
 
           '
     - refId: C

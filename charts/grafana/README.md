@@ -143,3 +143,7 @@ HTTP 수치가 없어도 replica·Pod 상태는 별도로 확인해야 한다. k
 선택한 `dashboard_url`도 포함한다. 이 링크의 Grafana label template은 Helm `tpl`을 통과하도록
 명시적으로 escape한다. 신규 규칙 검사는 전체 중단·scale-to-zero·다른 종류/클러스터의 같은 이름,
 100% HTTP 실패·트래픽 없음·limit 없음·OOM을 실제 PromQL 평가기로 구분한다.
+
+Scheduling capacity의 컨테이너 자원 합계에는 일반 컨테이너와 현재 Running인 init/native sidecar를 포함하고,
+완료된 init 컨테이너는 제외한다. scheduler의 init 단계별 최대치나 Pod overhead를 재구성한 값은 아니다.
+메모리·재시작·OOM·waiting 사유는 init-container 지표도 확인하여 native sidecar의 문제를 놓치지 않는다.

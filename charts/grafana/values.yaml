@@ -329,7 +329,7 @@ grafana:
                       editorMode: code
                       instant: true
                       range: false
-                      expr: 100 * sum by (cluster) (kube_pod_container_resource_requests{resource="cpu"}) / sum by (cluster) (kube_node_status_allocatable{resource="cpu"})
+                      expr: 100 * sum by (cluster) ((kube_pod_container_resource_requests{resource="cpu"} or (kube_pod_init_container_resource_requests{resource="cpu"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1)))) / sum by (cluster) (kube_node_status_allocatable{resource="cpu"})
                   - refId: C
                     datasourceUid: __expr__
                     model:
@@ -368,7 +368,7 @@ grafana:
                       editorMode: code
                       instant: true
                       range: false
-                      expr: 100 * sum by (cluster) (kube_pod_container_resource_requests{resource="memory"}) / sum by (cluster) (kube_node_status_allocatable{resource="memory"})
+                      expr: 100 * sum by (cluster) ((kube_pod_container_resource_requests{resource="memory"} or (kube_pod_init_container_resource_requests{resource="memory"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1)))) / sum by (cluster) (kube_node_status_allocatable{resource="memory"})
                   - refId: C
                     datasourceUid: __expr__
                     model:

@@ -164,13 +164,16 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: ((max by (cluster,namespace,pod,container)(increase(kube_pod_container_status_restarts_total[10m]))
-                  * on(cluster,namespace,pod,container) max by(cluster,namespace,pod,container)(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                expr: ((max by (cluster,namespace,pod,container)((increase(kube_pod_container_status_restarts_total[10m])
+                  or increase(kube_pod_init_container_status_restarts_total[10m]))) * on(cluster,namespace,pod,container)
+                  max by(cluster,namespace,pod,container)((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  or kube_pod_init_container_status_last_terminated_reason{reason="OOMKilled"})
                   == 1)) * on (cluster, namespace, pod) group_left(workload, workload_type)
                   max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
                   or on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)
-                  (increase(kube_pod_container_status_restarts_total[10m]) * on(cluster,namespace,pod,container)
-                  group_left(reason) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  ((increase(kube_pod_container_status_restarts_total[10m]) or increase(kube_pod_init_container_status_restarts_total[10m]))
+                  * on(cluster,namespace,pod,container) group_left(reason) ((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  or kube_pod_init_container_status_last_terminated_reason{reason="OOMKilled"})
                   == 1)))
                 instant: true
                 range: false
@@ -218,7 +221,8 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max by(cluster,namespace,pod,container,reason)(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"})
+                expr: max by(cluster,namespace,pod,container,reason)((kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}
+                  or kube_pod_init_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}))
                   * on (cluster, namespace, pod) group_left(workload, workload_type) max by
                   (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
                 instant: true
@@ -268,9 +272,11 @@ grafana:
                   uid: prometheus
                 editorMode: code
                 expr: (100 * max by(cluster,namespace,pod,container)(container_memory_working_set_bytes{container!="",container!="POD"})
-                  / on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)(kube_pod_container_resource_limits{resource="memory"})
-                  > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type)
-                  max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
+                  / on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{resource="memory"}
+                  or (kube_pod_init_container_resource_limits{resource="memory"} and on(cluster,namespace,pod,container)
+                  (kube_pod_init_container_status_running == 1)))) > 0)) * on (cluster, namespace,
+                  pod) group_left(workload, workload_type) max by (cluster, namespace, pod,
+                  workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
                 instant: true
                 range: false
                 refId: A
@@ -361,7 +367,8 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max by (cluster, namespace, pod, container) (kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"})
+                expr: max by (cluster, namespace, pod, container) ((kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}
+                  or kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}))
                 instant: true
                 range: false
                 refId: A
@@ -531,11 +538,13 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: 'max by (cluster, namespace, pod, container, reason) (increase(kube_pod_container_status_restarts_total[10m])
+                expr: 'max by (cluster, namespace, pod, container, reason) ((increase(kube_pod_container_status_restarts_total[10m])
+                  or increase(kube_pod_init_container_status_restarts_total[10m]))
 
                   * on (cluster, namespace, pod, container) group_left(reason)
 
-                  (kube_pod_container_status_last_terminated_reason{reason="Error"} == 1))
+                  ((kube_pod_container_status_last_terminated_reason{reason="Error"} or kube_pod_init_container_status_last_terminated_reason{reason="Error"})
+                  == 1))
 
                   '
                 instant: true
@@ -582,7 +591,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
     # URL dashboards are downloaded only at pod startup.
-    checksum/managed-dashboards: "0837a45492c82f7ee807cdab021314954886601065ec6340665666ca34152485"
+    checksum/managed-dashboards: "80bfa6c7a34623d29b2d01d7d80761ed08caef862ee5316f1389dde881c4da3f"
 
   grafana.ini:
     server:

@@ -291,8 +291,8 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: sum by (cluster, node) (increase(kube_pod_container_status_restarts_total[10m]) * on (cluster, namespace,
-          pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info))
+        expr: sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total[10m]) or increase(kube_pod_init_container_status_restarts_total[10m]))
+          * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info))
     - refId: C
       datasourceUid: __expr__
       model:
