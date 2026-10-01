@@ -429,8 +429,8 @@
             "uid": "${datasource}"
           },
           "expr": "sum(max by(cluster,namespace,pod,container)(rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on(cluster,namespace,pod) group_left() group by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"} or kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
-          "instant": true,
-          "range": false
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
@@ -469,15 +469,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 311,
@@ -502,8 +503,8 @@
             "uid": "${datasource}"
           },
           "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left() group by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"} or kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
-          "instant": true,
-          "range": false
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
@@ -542,15 +543,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 312,
@@ -575,8 +577,8 @@
             "uid": "${datasource}"
           },
           "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left() group by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"} or kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
-          "instant": true,
-          "range": false
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
@@ -615,15 +617,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 313,
@@ -648,8 +651,8 @@
             "uid": "${datasource}"
           },
           "expr": "sum(max by(cluster,namespace,pod,container)(container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on(cluster,namespace,pod) group_left() group by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"} or kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
-          "instant": true,
-          "range": false
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
@@ -688,15 +691,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 314,
@@ -721,8 +725,8 @@
             "uid": "${datasource}"
           },
           "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left() group by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"} or kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
-          "instant": true,
-          "range": false
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
@@ -761,15 +765,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 315,
@@ -794,8 +799,8 @@
             "uid": "${datasource}"
           },
           "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left() group by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"} or kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
-          "instant": true,
-          "range": false
+          "instant": false,
+          "range": true
         }
       ],
       "fieldConfig": {
@@ -834,15 +839,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 100,
@@ -975,8 +981,8 @@
           },
           "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) (label_replace((label_replace(vector(1), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"daemonset\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"CronJob\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"Job\", \"\", \"\")), \"selected_kind\", \"yes\", \"workload_type\", \"^($workload_type)$\") and on(selected_kind) label_replace(vector(1), \"selected_kind\", \"yes\", \"\", \"\"))))",
           "legendFormat": "",
-          "instant": true,
-          "range": false,
+          "instant": false,
+          "range": true,
           "format": "time_series"
         }
       ],
@@ -1016,15 +1022,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "value",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 302,
@@ -1139,8 +1146,8 @@
           },
           "expr": "sum(clamp_min((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) (label_replace((label_replace(vector(1), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"daemonset\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"CronJob\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"Job\", \"\", \"\")), \"selected_kind\", \"yes\", \"workload_type\", \"^($workload_type)$\") and on(selected_kind) label_replace(vector(1), \"selected_kind\", \"yes\", \"\", \"\"))) - on (cluster, namespace, workload, workload_type) (max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) (label_replace((label_replace(vector(1), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"daemonset\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"CronJob\", \"\", \"\") or label_replace(vector(1), \"workload_type\", \"Job\", \"\", \"\")), \"selected_kind\", \"yes\", \"workload_type\", \"^($workload_type)$\") and on(selected_kind) label_replace(vector(1), \"selected_kind\", \"yes\", \"\", \"\"))), 0))",
           "legendFormat": "",
-          "instant": true,
-          "range": false,
+          "instant": false,
+          "range": true,
           "format": "time_series"
         }
       ],
@@ -1183,15 +1190,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "background",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 102,
@@ -1217,8 +1225,8 @@
           },
           "expr": "count(count by(cluster,namespace,pod) ((max by (cluster, namespace, pod, container, reason) ((kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} or kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"}) == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"}))) or (0 * count(max by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"})))",
           "legendFormat": "",
-          "instant": true,
-          "range": false,
+          "instant": false,
+          "range": true,
           "format": "time_series"
         }
       ],
@@ -1261,15 +1269,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "background",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 103,
@@ -1295,8 +1304,8 @@
           },
           "expr": "sum(max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}))",
           "legendFormat": "",
-          "instant": true,
-          "range": false,
+          "instant": false,
+          "range": true,
           "format": "time_series"
         }
       ],
@@ -1343,15 +1352,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "background",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 104,
@@ -1377,8 +1387,8 @@
           },
           "expr": "sum((max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]))) * on (cluster, namespace, pod, container) max by (cluster, namespace, pod, container) ((kube_pod_container_status_last_terminated_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=\"OOMKilled\"} or kube_pod_init_container_status_last_terminated_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=\"OOMKilled\"}) == 1)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"})) or (0 * sum(max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m]))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"})))",
           "legendFormat": "",
-          "instant": true,
-          "range": false,
+          "instant": false,
+          "range": true,
           "format": "time_series"
         }
       ],
@@ -1421,15 +1431,16 @@
       "options": {
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "last"
           ],
           "fields": "",
           "values": false
         },
         "colorMode": "background",
-        "graphMode": "none",
+        "graphMode": "area",
         "textMode": "auto"
-      }
+      },
+      "maxDataPoints": 300
     },
     {
       "id": 105,
