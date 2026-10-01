@@ -332,3 +332,29 @@ tests:
         cluster: demo
         namespace: apps
         persistentvolumeclaim: full
+- name: usage remains visible when requests and limits are absent
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
+    values: 1+0x5
+  - series: container_cpu_usage_seconds_total{cluster="demo",namespace="apps",pod="shared-0",container="app"}
+    values: 0+60x5
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="apps",pod="shared-0",container="app"}
+    values: 100+0x5
+  promql_expr_test:
+  - dashboard_query: {panel_id: 310}
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 1
+  - dashboard_query: {panel_id: 313}
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 100
+  - dashboard_query: {panel_id: 311}
+    eval_time: 4m
+    exp_samples: []
+  - dashboard_query: {panel_id: 315}
+    eval_time: 4m
+    exp_samples: []

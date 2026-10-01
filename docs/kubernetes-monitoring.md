@@ -3,7 +3,7 @@
 두 대시보드는 자원 예약량과 현재 사용량을 먼저 표시하며, 30초마다 갱신합니다.
 
 - `kube-cluster`: 스케줄링 예약량 / allocatable, 실제 호스트 CPU·메모리·디스크 사용량, 노드 상태·압박·수집 실패, 노드별 상세와 추이 순서입니다. 호스트 사용량은 선택한 instance 중 최댓값으로, 평균에 가려지는 노드 과부하를 표시합니다.
-- `kube-workload`: 선택한 워크로드의 CPU·메모리 사용량 / requests·limits, replica 가용성·Pod 장애·재시작·OOM, HTTP 오류, 컨테이너별 상세·트래픽·PVC·로그 순서입니다. requests·limits가 없거나 수집이 불완전하면 비율을 정상 0으로 표시하지 않습니다.
+- `kube-workload`: 선택한 워크로드의 CPU·메모리 사용량 / requests·limits 비율과 절대값, replica 가용성·Pod 장애·재시작·OOM, HTTP 오류, 컨테이너별 상세·트래픽·PVC·로그 순서입니다. requests·limits가 없거나 수집이 불완전하면 비율을 정상 0으로 표시하지 않습니다.
 
 현재 알림 목록은 화면의 자원 필터와 독립적으로 scope 전체의 Pending, Firing, Error, NoData 상태를 표시합니다. 목록 제목에 전체 클러스터 또는 namespace 범위를 명시합니다. 빈 알림 목록만으로 정상 상태를 판단하지 말고 수집 상태와 자원 상태도 확인합니다.
 

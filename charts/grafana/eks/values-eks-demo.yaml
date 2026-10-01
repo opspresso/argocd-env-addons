@@ -1210,7 +1210,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
     # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "4a91bd1787fba662a021f3a801533abd8ca3723a5e2517c1d5102805edf261b2"
+    checksum/managed-dashboards: "11dd7f620ee881f18196d801c6eed10fea13ba92cae3d227d38567ea017a1ace"
 
   grafana.ini:
     server:

@@ -407,13 +407,451 @@
       "maxDataPoints": 100
     },
     {
+      "id": 310,
+      "title": "CPU Usage",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 5,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current measured usage for the selected workload, including sidecars.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,namespace,pod,container)(rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "decimals": 2,
+          "noValue": "N/A",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 311,
+      "title": "CPU Requests",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 5,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current total for the selected workload, including sidecars. Missing reservations or limits are shown as N/A; totals can cover only containers with declared values.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "decimals": 2,
+          "noValue": "N/A",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 312,
+      "title": "CPU Limits",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 5,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current total for the selected workload, including sidecars. Missing reservations or limits are shown as N/A; totals can cover only containers with declared values.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "decimals": 2,
+          "noValue": "N/A",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 313,
+      "title": "Memory Usage",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 5,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current measured usage for the selected workload, including sidecars.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,namespace,pod,container)(container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1,
+          "noValue": "N/A",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 314,
+      "title": "Memory Requests",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 5,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current total for the selected workload, including sidecars. Missing reservations or limits are shown as N/A; totals can cover only containers with declared values.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1,
+          "noValue": "N/A",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 315,
+      "title": "Memory Limits",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 5,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Current total for the selected workload, including sidecars. Missing reservations or limits are shown as N/A; totals can cover only containers with declared values.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} or (kube_pod_init_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running{cluster=~\"$cluster\",namespace=~\"$namespace\"} == 1)))) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "instant": true,
+          "range": false
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1,
+          "noValue": "N/A",
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "blue"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
       "id": 100,
       "type": "row",
       "title": "Current workload health",
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 5,
+        "y": 9,
         "w": 24,
         "h": 1
       },
@@ -429,7 +867,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 10,
         "w": 24,
         "h": 2
       },
@@ -523,7 +961,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 8,
+        "y": 12,
         "w": 4,
         "h": 4
       },
@@ -598,7 +1036,7 @@
       },
       "gridPos": {
         "x": 4,
-        "y": 8,
+        "y": 12,
         "w": 4,
         "h": 4
       },
@@ -687,7 +1125,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 8,
+        "y": 12,
         "w": 4,
         "h": 4
       },
@@ -765,7 +1203,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 8,
+        "y": 12,
         "w": 4,
         "h": 4
       },
@@ -843,7 +1281,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 8,
+        "y": 12,
         "w": 4,
         "h": 4
       },
@@ -925,7 +1363,7 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 8,
+        "y": 12,
         "w": 4,
         "h": 4
       },
@@ -1003,7 +1441,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 16,
         "w": 12,
         "h": 4
       },
@@ -1092,7 +1530,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 12,
+        "y": 16,
         "w": 12,
         "h": 4
       },
@@ -1178,7 +1616,7 @@
       "description": "Live alert state across this monitoring scope; independent of the resource selectors above. Includes pending, firing, collection errors and missing data.",
       "gridPos": {
         "x": 0,
-        "y": 16,
+        "y": 20,
         "w": 24,
         "h": 6
       },
@@ -1208,7 +1646,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 22,
+        "y": 26,
         "w": 24,
         "h": 7
       },
@@ -1353,7 +1791,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 29,
+        "y": 33,
         "w": 24,
         "h": 1
       },
@@ -1369,7 +1807,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 30,
+        "y": 34,
         "w": 12,
         "h": 7
       },
@@ -1486,7 +1924,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 30,
+        "y": 34,
         "w": 12,
         "h": 7
       },
@@ -1587,7 +2025,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 41,
         "w": 12,
         "h": 7
       },
@@ -1688,7 +2126,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 37,
+        "y": 41,
         "w": 12,
         "h": 7
       },
@@ -1934,7 +2372,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 44,
+        "y": 48,
         "w": 24,
         "h": 7
       },
@@ -2039,7 +2477,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 55,
         "w": 24,
         "h": 1
       },
@@ -2055,7 +2493,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 52,
+        "y": 56,
         "w": 12,
         "h": 8
       },
@@ -2148,7 +2586,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 52,
+        "y": 56,
         "w": 12,
         "h": 8
       },
@@ -2249,7 +2687,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 64,
         "w": 12,
         "h": 8
       },
@@ -2342,7 +2780,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 60,
+        "y": 64,
         "w": 12,
         "h": 8
       },
@@ -2443,7 +2881,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 72,
         "w": 24,
         "h": 8
       },
@@ -2684,7 +3122,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 76,
+        "y": 80,
         "w": 24,
         "h": 1
       },
@@ -2700,7 +3138,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 77,
+        "y": 81,
         "w": 8,
         "h": 8
       },
@@ -2793,7 +3231,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 77,
+        "y": 81,
         "w": 8,
         "h": 8
       },
@@ -2894,7 +3332,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 77,
+        "y": 81,
         "w": 8,
         "h": 8
       },
@@ -3011,7 +3449,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 85,
+        "y": 89,
         "w": 12,
         "h": 7
       },
@@ -3104,7 +3542,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 85,
+        "y": 89,
         "w": 12,
         "h": 7
       },
@@ -3206,7 +3644,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 92,
+        "y": 96,
         "w": 24,
         "h": 1
       },
@@ -3222,7 +3660,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 93,
+        "y": 97,
         "w": 24,
         "h": 6
       },
@@ -3379,7 +3817,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 99,
+        "y": 103,
         "w": 24,
         "h": 1
       },
@@ -3450,7 +3888,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 100,
+        "y": 104,
         "w": 24,
         "h": 8
       },
