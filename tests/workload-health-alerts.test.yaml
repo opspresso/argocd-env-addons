@@ -297,7 +297,7 @@ tests:
     exp_samples:
     - labels: '{}'
       value: 0
-- name: aggregate gauges reject partial container limit coverage
+- name: aggregate gauges include unlimited container usage in the total
   interval: 1m
   input_series:
   - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
@@ -312,7 +312,9 @@ tests:
   - dashboard_query:
       panel_id: 306
     eval_time: 4m
-    exp_samples: []
+    exp_samples:
+    - labels: '{}'
+      value: 510
 - name: critical pressure and storage distinguish affected resources
   interval: 1m
   input_series:
@@ -358,3 +360,84 @@ tests:
   - dashboard_query: {panel_id: 315}
     eval_time: 4m
     exp_samples: []
+- name: All totals include controller kinds namespaces and standalone Pods without
+    double counting
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="dep",workload="shared",workload_type="deployment"}
+    values: 1+0x5
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="other",pod="sts",workload="db",workload_type="statefulset"}
+    values: 1+0x5
+  - series: kube_pod_info{cluster="demo",namespace="apps",pod="dep",node="node1"}
+    values: 1+0x5
+  - series: kube_pod_info{cluster="demo",namespace="other",pod="solo",node="node2"}
+    values: 1+0x5
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="apps",pod="dep",container="app"}
+    values: 100+0x5
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="other",pod="sts",container="app"}
+    values: 200+0x5
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="other",pod="solo",container="app"}
+    values: 400+0x5
+  - series: container_memory_working_set_bytes{cluster="unselected",namespace="apps",pod="dep",container="app"}
+    values: 10000+0x5
+  - series: kube_pod_container_resource_requests{cluster="demo",namespace="apps",pod="dep",container="app",resource="memory"}
+    values: 1000+0x5
+  - series: kube_pod_container_resource_requests{cluster="demo",namespace="other",pod="sts",container="app",resource="memory"}
+    values: 2000+0x5
+  - series: kube_deployment_spec_replicas{cluster="demo",namespace="apps",deployment="shared"}
+    values: 3+0x5
+  - series: kube_statefulset_replicas{cluster="demo",namespace="other",statefulset="db"}
+    values: 2+0x5
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 313
+      namespace: .*
+      workload: .*
+      workload_type: .*
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 700
+  - dashboard_query:
+      panel_id: 314
+      namespace: .*
+      workload: .*
+      workload_type: .*
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 3000
+  - dashboard_query:
+      panel_id: 305
+      namespace: .*
+      workload: .*
+      workload_type: .*
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 23.333333333333332
+  - dashboard_query:
+      panel_id: 301
+      namespace: .*
+      workload: .*
+      workload_type: .*
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 5
+  - dashboard_query:
+      panel_id: 313
+      workload_type: deployment
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 100
+  - dashboard_query:
+      panel_id: 313
+      namespace: other
+      workload: db
+      workload_type: statefulset
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 200
