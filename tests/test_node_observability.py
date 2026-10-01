@@ -105,5 +105,5 @@ def test_managed_dashboards_download_public_json_without_embedding(rendered_graf
     main = next(doc for doc in configs if doc["metadata"]["name"] == "grafana")
     script = main["data"]["download_dashboards.sh"]
     for name in ["kube-cluster", "kube-workload"]:
-        assert f"https://raw.githubusercontent.com/opspresso/argocd-env-addons/refs/heads/main/charts/grafana/dashboards/{name}.json" in script
-        assert f"{name}.json" in script
+        assert f"https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/charts/grafana/dashboards/{name}.json" in script
+        assert f"{name}.json?v=" in script

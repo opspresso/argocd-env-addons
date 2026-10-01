@@ -9,6 +9,14 @@ grafana:
 
 
 
+  # A content-specific URL prevents stale GitHub raw responses during rollout.
+  dashboards:
+    addons:
+      kube-cluster:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/charts/grafana/dashboards/kube-cluster.json?v=11dd7f620ee881f18196d801c6eed10fea13ba92cae3d227d38567ea017a1ace
+      kube-workload:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/charts/grafana/dashboards/kube-workload.json?v=11dd7f620ee881f18196d801c6eed10fea13ba92cae3d227d38567ea017a1ace
+
   alerting:
     workload-health.yaml:
       secret:

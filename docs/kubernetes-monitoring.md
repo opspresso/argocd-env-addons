@@ -19,4 +19,4 @@
 
 Grafana가 Prometheus를 조회하고 기존 Slack contact point로 보냅니다. critical은 그룹 대기 10초, 그룹 갱신 1분, 지속 장애 재알림 30분입니다. 평가 간격과 각 규칙의 지속 시간 이후 알림이 전송됩니다. webhook은 기존 Secret 환경변수로 전달합니다. 노드 전용 규칙은 EKS에만 제공됩니다.
 
-변경은 GitOps 설정이며 실제 배포와 Slack 수신 확인은 별도입니다. 대시보드 JSON은 public GitHub main URL에서 Pod 시작 시 다운로드합니다. JSON 변경 후 values를 재생성하면 checksum이 변경되어 Grafana가 다시 시작하고 다운로드합니다. JSON 본문은 배포 values에 포함하지 않습니다.
+변경은 GitOps 설정이며 실제 배포와 Slack 수신 확인은 별도입니다. 대시보드 JSON은 public GitHub main URL에서 Pod 시작 시 다운로드합니다. JSON 변경 후 values를 재생성하면 checksum이 변경되어 Grafana가 다시 시작하고 다운로드합니다. 다운로드 URL에도 checksum을 붙여 이전 GitHub raw 응답의 캐시를 피합니다. JSON 본문은 배포 values에 포함하지 않습니다.
