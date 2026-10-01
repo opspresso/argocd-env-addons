@@ -13,10 +13,13 @@ grafana:
 {% endif %}
 
 {% if grafana is defined %}
+  alerting:
+    workload-health.yaml:
+      secret:
+{{ workload_health_alerting | to_yaml | indent(8, first=true) }}
 {% if env == 'eks' %}
   # These target names and host collectors belong to the EKS Prometheus stack.
   # Keep k3s/VictoriaMetrics from alerting on exporters it does not run.
-  alerting:
     node-health.yaml:
       secret:
 {{ node_health_alerting | to_yaml | indent(8, first=true) }}

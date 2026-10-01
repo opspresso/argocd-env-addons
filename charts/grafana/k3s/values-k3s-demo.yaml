@@ -13,6 +13,560 @@ grafana:
 
 
 
+  alerting:
+    workload-health.yaml:
+      secret:
+        apiVersion: 1
+        groups:
+        - folder: addons
+          interval: 30s
+          name: workload-health
+          orgId: 1
+          rules:
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '101'
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
+                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
+                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
+                }}'
+              summary: A Deployment, StatefulSet or DaemonSet with desired replicas has no
+                available replicas. Inspect readiness, Pod events and node health.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: ((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas,
+                  "workload", "$1", "deployment", "(.*)"), "workload_type", "deployment",
+                  "", "") or label_replace(label_replace(kube_statefulset_replicas, "workload",
+                  "$1", "statefulset", "(.*)"), "workload_type", "statefulset", "", "") or
+                  label_replace(label_replace(kube_daemonset_status_desired_number_scheduled,
+                  "workload", "$1", "daemonset", "(.*)"), "workload_type", "daemonset", "",
+                  ""))) > 0) and on (cluster, namespace, workload, workload_type) ((max by
+                  (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available,
+                  "workload", "$1", "deployment", "(.*)"), "workload_type", "deployment",
+                  "", "") or label_replace(label_replace(kube_statefulset_status_replicas_available,
+                  "workload", "$1", "statefulset", "(.*)"), "workload_type", "statefulset",
+                  "", "") or label_replace(label_replace(kube_daemonset_status_number_available,
+                  "workload", "$1", "daemonset", "(.*)"), "workload_type", "daemonset", "",
+                  ""))) == 0)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 1m
+            labels:
+              scope: workload
+              severity: critical
+            noDataState: OK
+            title: Workload has no available replicas
+            uid: addons-workload-unavailable
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '101'
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
+                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
+                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
+                }}'
+              summary: A controller is partially available but below its desired replicas
+                for three minutes. Complete unavailability is reported by the separate critical
+                rule.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: (clamp_min((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas,
+                  "workload", "$1", "deployment", "(.*)"), "workload_type", "deployment",
+                  "", "") or label_replace(label_replace(kube_statefulset_replicas, "workload",
+                  "$1", "statefulset", "(.*)"), "workload_type", "statefulset", "", "") or
+                  label_replace(label_replace(kube_daemonset_status_desired_number_scheduled,
+                  "workload", "$1", "daemonset", "(.*)"), "workload_type", "daemonset", "",
+                  ""))) - on (cluster, namespace, workload, workload_type) (max by (cluster,
+                  namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available,
+                  "workload", "$1", "deployment", "(.*)"), "workload_type", "deployment",
+                  "", "") or label_replace(label_replace(kube_statefulset_status_replicas_available,
+                  "workload", "$1", "statefulset", "(.*)"), "workload_type", "statefulset",
+                  "", "") or label_replace(label_replace(kube_daemonset_status_number_available,
+                  "workload", "$1", "daemonset", "(.*)"), "workload_type", "daemonset", "",
+                  ""))), 0)) and on (cluster, namespace, workload, workload_type) ((max by
+                  (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available,
+                  "workload", "$1", "deployment", "(.*)"), "workload_type", "deployment",
+                  "", "") or label_replace(label_replace(kube_statefulset_status_replicas_available,
+                  "workload", "$1", "statefulset", "(.*)"), "workload_type", "statefulset",
+                  "", "") or label_replace(label_replace(kube_daemonset_status_number_available,
+                  "workload", "$1", "daemonset", "(.*)"), "workload_type", "daemonset", "",
+                  ""))) > 0)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 3m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Workload replicas below desired
+            uid: addons-deployment-replicas-unavailable
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '104'
+              summary: A container restarted after OOMKilled in the last 10 minutes. Inspect
+                memory usage/limit and concurrent workload changes.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: ((max by (cluster,namespace,pod,container)(increase(kube_pod_container_status_restarts_total[10m]))
+                  * on(cluster,namespace,pod,container) max by(cluster,namespace,pod,container)(kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  == 1)) * on (cluster, namespace, pod) group_left(workload, workload_type)
+                  max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
+                  or on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)
+                  (increase(kube_pod_container_status_restarts_total[10m]) * on(cluster,namespace,pod,container)
+                  group_left(reason) (kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  == 1)))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 0s
+            labels:
+              scope: workload
+              severity: critical
+            noDataState: OK
+            title: Workload container OOMKilled
+            uid: addons-pod-oom-killed
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '110'
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
+                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
+                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
+                }}'
+              summary: A container cannot start because of an image, runtime or configuration
+                error. Inspect the reason label and Pod events.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by(cluster,namespace,pod,container,reason)(kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"})
+                  * on (cluster, namespace, pod) group_left(workload, workload_type) max by
+                  (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              scope: workload
+              severity: critical
+            noDataState: OK
+            title: Workload container cannot start
+            uid: addons-workload-start-failed
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '116'
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
+                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
+                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
+                }}'
+              summary: A container, including sidecars, is approaching its memory limit. Containers
+                without a positive limit are excluded.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: (100 * max by(cluster,namespace,pod,container)(container_memory_working_set_bytes{container!="",container!="POD"})
+                  / on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)(kube_pod_container_resource_limits{resource="memory"})
+                  > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type)
+                  max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 90
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 5m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Workload container memory above 90% of limit
+            uid: addons-workload-memory-limit
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '56'
+              summary: More than 5% of instrumented requests fail with 5xx or transport code
+                0, with traffic above 0.1 requests/sec. No traffic is not a success signal.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: label_replace(label_replace((100 * (sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source",response_code=~"0|5.."}[5m]))
+                  or (0 * sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source"}[5m]))))
+                  / sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source"}[5m])))
+                  and on(cluster,destination_workload_namespace,destination_workload,destination_service_name)
+                  (sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source"}[5m]))
+                  > 0.1), "namespace", "$1", "destination_workload_namespace", "(.*)"), "workload",
+                  "$1", "destination_workload", "(.*)")
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 5
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              scope: workload
+              severity: critical
+            noDataState: OK
+            title: Workload HTTP or transport errors above 5%
+            uid: addons-workload-http-errors
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '110'
+              summary: A container keeps exiting and the kubelet is backing off its restarts.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, namespace, pod, container) (kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Pod in CrashLoopBackOff
+            uid: addons-pod-crash-looping
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '110'
+              summary: Pods are sitting in the Failed phase and nothing is clearing them.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: sum by (cluster, namespace) (kube_pod_status_phase{phase="Failed"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 10m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Pods in Failed phase
+            uid: addons-pods-failed
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '110'
+              summary: A job exhausted its backoffLimit without completing.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, namespace, job_name) (kube_job_failed{condition="true"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 5m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Job failed
+            uid: addons-job-failed
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '119'
+              summary: A PersistentVolumeClaim is running out of space.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: 100 * sum by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
+                  / sum by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 85
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 15m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: PersistentVolume above 85% used
+            uid: addons-pvc-filling-up
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '62'
+              summary: A container exited with Error and restarted. Correlate the termination
+                table with failed probes and node pressure.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: 'max by (cluster, namespace, pod, container, reason) (increase(kube_pod_container_status_restarts_total[10m])
+
+                  * on (cluster, namespace, pod, container) group_left(reason)
+
+                  (kube_pod_container_status_last_terminated_reason{reason="Error"} == 1))
+
+                  '
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 2m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Container restarted after Error
+            uid: addons-pod-exited-error
 
 
   persistence:
@@ -28,7 +582,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
     # URL dashboards are downloaded only at pod startup.
-    checksum/managed-dashboards: "97388dc04b8ed26d9ec25527300753f08337f7a5b6ea30bb12a52a60d059941d"
+    checksum/managed-dashboards: "cb38fca5d976e78929adfcfa970bd0847c510bab363c9ceccf6b08ad2e7e0791"
 
   grafana.ini:
     server:

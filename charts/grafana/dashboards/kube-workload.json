@@ -21,93 +21,195 @@
       }
     ]
   },
-  "description": "Dashboard for Kubernetes Deployment with Prometheus.",
+  "description": "Application health for the selected namespace, controller kind and workload. Current failures are shown first; recent failures remain visible for 10 minutes. Resources include sidecars. Services are narrowed by destination workload; no traffic or missing metrics are not reported as healthy.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
   "id": null,
   "links": [
     {
-      "asDropdown": true,
-      "icon": "external link",
+      "title": "Cluster / node health",
+      "type": "link",
+      "url": "/d/kube-cluster",
       "includeVars": true,
-      "keepTime": false,
-      "tags": [
-        "kubernetes"
-      ],
-      "title": "Dashboards",
-      "type": "dashboards"
+      "keepTime": true,
+      "targetBlank": false
     }
   ],
   "panels": [
     {
+      "id": 100,
+      "type": "row",
+      "title": "Current workload health",
       "collapsed": false,
       "gridPos": {
-        "h": 1,
+        "x": 0,
+        "y": 0,
         "w": 24,
-        "x": 0,
-        "y": 0
+        "h": 1
       },
-      "id": 58,
-      "panels": [],
-      "title": "Workload",
-      "type": "row"
+      "panels": []
     },
     {
+      "id": 121,
+      "title": "State Metrics Reachable",
+      "type": "stat",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
       },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 24,
+        "h": 2
+      },
+      "description": "1 = kube-state-metrics scrape succeeds, 0 = scrape failure, No data = target absent. State-dependent panels cannot prove health while this is unavailable.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "min(up{cluster=~\"$cluster\",job=\"kube-state-metrics\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "No data",
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#e24d42",
-                "value": 0
+                "color": "red",
+                "value": null
               },
               {
-                "color": "#f9934e",
+                "color": "green",
                 "value": 1
-              },
-              {
-                "color": "#e0f9d7",
-                "value": 2
               }
             ]
           },
-          "unit": "none"
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "State collection failing",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "State collection healthy",
+                  "color": "green"
+                }
+              }
+            },
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "State collection missing",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
         },
         "overrides": []
       },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "none",
+        "textMode": "auto",
+        "text": {
+          "valueSize": 20
+        }
+      }
+    },
+    {
+      "id": 101,
+      "title": "Unavailable Replicas",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
       "gridPos": {
-        "h": 5,
+        "x": 0,
+        "y": 3,
         "w": 4,
-        "x": 0,
-        "y": 1
+        "h": 4
       },
-      "id": 46,
-      "maxDataPoints": 100,
+      "description": "Desired minus available for the selected controller kind. Jobs do not have a desired replica count.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(clamp_min((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")) - on (cluster, namespace, workload, workload_type) (max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")), 0))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No replica metrics",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No replica metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -115,85 +217,77 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(kube_deployment_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",deployment=~\"^$workload$\"}) or sum(kube_daemonset_status_number_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",daemonset=~\"^$workload$\"}) or sum(kube_statefulset_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"})",
-          "format": "time_series",
-          "instant": false,
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Available",
-      "type": "stat"
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
     },
     {
+      "id": 102,
+      "title": "Pods With Issues",
+      "type": "stat",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "max": 100,
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "#629e51",
-                "value": 0
-              },
-              {
-                "color": "#f9934e",
-                "value": 65
-              },
-              {
-                "color": "#e24d42",
-                "value": 90
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 5,
-        "w": 6,
         "x": 4,
-        "y": 1
+        "y": 3,
+        "w": 4,
+        "h": 4
       },
-      "id": 31,
-      "maxDataPoints": 100,
+      "description": "Distinct Pods with a current waiting, Pending, Failed or NotReady issue. Zero is supplied only when selected Pod inventory exists; verify the state-collection indicator.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(count by(cluster,namespace,pod) ((max by (cluster, namespace, pod, container, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"}))) or (0 * count(max by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -201,288 +295,81 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto",
-        "text": {}
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 103,
+      "title": "Restarts (10m)",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
       },
-      "pluginVersion": "12.3.1",
+      "gridPos": {
+        "x": 8,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "description": "",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
+            "type": "prometheus",
             "uid": "${datasource}"
           },
-          "exemplar": true,
-          "expr": "100 * sum(rate(container_cpu_usage_seconds_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"}) / sum(kube_pod_container_resource_requests{resource=~\"cpu\",cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
+          "expr": "sum(max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
           "legendFormat": "",
-          "refId": "A"
+          "instant": true,
+          "range": false,
+          "format": "time_series"
         }
       ],
-      "title": "CPU Usage / Requests",
-      "type": "gauge"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 7,
-        "x": 10,
-        "y": 1
-      },
-      "id": 17,
-      "options": {
-        "graph": {},
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": false
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"}) by (pod)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{ pod_name }}",
-          "metric": "container_cpu",
-          "refId": "A",
-          "step": 10
-        }
-      ],
-      "title": "CPU Usage (2m avg)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 7,
-        "x": 17,
-        "y": 1
-      },
-      "id": 54,
-      "options": {
-        "graph": {},
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": false
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "100 * sum by(pod, namespace) (increase(container_cpu_cfs_throttled_periods_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"}) / sum by(pod, namespace) (increase(container_cpu_cfs_periods_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{ pod }}",
-          "metric": "container_cpu",
-          "refId": "A",
-          "step": 10
-        }
-      ],
-      "title": "CPU Throttled (2m avg)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#e24d42",
-                "value": 0
+                "color": "green",
+                "value": null
               },
               {
-                "color": "#f9934e",
+                "color": "orange",
                 "value": 1
               },
               {
-                "color": "#e0f9d7",
-                "value": 2
+                "color": "red",
+                "value": 3
               }
             ]
           },
-          "unit": "none"
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 0,
-        "y": 6
-      },
-      "id": 52,
-      "maxDataPoints": 100,
       "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -490,165 +377,159 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "expr": "sum(kube_deployment_status_replicas_updated{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",deployment=~\"^$workload$\"}) or sum(kube_daemonset_status_updated_number_scheduled{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",daemonset=~\"^$workload$\"}) or sum(kube_statefulset_status_replicas_updated{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Updated",
-      "type": "stat"
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
     },
     {
+      "id": 104,
+      "title": "OOM Restarts (10m)",
+      "type": "stat",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
       },
+      "gridPos": {
+        "x": 12,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "description": "Restart increase whose last termination reason is OOMKilled.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum((max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m])) * on (cluster, namespace, pod, container) max by (cluster, namespace, pod, container) (kube_pod_container_status_last_terminated_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=\"OOMKilled\"} == 1)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})) or (0 * sum(max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#e0f9d7",
-                "value": 0
+                "color": "green",
+                "value": null
               },
               {
-                "color": "#f9934e",
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
+    },
+    {
+      "id": 105,
+      "title": "HTTP / Transport Errors",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 3,
+        "w": 4,
+        "h": 4
+      },
+      "description": "5xx and response code 0. No traffic or no mesh telemetry remains N/A, never 100% successful.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(100 * (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\",response_code=~\"0|5..\"}[5m])) or (0 * sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])))) / sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) and on() (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])) > 0)",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No traffic / metrics",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
                 "value": 1
               },
               {
-                "color": "#e24d42",
+                "color": "red",
                 "value": 5
               }
             ]
           },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 2,
-        "y": 6
-      },
-      "id": 53,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "expr": "sum(kube_deployment_status_replicas_unavailable{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",deployment=~\"^$workload$\"}) or sum(kube_daemonset_status_number_unavailable{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",daemonset=~\"^$workload$\"}) or (sum(kube_statefulset_status_replicas{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"}) - sum(kube_statefulset_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"}))",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Unavailable",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "rgb(31,120,193)",
-            "mode": "fixed"
-          },
-          "decimals": 3,
           "mappings": [
             {
+              "type": "special",
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "N/A"
+                  "text": "No traffic / metrics",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
               }
-            ]
-          },
-          "unit": "none"
+            }
+          ]
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 4,
-        "y": 6
-      },
-      "id": 35,
-      "maxDataPoints": 100,
       "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -656,370 +537,81 @@
           "fields": "",
           "values": false
         },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(container_cpu_usage_seconds_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Usage",
-      "type": "stat"
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
     },
     {
+      "id": 106,
+      "title": "Max Memory / Limit",
+      "type": "stat",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "rgb(31,120,193)",
-            "mode": "fixed"
-          },
-          "decimals": 3,
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 6,
-        "y": 6
-      },
-      "id": 37,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"cpu\",cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Requests",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "rgb(31,120,193)",
-            "mode": "fixed"
-          },
-          "decimals": 3,
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 8,
-        "y": 6
-      },
-      "id": 44,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_limits{resource=~\"cpu\",cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Limits",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 5,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
-            "spanNulls": true,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
+        "x": 20,
+        "y": 3,
         "w": 4,
-        "x": 0,
-        "y": 8
+        "h": 4
       },
-      "id": 27,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.1",
+      "description": "Worst container including sidecars. Only containers with a positive limit participate.",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
+            "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_deployment_status_replicas_updated{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",deployment=~\"^$workload$\"}) or sum(kube_daemonset_status_updated_number_scheduled{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",daemonset=~\"^$workload$\"}) or sum(kube_statefulset_status_replicas_updated{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "updated",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "expr": "sum(kube_deployment_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",deployment=~\"^$workload$\"}) or sum(kube_daemonset_status_number_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",daemonset=~\"^$workload$\"}) or sum(kube_statefulset_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "available",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "expr": "sum(kube_deployment_status_replicas_unavailable{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",deployment=~\"^$workload$\"}) or sum(kube_daemonset_status_number_unavailable{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",daemonset=~\"^$workload$\"}) or (sum(kube_statefulset_status_replicas{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"}) - sum(kube_statefulset_status_replicas_available{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",statefulset=~\"^$workload$\"}))",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "unavailable",
-          "refId": "C"
+          "expr": "max((100 * max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) / on (cluster, namespace, pod, container) (max by (cluster, namespace, pod, container) (kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"}) > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
         }
       ],
-      "title": "Replicas",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
       "fieldConfig": {
         "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No limit / metrics",
           "color": {
             "mode": "thresholds"
           },
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
-          "max": 100,
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
-                "color": "#629e51",
-                "value": 0
+                "color": "green",
+                "value": null
               },
               {
-                "color": "#f9934e",
-                "value": 65
-              },
-              {
-                "color": "#e24d42",
+                "color": "orange",
                 "value": 90
+              },
+              {
+                "color": "red",
+                "value": 95
               }
             ]
           },
-          "unit": "percent"
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No limit / metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 5,
-        "w": 6,
-        "x": 4,
-        "y": 8
-      },
-      "id": 33,
-      "maxDataPoints": 100,
       "options": {
-        "minVizHeight": 75,
-        "minVizWidth": 75,
-        "orientation": "horizontal",
         "reduceOptions": {
           "calcs": [
             "lastNotNull"
@@ -1027,503 +619,589 @@
           "fields": "",
           "values": false
         },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "sizing": "auto",
-        "text": {}
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"}) / sum(kube_pod_container_resource_requests{resource=~\"memory\",cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"}) * 100",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Memory Usage / Requests",
-      "type": "gauge"
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "auto"
+      }
     },
     {
+      "id": 110,
+      "title": "Active pod issues",
+      "type": "table",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
       },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 0,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
       "gridPos": {
-        "h": 7,
-        "w": 7,
-        "x": 10,
-        "y": 8
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 7
       },
-      "id": 25,
-      "options": {
-        "graph": {},
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": false
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.1",
+      "description": "Current Pending, NotReady, crash-loop and image/configuration errors. Empty means no matching issues only while state-metric collection is healthy.",
       "targets": [
         {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"}) by (pod)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "{{ pod_name }}",
-          "metric": "container_memory_usage:sort_desc",
           "refId": "A",
-          "step": 10
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(max by (cluster, namespace, pod, container, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
         }
       ],
-      "title": "Memory Usage",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No matching data",
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No matching data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "workload"
             },
-            "insertNulls": false,
+            "properties": [
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "Inspect this workload",
+                    "url": "/d/kube-workload?var-cluster=${__data.fields.cluster}&var-namespace=${__data.fields.namespace}&var-workload_type=${__data.fields.workload_type}&var-workload=${__value.raw}&from=${__from}&to=${__to}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Active"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "red",
+                      "value": 1
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "decimals",
+                "value": 0
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Active",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "Value": "Active"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 111,
+      "type": "row",
+      "title": "Availability and recent failures",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 27,
+      "title": "Desired / Available / Updated Replicas",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Controller metadata remains visible even when a workload has zero Pods. The selected kind is applied before aggregation.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))",
+          "legendFormat": "desired",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))",
+          "legendFormat": "available",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_updated{cluster=~\"$cluster\",namespace=~\"$namespace\",deployment=~\"$workload\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_updated{cluster=~\"$cluster\",namespace=~\"$namespace\",statefulset=~\"$workload\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_updated_number_scheduled{cluster=~\"$cluster\",namespace=~\"$namespace\",daemonset=~\"$workload\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\")))",
+          "legendFormat": "updated",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
             "lineInterpolation": "linear",
             "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
+            "fillOpacity": 6,
             "spanNulls": false,
+            "showPoints": "never",
             "stacking": {
-              "group": "A",
-              "mode": "none"
+              "mode": "none",
+              "group": "A"
             },
+            "axisPlacement": "auto",
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "line"
             }
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "Bps"
+          }
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 7,
-        "w": 7,
-        "x": 17,
-        "y": 8
-      },
-      "id": 16,
       "options": {
-        "graph": {},
         "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
           "calcs": [
-            "mean",
             "lastNotNull",
-            "max",
-            "min",
-            "sum"
-          ],
-          "displayMode": "list",
-          "placement": "right",
-          "showLegend": false
+            "max"
+          ]
         },
         "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
+          "mode": "multi",
+          "sort": "desc"
         }
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(container_network_receive_bytes_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "receive",
-          "refId": "C"
-        },
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "- sum(rate(container_network_transmit_bytes_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"}[2m]) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "transmit",
-          "refId": "D"
-        }
-      ],
-      "title": "Network I/O Total (2m avg)",
-      "type": "timeseries"
+      }
     },
     {
+      "id": 112,
+      "title": "Restarts by Pod / Container (10m)",
+      "type": "timeseries",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
       },
+      "gridPos": {
+        "x": 12,
+        "y": 15,
+        "w": 12,
+        "h": 7
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\",namespace=~\"$namespace\"}[10m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} / {{container}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
       "fieldConfig": {
         "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
           "color": {
-            "fixedColor": "rgb(31,120,193)",
-            "mode": "fixed"
+            "mode": "palette-classic"
           },
-          "decimals": 2,
-          "mappings": [
-            {
-              "options": {
-                "match": "null",
-                "result": {
-                  "text": "N/A"
-                }
-              },
-              "type": "special"
-            }
-          ],
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
-                "value": 0
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 3
               }
             ]
           },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 4,
-        "y": 13
-      },
-      "id": 39,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(container_memory_working_set_bytes{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Usage",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "rgb(31,120,193)",
-            "mode": "fixed"
-          },
-          "decimals": 2,
           "mappings": [
             {
+              "type": "special",
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "N/A"
+                  "text": "No data",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
+              }
             }
           ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 113,
+      "title": "Failed Probes (5m)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Probe failures can precede restarts. An exporter may omit a failure counter until the first failure.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (cluster, namespace, pod, probe_type) (increase(prober_probe_total{cluster=~\"$cluster\",namespace=~\"$namespace\",result=\"failed\"}[5m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} / {{probe_type}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
-                "value": 0
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
               },
               {
                 "color": "red",
-                "value": 80
+                "value": 3
               }
             ]
           },
-          "unit": "bytes"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 6,
-        "y": 13
-      },
-      "id": 41,
-      "maxDataPoints": 100,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_requests{resource=~\"memory\",cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
-        }
-      ],
-      "title": "Requests",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "fixedColor": "rgb(31,120,193)",
-            "mode": "fixed"
-          },
-          "decimals": 2,
           "mappings": [
             {
+              "type": "special",
               "options": {
                 "match": "null",
                 "result": {
-                  "text": "N/A"
+                  "text": "No data",
+                  "color": "gray"
                 }
-              },
-              "type": "special"
+              }
             }
           ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 114,
+      "title": "Selected Pod Phases",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 22,
+        "w": 12,
+        "h": 7
+      },
+      "description": "Includes terminal Job Pods. Succeeded is not a readiness failure. Empty state data must be checked against telemetry coverage.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (phase)(max by(cluster,namespace,pod,phase)(kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\"}) * on(cluster,namespace,pod) group_left(workload,workload_type) max by(cluster,namespace,pod,workload,workload_type)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "legendFormat": "{{phase}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
+                "value": null
               }
             ]
           },
-          "unit": "bytes"
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 2,
-        "w": 2,
-        "x": 8,
-        "y": 13
-      },
-      "id": 45,
-      "maxDataPoints": 100,
       "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "horizontal",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
           "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
+            "lastNotNull",
+            "max"
+          ]
         },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(kube_pod_container_resource_limits{resource=~\"memory\",cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",container!~\"POD|istio-proxy|\"} * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "",
-          "refId": "A"
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
         }
-      ],
-      "title": "Limits",
-      "type": "stat"
+      }
     },
     {
       "datasource": {
         "uid": "${datasource}"
       },
-      "description": "Why containers of this workload last died. kube-state-metrics keeps the last termination for as long as the pod object lives, so a row is history, not a container that is down right now - read it together with Available and Replicas. istio-proxy is not filtered out the way it is on the usage panels, because a sidecar that gets OOMKilled takes the pod with it.",
+      "description": "Last known termination, which may predate the current time window. Use recent restart/OOM panels above to distinguish current incidents.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1681,10 +1359,10 @@
         ]
       },
       "gridPos": {
-        "h": 6,
-        "w": 24,
         "x": 0,
-        "y": 15
+        "y": 29,
+        "w": 24,
+        "h": 7
       },
       "id": 62,
       "options": {
@@ -1711,7 +1389,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "max by (namespace, workload, pod, container, reason) (kube_pod_container_status_last_terminated_exitcode{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
+          "expr": "max by (cluster, namespace, workload, pod, container, reason) (kube_pod_container_status_last_terminated_exitcode{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(cluster,namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1724,7 +1402,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "max by (namespace, workload, pod, container, reason) (kube_pod_container_status_last_terminated_timestamp{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * 1000 * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
+          "expr": "max by (cluster, namespace, workload, pod, container, reason) (kube_pod_container_status_last_terminated_timestamp{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * 1000 * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(cluster,namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1737,7 +1415,7 @@
           "datasource": {
             "uid": "${datasource}"
           },
-          "expr": "max by (namespace, workload, pod, container, reason) (kube_pod_container_status_restarts_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
+          "expr": "max by (cluster, namespace, workload, pod, container, reason) (kube_pod_container_status_restarts_total{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} * on(cluster,namespace,pod,container) group_left(reason) (kube_pod_container_status_last_terminated_reason{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"} == 1) * on(cluster,namespace,pod) group_left(workload) namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload=~\"^$workload$\",workload_type=\"$workload_type\"})",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1777,393 +1455,1339 @@
           }
         }
       ],
-      "title": "Kill Reason",
+      "title": "Last container termination — reason and time",
       "type": "table"
     },
     {
+      "id": 115,
+      "type": "row",
+      "title": "Container resources — sidecars included",
       "collapsed": false,
       "gridPos": {
-        "h": 1,
+        "x": 0,
+        "y": 36,
         "w": 24,
-        "x": 0,
-        "y": 21
+        "h": 1
       },
-      "id": 51,
-      "panels": [],
-      "title": "Service",
-      "type": "row"
+      "panels": []
     },
     {
+      "id": 17,
+      "title": "CPU Usage by Container",
+      "type": "timeseries",
       "datasource": {
+        "type": "prometheus",
         "uid": "${datasource}"
-      },
-      "description": "Share of requests the gateway saw that did not return 5xx. Redirects and 4xx count as served; the panel goes to \"no traffic\" rather than NaN when the rate is zero.",
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 2,
-          "mappings": [],
-          "max": 100,
-          "min": 0,
-          "noValue": "no traffic",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "red",
-                "value": 0
-              },
-              {
-                "color": "orange",
-                "value": 95
-              },
-              {
-                "color": "green",
-                "value": 99
-              }
-            ]
-          },
-          "unit": "percent"
-        },
-        "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 4,
         "x": 0,
-        "y": 22
+        "y": 37,
+        "w": 12,
+        "h": 8
       },
-      "id": 56,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "value",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
+      "description": "",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
+            "type": "prometheus",
             "uid": "${datasource}"
           },
-          "exemplar": true,
-          "expr": "(sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\",response_code!~\"5..\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) * 100) and on() (sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) > 0)",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "rate",
-          "refId": "C"
+          "expr": "max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} / {{container}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
         }
       ],
-      "title": "Success Rate non-5xx (5m avg)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              }
-            ]
-          },
-          "unit": "reqps"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 6,
-        "x": 4,
-        "y": 22
-      },
-      "id": 55,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
-        "percentChangeColorMode": "standard",
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showPercentChange": false,
-        "text": {},
-        "textMode": "auto",
-        "wideLayout": true
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m]))",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "requests",
-          "refId": "C"
-        }
-      ],
-      "title": "Requests Total (5m avg)",
-      "type": "stat"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
+          "unit": "cores",
+          "decimals": 1,
+          "noValue": "No data",
           "color": {
             "mode": "palette-classic"
           },
-          "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
-            "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
-            "lineInterpolation": "linear",
-            "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
-            "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
-          },
-          "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
               {
                 "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
+                "value": null
               }
             ]
           },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 7,
-        "w": 7,
-        "x": 10,
-        "y": 22
-      },
-      "id": 59,
-      "options": {
-        "legend": {
-          "calcs": [],
-          "displayMode": "list",
-          "placement": "bottom",
-          "showLegend": true
-        },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "multi",
-          "sort": "none"
-        }
-      },
-      "pluginVersion": "12.3.1",
-      "targets": [
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "histogram_quantile(0.99, sum(rate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "p99",
-          "refId": "A"
-        },
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "histogram_quantile(0.90, sum(rate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "p90",
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "uid": "${datasource}"
-          },
-          "exemplar": true,
-          "expr": "histogram_quantile(0.50, sum(rate(istio_request_duration_milliseconds_bucket{cluster=~\"^$cluster$\",reporter=\"source\", destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m])) by (le)) / 1000",
-          "format": "time_series",
-          "interval": "",
-          "intervalFactor": 1,
-          "legendFormat": "p50",
-          "refId": "C"
-        }
-      ],
-      "title": "Requests Duration (5m avg)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "uid": "${datasource}"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
           "custom": {
-            "axisBorderShow": false,
-            "axisCenteredZero": false,
-            "axisColorMode": "text",
-            "axisLabel": "",
-            "axisPlacement": "auto",
-            "barAlignment": 0,
-            "barWidthFactor": 0.6,
             "drawStyle": "line",
-            "fillOpacity": 10,
-            "gradientMode": "none",
-            "hideFrom": {
-              "legend": false,
-              "tooltip": false,
-              "viz": false
-            },
-            "insertNulls": false,
             "lineInterpolation": "linear",
             "lineWidth": 1,
-            "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
-            "showPoints": "never",
-            "showValues": false,
+            "fillOpacity": 6,
             "spanNulls": false,
+            "showPoints": "never",
             "stacking": {
-              "group": "A",
-              "mode": "normal"
+              "mode": "none",
+              "group": "A"
             },
+            "axisPlacement": "auto",
             "thresholdsStyle": {
-              "mode": "off"
+              "mode": "line"
             }
-          },
-          "mappings": [],
-          "min": 0,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
-            ]
-          },
-          "unit": "reqps"
+          }
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 7,
-        "w": 7,
-        "x": 17,
-        "y": 22
-      },
-      "id": 61,
       "options": {
         "legend": {
-          "calcs": [],
-          "displayMode": "list",
+          "showLegend": true,
+          "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
         },
         "tooltip": {
-          "hideZeros": false,
           "mode": "multi",
           "sort": "desc"
         }
+      }
+    },
+    {
+      "id": 54,
+      "title": "CPU Throttled Periods",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
       },
-      "pluginVersion": "12.3.1",
+      "gridPos": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 8
+      },
+      "description": "Throttled scheduling periods as a percentage of all periods; zero denominators are excluded.",
       "targets": [
         {
+          "refId": "A",
           "datasource": {
+            "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (response_code) (rate(istio_requests_total{reporter=\"source\",cluster=~\"^$cluster$\",destination_service=~\"^$service.$namespace.svc.cluster.local\"}[5m]))",
-          "legendFormat": "{{response_code}}",
-          "refId": "A"
+          "expr": "(100 * max by (cluster, namespace, pod, container) (rate(container_cpu_cfs_throttled_periods_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) / on (cluster, namespace, pod, container) (max by (cluster, namespace, pod, container) (rate(container_cpu_cfs_periods_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} / {{container}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
         }
       ],
-      "title": "Requests by Response Code (5m avg)",
-      "type": "timeseries"
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 25
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 25,
+      "title": "Memory Working Set by Container",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 45,
+        "w": 12,
+        "h": 8
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} / {{container}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 116,
+      "title": "Memory / Limit by Container",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 45,
+        "w": 12,
+        "h": 8
+      },
+      "description": "No limit is represented by missing data, not 0% usage.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(100 * max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) / on (cluster, namespace, pod, container) (max by (cluster, namespace, pod, container) (kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"}) > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} / {{container}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 90
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 117,
+      "title": "Container usage and reservations",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 53,
+        "w": 24,
+        "h": 8
+      },
+      "description": "Requests reserve scheduling capacity; limits bound a container. Blank requests or limits are not zero utilization.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (rate(container_cpu_usage_seconds_total{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}[2m])) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\",container!=\"\",container!=\"POD\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"cpu\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "D",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (kube_pod_container_resource_requests{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "E",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster, namespace, pod, container) (kube_pod_container_resource_limits{cluster=~\"$cluster\",namespace=~\"$namespace\",resource=\"memory\"}) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No matching data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No matching data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU cores"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "cores"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "cores"
+              },
+              {
+                "id": "noValue",
+                "value": "Not set"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory used"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory request"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "noValue",
+                "value": "Not set"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Memory limit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              },
+              {
+                "id": "noValue",
+                "value": "Not set"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "CPU cores",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "Value #A": "CPU cores",
+              "Value #B": "Memory used",
+              "Value #C": "CPU request",
+              "Value #D": "Memory request",
+              "Value #E": "Memory limit"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 51,
+      "type": "row",
+      "title": "Service traffic for the selected destination workload",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 61,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 55,
+      "title": "HTTP Request Rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 62,
+        "w": 8,
+        "h": 8
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by(destination_service_name) (rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))",
+          "legendFormat": "{{destination_service_name}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 56,
+      "title": "HTTP / Transport Error Rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 62,
+        "w": 8,
+        "h": 8
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "(100 * (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\",response_code=~\"0|5..\"}[5m])) or (0 * sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])))) / sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) and on() (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])) > 0)",
+          "legendFormat": "errors",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "No traffic / metrics",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No traffic / metrics",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 59,
+      "title": "Request Latency",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 62,
+        "w": 8,
+        "h": 8
+      },
+      "description": "Latency is only available for instrumented HTTP services.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.99,sum by(le)(rate(istio_request_duration_milliseconds_bucket{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) / 1000",
+          "legendFormat": "p99",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95,sum by(le)(rate(istio_request_duration_milliseconds_bucket{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) / 1000",
+          "legendFormat": "p95",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.5,sum by(le)(rate(istio_request_duration_milliseconds_bucket{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) / 1000",
+          "legendFormat": "p50",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 61,
+      "title": "Responses by Code",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 70,
+        "w": 12,
+        "h": 7
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by(response_code)(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))",
+          "legendFormat": "{{response_code}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "title": "Pod Network I/O",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 70,
+        "w": 12,
+        "h": 7
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (cluster, namespace, pod) (max by (cluster, namespace, pod, interface)(rate(container_network_receive_bytes_total{cluster=~\"$cluster\",namespace=~\"$namespace\",interface!=\"lo\"}[2m]))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} receive",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (cluster, namespace, pod) (max by (cluster, namespace, pod, interface)(rate(container_network_transmit_bytes_total{cluster=~\"$cluster\",namespace=~\"$namespace\",interface!=\"lo\"}[2m]))) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})",
+          "legendFormat": "{{namespace}} / {{pod}} transmit",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "decimals": 1,
+          "noValue": "No data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No data",
+                  "color": "gray"
+                }
+              }
+            }
+          ],
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "fillOpacity": 6,
+            "spanNulls": false,
+            "showPoints": "never",
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 118,
+      "type": "row",
+      "title": "Persistent storage",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 77,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 119,
+      "title": "PVC utilization",
+      "type": "table",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 78,
+        "w": 24,
+        "h": 6
+      },
+      "description": "Only claims referenced by selected workload Pods. Missing storage metrics are not healthy zero usage.",
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * (max by (cluster,namespace,persistentvolumeclaim)(kubelet_volume_stats_used_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\"}) and on(cluster,namespace,persistentvolumeclaim) max by (cluster,namespace,persistentvolumeclaim)(kube_pod_spec_volumes_persistentvolumeclaims_info{cluster=~\"$cluster\",namespace=~\"$namespace\"} * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))) / on(cluster,namespace,persistentvolumeclaim) (max by (cluster,namespace,persistentvolumeclaim)(kubelet_volume_stats_capacity_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\"}) and on(cluster,namespace,persistentvolumeclaim) max by (cluster,namespace,persistentvolumeclaim)(kube_pod_spec_volumes_persistentvolumeclaims_info{cluster=~\"$cluster\",namespace=~\"$namespace\"} * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"})))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "max by (cluster,namespace,persistentvolumeclaim)(kubelet_volume_stats_available_bytes{cluster=~\"$cluster\",namespace=~\"$namespace\"}) and on(cluster,namespace,persistentvolumeclaim) max by (cluster,namespace,persistentvolumeclaim)(kube_pod_spec_volumes_persistentvolumeclaims_info{cluster=~\"$cluster\",namespace=~\"$namespace\"} * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"}))",
+          "legendFormat": "",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 1,
+          "noValue": "No matching data",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "mappings": [
+            {
+              "type": "special",
+              "options": {
+                "match": "null",
+                "result": {
+                  "text": "No matching data",
+                  "color": "gray"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green",
+                      "value": null
+                    },
+                    {
+                      "color": "orange",
+                      "value": 85
+                    },
+                    {
+                      "color": "red",
+                      "value": 95
+                    }
+                  ]
+                }
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background"
+                }
+              },
+              {
+                "id": "color",
+                "value": {
+                  "mode": "thresholds"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Available"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Used %",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "renameByName": {
+              "Value #A": "Used %",
+              "Value #B": "Available"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 120,
+      "type": "row",
+      "title": "Workload logs",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 84,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
     },
     {
       "datasource": {
         "type": "loki",
         "uid": "${logs}"
       },
-      "description": "Log volume from Loki, not Prometheus - this panel uses the $logs datasource.",
+      "description": "Pod names are resolved from controller ownership, including StatefulSets and CronJobs; no workload-name prefix matching.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -2222,10 +2846,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 7,
-        "w": 10,
         "x": 0,
-        "y": 29
+        "y": 85,
+        "w": 24,
+        "h": 8
       },
       "id": 60,
       "options": {
@@ -2249,7 +2873,7 @@
             "uid": "${logs}"
           },
           "exemplar": true,
-          "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",stream=\"stderr\",pod=~\"^$workload-.*\",container!~\"istio-proxy\"}[2m])) by (pod)",
+          "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",stream=\"stderr\",pod=~\"^$pod$\"}[2m])) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2262,7 +2886,7 @@
             "uid": "${logs}"
           },
           "exemplar": true,
-          "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$workload-.*\",container!~\"istio-proxy\"} |~ \"error|ERROR\" [2m])) by (pod)",
+          "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$pod$\"} |~ \"error|ERROR\" [2m])) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2275,7 +2899,7 @@
             "uid": "${logs}"
           },
           "exemplar": true,
-          "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$workload-.*\",container!~\"istio-proxy\"} |~ \"warn|WARN\" [2m])) by (pod)",
+          "expr": "sum(count_over_time({cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$pod$\"} |~ \"warn|WARN\" [2m])) by (pod)",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -2283,7 +2907,7 @@
           "refId": "C"
         }
       ],
-      "title": "error/warn/stderr",
+      "title": "Errors / warnings / stderr by selected Pod",
       "type": "timeseries"
     }
   ],
@@ -2299,7 +2923,7 @@
       {
         "current": {
           "text": "Prometheus",
-          "value": "Prometheus"
+          "value": "prometheus"
         },
         "includeAll": false,
         "name": "datasource",
@@ -2312,7 +2936,7 @@
       {
         "current": {
           "text": "Loki",
-          "value": "Loki"
+          "value": "loki"
         },
         "includeAll": false,
         "name": "logs",
@@ -2347,15 +2971,15 @@
       {
         "allValue": ".*",
         "current": {
-          "text": "sample",
-          "value": "sample"
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${datasource}"
         },
         "definition": "label_values(kube_namespace_labels{cluster=~\"^$cluster$\"},namespace)",
-        "includeAll": false,
+        "includeAll": true,
         "name": "namespace",
         "options": [],
         "query": {
@@ -2368,22 +2992,17 @@
         "type": "query"
       },
       {
+        "name": "workload_type",
+        "label": "Kind",
+        "type": "custom",
+        "query": "deployment,statefulset,daemonset,CronJob,Job",
         "current": {
           "text": "deployment",
           "value": "deployment"
         },
-        "definition": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\"},workload_type)",
-        "includeAll": false,
-        "name": "workload_type",
         "options": [],
-        "query": {
-          "query": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\"},workload_type)",
-          "refId": "StandardVariableQuery"
-        },
-        "refresh": 1,
-        "regex": "",
-        "sort": 1,
-        "type": "query"
+        "multi": false,
+        "includeAll": false
       },
       {
         "allValue": ".*",
@@ -2391,18 +3010,22 @@
           "text": "All",
           "value": "$__all"
         },
-        "definition": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload_type=\"$workload_type\"},workload)",
+        "definition": "query_result(max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_labels{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_labels{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_labels{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\") or label_replace(label_replace(kube_cronjob_info{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"cronjob\", \"(.*)\"), \"workload_type\", \"CronJob\", \"\", \"\") or max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\"})) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\"))",
         "includeAll": true,
         "name": "workload",
         "options": [],
         "query": {
-          "query": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\",workload_type=\"$workload_type\"},workload)",
-          "refId": "StandardVariableQuery"
+          "query": "query_result(max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_labels{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_labels{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_labels{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\") or label_replace(label_replace(kube_cronjob_info{cluster=~\"$cluster\",namespace=~\"$namespace\"}, \"workload\", \"$1\", \"cronjob\", \"(.*)\"), \"workload_type\", \"CronJob\", \"\", \"\") or max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\"})) and on (workload_type) label_replace(vector(1), \"workload_type\", \"$workload_type\", \"\", \"\"))",
+          "refId": "workload-variable"
         },
         "refresh": 2,
-        "regex": "",
+        "regex": "/workload=\"([^\"]+)\"/",
         "sort": 1,
-        "type": "query"
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        }
       },
       {
         "allValue": ".*",
@@ -2414,18 +3037,41 @@
           "type": "prometheus",
           "uid": "${datasource}"
         },
-        "definition": "label_values(kube_service_labels{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"},service)",
+        "definition": "label_values(istio_requests_total{cluster=~\"$cluster\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\"}, destination_service_name)",
         "includeAll": true,
         "name": "service",
         "options": [],
         "query": {
-          "query": "label_values(kube_service_labels{cluster=~\"^$cluster$\",namespace=~\"^$namespace$\"},service)",
-          "refId": "StandardVariableQuery"
+          "query": "label_values(istio_requests_total{cluster=~\"$cluster\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\"}, destination_service_name)",
+          "refId": "service-variable"
         },
         "refresh": 2,
         "regex": "",
         "sort": 1,
         "type": "query"
+      },
+      {
+        "name": "pod",
+        "type": "query",
+        "hide": 2,
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"},pod)",
+        "query": {
+          "query": "label_values(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=\"$workload_type\"},pod)",
+          "refId": "workload-pods"
+        },
+        "includeAll": true,
+        "multi": true,
+        "refresh": 2,
+        "regex": "",
+        "options": [],
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        }
       }
     ]
   },
@@ -2450,5 +3096,5 @@
   "timezone": "browser",
   "title": "Kubernetes Workload - Prometheus",
   "uid": "kube-workload",
-  "version": 1
+  "version": 2
 }

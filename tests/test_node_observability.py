@@ -33,6 +33,10 @@ def test_node_alerts_evaluate_the_rendered_queries(rendered_grafana, tmp_path):
         rules.append({"alert": rule["uid"], "expr": f'({query["model"]["expr"]}) {operator} {evaluator["params"][0]}', "for": rule["for"]})
     (tmp_path / "rules.yaml").write_text(yaml.safe_dump({"groups": [{"name": "node-health", "interval": "30s", "rules": rules}]}))
     shutil.copy(ROOT / "tests/node-health-alerts.test.yaml", tmp_path / "tests.yaml")
+    run_promtool(tmp_path)
+
+
+def run_promtool(tmp_path):
     if shutil.which("promtool"):
         command = ["promtool"]
     elif shutil.which("docker") and subprocess.run(

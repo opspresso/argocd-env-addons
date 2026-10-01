@@ -99,3 +99,47 @@ python3 -m pytest -q tests/test_node_observability.py
 Grafana 자체가 멈추면 Grafana 경보도 평가·전송할 수 없다. 독립된 외부 감시에서
 Grafana·Prometheus 도달성과 알림 heartbeat를 확인해야 전체 알림 경로까지 보장할 수 있다.
 코드·PromQL 검증은 Slack 전달 성공을 대신하지 않는다.
+
+## 두 대시보드의 역할
+
+`kube-cluster`는 노드와 모니터링 기반 시설을 다룬다. 상단의 현재 위험 지표와 노드별 표에서
+문제 노드를 찾고, 아래에서 메모리·커널·PSI·swap·수집 상태·노드별 재시작을 확인한다.
+스케줄링 예약량은 별도 영역에 두며, 물리 NIC의 네트워크와 쓰기 가능한 root/data 디스크를
+집계한다. 변경 가능한 exporter 라벨은 시계열에서 제거해 배포 전후 동일 instance가
+서로 다른 선으로 표시되지 않게 한다. NotReady/Unknown이 1분 유지되면 critical,
+노드 CPU 사용률이 90%를 10분 초과하면 warning 알림을 보낸다.
+
+`kube-workload`는 namespace·종류·workload로 선택한 애플리케이션을 다룬다.
+Deployment·StatefulSet·DaemonSet의 복제본은 해당 종류의 메타데이터로 계산하므로,
+Pod가 하나도 없어도 전체 중단을 감지하며 같은 이름의 다른 종류로 대체하지 않는다.
+Pod·컨테이너 조인은 cluster와 namespace를 포함한다. CronJob·Job에는 복제본 목표 대신
+Pod phase와 실패 사유를 사용하며 replica 패널은 `No replica metrics`로 표시한다.
+
+상단은 수집 상태, 부족한 복제본, NotReady Pod, 최근 재시작·OOM, 서비스 오류와
+최악 컨테이너의 memory/limit을 보여준다. 아래에는 현재 Pod 문제, 복제본 추이,
+종료 사유와 시간, sidecar를 포함한 컨테이너별 자원, 서비스·PVC·로그가 이어진다.
+요청량은 실사용량과 구별하며, limit이 없거나 HTTP 트래픽이 없으면 정상 0%로 표시하지 않는다.
+로그 Pod 목록도 이름 접두사 대신 owner recording rule에서 구한다.
+
+서비스 패널은 Istio의 destination workload·namespace·service를 사용한다. HTTP 5xx와
+transport code `0`을 실패로 계산한다. 메시에 관측되지 않는 요청은 표시할 수 없으며,
+HTTP 수치가 없어도 replica·Pod 상태는 별도로 확인해야 한다. kube-state-metrics 수집 실패 시
+상단 수집 상태와 클러스터 경보를 먼저 확인한다.
+
+워크로드 경보는 `config/workload-health-alerts.yaml`이 단일 원천이다. 기존 workload 규칙도
+같은 파일에서 관리하며 UID를 유지해 파일 간 중복 선언을 피한다. 기존 Slack 정책을 사용한다.
+
+| 이슈 | 경보 조건 |
+| --- | --- |
+| 전체 복제본 중단 | desired >0이고 available=0인 상태 1분, critical |
+| 일부 복제본 부족 | available >0인 부분 가용 상태에서 부족이 3분 지속, warning |
+| OOM | 최근 10분 restart 증가와 마지막 OOMKilled 사유 확인 즉시, critical |
+| 이미지·설정·runtime 오류 | container waiting reason이 2분 유지, critical |
+| CrashLoopBackOff | 2분 유지, warning |
+| 컨테이너 메모리 여유 부족 | 양수 limit 대비 working set >90%가 5분 유지, warning |
+| HTTP·transport 오류 | 0.1 req/s 초과 트래픽에서 오류율 >5%가 2분 유지, critical |
+
+경보 링크는 해당 대시보드·패널을 가리킨다. owner가 확인되는 경보에는 namespace·종류·workload를
+선택한 `dashboard_url`도 포함한다. 이 링크의 Grafana label template은 Helm `tpl`을 통과하도록
+명시적으로 escape한다. 신규 규칙 검사는 전체 중단·scale-to-zero·다른 종류/클러스터의 같은 이름,
+100% HTTP 실패·트래픽 없음·limit 없음·OOM을 실제 PromQL 평가기로 구분한다.

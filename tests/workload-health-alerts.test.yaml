@@ -1,0 +1,276 @@
+rule_files:
+- rules.yaml
+evaluation_interval: 30s
+tests:
+- name: zero Pods still alert and same-name Deployment or another cluster cannot hide the StatefulSet outage
+  interval: 1m
+  input_series:
+  - series: kube_statefulset_replicas{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 2+0x10
+  - series: kube_statefulset_status_replicas_available{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 0+0x10
+  - series: kube_deployment_spec_replicas{cluster="demo",namespace="apps",deployment="shared"}
+    values: 3+0x10
+  - series: kube_deployment_status_replicas_available{cluster="demo",namespace="apps",deployment="shared"}
+    values: 3+0x10
+  - series: kube_statefulset_replicas{cluster="other",namespace="apps",statefulset="shared"}
+    values: 2+0x10
+  - series: kube_statefulset_status_replicas_available{cluster="other",namespace="apps",statefulset="shared"}
+    values: 2+0x10
+  - series: kube_statefulset_labels{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 1+0x10
+  alert_rule_test:
+  - eval_time: 2m
+    alertname: addons-workload-unavailable
+    exp_alerts:
+    - exp_labels: &id001
+        cluster: demo
+        namespace: apps
+        workload: shared
+        workload_type: statefulset
+  - eval_time: 4m
+    alertname: addons-deployment-replicas-unavailable
+    exp_alerts: []
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 101
+      ref: A
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 2
+  - dashboard_query:
+      panel_id: 27
+      ref: B
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 0
+  - dashboard_variable: workload
+    eval_time: 4m
+    exp_samples:
+    - labels: '{cluster="demo",namespace="apps",workload="shared",workload_type="statefulset"}'
+      value: 1
+- name: scaled-to-zero controllers are not outages
+  interval: 1m
+  input_series:
+  - series: kube_statefulset_replicas{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 0+0x10
+  - series: kube_statefulset_status_replicas_available{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 0+0x10
+  alert_rule_test:
+  - eval_time: 5m
+    alertname: addons-workload-unavailable
+    exp_alerts: []
+  - eval_time: 5m
+    alertname: addons-deployment-replicas-unavailable
+    exp_alerts: []
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 101
+      ref: A
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 0
+- name: partial availability warns after three minutes
+  interval: 1m
+  input_series:
+  - series: kube_statefulset_replicas{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 3+0x10
+  - series: kube_statefulset_status_replicas_available{cluster="demo",namespace="apps",statefulset="shared"}
+    values: 1+0x10
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: addons-workload-unavailable
+    exp_alerts: []
+  - eval_time: 4m
+    alertname: addons-deployment-replicas-unavailable
+    exp_alerts:
+    - exp_labels: *id001
+- name: OOM alerts immediately with owner context and retains unmanaged Pod coverage
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
+    values: 1+0x10
+  - series: kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="shared-0",container="app"}
+    values: 0 1+0x9
+  - series: kube_pod_container_status_last_terminated_reason{cluster="demo",namespace="apps",pod="shared-0",container="app",reason="OOMKilled"}
+    values: 1+0x10
+  - series: kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="bare",container="app"}
+    values: 0 1+0x9
+  - series: kube_pod_container_status_last_terminated_reason{cluster="demo",namespace="apps",pod="bare",container="app",reason="OOMKilled"}
+    values: 1+0x10
+  alert_rule_test:
+  - eval_time: 2m
+    alertname: addons-pod-oom-killed
+    exp_alerts:
+    - exp_labels:
+        cluster: demo
+        namespace: apps
+        pod: shared-0
+        container: app
+        workload: shared
+        workload_type: statefulset
+    - exp_labels:
+        cluster: demo
+        namespace: apps
+        pod: bare
+        container: app
+- name: image pull failure retains namespace workload and reason
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
+    values: 1+0x10
+  - series: kube_pod_container_status_waiting_reason{cluster="demo",namespace="apps",pod="shared-0",container="app",reason="ImagePullBackOff"}
+    values: 1+0x10
+  - series: kube_pod_info{cluster="demo",namespace="apps",pod="shared-0",node="node-a"}
+    values: 1+0x10
+  alert_rule_test:
+  - eval_time: 3m
+    alertname: addons-workload-start-failed
+    exp_alerts:
+    - exp_labels:
+        cluster: demo
+        namespace: apps
+        pod: shared-0
+        container: app
+        reason: ImagePullBackOff
+        workload: shared
+        workload_type: statefulset
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 110
+    eval_time: 3m
+    exp_samples:
+    - labels: '{cluster="demo",namespace="apps",pod="shared-0",container="app",node="node-a",reason="ImagePullBackOff",workload="shared",workload_type="statefulset"}'
+      value: 1
+  - dashboard_query:
+      panel_id: 102
+    eval_time: 3m
+    exp_samples:
+    - labels: '{}'
+      value: 1
+- name: memory above limit warns per container including sidecars
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
+    values: 1+0x10
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="apps",pod="shared-0",container="istio-proxy"}
+    values: 950+0x10
+  - series: kube_pod_container_resource_limits{cluster="demo",namespace="apps",pod="shared-0",container="istio-proxy",resource="memory"}
+    values: 1000+0x10
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: addons-workload-memory-limit
+    exp_alerts:
+    - exp_labels:
+        cluster: demo
+        namespace: apps
+        pod: shared-0
+        container: istio-proxy
+        workload: shared
+        workload_type: statefulset
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 106
+      ref: A
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 95
+- name: missing and zero limits are excluded instead of becoming healthy zero or infinity
+  interval: 1m
+  input_series:
+  - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="shared-0",workload="shared",workload_type="statefulset"}
+    values: 1+0x10
+  - series: container_memory_working_set_bytes{cluster="demo",namespace="apps",pod="shared-0",container="app"}
+    values: 950+0x10
+  - series: kube_pod_container_resource_limits{cluster="demo",namespace="apps",pod="shared-0",container="app",resource="memory"}
+    values: 0+0x10
+  - series: kube_pod_container_resource_limits{cluster="other",namespace="apps",pod="shared-0",container="app",resource="memory"}
+    values: 1000+0x10
+  alert_rule_test:
+  - eval_time: 6m
+    alertname: addons-workload-memory-limit
+    exp_alerts: []
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 106
+      ref: A
+    eval_time: 4m
+    exp_samples: []
+- name: 100 percent HTTP failures have a numerator even without any successful series
+  interval: 1m
+  input_series:
+  - series: istio_requests_total{cluster="demo",reporter="source",destination_workload_namespace="apps",destination_workload="shared",destination_service_name="shared",response_code="500"}
+    values: 0+60x10
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: addons-workload-http-errors
+    exp_alerts:
+    - exp_labels: &id002
+        cluster: demo
+        destination_workload_namespace: apps
+        destination_workload: shared
+        destination_service_name: shared
+        namespace: apps
+        workload: shared
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 105
+      ref: A
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 100
+- name: transport response code zero is a failure
+  interval: 1m
+  input_series:
+  - series: istio_requests_total{cluster="demo",reporter="source",destination_workload_namespace="apps",destination_workload="shared",destination_service_name="shared",response_code="0"}
+    values: 0+60x10
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: addons-workload-http-errors
+    exp_alerts:
+    - exp_labels: *id002
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 105
+      ref: A
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 100
+- name: traffic-free services are neither unhealthy nor proven healthy
+  interval: 1m
+  input_series:
+  - series: istio_requests_total{cluster="demo",reporter="source",destination_workload_namespace="apps",destination_workload="shared",destination_service_name="shared",response_code="200"}
+    values: 0+0x10
+  alert_rule_test:
+  - eval_time: 4m
+    alertname: addons-workload-http-errors
+    exp_alerts: []
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 105
+      ref: A
+    eval_time: 4m
+    exp_samples: []
+- name: another namespace and workload do not pollute the selected service error panel
+  interval: 1m
+  input_series:
+  - series: istio_requests_total{cluster="demo",reporter="source",destination_workload_namespace="apps",destination_workload="shared",destination_service_name="shared",response_code="200"}
+    values: 0+60x10
+  - series: istio_requests_total{cluster="demo",reporter="source",destination_workload_namespace="other",destination_workload="shared",destination_service_name="shared",response_code="500"}
+    values: 0+60x10
+  - series: istio_requests_total{cluster="demo",reporter="source",destination_workload_namespace="apps",destination_workload="other",destination_service_name="shared",response_code="500"}
+    values: 0+60x10
+  promql_expr_test:
+  - dashboard_query:
+      panel_id: 105
+      ref: A
+    eval_time: 4m
+    exp_samples:
+    - labels: '{}'
+      value: 0

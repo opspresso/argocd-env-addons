@@ -1,4 +1,3 @@
-# EKS-only Grafana rules; notifications use the existing policy and contact point.
 apiVersion: 1
 groups:
 - orgId: 1
@@ -14,6 +13,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: warning
+      scope: cluster
     annotations:
       summary: Host memory availability is below 15%. Inspect kernel vmalloc, PSI and swap; pod working sets do
         not include all host memory.
@@ -56,6 +56,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: critical
+      scope: cluster
     annotations:
       summary: Host memory availability is below 8%. Add capacity and move workloads before probe failures spread.
       __dashboardUid__: kube-cluster
@@ -97,6 +98,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: warning
+      scope: cluster
     annotations:
       summary: Large kernel allocations reduce workload headroom. Inspect BPF maps and vmalloc growth; process or
         pod restarts may not reclaim them.
@@ -139,6 +141,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: warning
+      scope: cluster
     annotations:
       summary: Kernel vmalloc grew by more than 256 MiB compared with six hours ago. Requires six hours of history;
         inspect BPF lifecycle cleanup before host memory is exhausted.
@@ -182,6 +185,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: warning
+      scope: cluster
     annotations:
       summary: Tasks spend more than 10% of wall time waiting on memory. Correlate swap, vmalloc and load; PSI requires
         kernel support.
@@ -224,6 +228,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: warning
+      scope: cluster
     annotations:
       summary: A core target failed a scrape within the last two minutes. Short node stalls can recover before a
         pending period elapses; inspect the scrape-health panel.
@@ -266,6 +271,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: critical
+      scope: cluster
     annotations:
       summary: More than two container restarts on the same node within 10 minutes. Check node pressure and liveness
         failures even when exit reason is Completed.
@@ -309,6 +315,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: critical
+      scope: cluster
     annotations:
       summary: More than two failed liveness checks within 5 minutes on one kubelet. Check host pressure and networking
         before restarting applications.
@@ -353,6 +360,7 @@ groups:
     execErrState: Alerting
     labels:
       severity: critical
+      scope: cluster
     annotations:
       summary: A required EKS monitoring job disappeared from service discovery. Check ServiceMonitor selection
         and target discovery; an empty result for this absent() rule means all required jobs exist.
@@ -387,3 +395,88 @@ groups:
             type: gt
             params:
             - 0
+  - uid: addons-node-not-ready
+    title: Kubernetes node is not Ready
+    condition: C
+    for: 1m
+    noDataState: NoData
+    execErrState: Alerting
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: A Kubernetes node is NotReady or Unknown. Inspect its lease, host pressure and network before moving
+        workloads.
+      __dashboardUid__: kube-cluster
+      __panelId__: '106'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster,node) (kube_node_status_condition{condition="Ready",status=~"false|unknown"})
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-node-cpu-busy
+    title: Node CPU busy above 90%
+    condition: C
+    for: 10m
+    noDataState: NoData
+    execErrState: Alerting
+    labels:
+      severity: warning
+      scope: cluster
+    annotations:
+      summary: A node is CPU busy for ten minutes. Inspect workload CPU, throttling and load before increasing capacity.
+      __dashboardUid__: kube-cluster
+      __panelId__: '111'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: 100 * (1 - avg by(cluster,instance)(rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[2m])))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 90

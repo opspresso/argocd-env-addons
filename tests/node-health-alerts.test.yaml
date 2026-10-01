@@ -152,3 +152,32 @@ tests:
         alertname: addons-node-liveness-burst
         exp_alerts:
           - exp_labels: {cluster: demo, instance: 'bad:10250'}
+
+  - name: NotReady nodes alert while a healthy node remains silent
+    interval: 30s
+    input_series:
+    - series: kube_node_status_condition{cluster="demo",node="bad",condition="Ready",status="false"}
+      values: 1+0x10
+    - series: kube_node_status_condition{cluster="demo",node="good",condition="Ready",status="false"}
+      values: 0+0x10
+    alert_rule_test:
+    - eval_time: 2m
+      alertname: addons-node-not-ready
+      exp_alerts:
+      - exp_labels:
+          cluster: demo
+          node: bad
+  - name: sustained CPU contention alerts per host
+    interval: 30s
+    input_series:
+    - series: node_cpu_seconds_total{cluster="demo",instance="bad:9100",job="node-exporter",mode="idle",cpu="0"}
+      values: 0+1x30
+    - series: node_cpu_seconds_total{cluster="demo",instance="good:9100",job="node-exporter",mode="idle",cpu="0"}
+      values: 0+25x30
+    alert_rule_test:
+    - eval_time: 12m
+      alertname: addons-node-cpu-busy
+      exp_alerts:
+      - exp_labels:
+          cluster: demo
+          instance: bad:9100
