@@ -38,7 +38,9 @@ def test_node_alerts_evaluate_the_rendered_queries(rendered_grafana, tmp_path):
     elif shutil.which("docker") and subprocess.run(
         ["docker", "image", "inspect", PROMETHEUS_IMAGE], capture_output=True,
     ).returncode == 0:
-        command = ["docker", "run", "--rm", "--pull=never", "-v", f"{tmp_path}:/work", "-w", "/work",
+        # pytest creates mode-0700 directories; use their owner on Linux too.
+        command = ["docker", "run", "--rm", "--pull=never", "--user", f"{os.getuid()}:{os.getgid()}",
+                   "-v", f"{tmp_path}:/work:ro", "-w", "/work",
                    "--entrypoint=/bin/promtool", PROMETHEUS_IMAGE]
     else:
         pytest.skip("promtool or the pinned local Prometheus image is required; no implicit download")
