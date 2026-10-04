@@ -15,6 +15,13 @@ alloy:
               password = sys.env("GCLOUD_RW_API_KEY")
             }
 
+            // Apply the same policy to any samples replayed from the existing WAL.
+            write_relabel_config {
+              source_labels = ["job", "__name__"]
+              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
+              action = "keep"
+            }
+
 
           }
         }
