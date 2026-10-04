@@ -153,7 +153,7 @@ argo-cd:
         email:
           subject: Application {{.app.metadata.name}} has deployed.
         message: |
-          {{if eq .serviceType "slack"}}:argocd-done:{{end}} `{{.app.metadata.name}}` has `deployed`.
+          {{if eq .serviceType "slack"}}:argo-done:{{end}} `{{.app.metadata.name}}` has `deployed`.
         slack:
           attachments: |
             [{
@@ -339,7 +339,7 @@ argo-cd:
         email:
           subject: Application {{.app.metadata.name}} sync succeeded.
         message: |
-          {{if eq .serviceType "slack"}}:argocd-done:{{end}} `{{.app.metadata.name}}` sync `succeeded` at {{.app.status.operationState.finishedAt}}.
+          {{if eq .serviceType "slack"}}:argo-done:{{end}} `{{.app.metadata.name}}` sync `succeeded` at {{.app.status.operationState.finishedAt}}.
         slack:
           attachments: |-
             [{
