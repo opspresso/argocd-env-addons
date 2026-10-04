@@ -1,5 +1,8 @@
 oauth2-proxy:
   fullnameOverride: oauth2-proxy
+  resources:
+    requests: {cpu: 50m, memory: 64Mi}
+    limits: {memory: 256Mi}
 
   config:
     existingSecret: oauth2-proxy-secret

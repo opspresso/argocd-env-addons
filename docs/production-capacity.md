@@ -8,6 +8,8 @@
 EKS의 컨테이너·초기화 작업·Helm 테스트에는 CPU와 메모리 request, 메모리 limit을 둔다.
 CPU limit은 격리나 명확한 실행 예산이 필요한 곳에만 둔다. `scripts/validate.py`가 실제 렌더를
 검사하므로 upstream chart가 추가한 작업에도 같은 정책이 적용된다. k3s/local의 예약 제거 규칙은 별도다.
+CI는 미배포 `backup/`도 검사한다. 보관 chart의 예산은 활성화 전 실제 부하로 다시 검증한다.
+Atlantis의 upstream 테스트는 자원 옵션이 없어, 제한을 선언한 HTTP UI 테스트로 대체한다.
 
 | 구성 | requests CPU / memory | memory limit | 확장·운영 기준 |
 | --- | --- | --- | --- |

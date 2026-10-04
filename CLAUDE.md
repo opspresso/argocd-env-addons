@@ -144,8 +144,8 @@ python3 -m pytest -q          # scripts 및 설치 회귀 테스트
 
 `.github/workflows/validate.yml`은 PR에서 같은 검사를 읽기 권한으로 실행한다.
 렌더한 뒤 검증하므로 PR 에 렌더 결과가 빠져 있어도 템플릿 변경분이 검사된다.
-기본 대상은 `addons/` 뿐이다 — `backup/` 은 배포되지 않으므로 그쪽 upstream chart 가 사라져도
-무관한 변경을 막지 않는다.
+CLI의 기본 대상은 `addons/`다. PR·main CI는 `-d addons -d backup`으로 보관 chart도 검증한다.
+`backup/`은 배포되지 않지만 다시 활성화할 때의 route·자원 계약을 유지한다.
 
 `scripts/validate.py` 는 `helm dependency update` 로 upstream chart 를 내려받는다.
 결과물(`charts/*/charts/`, `charts/*/Chart.lock`)은 `.gitignore` 처리되어 있다.

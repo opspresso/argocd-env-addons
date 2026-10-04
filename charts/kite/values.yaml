@@ -1,5 +1,8 @@
 kite:
   fullnameOverride: kite
+  resources:
+    requests: {cpu: 100m, memory: 128Mi}
+    limits: {memory: 512Mi}
 
   # sqlite on a ReadWriteOnce PVC cannot RollingUpdate
   deploymentStrategy:
