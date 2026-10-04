@@ -5,20 +5,19 @@ country: kr
 env: k3s
 group: k3s-demo
 role: k3s
-aws_region: ap-northeast-2
 
-grafana_cloud:
-  remote_write_url: https://prometheus-us-central1.grafana.net/api/prom/push
-  remote_write_username: "2124611"
+aws_account_id: "396608815058"
+aws_region: ap-northeast-2
+aws_environment: demo
+
+hostname:
+  internal: demo-in.opsp.dev
+  public: demo.opsp.dev
 
 resources:
   enabled: false
 autoscaling:
   enabled: false
-
-hostname:
-  internal: demo-in.opsp.dev
-  public: demo.opsp.dev
 
 argocd:
   hostname: argocd.demo.opsp.dev
@@ -48,6 +47,10 @@ prometheus:
 
 metrics:
   backend: victoria-metrics
+
+grafana_cloud:
+  remote_write_url: https://prometheus-us-central1.grafana.net/api/prom/push
+  remote_write_username: "2124611"
 
 grafana:
   hostname: grafana.demo.opsp.dev

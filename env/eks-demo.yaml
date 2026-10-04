@@ -6,11 +6,6 @@ env: eks
 group: eks-demo
 role: mgmt
 
-resources:
-  enabled: true
-autoscaling:
-  enabled: false
-
 aws_account_id: "396608815058"
 aws_region: ap-northeast-2
 aws_environment: demo
@@ -20,6 +15,11 @@ vpcId: vpc-077dc86403278b4d6
 hostname:
   internal: demo-in.opspresso.com
   public: demo.opspresso.com
+
+resources:
+  enabled: true
+autoscaling:
+  enabled: false
 
 # operation:
 #   nodeSelector: operation
