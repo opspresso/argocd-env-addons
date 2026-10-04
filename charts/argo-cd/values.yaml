@@ -268,7 +268,7 @@ argo-cd:
         email:
           subject: Application {{.app.metadata.name}} sync running.
         message: |
-          {{if eq .serviceType "slack"}}:argocd-running:{{end}} `{{.app.metadata.name}}` sync `running` at {{.app.status.operationState.startedAt}}.
+          {{if eq .serviceType "slack"}}:argo-running:{{end}} `{{.app.metadata.name}}` sync `running` at {{.app.status.operationState.startedAt}}.
         slack:
           attachments: |-
             [{
