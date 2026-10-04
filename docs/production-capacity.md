@@ -34,6 +34,8 @@ Prometheus는 API latency·SLO histogram을 유지하고 사용하지 않는 상
 k3s는 Alloy가 필요한 지표만 Grafana Cloud로 전송한다. 공통 `retained_metrics` 필터는
 `remote_write` 앞에 둔다. 전송 직전 필터만 사용하면 버릴 시계열도 WAL과 메모리 캐시에 들어간다.
 필터 변경 시 Workspace 상태·디스크·앱 지표가 유지되고 remote write의 실패·대기 샘플이 늘지 않는지 확인한다.
+k3s의 `metrics.backend`는 `grafana-cloud`이며 로컬 metrics DB와 ServiceMonitor를 배포하지 않는다.
+Alloy가 node·kubelet·Workspace 상태와 두 앱의 metrics endpoint를 직접 수집한다.
 
 ## 확장 확인
 
