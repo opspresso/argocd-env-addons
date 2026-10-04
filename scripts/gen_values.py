@@ -68,6 +68,8 @@ def gen_repos(args, ext="yaml"):
             e.globals["cni_health_alerting"] = yaml.safe_load(alerts.read_text())
             alerts = Path(__file__).resolve().parents[1] / "config" / "workload-health-alerts.yaml"
             e.globals["workload_health_alerting"] = yaml.safe_load(alerts.read_text())
+            alerts = Path(__file__).resolve().parents[1] / "config" / "workspace-notifications.yaml"
+            e.globals["workspace_notifications"] = yaml.safe_load(alerts.read_text())
         if args.reponame == "prometheus-stack":
             alerts = Path(__file__).resolve().parents[1] / "config" / "workspace-alerts.yaml"
             e.globals["workspace_alert_groups"] = yaml.safe_load(alerts.read_text())["groups"]

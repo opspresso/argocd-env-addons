@@ -42,6 +42,9 @@ grafana:
     cni-health.yaml:
       secret:
 {{ cni_health_alerting | to_yaml | indent(8, first=true) }}
+    workspace-notifications.yaml:
+      secret:
+{{ workspace_notifications | to_yaml | indent(8, first=true) }}
 {% endif %}
 {% if grafana.persistence is defined %}
   persistence:

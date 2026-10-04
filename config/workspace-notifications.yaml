@@ -1,0 +1,37 @@
+apiVersion: 1
+groups:
+- orgId: 1
+  name: workspace-notifications
+  folder: addons
+  interval: 30s
+  rules:
+  - uid: addons-workspace-prometheus-alerts
+    title: Workspace alert firing
+    condition: C
+    for: 0s
+    noDataState: OK
+    execErrState: Alerting
+    labels:
+      service: agent-studio
+    annotations:
+      summary: A configured Workspace capacity, execution or node alert is firing. Inspect the workspace_alert label and Workspace Capacity dashboard.
+    data:
+    - refId: A
+      relativeTimeRange: {from: 300, to: 0}
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource: {type: prometheus, uid: prometheus}
+        editorMode: code
+        instant: true
+        range: false
+        expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service="agent-studio",alertname=~"Studio(Sandbox|Workspace).*"}, "workspace_alert", "$1", "alertname", "(.*)"))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource: {type: __expr__, uid: __expr__}
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator: {type: gt, params: [0]}

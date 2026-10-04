@@ -1264,6 +1264,56 @@ grafana:
             noDataState: OK
             title: AWS CNI egress BPF attach failed
             uid: addons-cni-partial-attach-failed
+    workspace-notifications.yaml:
+      secret:
+        apiVersion: 1
+        groups:
+        - folder: addons
+          interval: 30s
+          name: workspace-notifications
+          orgId: 1
+          rules:
+          - annotations:
+              summary: A configured Workspace capacity, execution or node alert is firing.
+                Inspect the workspace_alert label and Workspace Capacity dashboard.
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service="agent-studio",alertname=~"Studio(Sandbox|Workspace).*"},
+                  "workspace_alert", "$1", "alertname", "(.*)"))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 300
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 0s
+            labels:
+              service: agent-studio
+            noDataState: OK
+            title: Workspace alert firing
+            uid: addons-workspace-prometheus-alerts
 
 
 
