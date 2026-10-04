@@ -5,6 +5,27 @@ kube-prometheus-stack:
   defaultRules:
     disabled:
       PrometheusNotConnectedToAlertmanagers: true
+      # Replaced below: the Workspace namespace grows against its bounded NodePool.
+      KubeCPUQuotaOvercommit: true
+      KubeMemoryQuotaOvercommit: true
+
+  additionalPrometheusRulesMap:
+    nonelastic-quota-capacity:
+      groups:
+        - name: nonelastic-quota-capacity
+          rules:
+            - alert: KubeCPUQuotaOvercommit
+              expr: sum by (cluster) (min without(resource) (kube_resourcequota{job="kube-state-metrics",type="hard",resource=~"(cpu|requests.cpu)",namespace!="agent-studio-workspaces"})) / sum by (cluster) (kube_node_status_allocatable{resource="cpu",job="kube-state-metrics"}) > 1.5
+              for: 5m
+              labels: {severity: warning}
+              annotations:
+                summary: Non-elastic namespace CPU quotas exceed current cluster capacity.
+            - alert: KubeMemoryQuotaOvercommit
+              expr: sum by (cluster) (min without(resource) (kube_resourcequota{job="kube-state-metrics",type="hard",resource=~"(memory|requests.memory)",namespace!="agent-studio-workspaces"})) / sum by (cluster) (kube_node_status_allocatable{resource="memory",job="kube-state-metrics"}) > 1.5
+              for: 5m
+              labels: {severity: warning}
+              annotations:
+                summary: Non-elastic namespace memory quotas exceed current cluster capacity.
 
   prometheusOperator:
     admissionWebhooks:

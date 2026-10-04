@@ -46,6 +46,10 @@ Workspace PrometheusRule의 firing 상태는 Grafana가 기존 Slack 경로로 �
 4. PVC 사용량과 증가율, Loki query/ingestion 지연, Prometheus head series·rule 평가 시간을 확인한다.
 5. NodePool·AWS vCPU quota·subnet IP 여유도 함께 확인한다. Pod request만 늘려서는 노드 상한을 넘을 수 없다.
 
+Workspace quota는 0개까지 축소되는 전용 NodePool의 최대 용량을 나타내므로 현재 유휴 노드 용량과
+비교하지 않는다. namespace quota overcommit 규칙에서는 이 namespace만 제외하고, 실제 Pod 요청의
+N-1 여유·Workspace quota 사용률·Pending·Node 장애 규칙은 유지한다. 다른 namespace quota는 기존 기준으로 검사한다.
+
 Grafana·Loki·Prometheus의 저장소는 현재 단일 인스턴스다. Node 교체 때 EBS 재연결 시간이 필요하다.
 다중 인스턴스가 필요해지면 Grafana 외부 DB, Loki object storage, Prometheus HA/remote storage를
 각각 설계한다. RWO 저장소를 공유한 채 replica 수만 올리지 않는다.
