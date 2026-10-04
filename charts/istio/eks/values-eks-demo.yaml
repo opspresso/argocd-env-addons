@@ -4,7 +4,7 @@ istiod:
 
   replicaCount: 2
 
-  autoscaleEnabled: False
+  autoscaleEnabled: True
   autoscaleMin: 2
   autoscaleMax: 6
 
@@ -12,7 +12,7 @@ gateway:
   replicaCount: 2
 
   autoscaling:
-    enabled: False
+    enabled: True
     minReplicas: 2
     maxReplicas: 6
 

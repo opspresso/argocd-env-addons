@@ -95,6 +95,13 @@ argo-cd:
           release: victoria-metrics-k3s-demo
 
 
+
+  redis:
+    resources: null
+  redisSecretInit:
+    resources: null
+
+
   notifications:
     enabled: False
     argocdUrl: https://argocd.demo.opsp.dev

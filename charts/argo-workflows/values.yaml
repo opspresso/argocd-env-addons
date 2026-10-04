@@ -1,11 +1,23 @@
 argo-workflows:
   fullnameOverride: argo-workflows
 
+  crds:
+    upgradeJob:
+      resources:
+        requests: {cpu: 50m, memory: 64Mi}
+        limits: {memory: 256Mi}
+
   controller:
+    resources:
+      requests: {cpu: 100m, memory: 128Mi}
+      limits: {memory: 512Mi}
     revisionHistoryLimit: 2
 
     workflowNamespaces:
       - default
 
   server:
+    resources:
+      requests: {cpu: 50m, memory: 128Mi}
+      limits: {memory: 256Mi}
     revisionHistoryLimit: 2

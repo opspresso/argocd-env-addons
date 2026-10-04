@@ -322,6 +322,9 @@ raw:
                       containers:
                         - name: load-tester
                           image: argoproj/load-tester:latest
+                          resources:
+                            requests: {cpu: 100m, memory: 64Mi}
+                            limits: {cpu: "1", memory: 256Mi}
                           command: [sh, -xec]
                           args:
                             - |

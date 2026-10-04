@@ -5,6 +5,12 @@ grafana:
   resources:
     limits: null
     requests: null
+  initChownData:
+    resources: null
+  downloadDashboards:
+    resources: null
+  testFramework:
+    resources: null
 {% endif %}
 
 {% if autoscaling is defined %}
@@ -20,6 +26,8 @@ grafana:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-workload.json
+      workspace-capacity:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/workspace-capacity.json
 
   alerting:
     workload-health.yaml:

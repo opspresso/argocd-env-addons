@@ -9,6 +9,17 @@
 # count and reports FailedGetPodsMetric.
 prometheus-adapter:
   fullnameOverride: prometheus-adapter
+  replicas: 2
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus-adapter
 
   # kube-prometheus-stack runs with fullnameOverride: prometheus in
   # addon-prometheus, which names the server service prometheus-prometheus.
@@ -32,6 +43,17 @@ prometheus-adapter:
     default: false
 
     custom:
+      # Both web Agent runs and native Workspace Gateway calls consume HTTP capacity.
+      - seriesQuery: 'agent_studio_active_execution_requests{namespace!="",pod!=""}'
+        resources:
+          overrides:
+            namespace:
+              resource: namespace
+            pod:
+              resource: pod
+        name:
+          as: "agent_studio_active_execution_requests"
+        metricsQuery: 'sum(avg_over_time(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)'
       # agent-studio scales on in-flight runs. Its runs are I/O bound — a pod
       # saturated with them waits on the LLM provider at near-zero CPU — so CPU
       # utilization would fail to scale up under load while scaling down pods

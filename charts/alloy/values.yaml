@@ -1,6 +1,11 @@
 alloy:
   fullnameOverride: alloy
 
+  configReloader:
+    resources:
+      limits:
+        memory: 64Mi
+
   alloy:
     extraArgs:
       - --disable-reporting

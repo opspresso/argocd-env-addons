@@ -1,6 +1,10 @@
 atlantis:
   fullnameOverride: atlantis
 
+  # Upstream's test Pod exposes no resource settings; the bounded HTTP test below replaces it.
+  test:
+    enabled: false
+
   # image:
   #   repository: infracost/infracost-atlantis
   #   tag: latest
@@ -56,3 +60,34 @@ atlantis:
       secret:
         secretName: atlantis-secret
         defaultMode: 0400
+
+raw:
+  templates:
+    - |
+      apiVersion: v1
+      kind: Pod
+      metadata:
+        name: {{ .Release.Name }}-ui-test
+        namespace: {{ .Release.Namespace }}
+        annotations:
+          helm.sh/hook: test
+          helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+      spec:
+        restartPolicy: Never
+        automountServiceAccountToken: false
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 100
+          runAsGroup: 101
+          seccompProfile: {type: RuntimeDefault}
+        containers:
+          - name: ui-test
+            image: curlimages/curl:8.11.1
+            args: [--fail, --silent, --show-error, --connect-timeout, "5", --max-time, "30", "http://atlantis:80/"]
+            resources:
+              requests: {cpu: 10m, memory: 16Mi}
+              limits: {memory: 64Mi}
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: [ALL]}

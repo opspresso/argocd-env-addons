@@ -68,11 +68,11 @@ istio:
   global:
     hub: gcr.io/istio-release
   pilot:
-    autoscale: false
+    autoscale: true
     min: 2
     max: 6
   gateway:
-    autoscale: false
+    autoscale: true
     min: 2
     max: 6
   tracing:
