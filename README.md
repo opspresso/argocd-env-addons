@@ -1,5 +1,7 @@
 # argocd-env-addons
 
+`eks-demo` production의 자원 예산·확장 확인은 [운영 용량](docs/production-capacity.md)을 따른다.
+
 * <https://argo-cd.readthedocs.io/en/stable/getting_started/>
 * <https://argocd-applicationset.readthedocs.io/en/stable/Getting-Started/>
 

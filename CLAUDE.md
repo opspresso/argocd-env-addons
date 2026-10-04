@@ -105,6 +105,8 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ## 플랫폼 공통 리소스 규칙
 
 - 공통 `values.yaml`은 EKS 기본값이다. EKS의 명시적 env 설정과 기존 autoscaling 동작을 유지한다.
+- EKS 렌더는 일반·init·테스트 컨테이너의 양수 CPU/memory requests와 memory limit을 요구한다.
+  CPU limit은 필수가 아니다. Prometheus·Alertmanager operator 리소스의 예산도 검증한다.
 - `k3s`, `local`는 전역 `resources.enabled: false`, `autoscaling.enabled: false`를 사용한다.
   Argo CD를 포함해 chart별로 같은 스위치를 중복 선언하지 않는다.
 - 컨테이너·초기화 컨테이너·Job·operator가 만드는 Pod의 requests/limits를 제거한다.

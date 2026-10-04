@@ -102,6 +102,13 @@ argo-cd:
           release: prometheus-{{cluster}}
 {% endif %}
 
+{% if resources is defined and not resources.enabled %}
+  redis:
+    resources: null
+  redisSecretInit:
+    resources: null
+{% endif %}
+
   notifications:
     enabled: {{argocd.notifications.enabled}}
     argocdUrl: {{argocd.scheme | default('https')}}://{{argocd.hostname}}

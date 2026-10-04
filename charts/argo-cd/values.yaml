@@ -1,14 +1,18 @@
 argo-cd:
   fullnameOverride: argocd
 
+  redisSecretInit:
+    resources:
+      requests: {cpu: 10m, memory: 32Mi}
+      limits: {memory: 128Mi}
+
   controller:
-    # resources:
-    #   requests:
-    #     cpu: 500m
-    #     memory: 1Gi
-    #   limits:
-    #     cpu: "1"
-    #     memory: 2Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
 
     metrics:
       enabled: true
@@ -21,12 +25,12 @@ argo-cd:
   server:
     replicas: 1
 
-    # resources:
-    #   requests:
-    #     cpu: 50m
-    #     memory: 128Mi
-    #   limits:
-    #     memory: 128Mi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
 
     service:
       type: ClusterIP
@@ -42,10 +46,7 @@ argo-cd:
         # selector:
         #   release: prometheus-{{cluster}}
 
-  # A cpu limit equal to the request leaves no burst room, and every component
-  # here was throttling against it - repo-server worst at 19.5% of its periods,
-  # which is manifest generation, so it slows every sync. Requests still reserve
-  # the capacity; only the ceiling is gone. Memory keeps its limit.
+  # Manifest generation can burst above its reservation without a CPU ceiling.
   repoServer:
     replicas: 1
 
@@ -56,12 +57,12 @@ argo-cd:
     #   targetCPUUtilizationPercentage: 60
     #   targetMemoryUtilizationPercentage: 60
 
-    # resources:
-    #   requests:
-    #     cpu: 500m
-    #     memory: 1Gi
-    #   limits:
-    #     memory: 1Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
 
     metrics:
       enabled: true
@@ -71,21 +72,21 @@ argo-cd:
         # selector:
         #   release: prometheus-{{cluster}}
 
-  # applicationSet:
-  #   # resources:
-  #   #   requests:
-  #   #     cpu: 50m
-  #   #     memory: 128Mi
-  #   #   limits:
-  #   #     memory: 128Mi
+  applicationSet:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
 
   dex:
-    # resources:
-    #   requests:
-    #     cpu: 50m
-    #     memory: 128Mi
-    #   limits:
-    #     memory: 128Mi
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
 
     env:
       - name: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
@@ -107,13 +108,13 @@ argo-cd:
         # selector:
         #   release: prometheus-{{cluster}}
 
-  # redis:
-  #   # resources:
-  #   #   requests:
-  #   #     cpu: 50m
-  #   #     memory: 128Mi
-  #   #   limits:
-  #   #     memory: 128Mi
+  redis:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
 
   notifications:
     # argocdUrl: https://{{argocd.hostname}}
@@ -127,6 +128,10 @@ argo-cd:
 
     secret:
       create: false
+
+    notifiers:
+      service.slack: |
+        token: $slack-token
 
     subscriptions:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/subscriptions/

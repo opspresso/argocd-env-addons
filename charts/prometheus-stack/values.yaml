@@ -1,7 +1,17 @@
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
+  # Grafana owns alert delivery; Alertmanager is intentionally disabled below.
+  defaultRules:
+    disabled:
+      PrometheusNotConnectedToAlertmanagers: true
+
   prometheusOperator:
+    admissionWebhooks:
+      patch:
+        resources:
+          requests: {cpu: 10m, memory: 32Mi}
+          limits: {memory: 128Mi}
     # tolerations:
     #   - key: group
     #     operator: Equal
@@ -211,3 +221,11 @@ kube-prometheus-stack:
 
   grafana:
     enabled: false
+
+  kubeApiServer:
+    serviceMonitor:
+      # Keep API latency/SLO histograms and counters; omit unused detailed buckets.
+      metricRelabelings:
+        - sourceLabels: [__name__]
+          action: drop
+          regex: 'apiserver_(request_body_size_bytes|response_sizes|watch_list_duration_seconds|watch_cache_read_wait_seconds|storage_list_duration_seconds|watch_events_sizes)_bucket'
