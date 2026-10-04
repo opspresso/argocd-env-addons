@@ -201,7 +201,7 @@ argo-cd:
         email:
           subject: Application {{.app.metadata.name}} has degraded.
         message: |
-          {{if eq .serviceType "slack"}}:argocd-failed:{{end}} `{{.app.metadata.name}}` has `degraded`.
+          {{if eq .serviceType "slack"}}:argo-failed:{{end}} `{{.app.metadata.name}}` has `degraded`.
         slack:
           attachments: |-
             [{
@@ -234,7 +234,7 @@ argo-cd:
         email:
           subject: Application {{.app.metadata.name}} sync failed.
         message: |
-          {{if eq .serviceType "slack"}}:argocd-failed:{{end}} `{{.app.metadata.name}}` sync `failed` at {{.app.status.operationState.finishedAt}}
+          {{if eq .serviceType "slack"}}:argo-failed:{{end}} `{{.app.metadata.name}}` sync `failed` at {{.app.status.operationState.finishedAt}}
           with the following error: {{.app.status.operationState.message}}
         slack:
           attachments: |-
@@ -306,7 +306,7 @@ argo-cd:
         email:
           subject: Application {{.app.metadata.name}} sync status is 'unknown'
         message: |
-          {{if eq .serviceType "slack"}}:argocd-failed:{{end}} `{{.app.metadata.name}}` sync status is `unknown`.
+          {{if eq .serviceType "slack"}}:argo-failed:{{end}} `{{.app.metadata.name}}` sync status is `unknown`.
         slack:
           attachments: |-
             [{
