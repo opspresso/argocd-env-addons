@@ -79,6 +79,40 @@ alloy:
           forward_to = [loki.write.default.receiver]
         }
 
+
+        // Auto Mode node agents are host processes, absent from Pod log discovery.
+        local.file_match "aws_cni" {
+          path_targets = [
+            {"__path__" = "/var/log/aws-routed-eni/network-policy-agent.log", "job" = "kube-system/aws-network-policy-agent", "namespace" = "kube-system", "node" = sys.env("NODE_NAME")},
+            {"__path__" = "/var/log/aws-routed-eni/ebpf-sdk.log", "job" = "kube-system/aws-ebpf-sdk", "namespace" = "kube-system", "node" = sys.env("NODE_NAME")},
+          ]
+        }
+
+        loki.source.file "aws_cni" {
+          targets    = local.file_match.aws_cni.targets
+          forward_to = [loki.process.aws_cni.receiver]
+        }
+
+        loki.process "aws_cni" {
+          // Debug conntrack events are high-volume; keep failures, including SDK errors at info level.
+          stage.match {
+            selector = "{namespace=\"kube-system\"} !~ \"(?i)error|failed\""
+            action   = "drop"
+          }
+          stage.json {
+            expressions = {"timestamp" = "ts"}
+          }
+          stage.timestamp {
+            source = "timestamp"
+            format = "RFC3339Nano"
+          }
+          stage.label_drop {
+            values = ["filename"]
+          }
+          forward_to = [loki.write.default.receiver]
+        }
+
+
         loki.write "default" {
           endpoint {
             url = "http://loki.demo-in.opspresso.com/loki/api/v1/push"

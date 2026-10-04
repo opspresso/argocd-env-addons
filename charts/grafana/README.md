@@ -50,7 +50,8 @@ PSI(자원 대기 시간), swap, major page faults, 노드별 재시작과 probe
   드라이버의 결함을 증명하지는 않는다. node-exporter의 `meminfo`와 `pressure` 지표를
   `/proc/vmallocinfo`, CNI 로그와 대조해 할당 주체를 확인한다.
 
-EKS의 추가 Grafana 경보는 `config/node-health-alerts.yaml`에서 관리한다.
+EKS의 호스트 경보는 `config/node-health-alerts.yaml`, CNI 실패 경보는 `config/cni-health-alerts.yaml`에서 관리한다.
+CNI 경보는 Alloy가 수집한 Loki 로그를 사용하며 egress BPF attach 실패를 즉시 알린다.
 Prometheus의 Alertmanager는 비활성화되어 있으므로, 별도 PrometheusRule만 추가하면
 Slack으로 전달되지 않는다. 이 규칙은 Grafana가 평가하고 기존 notification policy와
 `slack` contact point를 사용한다. k3s/VictoriaMetrics에는 EKS 전용 job 이름의 규칙을
