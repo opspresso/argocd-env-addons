@@ -1212,6 +1212,56 @@ grafana:
             noDataState: OK
             title: Writable node filesystem above 95% used
             uid: addons-node-disk-critical
+    cni-health.yaml:
+      secret:
+        apiVersion: 1
+        groups:
+        - folder: addons
+          interval: 30s
+          name: cni-health
+          orgId: 1
+          rules:
+          - annotations:
+              summary: Egress BPF attach failed after ingress allocation. Check node kernel
+                vmalloc and CNI cleanup before repeated short-lived Pods accumulate memory.
+            condition: C
+            data:
+            - datasourceUid: loki
+              model:
+                datasource:
+                  type: loki
+                  uid: loki
+                editorMode: code
+                expr: sum by (cluster, node) (count_over_time({job="kube-system/aws-network-policy-agent"}
+                  |= "Failed to Attach Egress TC probe" [5m]))
+                queryType: instant
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 0s
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: AWS CNI egress BPF attach failed
+            uid: addons-cni-partial-attach-failed
 
 
 

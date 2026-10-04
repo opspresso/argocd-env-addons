@@ -2,6 +2,9 @@ alloy:
   fullnameOverride: alloy
 
   alloy:
+    extraArgs:
+      - --disable-reporting
+
     # /var/log/pods is root-owned on the node, so the collector has to run as
     # root to tail it.
     securityContext:

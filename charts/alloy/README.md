@@ -97,3 +97,13 @@ kubectl logs -n addon-alloy daemonset/alloy -c alloy --tail=50
 ```
 
 k3s 메트릭은 Grafana Cloud 대시보드에서 `instance=k3s-demo`를 선택합니다.
+
+## EKS 관리형 CNI 로그
+
+EKS Auto Mode의 network-policy-agent와 eBPF SDK는 호스트 프로세스다. Pod 로그 탐색으로 수집되지
+않으므로 `/var/log/aws-routed-eni/`의 두 로그를 기존 읽기 전용 mount에서 수집한다. 오류·실패만
+보존하고 `cluster`, `node`, `namespace`, `job`으로 조회한다. 대량 conntrack 정상 로그는 버린다.
+`job="kube-system/aws-network-policy-agent"`의 `Failed to Attach Egress TC probe`를 Grafana가
+5분 창으로 평가해 기존 Slack contact point로 알린다. k3s에는 이 수집과 경보를 추가하지 않는다.
+
+`--disable-reporting`으로 외부 usage report를 중지한다. Loki 전송과 수집 상태 검사는 계속 동작한다.
