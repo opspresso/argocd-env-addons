@@ -16,13 +16,13 @@
       "app_version": "v1.10.0",
       "chart": "argo/argo-rollouts",
       "current": "2.43.2",
-      "version": "2.43.2"
+      "version": "2.43.5"
     },
     "argo-workflows": {
       "app_version": "v4.1.4",
       "chart": "argo/argo-workflows",
       "current": "2.0.8",
-      "version": "2.0.9"
+      "version": "2.0.11"
     },
     "atlantis": {
       "app_version": "v0.48.0",
