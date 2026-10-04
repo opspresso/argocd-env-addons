@@ -15,12 +15,17 @@ alloy:
               password = sys.env("GCLOUD_RW_API_KEY")
             }
 
-            // Bound Cloud series usage while retaining the dashboard metrics.
-            write_relabel_config {
-              source_labels = ["job", "__name__"]
-              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
-              action = "keep"
-            }
+
+          }
+        }
+
+        // Filter before remote_write: discarded series must not enter its WAL or caches.
+        prometheus.relabel "retained_metrics" {
+          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+          rule {
+            source_labels = ["job", "__name__"]
+            regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
+            action = "keep"
           }
         }
 
@@ -55,7 +60,7 @@ alloy:
         }
 
         prometheus.relabel "node" {
-          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to = [prometheus.relabel.retained_metrics.receiver]
           rule {
             source_labels = ["__name__"]
             regex         = "node_scrape_collector_.+"
@@ -76,7 +81,7 @@ alloy:
           }
           job_name        = "kubelet"
           scrape_interval = "30s"
-          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
 
         // Use the API server's verified TLS endpoint to reach this node's kubelet.
@@ -97,7 +102,7 @@ alloy:
         }
 
         prometheus.relabel "cadvisor" {
-          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to = [prometheus.relabel.retained_metrics.receiver]
           rule {
             source_labels = ["namespace"]
             regex         = ""
@@ -132,7 +137,7 @@ alloy:
           targets = [{ "__address__" = "workspace-metrics.addon-workspace-metrics.svc.cluster.local:8080" }]
           job_name        = "workspace-state"
           scrape_interval = "15s"
-          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
 
         prometheus.scrape "agent_studio" {
@@ -143,7 +148,7 @@ alloy:
           metrics_path    = "/api/metrics"
           job_name        = "agent-studio"
           scrape_interval = "15s"
-          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
 
         prometheus.scrape "agent_memory" {
@@ -155,7 +160,7 @@ alloy:
           bearer_token    = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
           job_name        = "agent-memory"
           scrape_interval = "15s"
-          forward_to      = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
 
     extraEnv:

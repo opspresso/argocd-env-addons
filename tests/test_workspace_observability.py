@@ -42,12 +42,19 @@ def test_k3s_exporter_exposes_only_required_read_only_state():
 def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting_arbitrary_series():
     values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
     config = values["alloy"]["alloy"]["configMap"]["content"]
-    pattern = re.search(r'write_relabel_config\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
+    pattern = re.search(r'prometheus.relabel "retained_metrics"\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
     for series in ["workspace-state;up", "workspace-state;kube_pod_status_phase", "workspace-state;kube_resourcequota",
                    "workspace-state;kube_node_status_condition", "integrations/cadvisor;container_fs_usage_bytes",
-                   "integrations/cadvisor;container_fs_limit_bytes"]:
+                   "integrations/cadvisor;container_fs_limit_bytes", "kubelet;up",
+                   "kubelet;kubelet_volume_stats_available_bytes", "agent-studio;agent_studio_build_info"]:
         assert re.fullmatch(pattern, series), series
-    assert not re.fullmatch(pattern, "workspace-state;unbounded_arbitrary_series")
+    for series in ["workspace-state;unbounded_arbitrary_series", "kubelet;apiserver_request_duration_seconds_bucket",
+                   "integrations/cadvisor;container_tasks_state"]:
+        assert not re.fullmatch(pattern, series), series
+    # Every source must cross the same filter before remote_write allocates WAL series.
+    assert config.count("prometheus.remote_write.grafana_cloud.receiver") == 1
+    assert "write_relabel_config" not in config
+    assert config.count("prometheus.relabel.retained_metrics.receiver") == 6
 
 
 def test_prometheus_rules_use_the_shared_policy_with_existing_node_labels():

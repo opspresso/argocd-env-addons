@@ -31,6 +31,10 @@ Atlantis의 upstream 테스트는 자원 옵션이 없어, 제한을 선언한 H
 Prometheus는 API latency·SLO histogram을 유지하고 사용하지 않는 상세 요청 크기·watch bucket을
 스크레이프에서 제외한다. 새 대시보드나 규칙이 이 지표를 요구하면 필터도 함께 검토한다.
 
+k3s는 Alloy가 필요한 지표만 Grafana Cloud로 전송한다. 공통 `retained_metrics` 필터는
+`remote_write` 앞에 둔다. 전송 직전 필터만 사용하면 버릴 시계열도 WAL과 메모리 캐시에 들어간다.
+필터 변경 시 Workspace 상태·디스크·앱 지표가 유지되고 remote write의 실패·대기 샘플이 늘지 않는지 확인한다.
+
 ## 확장 확인
 
 Grafana의 `Workspace Capacity`는 Deployment owner가 없는 Sandbox Pod도 직접 조회한다.
