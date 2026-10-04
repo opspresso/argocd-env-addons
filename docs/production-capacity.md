@@ -35,6 +35,8 @@ Prometheus는 API latency·SLO histogram을 유지하고 사용하지 않는 상
 
 Grafana의 `Workspace Capacity`는 Deployment owner가 없는 Sandbox Pod도 직접 조회한다.
 Pod quota·phase·CPU·메모리·전용 노드·worker·웹 실행 부하를 함께 확인한다.
+Workspace PrometheusRule의 firing 상태는 Grafana가 기존 Slack 경로로 전달한다. 임계값과 대기 시간은
+`config/workspace-alerts.yaml` 한 곳에서 평가하며, Grafana는 `workspace_alert`와 severity label을 보존한다.
 
 1. 앱 HPA가 `ScalingActive=True`인지 확인한다. Studio는 일반 실행과 native Gateway 요청을 합친
    `agent_studio_active_execution_requests` 및 앱 컨테이너 CPU를 사용한다.
