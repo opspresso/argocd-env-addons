@@ -1,5 +1,26 @@
 # argo-cd
 
+## Slack 알림
+
+EKS 알림은 `values.yaml`의 공통 구독이 `noti-eks-demo` 채널로 전달한다.
+배포·상태 저하·동기화 실패·진행·상태 불명·성공 알림을 포함한다.
+EKS ApplicationSet에는 별도의 Slack 구독 annotation을 추가하지 않는다.
+
+`/k8s/common/argocd-noti-token`에는 Slack 앱의 **Bot User OAuth Token** (`xoxb-…`)을
+저장한다. 앱에 `chat:write` 권한을 부여하고 `noti-eks-demo`에 봇을 초대한다.
+현재 `service.slack`은 OAuth 토큰을 사용하므로 Incoming Webhook URL을 넣지 않는다.
+[Argo CD Slack 설정](https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/services/slack/)을 따른다.
+
+토큰 변경 후 ExternalSecret을 즉시 갱신하려면 다음 명령을 실행한다.
+
+```bash
+kubectl --context eks-demo -n argocd annotate externalsecret argocd-notifications-secret \
+  force-sync="$(date +%s)" --overwrite
+```
+
+`ExternalSecret`의 `Ready=True`와 `status.refreshTime`을 확인한다. `invalid_auth`는
+토큰 인증, `channel_not_found`는 채널 이름과 봇의 접근 권한을 확인한다.
+
 ## mcp account
 
 `accounts.mcp` 는 mcp-argocd (argocd-env-demo) 가 쓰는 API 토큰 전용 계정 입니다.
