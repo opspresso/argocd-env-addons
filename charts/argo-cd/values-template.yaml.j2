@@ -6,11 +6,7 @@ argo-cd:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-          release: victoria-metrics-{{cluster}}
-{% else %}
           release: prometheus-{{cluster}}
-{% endif %}
 {% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
@@ -52,11 +48,7 @@ argo-cd:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-          release: victoria-metrics-{{cluster}}
-{% else %}
           release: prometheus-{{cluster}}
-{% endif %}
 
   repoServer:
     replicas: {{argocd.replicas.repo_server}}
@@ -71,11 +63,7 @@ argo-cd:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-          release: victoria-metrics-{{cluster}}
-{% else %}
           release: prometheus-{{cluster}}
-{% endif %}
 
   applicationSet:
     replicas: {{argocd.replicas.application_set}}
@@ -96,11 +84,7 @@ argo-cd:
       serviceMonitor:
         enabled: {{prometheus.serviceMonitor.enabled}}
         selector:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-          release: victoria-metrics-{{cluster}}
-{% else %}
           release: prometheus-{{cluster}}
-{% endif %}
 
 {% if resources is defined and not resources.enabled %}
   redis:

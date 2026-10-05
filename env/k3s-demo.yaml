@@ -43,10 +43,10 @@ argocd:
 
 prometheus:
   serviceMonitor:
-    enabled: true
+    enabled: false
 
 metrics:
-  backend: victoria-metrics
+  backend: grafana-cloud
 
 grafana_cloud:
   remote_write_url: https://prometheus-us-central1.grafana.net/api/prom/push

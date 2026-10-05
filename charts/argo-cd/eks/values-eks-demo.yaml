@@ -6,9 +6,7 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-
           release: prometheus-eks-demo
-
 
 
     autoscaling:
@@ -47,9 +45,7 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-
           release: prometheus-eks-demo
-
 
   repoServer:
     replicas: 2
@@ -62,9 +58,7 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-
           release: prometheus-eks-demo
-
 
   applicationSet:
     replicas: 1
@@ -81,9 +75,7 @@ argo-cd:
       serviceMonitor:
         enabled: True
         selector:
-
           release: prometheus-eks-demo
-
 
 
 
