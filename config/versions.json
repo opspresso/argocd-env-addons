@@ -7,10 +7,10 @@
       "version": "1.13.0"
     },
     "argo-cd": {
-      "app_version": "v3.5.3",
+      "app_version": "v3.5.4",
       "chart": "argo/argo-cd",
       "current": "10.9.2",
-      "version": "10.9.6"
+      "version": "10.10.0"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
@@ -95,13 +95,13 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "92.0.0"
+      "version": "92.1.0"
     },
     "victoria-metrics": {
       "app_version": "v1.153.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
       "current": "0.93.0",
-      "version": "0.95.0"
+      "version": "0.95.2"
     },
     "vllm-stack": {
       "app_version": "",
