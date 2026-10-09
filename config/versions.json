@@ -1,16 +1,16 @@
 {
   "versions": {
     "alloy": {
-      "app_version": "v1.20.0",
+      "app_version": "v1.20.1",
       "chart": "grafana/alloy",
       "current": "1.12.1",
-      "version": "1.13.0"
+      "version": "1.13.1"
     },
     "argo-cd": {
       "app_version": "v3.5.4",
       "chart": "argo/argo-cd",
       "current": "10.9.2",
-      "version": "10.10.0"
+      "version": "10.10.1"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
@@ -25,10 +25,10 @@
       "version": "2.0.11"
     },
     "atlantis": {
-      "app_version": "v0.48.0",
+      "app_version": "v0.48.1",
       "chart": "atlantis/atlantis",
       "current": "6.16.0",
-      "version": "6.16.0"
+      "version": "6.16.1"
     },
     "cert-manager": {
       "app_version": "v1.21.2",
@@ -95,7 +95,7 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "92.1.0"
+      "version": "92.2.0"
     },
     "victoria-metrics": {
       "app_version": "v1.153.0",
