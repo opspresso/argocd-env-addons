@@ -124,3 +124,9 @@ alloy_network_policy:
     - 172.20.0.10/32
   api_server_cidrs:
     - 172.20.0.1/32
+
+vibemon:
+  enabled: true
+  hostname: vibemon.io
+  display_name: "EKS demo"
+  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:8a789311267207fdd9c47e0c19c9e31fd61884fd42dbf509e75fe45b3936829e

@@ -258,3 +258,119 @@ raw:
           - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
             remoteRef:
               key: /k8s/k3s-demo/agent-memory/metrics-bearer-token
+
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: vibemon-collector
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: vibemon-collector-k3s-demo
+      rules:
+        - apiGroups: [""]
+          resources: ["nodes", "pods"]
+          verbs: ["list"]
+        - apiGroups: ["metrics.k8s.io"]
+          resources: ["nodes"]
+          verbs: ["get", "list"]
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRoleBinding
+      metadata:
+        name: vibemon-collector-k3s-demo
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: vibemon-collector-k3s-demo
+      subjects:
+        - kind: ServiceAccount
+          name: vibemon-collector
+          namespace: addon-alloy
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: vibemon-collector
+      spec:
+        refreshInterval: 5m
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: vibemon-collector
+          creationPolicy: Owner
+        data:
+          - secretKey: VIBEMON_WRITE_TOKEN
+            remoteRef:
+              key: /k8s/k3s-demo/vibemon/write-token
+    - apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: vibemon-collector
+      spec:
+        replicas: 1
+        strategy:
+          type: Recreate
+        selector:
+          matchLabels:
+            app.kubernetes.io/name: vibemon-collector
+        template:
+          metadata:
+            labels:
+              app.kubernetes.io/name: vibemon-collector
+            annotations:
+              sidecar.istio.io/inject: "false"
+          spec:
+            serviceAccountName: vibemon-collector
+            nodeSelector:
+              kubernetes.io/os: linux
+            securityContext:
+              runAsNonRoot: true
+              runAsUser: 65532
+              runAsGroup: 65532
+              fsGroup: 65532
+              seccompProfile:
+                type: RuntimeDefault
+            containers:
+              - name: collector
+                image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:8a789311267207fdd9c47e0c19c9e31fd61884fd42dbf509e75fe45b3936829e
+                args:
+                  - --source-id
+                  - k3s-demo
+                  - --name
+                  - "AWS EC2 k3s"
+                  - --kind
+                  - cluster
+                  - --cluster-backend
+                  - metrics-api
+                  - --kubectl-command
+                  - kubectl --cache-dir=/tmp/kubectl
+                  - --url
+                  - https://vibemon.io
+                  - --health-file
+                  - /tmp/vibemon-health
+                env:
+                  - name: VIBEMON_WRITE_TOKEN
+                    valueFrom:
+                      secretKeyRef:
+                        name: vibemon-collector
+                        key: VIBEMON_WRITE_TOKEN
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  readOnlyRootFilesystem: true
+                  capabilities:
+                    drop: ["ALL"]
+
+                readinessProbe:
+                  exec:
+                    command: ["python", "-m", "vibemon_collector.health", "/tmp/vibemon-health"]
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                  timeoutSeconds: 2
+                  failureThreshold: 1
+                volumeMounts:
+                  - name: temporary
+                    mountPath: /tmp
+            volumes:
+              - name: temporary
+                emptyDir:
+                  sizeLimit: 32Mi

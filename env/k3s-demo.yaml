@@ -79,3 +79,9 @@ gateway:
   tls:
     secret_name: traefik-gateway-tls
     issuer_name: letsencrypt-prod
+
+vibemon:
+  enabled: true
+  hostname: vibemon.io
+  display_name: "AWS EC2 k3s"
+  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:8a789311267207fdd9c47e0c19c9e31fd61884fd42dbf509e75fe45b3936829e

@@ -107,3 +107,32 @@ EKS Auto Mode의 network-policy-agent와 eBPF SDK는 호스트 프로세스다. 
 5분 창으로 평가해 기존 Slack contact point로 알린다. k3s에는 이 수집과 경보를 추가하지 않는다.
 
 `--disable-reporting`으로 외부 usage report를 중지한다. Loki 전송과 수집 상태 검사는 계속 동작한다.
+
+## VibeMon 인프라 요약
+
+`env/<cluster>.yaml`의 `vibemon.enabled`로 같은 Argo CD Application에 독립적인
+`vibemon-collector` Deployment를 추가합니다. Alloy의 로그·Grafana Cloud 경로는 그대로
+동작합니다. 수집기는 기존 Metrics API를 읽으며, 새로운 node exporter나 TSDB를 설치하지
+않습니다. CPU·메모리 사용률, 준비/전체 노드 수, 비정상 Pod 수만 VibeMon으로 전송합니다.
+Pod 사양·로그·Kubernetes 자격 증명은 전송하지 않습니다.
+
+배포 이미지는 공개 ECR의 AMD64/ARM64 digest로 고정합니다. root filesystem은 읽기 전용이며,
+비특권 ServiceAccount에는 core nodes/pods list와 Metrics API nodes get/list만 허용합니다.
+EKS는 CPU 25m·메모리 64Mi를 예약하고 메모리 상한은 192Mi입니다. k3s에는 저장소 정책에 따라
+requests/limits를 설정하지 않습니다. Recreate 전략으로 같은 source ID의 수집기를 중복 실행하지
+않습니다. readiness는 최근 120초 내 Web의 실제 수신 확인이 있어야 통과합니다. Web 장애 시
+readiness만 실패하며 liveness로 재시작하지 않습니다.
+
+대상 VibeMon 계정에서 write 토큰을 발급한 뒤, 해당 클러스터의 SSM SecureString
+`/k8s/<cluster>/vibemon/write-token`에 저장합니다. External Secrets가 `addon-alloy` namespace의
+`vibemon-collector` Secret으로 연결합니다. 토큰은 values·이미지·CLI 인자에 넣지 않습니다.
+토큰 교체 후 `kubectl rollout restart deployment/vibemon-collector -n addon-alloy`로 반영합니다.
+
+EKS의 별도 ApplicationNetworkPolicy는 이 Deployment만 선택하고 DNS, Kubernetes API와
+설정한 `vibemon.hostname`의 HTTPS 송신만 허용합니다. 기존 Alloy 정책이나 노드 기본 차단은
+완화하지 않습니다. k3s에는 EKS 전용 CRD를 생성하지 않습니다.
+
+검증은 Argo의 Synced/Healthy와 Pod Ready뿐 아니라 같은 계정의 VibeMon `/api/v1/sources`에서
+해당 source ID의 지표와 수신 시각이 계속 갱신되는지 확인해야 합니다. 프로세스가 실행 중이라는
+사실만으로 정상 수집을 판단하지 않습니다. permanent HTTP 오류는 종료 코드 2로 표시되어
+Kubernetes restart/backoff 상태에 나타납니다. Secret·origin·시간을 수정한 뒤 다시 시작합니다.
