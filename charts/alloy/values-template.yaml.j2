@@ -373,7 +373,7 @@ alloy:
 
 {% endif %}
 
-{%- if (env == 'eks' and alloy_network_policy is defined and loki is defined) or grafana_cloud is defined %}
+{%- if (env == 'eks' and alloy_network_policy is defined and loki is defined) or grafana_cloud is defined or (vibemon is defined and vibemon.enabled) %}
 raw:
   resources:
 {%- if env == 'eks' and alloy_network_policy is defined and loki is defined %}
@@ -447,5 +447,8 @@ raw:
           - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
             remoteRef:
               key: /k8s/{{cluster}}/agent-memory/metrics-bearer-token
+{%- endif %}
+{% if vibemon is defined and vibemon.enabled %}
+{% include 'vibemon-resources.yaml.j2' %}
 {%- endif %}
 {%- endif %}
