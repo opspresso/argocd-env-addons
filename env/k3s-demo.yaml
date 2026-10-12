@@ -87,5 +87,5 @@ gateway:
 vibemon:
   enabled: true
   hostname: vibemon.io
-  display_name: "AWS EC2 k3s"
+  display_name: "K3S Demo"
   image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:192fbb8fa55fb55346c19e5363c3b1d49d2c4363454ab02718b4347b8bd5dd4f
