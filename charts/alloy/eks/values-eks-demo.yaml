@@ -195,6 +195,7 @@ raw:
         - apiGroups: ["metrics.k8s.io"]
           resources: ["nodes"]
           verbs: ["get", "list"]
+
     - apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
       metadata:
@@ -263,6 +264,7 @@ raw:
                   - cluster
                   - --cluster-backend
                   - metrics-api
+
                   - --kubectl-command
                   - kubectl --cache-dir=/tmp/kubectl
                   - --url

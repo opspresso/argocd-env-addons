@@ -13,6 +13,11 @@
         - apiGroups: ["metrics.k8s.io"]
           resources: ["nodes"]
           verbs: ["get", "list"]
+{% if vibemon.kubelet_stats | default(false) %}
+        - apiGroups: [""]
+          resources: ["nodes/stats"]
+          verbs: ["get"]
+{% endif %}
     - apiVersion: rbac.authorization.k8s.io/v1
       kind: ClusterRoleBinding
       metadata:
@@ -81,6 +86,9 @@
                   - cluster
                   - --cluster-backend
                   - metrics-api
+{% if vibemon.kubelet_stats | default(false) %}
+                  - --disk
+{% endif %}
                   - --kubectl-command
                   - kubectl --cache-dir=/tmp/kubectl
                   - --url
