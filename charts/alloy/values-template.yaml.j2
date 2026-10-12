@@ -297,6 +297,10 @@ alloy:
           targets = [{
             "__address__" = "agent-memory.agent-memory.svc:80",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+          }, {
+            "__address__" = "agent-memory-worker.agent-memory.svc:80",
+            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+            "component"   = "worker",
           }]
           metrics_path    = "/api/metrics"
           bearer_token    = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
