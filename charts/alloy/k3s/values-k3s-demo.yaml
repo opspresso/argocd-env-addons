@@ -341,7 +341,7 @@ raw:
                   - --source-id
                   - k3s-demo
                   - --name
-                  - "AWS EC2 k3s"
+                  - "K3S Demo"
                   - --kind
                   - cluster
                   - --cluster-backend

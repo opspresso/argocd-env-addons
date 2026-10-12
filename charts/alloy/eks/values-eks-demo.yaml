@@ -258,7 +258,7 @@ raw:
                   - --source-id
                   - eks-demo
                   - --name
-                  - "EKS demo"
+                  - "EKS Demo"
                   - --kind
                   - cluster
                   - --cluster-backend
