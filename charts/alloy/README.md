@@ -50,7 +50,7 @@ host network를 사용합니다. CPU·메모리 requests/limits와 시스템 우
 | kubelet | `kubelet` | 30초 |
 | 컨테이너 | `integrations/cadvisor` | 15초 |
 | Agent Studio | `agent-studio` | 15초 |
-| Agent Memory | `agent-memory` | 15초 |
+| Agent Memory 웹·worker | `agent-memory` (worker는 `component=worker`) | 15초 |
 
 호스트와 앱의 `instance`는 클러스터 이름입니다. cAdvisor의 `service`는 workload
 이름으로 맞춰 `../dockpad/grafana`의 Agent Platform 대시보드에서 조회할 수 있습니다.
