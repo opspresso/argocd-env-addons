@@ -113,11 +113,20 @@ EKS Auto Mode의 network-policy-agent와 eBPF SDK는 호스트 프로세스다. 
 `env/<cluster>.yaml`의 `vibemon.enabled`로 같은 Argo CD Application에 독립적인
 `vibemon-collector` Deployment를 추가합니다. Alloy의 로그·Grafana Cloud 경로는 그대로
 동작합니다. 수집기는 기존 Metrics API를 읽으며, 새로운 node exporter나 TSDB를 설치하지
-않습니다. CPU·메모리 사용률, 준비/전체 노드 수, 비정상 Pod 수만 VibeMon으로 전송합니다.
+않습니다. CPU·메모리 사용률, 준비/전체 노드 수, 비정상 Pod 수를 VibeMon으로 전송합니다.
+k3s는 `vibemon.kubelet_stats: true`로 루트 디스크의 남은 용량(GiB)·전체 용량(GiB)·사용률도 전송합니다.
 Pod 사양·로그·Kubernetes 자격 증명은 전송하지 않습니다.
 
 배포 이미지는 공개 ECR의 AMD64/ARM64 digest로 고정합니다. root filesystem은 읽기 전용이며,
 비특권 ServiceAccount에는 core nodes/pods list와 Metrics API nodes get/list만 허용합니다.
+디스크 수집을 켠 k3s에는 `nodes/stats` get만 추가합니다. 수집기는 노드 InternalIP의 kubelet
+HTTPS 포트(기본 10250)에 ServiceAccount 토큰으로 접근하고 CA와 인증서를 검증합니다.
+`nodes/proxy` 권한은 필요하지 않습니다. 노드별 루트 파일시스템을 합산하며 PVC·overlay
+mount를 중복 합산하지 않습니다. 일부 노드가 실패하거나 통계가 120초보다 오래되면 디스크는
+사용 불가로 표시하고 CPU·메모리 수집은 계속합니다. Web의 확장형 host/cluster 지표 지원과
+디스크 수집 기능이 포함된 이미지 digest를 먼저 배포한 뒤 이 옵션을 켭니다.
+EKS의 디스크 수집은 기본적으로 꺼져 있습니다.
+
 EKS는 CPU 25m·메모리 64Mi를 예약하고 메모리 상한은 192Mi입니다. k3s에는 저장소 정책에 따라
 requests/limits를 설정하지 않습니다. Recreate 전략으로 같은 source ID의 수집기를 중복 실행하지
 않습니다. readiness는 최근 120초 내 Web의 실제 수신 확인이 있어야 통과합니다. Web 장애 시

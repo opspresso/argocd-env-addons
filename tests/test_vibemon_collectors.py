@@ -36,10 +36,14 @@ def test_collector_has_scoped_credentials_permissions_and_delivery_readiness(clu
     assert ('resources' in container) is limited
     assert not spec.get('hostNetwork', False)
     role = next(x for x in resources if x['kind'] == 'ClusterRole' and x['metadata']['name'].startswith('vibemon-collector-'))
-    assert role['rules'] == [
+    expected_rules = [
         {'apiGroups': [''], 'resources': ['nodes', 'pods'], 'verbs': ['list']},
         {'apiGroups': ['metrics.k8s.io'], 'resources': ['nodes'], 'verbs': ['get', 'list']},
     ]
+    if cluster == 'k3s-demo':
+        expected_rules.append({'apiGroups': [''], 'resources': ['nodes/stats'], 'verbs': ['get']})
+    assert role['rules'] == expected_rules
+    assert ('--disk' in container['args']) is (cluster == 'k3s-demo')
     secret = next(x for x in resources if x['kind'] == 'ExternalSecret' and x['metadata']['name'] == 'vibemon-collector')
     assert secret['spec']['data'][0]['remoteRef']['key'] == f'/k8s/{cluster}/vibemon/write-token'
 

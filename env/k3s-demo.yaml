@@ -88,4 +88,5 @@ vibemon:
   enabled: true
   hostname: vibemon.io
   display_name: "K3S Demo"
-  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:192fbb8fa55fb55346c19e5363c3b1d49d2c4363454ab02718b4347b8bd5dd4f
+  kubelet_stats: true
+  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:bc9fef8de2d0e45b0cd639c7ad0490c9107812d7491517ed6bee48963cc8c8f4
