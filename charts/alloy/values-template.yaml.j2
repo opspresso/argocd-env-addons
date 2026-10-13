@@ -286,7 +286,7 @@ alloy:
 
         prometheus.scrape "agent_studio" {
           targets = [{
-            "__address__" = "agent-studio.agent-studio.svc:80",
+            "__address__" = "agent-studio.agent-studio.svc:3000",
             "namespace"   = "agent-studio",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
           }]
@@ -298,7 +298,7 @@ alloy:
 
         prometheus.scrape "agent_memory" {
           targets = [{
-            "__address__" = "agent-memory.agent-memory.svc:80",
+            "__address__" = "agent-memory.agent-memory.svc:3000",
             "namespace"   = "agent-memory",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
           }]
@@ -311,12 +311,12 @@ alloy:
 
         prometheus.scrape "agent_librio" {
           targets = [{
-            "__address__" = "agent-librio.agent-librio.svc:80",
+            "__address__" = "agent-librio.agent-librio.svc:3000",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
             "namespace"   = "agent-librio",
             "component"   = "web",
           }, {
-            "__address__" = "agent-librio-worker.agent-librio.svc:80",
+            "__address__" = "agent-librio-worker.agent-librio.svc:3000",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
             "namespace"   = "agent-librio",
             "component"   = "worker",
@@ -330,7 +330,7 @@ alloy:
 
         prometheus.scrape "agent_forge" {
           targets = [{
-            "__address__" = "agent-forge.agent-forge.svc:80",
+            "__address__" = "agent-forge.agent-forge.svc:3103",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
             "namespace"   = "agent-forge",
           }]

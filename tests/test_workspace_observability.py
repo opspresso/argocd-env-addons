@@ -136,10 +136,10 @@ def test_application_scrapes_use_separate_credentials_and_exporter_roles():
         path = "/metrics" if name == "agent_forge" else "/api/metrics"
         assert f'metrics_path    = "{path}"' in block
     assert targets == {
-        "agent_studio": ["agent-studio.agent-studio.svc:80"],
-        "agent_memory": ["agent-memory.agent-memory.svc:80"],
-        "agent_librio": ["agent-librio.agent-librio.svc:80", "agent-librio-worker.agent-librio.svc:80"],
-        "agent_forge": ["agent-forge.agent-forge.svc:80"],
+        "agent_studio": ["agent-studio.agent-studio.svc:3000"],
+        "agent_memory": ["agent-memory.agent-memory.svc:3000"],
+        "agent_librio": ["agent-librio.agent-librio.svc:3000", "agent-librio-worker.agent-librio.svc:3000"],
+        "agent_forge": ["agent-forge.agent-forge.svc:3103"],
     }
     assert '"component"   = "worker"' in config
     secret = next(resource for resource in values["raw"]["resources"]

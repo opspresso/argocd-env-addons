@@ -57,6 +57,7 @@ host network를 사용합니다. CPU·메모리 requests/limits와 시스템 우
 
 호스트와 앱의 `instance`는 클러스터 이름입니다. cAdvisor의 `service`는 workload
 이름으로 맞춰 `../dockpad/grafana`의 Agent Platform 대시보드에서 조회할 수 있습니다.
+Studio·Memory·Librio 웹·worker의 내부 Service 포트는 `3000`, Forge는 `3103`이며 Pod 포트와 같습니다.
 Studio·Memory·Librio는 `/api/metrics`, Forge는 `/metrics`를 제공합니다.
 Memory·Librio·Forge는 각각 별도의 Bearer token을 사용합니다. 앱의 `namespace`를 대상에 붙이며,
 `agent-forge-workspaces`에서 Job controller가 생성한 `forge-ws-<40hex>-<5자 suffix>` Pod의
