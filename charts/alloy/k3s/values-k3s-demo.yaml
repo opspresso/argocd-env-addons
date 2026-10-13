@@ -341,7 +341,7 @@ raw:
                 type: RuntimeDefault
             containers:
               - name: collector
-                image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:bc9fef8de2d0e45b0cd639c7ad0490c9107812d7491517ed6bee48963cc8c8f4
+                image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:2576554f45ee888948b7c4ec1f58e36a1b3a5caf1a2254e9b3abdd9f782fa2f9
                 args:
                   - --source-id
                   - k3s-demo
