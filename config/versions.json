@@ -7,10 +7,10 @@
       "version": "1.13.1"
     },
     "argo-cd": {
-      "app_version": "v3.5.4",
+      "app_version": "v3.5.5",
       "chart": "argo/argo-cd",
       "current": "10.9.2",
-      "version": "10.10.2"
+      "version": "10.10.3"
     },
     "argo-rollouts": {
       "app_version": "v1.10.0",
@@ -98,10 +98,10 @@
       "version": "92.3.0"
     },
     "victoria-metrics": {
-      "app_version": "v1.153.0",
+      "app_version": "v1.154.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
       "current": "0.93.0",
-      "version": "0.95.2"
+      "version": "0.96.0"
     },
     "vllm-stack": {
       "app_version": "",
