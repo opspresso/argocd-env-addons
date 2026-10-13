@@ -30,12 +30,12 @@ raw:
         dnsNames:
           - demo.opsp.dev
           - '*.demo.opsp.dev'
-          - memory.opsp.dev
-          - studio.opsp.dev
           - demo.agrt.dev
           - '*.demo.agrt.dev'
           - memory.agrt.dev
           - studio.agrt.dev
+          - librio.agrt.dev
+          - forge.agrt.dev
 
     - apiVersion: gateway.networking.k8s.io/v1
       kind: Gateway
@@ -70,30 +70,6 @@ raw:
               namespaces:
                 from: All
           - name: https-2
-            hostname: "memory.opsp.dev"
-            port: 8443
-            protocol: HTTPS
-            tls:
-              mode: Terminate
-              certificateRefs:
-                - kind: Secret
-                  name: "traefik-gateway-tls"
-            allowedRoutes:
-              namespaces:
-                from: All
-          - name: https-3
-            hostname: "studio.opsp.dev"
-            port: 8443
-            protocol: HTTPS
-            tls:
-              mode: Terminate
-              certificateRefs:
-                - kind: Secret
-                  name: "traefik-gateway-tls"
-            allowedRoutes:
-              namespaces:
-                from: All
-          - name: https-4
             hostname: "demo.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -105,7 +81,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-5
+          - name: https-3
             hostname: "*.demo.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -117,7 +93,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-6
+          - name: https-4
             hostname: "memory.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -129,8 +105,32 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-7
+          - name: https-5
             hostname: "studio.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-6
+            hostname: "librio.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-7
+            hostname: "forge.agrt.dev"
             port: 8443
             protocol: HTTPS
             tls:

@@ -43,7 +43,7 @@ prometheus-adapter:
     default: false
 
     custom:
-      # Both web Agent runs and native Workspace Gateway calls consume HTTP capacity.
+      # Studio reports Agent runs only; Forge owns native model Gateway requests.
       - seriesQuery: 'agent_studio_active_execution_requests{namespace!="",pod!=""}'
         resources:
           overrides:

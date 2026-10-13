@@ -18,7 +18,7 @@ alloy:
             // Apply the same policy to any samples replayed from the existing WAL.
             write_relabel_config {
               source_labels = ["job", "__name__"]
-              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
+              regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|agent-librio;.+|agent-forge;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
               action = "keep"
             }
 
@@ -31,7 +31,7 @@ alloy:
           forward_to = [prometheus.remote_write.grafana_cloud.receiver]
           rule {
             source_labels = ["job", "__name__"]
-            regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
+            regex = "integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|agent-librio;.+|agent-forge;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))"
             action = "keep"
           }
         }
@@ -134,9 +134,9 @@ alloy:
           }
           rule {
             source_labels = ["pod"]
-            regex         = "studio-ws-[a-f0-9]{40}"
+            regex         = "forge-ws-[a-f0-9]{40}"
             target_label  = "service"
-            replacement   = "agent-studio-sandbox"
+            replacement   = "agent-forge-sandbox"
           }
         }
 
@@ -150,6 +150,7 @@ alloy:
         prometheus.scrape "agent_studio" {
           targets = [{
             "__address__" = "agent-studio.agent-studio.svc:80",
+            "namespace"   = "agent-studio",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
           }]
           metrics_path    = "/api/metrics"
@@ -161,15 +162,44 @@ alloy:
         prometheus.scrape "agent_memory" {
           targets = [{
             "__address__" = "agent-memory.agent-memory.svc:80",
+            "namespace"   = "agent-memory",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-          }, {
-            "__address__" = "agent-memory-worker.agent-memory.svc:80",
-            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-            "component"   = "worker",
           }]
           metrics_path    = "/api/metrics"
           bearer_token    = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
           job_name        = "agent-memory"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.relabel.retained_metrics.receiver]
+        }
+
+        prometheus.scrape "agent_librio" {
+          targets = [{
+            "__address__" = "agent-librio.agent-librio.svc:80",
+            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+            "namespace"   = "agent-librio",
+            "component"   = "web",
+          }, {
+            "__address__" = "agent-librio-worker.agent-librio.svc:80",
+            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+            "namespace"   = "agent-librio",
+            "component"   = "worker",
+          }]
+          metrics_path    = "/api/metrics"
+          bearer_token    = sys.env("AGENT_LIBRIO_METRICS_BEARER_TOKEN")
+          job_name        = "agent-librio"
+          scrape_interval = "15s"
+          forward_to      = [prometheus.relabel.retained_metrics.receiver]
+        }
+
+        prometheus.scrape "agent_forge" {
+          targets = [{
+            "__address__" = "agent-forge.agent-forge.svc:80",
+            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
+            "namespace"   = "agent-forge",
+          }]
+          metrics_path    = "/metrics"
+          bearer_token    = sys.env("AGENT_FORGE_METRICS_BEARER_TOKEN")
+          job_name        = "agent-forge"
           scrape_interval = "15s"
           forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
@@ -262,6 +292,12 @@ raw:
           - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
             remoteRef:
               key: /k8s/k3s-demo/agent-memory/metrics-bearer-token
+          - secretKey: AGENT_LIBRIO_METRICS_BEARER_TOKEN
+            remoteRef:
+              key: /k8s/k3s-demo/agent-librio/metrics-bearer-token
+          - secretKey: AGENT_FORGE_METRICS_BEARER_TOKEN
+            remoteRef:
+              key: /k8s/k3s-demo/agent-forge/metrics-bearer-token
 
     - apiVersion: v1
       kind: ServiceAccount
