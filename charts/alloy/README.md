@@ -59,7 +59,9 @@ host network를 사용합니다. CPU·메모리 requests/limits와 시스템 우
 이름으로 맞춰 `../dockpad/grafana`의 Agent Platform 대시보드에서 조회할 수 있습니다.
 Studio·Memory·Librio는 `/api/metrics`, Forge는 `/metrics`를 제공합니다.
 Memory·Librio·Forge는 각각 별도의 Bearer token을 사용합니다. 앱의 `namespace`를 대상에 붙이며,
-실행 Pod `forge-ws-<40hex>`의 cAdvisor `service`는 `agent-forge-sandbox`입니다.
+`agent-forge-workspaces`에서 Job controller가 생성한 `forge-ws-<40hex>-<5자 suffix>` Pod의
+cAdvisor `service`는 `agent-forge-sandbox`입니다. 노드 단위 수집에는 Pod discovery 라벨이 없으므로
+namespace와 전체 Pod 이름 형식을 함께 확인합니다.
 kubelet은 노드·실행 수·볼륨·runtime 상태를, cAdvisor는 대시보드의
 CPU·메모리·네트워크·디스크 I/O·OOM 메트릭을 전송해 Cloud 시리즈 사용량을 제한합니다.
 호스트와 앱 메트릭은 전체를 전송합니다.

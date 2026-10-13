@@ -267,9 +267,11 @@ alloy:
             target_label  = "service"
             replacement   = "$1"
           }
+          // Node-level cAdvisor samples have no Pod discovery labels.
           rule {
-            source_labels = ["pod"]
-            regex         = "forge-ws-[a-f0-9]{40}"
+            source_labels = ["namespace", "pod"]
+            separator     = ";"
+            regex         = "agent-forge-workspaces;forge-ws-[a-f0-9]{40}-[a-z0-9]{5}"
             target_label  = "service"
             replacement   = "agent-forge-sandbox"
           }

@@ -3,6 +3,7 @@ import json
 import re
 import subprocess
 
+import pytest
 import yaml
 from test_node_observability import rendered_grafana, run_promtool
 
@@ -64,6 +65,33 @@ def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting
     replay_pattern = re.search(r'write_relabel_config\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
     assert replay_pattern == pattern
     assert config.count("prometheus.relabel.retained_metrics.receiver") == 8
+
+
+@pytest.mark.parametrize("namespace,pod,expected", [
+    ("agent-forge-workspaces", "forge-ws-51e2938a2963c2657e94d57f731adcc6b12a7b9a-w2lmz", True),
+    ("agent-forge-workspaces", "forge-ws-" + "f" * 40 + "-9x66c", True),
+    ("other", "forge-ws-" + "a1" * 20 + "-jrg8w", False),
+    ("", "forge-ws-" + "a1" * 20 + "-jrg8w", False),
+    ("agent-forge-workspaces", "forge-ws-" + "a1" * 20, False),
+    ("agent-forge-workspaces", "forge-ws-" + "a" * 39 + "-jrg8w", False),
+    ("agent-forge-workspaces", "forge-ws-" + "g" * 40 + "-jrg8w", False),
+    ("agent-forge-workspaces", "forge-ws-" + "A" * 40 + "-jrg8w", False),
+    ("agent-forge-workspaces", "forge-ws-" + "a" * 40 + "-jrg8wx", False),
+    ("agent-forge-workspaces", "forge-ws-" + "a" * 40 + "-jrg8w-extra", False),
+    ("agent-forge-workspaces", "agent-forge-worker-abc12-def34", False),
+])
+def test_cadvisor_classifies_only_forge_controller_pods(namespace, pod, expected):
+    values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
+    config = values["alloy"]["alloy"]["configMap"]["content"]
+    cadvisor = re.search(r'prometheus.relabel "cadvisor" \{(.*?)^\}', config, re.S | re.M).group(1)
+    rules = re.findall(r'^  rule \{(.*?)^  \}', cadvisor, re.S | re.M)
+    rule = next(rule for rule in rules if 'replacement   = "agent-forge-sandbox"' in rule)
+    sources = json.loads(re.search(r'source_labels\s*=\s*(\[[^\]]+\])', rule).group(1))
+    separator = re.search(r'separator\s*=\s*"([^"]+)"', rule)
+    separator = separator.group(1) if separator else ";"
+    pattern = re.search(r'regex\s*=\s*"([^"]+)"', rule).group(1)
+    labels = {"namespace": namespace, "pod": pod}
+    assert bool(re.fullmatch(pattern, separator.join(labels[name] for name in sources))) is expected
 
 
 def test_prometheus_rules_use_the_shared_policy_with_existing_node_labels():
