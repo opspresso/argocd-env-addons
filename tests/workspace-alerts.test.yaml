@@ -1,33 +1,89 @@
 rule_files:
-  - ../config/workspace-alerts.yaml
+- ../config/workspace-alerts.yaml
 evaluation_interval: 1m
 tests:
-  - name: pod failure and maintenance suppression
-    interval: 1m
-    input_series:
-      - series: 'kube_pod_status_phase{cluster="eks-demo",namespace="agent-studio-workspaces",pod="sandbox-1",phase="Failed"}'
-        values: '0 1 1 1'
-      - series: 'kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}'
-        values: '0+0x4'
-      - series: 'kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}'
-        values: '0+0x4'
-    promql_expr_test:
-      - expr: 'ALERTS{alertname="StudioSandboxFailed",alertstate="firing"}'
-        eval_time: 2m
-        exp_samples:
-          - labels: 'ALERTS{alertname="StudioSandboxFailed",alertstate="firing",cluster="eks-demo",namespace="agent-studio-workspaces",pod="sandbox-1",service="agent-studio",severity="warning"}'
-            value: 1
-      - expr: 'ALERTS{alertname="StudioWorkspaceWorkerUnavailable"}'
-        eval_time: 3m
-        exp_samples: []
-  - name: node scope never crosses clusters
-    interval: 1m
-    input_series:
-      - series: 'kube_node_status_condition{cluster="eks-demo",node="shared-name",condition="DiskPressure",status="true"}'
-        values: '1+0x4'
-      - series: 'kube_node_labels{cluster="other-cluster",node="shared-name",label_karpenter_sh_nodepool="workspaces"}'
-        values: '1+0x4'
-    promql_expr_test:
-      - expr: 'ALERTS{alertname="StudioWorkspaceNodeDiskPressure"}'
-        eval_time: 3m
-        exp_samples: []
+- name: pod failure and maintenance suppression
+  interval: 1m
+  input_series:
+  - series: kube_pod_status_phase{cluster="eks-demo",namespace="agent-forge-workspaces",pod="sandbox-1",phase="Failed"}
+    values: 0 1 1 1
+  - series: kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+    values: 0+0x4
+  - series: kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+    values: 0+0x4
+  promql_expr_test:
+  - expr: ALERTS{alertname="ForgeSandboxFailed",alertstate="firing"}
+    eval_time: 2m
+    exp_samples:
+    - labels: ALERTS{alertname="ForgeSandboxFailed",alertstate="firing",cluster="eks-demo",namespace="agent-forge-workspaces",pod="sandbox-1",service="agent-forge",severity="warning"}
+      value: 1
+  - expr: ALERTS{alertname="StudioWorkspaceWorkerUnavailable"}
+    eval_time: 3m
+    exp_samples: []
+- name: node scope never crosses clusters
+  interval: 1m
+  input_series:
+  - series: kube_node_status_condition{cluster="eks-demo",node="shared-name",condition="DiskPressure",status="true"}
+    values: 1+0x4
+  - series: kube_node_labels{cluster="other-cluster",node="shared-name",label_karpenter_sh_nodepool="workspaces"}
+    values: 1+0x4
+  promql_expr_test:
+  - expr: ALERTS{alertname="ForgeWorkspaceNodeDiskPressure"}
+    eval_time: 3m
+    exp_samples: []
+- name: component owner identity
+  interval: 1m
+  input_series:
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+    values: 0+0x5
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+    values: 1+0x5
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+    values: 0+0x5
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+    values: 1+0x5
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+    values: 0+0x5
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+    values: 1+0x5
+  promql_expr_test:
+  - expr: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing"}
+    eval_time: 3m
+    exp_samples:
+    - labels: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge",service="agent-forge",severity="critical"}
+      value: 1
+  - expr: ALERTS{alertname="StudioWorkspaceWorkerUnavailable",alertstate="firing"}
+    eval_time: 3m
+    exp_samples:
+    - labels: ALERTS{alertname="StudioWorkspaceWorkerUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker",service="agent-studio",severity="critical"}
+      value: 1
+  - expr: ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing"}
+    eval_time: 3m
+    exp_samples:
+    - labels: ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker",service="agent-librio",severity="critical"}
+      value: 1
+- name: maintenance suppresses component alerts
+  interval: 1m
+  input_series:
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+    values: 0+0x5
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+    values: 0+0x5
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+    values: 0+0x5
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+    values: 0+0x5
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+    values: 0+0x5
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+    values: 0+0x5
+  promql_expr_test:
+  - expr: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing"}
+    eval_time: 3m
+    exp_samples: []
+  - expr: ALERTS{alertname="StudioWorkspaceWorkerUnavailable",alertstate="firing"}
+    eval_time: 3m
+    exp_samples: []
+  - expr: ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing"}
+    eval_time: 3m
+    exp_samples: []

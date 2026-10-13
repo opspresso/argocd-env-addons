@@ -1,6 +1,7 @@
 # argocd-env-addons
 
-`eks-demo` production의 자원 예산·확장 확인은 [운영 용량](docs/production-capacity.md)을 따른다.
+현재 운영 대상은 k3s alpha다. EKS는 향후 클러스터를 위한 배포 선언을 유지한다.
+EKS의 자원 예산·확장 기준은 [운영 용량](docs/production-capacity.md)을 따른다.
 
 * <https://argo-cd.readthedocs.io/en/stable/getting_started/>
 * <https://argocd-applicationset.readthedocs.io/en/stable/Getting-Started/>
@@ -82,7 +83,7 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
 Grafana·Atlantis의 `route`, Argo CD·Rollouts·Workflows의 `httproute`, Prometheus의
 `route`와 `additionalPrometheusRulesMap`은 각 addon chart가 렌더링한다.
 리소스 이름도 upstream 규칙을 따른다. Prometheus HTTPRoute는 `prometheus-prometheus`,
-Workspace PrometheusRule은 `prometheus-agent-studio-workspaces`, Workflows HTTPRoute는
+Agent 실행 PrometheusRule은 `prometheus-agent-platform-workloads`, Workflows HTTPRoute는
 `argo-workflows-server`다. URL·backend Service·경보 그룹은 환경 설정에서 관리한다.
 
 ## env
@@ -95,9 +96,10 @@ NetworkPolicy가 적용되지 않는다. [AWS 설정 계약](https://docs.aws.am
 AWS가 controller와 node agent를 관리하므로 별도 CNI·DaemonSet을 설치하지 않는다.
 
 활성화하면 클러스터에 이미 선언된 모든 NetworkPolicy가 적용 대상이 된다. 동기화 후
-`kubectl get policyendpoints -A`와 실제 허용·차단 경로를 확인한다. Agent Studio Pod에서
-Workspace Docker API의 `/_ping`은 성공해야 하고, Agent Memory 같은 다른 namespace에서는
-같은 호출이 차단돼야 한다. Argo CD 내부 통신과 Studio → MCP 경로도 확인한다.
+`kubectl get policyendpoints -A`와 실제 허용·차단 경로를 확인한다. Forge controller의 전용 실행
+namespace Pod 생성·exec와 Sandbox → Forge 모델 Gateway는
+성공해야 하며, Studio·Memory·Librio에는 Sandbox 관리 권한을 주지 않는다.
+Argo CD 내부 통신과 Studio → 서비스 API/MCP·서비스 → Studio 정책 callback도 확인한다.
 k3s의 정책 처리는 k3s가 소유하며 이 EKS 설정을 배포하지 않는다.
 
 ### 클러스터 입력

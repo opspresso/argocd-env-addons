@@ -23,7 +23,7 @@ Sandbox뿐 아니라 Alloy에도 적용되므로 다음 통신을 명시적으�
 - Alloy → `loki.hostname` TCP 80: Loki 로그 전송. DNS 정책이 로드밸런서 IP 변경을 추적합니다.
 
 정책은 `addon-alloy`의 Alloy Pod만 선택합니다. 노드의 기본 차단과
-`agent-studio-workspaces`의 격리 정책은 유지합니다. 노드 서브넷이나 Service CIDR을
+`agent-forge-workspaces`의 격리 정책은 유지합니다. 노드 서브넷이나 Service CIDR을
 변경하면 env의 허용 CIDR도 갱신합니다. 정책은 EKS Auto Mode의 Network Policy Controller와
 `ApplicationNetworkPolicy` CRD가 필요하며, k3s에는 생성하지 않습니다.
 컨트롤러의 기본 차단·DNS 정책 동작은 [AWS 문서](https://docs.aws.amazon.com/eks/latest/userguide/auto-net-pol.html)를 따릅니다.
@@ -50,11 +50,19 @@ host network를 사용합니다. CPU·메모리 requests/limits와 시스템 우
 | kubelet | `kubelet` | 30초 |
 | 컨테이너 | `integrations/cadvisor` | 15초 |
 | Agent Studio | `agent-studio` | 15초 |
-| Agent Memory 웹·worker | `agent-memory` (worker는 `component=worker`) | 15초 |
+| Agent Memory | `agent-memory` | 15초 |
+| Agent Librio 웹·worker | `agent-librio` (`component=web` 또는 `worker`) | 15초 |
+| Agent Forge API·실행 worker | `agent-forge` | 15초 |
+| Workspace·worker 상태 | `workspace-state` | 15초 |
 
 호스트와 앱의 `instance`는 클러스터 이름입니다. cAdvisor의 `service`는 workload
 이름으로 맞춰 `../dockpad/grafana`의 Agent Platform 대시보드에서 조회할 수 있습니다.
-앱 메트릭은 `/api/metrics`에서 수집하며 Agent Memory는 Bearer token을 사용합니다.
+Studio·Memory·Librio 웹·worker의 내부 Service 포트는 `3000`, Forge는 `3103`이며 Pod 포트와 같습니다.
+Studio·Memory·Librio는 `/api/metrics`, Forge는 `/metrics`를 제공합니다.
+Memory·Librio·Forge는 각각 별도의 Bearer token을 사용합니다. 앱의 `namespace`를 대상에 붙이며,
+`agent-forge-workspaces`에서 Job controller가 생성한 `forge-ws-<40hex>-<5자 suffix>` Pod의
+cAdvisor `service`는 `agent-forge-sandbox`입니다. 노드 단위 수집에는 Pod discovery 라벨이 없으므로
+namespace와 전체 Pod 이름 형식을 함께 확인합니다.
 kubelet은 노드·실행 수·볼륨·runtime 상태를, cAdvisor는 대시보드의
 CPU·메모리·네트워크·디스크 I/O·OOM 메트릭을 전송해 Cloud 시리즈 사용량을 제한합니다.
 호스트와 앱 메트릭은 전체를 전송합니다.
@@ -66,9 +74,15 @@ External Secrets가 `parameter-store` ClusterSecretStore를 통해 다음 SSM Se
 
 - `/k8s/common/grafana-cloud/remote-write-api-key`: Grafana Cloud metrics write token
 - `/k8s/<cluster>/agent-memory/metrics-bearer-token`: Agent Memory metrics token
+- `/k8s/<cluster>/agent-librio/metrics-bearer-token`: Librio 웹·worker의 `METRICS_BEARER_TOKEN`
+- `/k8s/<cluster>/agent-forge/metrics-bearer-token`: Forge 전용 수집 principal의 token
 
 `<cluster>`는 `env/<cluster>.yaml`의 `cluster`입니다. 기존 파라미터를 재사용하며,
 노드 IAM 역할에는 해당 SSM 파라미터 읽기·복호화 권한이 필요합니다.
+신규 파라미터를 준비한 뒤 addon을 동기화합니다. 일부 경로가 없으면 ExternalSecret 갱신이 실패합니다.
+Forge 앱은 수집 token의 SHA-256을 전용 principal에 등록하며 scope는 `workspace:read`만 허용합니다.
+Alloy에는 Studio 위임·정책 서명 키를 전달하지 않습니다. 앱별 receiver 설정은 `argocd-env-demo`,
+SSM·IAM은 `terraform-env-demo`가 소유합니다.
 Secret을 환경변수로 읽으므로 토큰 교체 후 Alloy Pod를 재시작합니다.
 
 ## 적용과 확인

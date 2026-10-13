@@ -2,65 +2,65 @@ kube-prometheus-stack:
   fullnameOverride: prometheus
 
   additionalPrometheusRulesMap:
-    agent-studio-workspaces:
+    agent-platform-workloads:
       groups:
-        - name: agent-studio-workspaces
+        - name: agent-forge-workspaces
           rules:
-          - alert: StudioSandboxFailed
+          - alert: ForgeSandboxFailed
             annotations:
               description: Inspect Pod reason, events and Workspace interrupted status; never
                 replay an uncertain operation.
               summary: Sandbox {{ $labels.pod }} failed or was evicted
-            expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-studio-workspaces",phase="Failed"})
+            expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-forge-workspaces",phase="Failed"})
               == 1
             for: 0m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: warning
-          - alert: StudioSandboxPending
+          - alert: ForgeSandboxPending
             annotations:
               description: Check scheduling, quota, image pull and Auto Mode capacity.
               summary: Sandbox {{ $labels.pod }} exceeded its provisioning deadline
-            expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-studio-workspaces",phase="Pending"})
+            expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-forge-workspaces",phase="Pending"})
               == 1
             for: 2m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: warning
-          - alert: StudioSandboxOOM
+          - alert: ForgeSandboxOOM
             annotations:
               summary: Sandbox {{ $labels.pod }} exceeded its memory limit
-            expr: max by (cluster, namespace, pod) (kube_pod_container_status_last_terminated_reason{namespace="agent-studio-workspaces",reason="OOMKilled"})
+            expr: max by (cluster, namespace, pod) (kube_pod_container_status_last_terminated_reason{namespace="agent-forge-workspaces",reason="OOMKilled"})
               == 1
             for: 0m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: warning
-          - alert: StudioSandboxQuota
+          - alert: ForgeSandboxQuota
             annotations:
               description: Verify idle checkpoint/cleanup and orphan sweeps before increasing
                 capacity.
               summary: Workspace Pod quota is nearly exhausted
-            expr: kube_resourcequota{namespace="agent-studio-workspaces",resource="pods",type="used"}
-              / ignoring(type) kube_resourcequota{namespace="agent-studio-workspaces",resource="pods",type="hard"}
+            expr: kube_resourcequota{namespace="agent-forge-workspaces",resource="pods",type="used"}
+              / ignoring(type) kube_resourcequota{namespace="agent-forge-workspaces",resource="pods",type="hard"}
               > 0.8
             for: 5m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: warning
-          - alert: StudioWorkspaceNodeDiskPressure
+          - alert: ForgeWorkspaceNodeDiskPressure
             annotations:
               description: Inspect kubelet image GC, emptyDir usage and evictions; retain
-                DB checkpoints and legacy PVCs.
+                Forge DB checkpoints.
               summary: Workspace node {{ $labels.node }} is under disk pressure
             expr: (kube_node_status_condition{condition="DiskPressure",status="true"} == 1)
               and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
               or kube_node_labels{cluster=~"k3s-.+"})
             for: 1m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: critical
-          - alert: StudioWorkspaceNodeUnavailable
+          - alert: ForgeWorkspaceNodeUnavailable
             annotations:
               summary: Workspace node {{ $labels.node }} is unavailable
             expr: (kube_node_status_condition{condition="Ready",status=~"false|unknown"} ==
@@ -68,11 +68,12 @@ kube-prometheus-stack:
               or kube_node_labels{cluster=~"k3s-.+"})
             for: 1m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: critical
           - alert: StudioWorkspaceWorkerUnavailable
             annotations:
-              summary: Workspace worker is unavailable; runs and cleanup cannot progress
+              summary: Studio Workspace observer is unavailable; observation and continuation
+                cannot progress
             expr: (kube_deployment_status_replicas_available{namespace="agent-studio",deployment="agent-studio-workspace-worker"}
               < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-studio",deployment="agent-studio-workspace-worker"}
               > 0)
@@ -80,14 +81,36 @@ kube-prometheus-stack:
             labels:
               service: agent-studio
               severity: critical
-          - alert: StudioWorkspaceStateMetricsUnavailable
+          - alert: ForgeWorkspaceStateMetricsUnavailable
             annotations:
               summary: Workspace state metrics are unavailable
             expr: up{job="workspace-state"} == 0
             for: 2m
             labels:
-              service: agent-studio
+              service: agent-forge
               severity: warning
+          - alert: ForgeServiceUnavailable
+            annotations:
+              summary: Forge API and execution worker are unavailable
+            expr: (kube_deployment_status_replicas_available{namespace="agent-forge",deployment="agent-forge"}
+              < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-forge",deployment="agent-forge"}
+              > 0)
+            for: 2m
+            labels:
+              service: agent-forge
+              severity: critical
+        - name: agent-librio-workers
+          rules:
+          - alert: LibrioWorkerUnavailable
+            annotations:
+              summary: Librio worker is unavailable; document and audio jobs cannot progress
+            expr: (kube_deployment_status_replicas_available{namespace="agent-librio",deployment="agent-librio-worker"}
+              < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-librio",deployment="agent-librio-worker"}
+              > 0)
+            for: 2m
+            labels:
+              service: agent-librio
+              severity: critical
 
   prometheus:
     route:

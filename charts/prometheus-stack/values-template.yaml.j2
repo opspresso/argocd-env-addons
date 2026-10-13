@@ -2,7 +2,7 @@ kube-prometheus-stack:
   fullnameOverride: prometheus
 
   additionalPrometheusRulesMap:
-    agent-studio-workspaces:
+    agent-platform-workloads:
       groups:
 {{ workspace_alert_groups | to_yaml | indent(8, first=true) }}
 

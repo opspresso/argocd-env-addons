@@ -1,6 +1,7 @@
 # Production addon 용량
 
-`eks-demo`는 production이다. addon 자원은 이 저장소, 앱·DB·Workspace quota는
+현재 운영 대상은 k3s alpha이며 EKS는 향후 클러스터의 배포 선언이다.
+addon 자원은 이 저장소, 앱·DB·Forge 실행 quota는
 `argocd-env-demo`, Auto Mode NodePool은 `terraform-env-demo/demo/6-eks-node`가 관리한다.
 
 ## 자원 정책
@@ -35,7 +36,7 @@ k3s는 Alloy가 필요한 지표만 Grafana Cloud로 전송한다. 공통 `retai
 `remote_write` 앞에 둔다. 전송 직전 필터만 사용하면 버릴 시계열도 WAL과 메모리 캐시에 들어간다.
 필터 변경 시 Workspace 상태·디스크·앱 지표가 유지되고 remote write의 실패·대기 샘플이 늘지 않는지 확인한다.
 k3s의 `metrics.backend`는 `grafana-cloud`이며 로컬 metrics DB와 ServiceMonitor를 배포하지 않는다.
-Alloy가 node·kubelet·Workspace 상태와 두 앱의 metrics endpoint를 직접 수집한다.
+Alloy가 node·kubelet·Workspace 상태와 Studio·Memory·Librio·Forge의 metrics endpoint를 직접 수집한다.
 
 ## 확장 확인
 
@@ -44,15 +45,16 @@ Pod quota·phase·CPU·메모리·전용 노드·worker·웹 실행 부하를 �
 Workspace PrometheusRule의 firing 상태는 Grafana가 기존 Slack 경로로 전달한다. 임계값과 대기 시간은
 `config/workspace-alerts.yaml` 한 곳에서 평가하며, Grafana는 `workspace_alert`와 severity label을 보존한다.
 
-1. 앱 HPA가 `ScalingActive=True`인지 확인한다. Studio는 일반 실행과 native Gateway 요청을 합친
-   `agent_studio_active_execution_requests` 및 앱 컨테이너 CPU를 사용한다.
+1. EKS 앱 HPA가 `ScalingActive=True`인지 확인한다. Studio는 Agent 실행만 집계한
+   `agent_studio_active_execution_requests` 및 앱 컨테이너 CPU를 사용한다. Forge native 모델 요청은
+   별도 `agent_forge_active_model_requests`로 관찰하며 Studio의 HPA 신호에 합치지 않는다.
 2. `metrics.k8s.io`와 `custom.metrics.k8s.io`가 모두 응답하고 exporter target이 `up`인지 확인한다.
 3. workload별 24시간 CPU·메모리 p95와 7일 peak, OOM·재시작·throttling을 같이 본다.
    CPU throttling 비율은 전체 CPU 사용률과 다르므로 단독으로 limit을 올리지 않는다.
 4. PVC 사용량과 증가율, Loki query/ingestion 지연, Prometheus head series·rule 평가 시간을 확인한다.
 5. NodePool·AWS vCPU quota·subnet IP 여유도 함께 확인한다. Pod request만 늘려서는 노드 상한을 넘을 수 없다.
 
-Workspace quota는 0개까지 축소되는 전용 NodePool의 최대 용량을 나타내므로 현재 유휴 노드 용량과
+`agent-forge-workspaces` quota는 0개까지 축소되는 전용 NodePool의 최대 용량을 나타내므로 현재 유휴 노드 용량과
 비교하지 않는다. namespace quota overcommit 규칙에서는 이 namespace만 제외하고, 실제 Pod 요청의
 N-1 여유·Workspace quota 사용률·Pending·Node 장애 규칙은 유지한다. 다른 namespace quota는 기존 기준으로 검사한다.
 

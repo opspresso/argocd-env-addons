@@ -13,11 +13,11 @@ grafana:
   dashboards:
     addons:
       kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fe655450caabcdb6d23346c2c3e3203eb0466fa9/charts/grafana/dashboards/kube-cluster.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/f9d818ee1be842370b3473fc8aef69f250069948/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fe655450caabcdb6d23346c2c3e3203eb0466fa9/charts/grafana/dashboards/kube-workload.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/f9d818ee1be842370b3473fc8aef69f250069948/charts/grafana/dashboards/kube-workload.json
       workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fe655450caabcdb6d23346c2c3e3203eb0466fa9/charts/grafana/dashboards/workspace-capacity.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/f9d818ee1be842370b3473fc8aef69f250069948/charts/grafana/dashboards/workspace-capacity.json
 
   alerting:
     workload-health.yaml:
@@ -1274,8 +1274,8 @@ grafana:
           orgId: 1
           rules:
           - annotations:
-              summary: A configured Workspace capacity, execution or node alert is firing.
-                Inspect the workspace_alert label and Workspace Capacity dashboard.
+              summary: A configured Forge, Librio or Studio observer alert is firing. Inspect
+                the workspace_alert label and Workspace Capacity dashboard.
             condition: C
             data:
             - datasourceUid: prometheus
@@ -1284,7 +1284,7 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service="agent-studio",alertname=~"Studio(Sandbox|Workspace).*"},
+                expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service=~"agent-(studio|forge|librio)",alertname=~"(Forge.*|StudioWorkspace.*|LibrioWorkerUnavailable)"},
                   "workspace_alert", "$1", "alertname", "(.*)"))
                 instant: true
                 range: false
@@ -1309,10 +1309,8 @@ grafana:
               refId: C
             execErrState: Alerting
             for: 0s
-            labels:
-              service: agent-studio
             noDataState: OK
-            title: Workspace alert firing
+            title: Agent platform execution alert firing
             uid: addons-workspace-prometheus-alerts
 
 
@@ -1320,7 +1318,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
     # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "280c45f036c16ccd8ebe64b1fb214fa57a327ee0277a67f0edf14d894b378540"
+    checksum/managed-dashboards: "969fb5b1635ef239afc94083de0b8003f4cee80bf545aa15d0e86ed1879daf4b"
 
   grafana.ini:
     server:
