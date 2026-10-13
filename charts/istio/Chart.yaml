@@ -6,15 +6,15 @@ version: "1.30.5" # helm chart istiod version
 
 dependencies:
 - name: base
-  repository: https://istio-release.storage.googleapis.com/charts
+  repository: https://blob.istio.io/istio-release/charts
   version: "1.30.5" # helm chart istiod version
 
 - name: istiod
-  repository: https://istio-release.storage.googleapis.com/charts
+  repository: https://blob.istio.io/istio-release/charts
   version: "1.30.5" # helm chart istiod version
 
 - name: gateway
-  repository: https://istio-release.storage.googleapis.com/charts
+  repository: https://blob.istio.io/istio-release/charts
   version: "1.30.5" # helm chart istiod version
 
 - name: raw
