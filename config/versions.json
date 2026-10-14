@@ -13,10 +13,10 @@
       "version": "10.10.3"
     },
     "argo-rollouts": {
-      "app_version": "v1.10.0",
+      "app_version": "v1.10.1",
       "chart": "argo/argo-rollouts",
       "current": "2.43.2",
-      "version": "2.43.6"
+      "version": "2.43.7"
     },
     "argo-workflows": {
       "app_version": "v4.1.5",
@@ -55,11 +55,11 @@
       "version": "10.5.15"
     },
     "istiod": {
-      "app_version": "1.30.5",
+      "app_version": "1.31.1",
       "chart": "istio/istiod",
       "current": "1.30.5",
       "path": "istio",
-      "version": "1.30.5"
+      "version": "1.31.1"
     },
     "kite": {
       "app_version": "v0.16.0",
@@ -95,7 +95,7 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "92.3.0"
+      "version": "92.3.1"
     },
     "victoria-metrics": {
       "app_version": "v1.154.0",
