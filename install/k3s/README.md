@@ -18,7 +18,7 @@ ssh -i ~/.ssh/id_ed25519_bruce ec2-user@100.113.136.122
 
 ## 사전 조건
 
-- k3s가 설치되어 있어야 한다.
+- Kubernetes 1.36 이상의 k3s가 설치되어 있어야 한다.
 - `kubectl`이 대상 k3s 클러스터를 가리켜야 한다.
 - `../terraform-env-demo/demo/9-agent-studio/bootstrap-k3s.sh`를 먼저 실행해야 한다.
 - bootstrap이 설치한 `helm`, `aws`, `jq`, `argocd` CLI와 접속 확인용 `curl`이 PATH에 있어야 한다.
@@ -72,6 +72,8 @@ cert-manager가 사용하는 EC2 Instance Profile에는 최소한 다음 권한�
 7. `traefik-gateway` addon이 Gateway와 `traefik-gateway-tls` 인증서를 생성한다.
 8. 이전 설치에서 남은 `argocd-server` Ingress를 삭제한다.
 9. HTTPS `/healthz` 응답이 준비되면 SSM 관리자 계정으로 로그인한다.
+10. `k3s-system-policy`가 등록되면 CoreDNS·metrics-server를 갱신하고 준비 상태를 확인한다.
+    네이티브 admission 정책이 CPU·메모리 requests/limits를 제거하며 이후 k3s 업그레이드에도 적용된다.
 
 SSM 조회 실패나 빈 값이 있으면 Helm 설치 전에 중단한다. HTTPS 준비는 기본 600초까지
 기다리며 `ARGOCD_READY_TIMEOUT=900 ./install/k3s/install.sh`로 조정할 수 있다.

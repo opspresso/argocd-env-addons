@@ -135,6 +135,7 @@ k3s 기본 CoreDNS·metrics-server는 k3s가 설치·업그레이드를 계속 �
 `k3s-system-policy`는 Kubernetes 1.36 이상의 네이티브 `MutatingAdmissionPolicy`로
 이 두 Deployment의 CPU·메모리 requests/limits만 제거한다. 별도 controller는 실행하지 않는다.
 기존 설치에 정책을 처음 적용할 때는 두 Deployment를 갱신해야 새 Pod에도 반영된다.
+`install/k3s/install.sh`는 정책 등록을 기다린 뒤 이 갱신과 준비 상태 확인을 수행한다.
 PVC storage와 다른 리소스 요청은 변경하지 않는다.
 
 ### k3s alpha 모니터링
