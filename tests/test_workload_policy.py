@@ -89,6 +89,15 @@ class WorkloadPolicyTests(unittest.TestCase):
         reloader = {"useDefaultResources": False, "configReloaderResources": {"limits": {"cpu": "100m"}}}
         self.assertIn("configReloaderResources", policy_errors(manifest("VMAgent", reloader), "k3s")[0])
 
+    def test_monitoring_crds_reject_null_resource_maps(self):
+        for kind in ("Prometheus", "PrometheusAgent", "Alertmanager", "ThanosRuler"):
+            for resources in (None, {"requests": None}, {"limits": None}):
+                with self.subTest(kind=kind, resources=resources):
+                    self.assertTrue(policy_errors(manifest(kind, {"resources": resources}), "k3s"))
+            for spec in ({}, {"resources": {}}, {"resources": {"requests": {}, "limits": {}}}):
+                with self.subTest(kind=kind, spec=spec):
+                    self.assertEqual(policy_errors(manifest(kind, spec), "k3s"), [])
+
     def test_vm_resources_must_be_objects_when_present(self):
         for kind in ("VMAgent", "VMAlert", "VMAlertmanager", "VMSingle"):
             for field in ("resources", "configReloaderResources"):

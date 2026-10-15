@@ -59,6 +59,15 @@ def policy_errors(manifests, platform):
                     errors.append(f"{owner} spec.{component}.useDefaultResources must be false")
         elif kind in VM_WORKLOADS and document.get("spec", {}).get("useDefaultResources") is not False:
             errors.append(f"{owner} spec.useDefaultResources must be false")
+        if kind in {"Prometheus", "PrometheusAgent", "Alertmanager", "ThanosRuler"}:
+            # Unlike core Pod APIs, monitoring CRDs reject explicit null resource maps.
+            resources = document.get("spec", {}).get("resources", {})
+            if not isinstance(resources, dict):
+                errors.append(f"{owner} spec.resources must be an object when present")
+            else:
+                for field in ("requests", "limits"):
+                    if field in resources and not isinstance(resources[field], dict):
+                        errors.append(f"{owner} spec.resources.{field} must be an object when present")
         inspect(document, owner, vm_workload=kind in VM_WORKLOADS)
         if kind == "HelmChartConfig":
             # k3s deploys its bundled Traefik chart from this embedded values document.
