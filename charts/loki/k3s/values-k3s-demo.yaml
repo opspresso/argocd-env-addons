@@ -30,7 +30,3 @@ loki:
       labels:
 
         release: prometheus-k3s-demo
-
-
-
-

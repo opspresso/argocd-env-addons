@@ -189,7 +189,3 @@ kube-prometheus-stack:
     service:
       selector:
         k8s-app: kube-dns
-
-
-
-

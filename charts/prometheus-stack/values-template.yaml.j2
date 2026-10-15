@@ -1,3 +1,4 @@
+{% filter trim %}
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
@@ -125,7 +126,7 @@ kube-prometheus-stack:
 {% endif %}
 {% endif %}
 
-{% if env == 'eks' %}
+{%- if env == 'eks' %}
 raw:
   resources:
     # alertmanagerSpec.secrets mounts this at
@@ -147,4 +148,6 @@ raw:
             remoteRef:
               key: /k8s/common/slack-webhook/alertmanager
 
-{%- endif %}
+{%- endif -%}
+
+{% endfilter %}
