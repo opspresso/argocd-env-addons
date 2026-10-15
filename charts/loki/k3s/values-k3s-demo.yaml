@@ -1,0 +1,32 @@
+loki:
+  fullnameOverride: loki
+
+
+
+  sidecar:
+    resources: null
+
+
+  singleBinary:
+    persistence:
+      storageClass: local-path
+      size: 10Gi
+    resources: null
+  loki:
+    limits_config:
+      retention_period: 168h
+      max_query_parallelism: 2
+    querier:
+      max_concurrent: 2
+
+
+  # The chart labels its own metrics cluster=<release>, which lands as
+  # cluster="loki" and puts this one job outside every cluster filter.
+  clusterLabelOverride: k3s-demo
+
+  monitoring:
+    serviceMonitor:
+      enabled: True
+      labels:
+
+        release: prometheus-k3s-demo

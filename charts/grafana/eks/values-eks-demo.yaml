@@ -10,6 +10,7 @@ grafana:
 
 
   # Use the committed dashboard revision; branch URLs can return stale JSON.
+
   dashboards:
     addons:
       kube-cluster:
@@ -18,6 +19,8 @@ grafana:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/f9d818ee1be842370b3473fc8aef69f250069948/charts/grafana/dashboards/kube-workload.json
       workspace-capacity:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/f9d818ee1be842370b3473fc8aef69f250069948/charts/grafana/dashboards/workspace-capacity.json
+
+
 
   alerting:
     workload-health.yaml:
@@ -1315,12 +1318,14 @@ grafana:
 
 
 
+
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.opspresso.com"
     # Keep changes to the canonical dashboard files visible to the rollout.
     checksum/managed-dashboards: "969fb5b1635ef239afc94083de0b8003f4cee80bf545aa15d0e86ed1879daf4b"
 
   grafana.ini:
+
     server:
       root_url: "https://grafana.demo.opspresso.com/"
 
@@ -1428,11 +1433,13 @@ raw:
           - secretKey: admin-password
             remoteRef:
               key: /k8s/common/admin-password
+
           # Read through the SLACK_WEBHOOK_URL env var, not a file mount: the
           # alerting provisioning files interpolate $VAR but cannot read files.
           - secretKey: slack-webhook
             remoteRef:
               key: /k8s/common/slack-webhook/grafana
+
 
           - secretKey: github-id
             remoteRef:

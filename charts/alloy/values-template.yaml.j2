@@ -1,127 +1,11 @@
 alloy:
   fullnameOverride: alloy
 
-{% if loki is defined %}
+{% if loki is defined and grafana_cloud is not defined %}
   alloy:
     configMap:
       content: |
-        discovery.kubernetes "pods" {
-          role = "pod"
-
-          // Node-local discovery only: every daemon watches its own node
-          // instead of the whole cluster.
-          selectors {
-            role  = "pod"
-            field = "spec.nodeName=" + sys.env("NODE_NAME")
-          }
-        }
-
-        discovery.relabel "pods" {
-          targets = discovery.kubernetes.pods.targets
-
-          rule {
-            source_labels = ["__meta_kubernetes_namespace"]
-            target_label  = "namespace"
-          }
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_name"]
-            target_label  = "pod"
-          }
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_container_name"]
-            target_label  = "container"
-          }
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_label_app"]
-            target_label  = "app"
-          }
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
-            regex         = "(.+)"
-            target_label  = "app"
-          }
-
-          rule {
-            source_labels = ["namespace", "app"]
-            separator     = "/"
-            target_label  = "job"
-          }
-
-          rule {
-            source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-            separator     = "/"
-            replacement   = "/var/log/pods/*$1/*.log"
-            target_label  = "__path__"
-          }
-        }
-
-        local.file_match "pods" {
-          path_targets = discovery.relabel.pods.output
-        }
-
-        loki.source.file "pods" {
-          targets    = local.file_match.pods.targets
-          forward_to = [loki.process.pods.receiver]
-        }
-
-        loki.process "pods" {
-          stage.cri {}
-
-          // One label value per log file otherwise.
-          stage.label_drop {
-            values = ["filename"]
-          }
-
-          forward_to = [loki.write.default.receiver]
-        }
-
-{% if env == 'eks' %}
-        // Auto Mode node agents are host processes, absent from Pod log discovery.
-        local.file_match "aws_cni" {
-          path_targets = [
-            {"__path__" = "/var/log/aws-routed-eni/network-policy-agent.log", "job" = "kube-system/aws-network-policy-agent", "namespace" = "kube-system", "node" = sys.env("NODE_NAME")},
-            {"__path__" = "/var/log/aws-routed-eni/ebpf-sdk.log", "job" = "kube-system/aws-ebpf-sdk", "namespace" = "kube-system", "node" = sys.env("NODE_NAME")},
-          ]
-        }
-
-        loki.source.file "aws_cni" {
-          targets    = local.file_match.aws_cni.targets
-          forward_to = [loki.process.aws_cni.receiver]
-        }
-
-        loki.process "aws_cni" {
-          // Debug conntrack events are high-volume; keep failures, including SDK errors at info level.
-          stage.match {
-            selector = "{namespace=\"kube-system\"} !~ \"(?i)error|failed\""
-            action   = "drop"
-          }
-          stage.json {
-            expressions = {"timestamp" = "ts"}
-          }
-          stage.timestamp {
-            source = "timestamp"
-            format = "RFC3339Nano"
-          }
-          stage.label_drop {
-            values = ["filename"]
-          }
-          forward_to = [loki.write.default.receiver]
-        }
-{% endif %}
-
-        loki.write "default" {
-          endpoint {
-            url = "http://{{loki.hostname}}/loki/api/v1/push"
-          }
-
-          external_labels = {
-            cluster = "{{cluster}}",
-          }
-        }
+{% include 'logs.alloy.j2' %}
 
   rbac:
     # The chart concatenates both lists; an empty list breaks its ClusterRole YAML.
@@ -140,6 +24,23 @@ alloy:
   alloy:
     configMap:
       content: |
+{% if loki is defined %}
+{% include 'logs.alloy.j2' %}
+{% endif %}
+{% if prometheus.remote_write_url is defined %}
+        // Cluster metrics are scraped by Prometheus; forward only application metrics.
+        prometheus.remote_write "local" {
+          external_labels = { "cluster" = "{{cluster}}" }
+          endpoint {
+            url = "{{prometheus.remote_write_url}}"
+            write_relabel_config {
+              source_labels = ["job"]
+              regex = "agent-(studio|memory|librio|forge)"
+              action = "keep"
+            }
+          }
+        }
+{% endif %}
         prometheus.remote_write "grafana_cloud" {
           external_labels = { "cluster" = "{{cluster}}" }
 
@@ -163,7 +64,7 @@ alloy:
 
         // Filter before remote_write: discarded series must not enter its WAL or caches.
         prometheus.relabel "retained_metrics" {
-          forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+          forward_to = [prometheus.remote_write.grafana_cloud.receiver{% if prometheus.remote_write_url is defined %}, prometheus.remote_write.local.receiver{% endif %}]
           rule {
             source_labels = ["job", "__name__"]
             regex = "{{cloud_metric_allowlist}}"
@@ -352,7 +253,7 @@ alloy:
       - secretRef:
           name: alloy-grafana-cloud
     mounts:
-      varlog: false
+      varlog: {{ loki is defined }}
       extra:
         - name: alloy-data
           mountPath: /var/lib/alloy
@@ -379,6 +280,11 @@ alloy:
       - apiGroups: [""]
         resources: ["nodes/proxy"]
         verbs: ["get"]
+{% if loki is defined %}
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["get", "list", "watch"]
+{% endif %}
 
 {% if resources is defined and not resources.enabled %}
   configReloader:

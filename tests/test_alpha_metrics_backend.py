@@ -18,9 +18,6 @@ def test_argocd_monitoring_matches_the_platform_collector(platform):
     ], capture_output=True, text=True, check=True)
     documents = [item for item in yaml.safe_load_all(result.stdout) if item]
     monitors = [item for item in documents if item["kind"] == "ServiceMonitor"]
-    if platform == "eks":
-        assert monitors
-        assert all(item["metadata"]["labels"]["release"] == "prometheus-eks-demo" for item in monitors)
-    else:
-        assert not any(item["kind"] in {"ServiceMonitor", "PodMonitor", "Prometheus", "VMSingle"} for item in documents)
+    assert monitors
+    assert all(item["metadata"]["labels"]["release"] == f"prometheus-{platform}-demo" for item in monitors)
     assert any(item["kind"] == "Deployment" and item["metadata"]["name"] == "argocd-server" for item in documents)

@@ -97,7 +97,7 @@ def test_host_collection_renders_node_labels_and_short_scrapes():
 
 def test_eks_job_alerts_are_not_provisioned_on_k3s():
     values = yaml.safe_load((ROOT / "charts/grafana/k3s/values-k3s-demo.yaml").read_text())
-    assert "node-health.yaml" not in values["grafana"].get("alerting", {})
+    assert "node-health.yaml" not in (values["grafana"].get("alerting") or {})
 
 
 def test_managed_dashboards_download_public_json_without_embedding(rendered_grafana):

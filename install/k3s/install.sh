@@ -155,6 +155,13 @@ argocd login "${ARGOCD_HOSTNAME}" \
   --username "${ADMIN_USERNAME}" \
   --password "${ADMIN_PASSWORD}"
 
+# Admission policies affect subsequent writes, not the existing bundled Deployments.
+step "기본 k3s addon 리소스 정책 적용"
+run_kubectl wait --for=create mutatingadmissionpolicybinding/k3s-system-no-compute-budgets --timeout=5m
+run_kubectl -n kube-system rollout restart deployment/coredns deployment/metrics-server
+run_kubectl -n kube-system rollout status deployment/coredns --timeout=5m
+run_kubectl -n kube-system rollout status deployment/metrics-server --timeout=5m
+
 cat <<'EOF'
 
 설치가 완료되었습니다.

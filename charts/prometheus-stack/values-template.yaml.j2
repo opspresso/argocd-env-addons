@@ -1,3 +1,4 @@
+{% filter trim %}
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
@@ -9,7 +10,7 @@ kube-prometheus-stack:
   prometheus:
     route:
       main:
-        enabled: true
+        enabled: {{ env == 'eks' }}
         parentRefs:
           - group: gateway.networking.k8s.io
             kind: Gateway
@@ -18,6 +19,26 @@ kube-prometheus-stack:
         hostnames:
           - "prom.{{hostname.internal}}"
     prometheusSpec:
+{% if resources is defined and not resources.enabled %}
+      resources:
+        requests: null
+        limits: null
+{% endif %}
+{% if env == 'k3s' %}
+      retention: {{prometheus.retention}}
+      retentionSize: {{prometheus.retention_size}}
+      enableRemoteWriteReceiver: true
+      scrapeInterval: 30s
+      evaluationInterval: 30s
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: local-path
+            accessModes: [ReadWriteOnce]
+            resources:
+              requests:
+                storage: {{prometheus.storage_size}}
+{% endif %}
       # Nothing scraped here carries a cluster label, so every dashboard's
       # cluster dropdown is empty and its cluster=~"^$cluster$" filters match
       # only because an empty regex matches a missing label. The default scrape
@@ -36,6 +57,34 @@ kube-prometheus-stack:
       # remote write see, so an alert says which cluster it came from.
       externalLabels:
         cluster: "{{cluster}}"
+
+{% if resources is defined and not resources.enabled %}
+  prometheusOperator:
+    resources: null
+    admissionWebhooks:
+      deployment:
+        resources: null
+      patch:
+        resources: null
+    prometheusConfigReloader:
+      resources:
+        requests: null
+        limits: null
+  alertmanager:
+    alertmanagerSpec:
+      resources: null
+  kube-state-metrics:
+    resources: null
+  prometheus-node-exporter:
+    resources: null
+{% endif %}
+{% if env == 'k3s' %}
+  # k3s exposes CoreDNS on its bundled service; it has no Helm release label.
+  coreDns:
+    service:
+      selector:
+        k8s-app: kube-dns
+{% endif %}
 
 {% if monitoring is defined %}
 {% if monitoring.nodeSelector is defined %}
@@ -77,6 +126,7 @@ kube-prometheus-stack:
 {% endif %}
 {% endif %}
 
+{%- if env == 'eks' %}
 raw:
   resources:
     # alertmanagerSpec.secrets mounts this at
@@ -97,3 +147,7 @@ raw:
           - secretKey: slack-hooks
             remoteRef:
               key: /k8s/common/slack-webhook/alertmanager
+
+{%- endif -%}
+
+{% endfilter %}

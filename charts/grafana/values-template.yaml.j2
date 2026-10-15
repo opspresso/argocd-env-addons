@@ -20,6 +20,32 @@ grafana:
 
 {% if grafana is defined %}
   # Use the committed dashboard revision; branch URLs can return stale JSON.
+{% if env == 'k3s' %}
+  dashboards:
+    addons: null
+    alpha:
+      kube-cluster:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
+      kube-workload:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-workload.json
+      workspace-capacity:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/workspace-capacity.json
+      argo-cd:
+        url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
+        datasource: Prometheus
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: alpha
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/alpha
+{% else %}
   dashboards:
     addons:
       kube-cluster:
@@ -28,7 +54,13 @@ grafana:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-workload.json
       workspace-capacity:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/workspace-capacity.json
+{% endif %}
 
+{% if env == 'k3s' %}
+  # Alpha is for resource inspection; production owns alert delivery.
+  alerting: null
+  envValueFrom: null
+{% else %}
   alerting:
     workload-health.yaml:
       secret:
@@ -45,6 +77,7 @@ grafana:
     workspace-notifications.yaml:
       secret:
 {{ workspace_notifications | to_yaml | indent(8, first=true) }}
+{% endif %}
 {% endif %}
 {% if grafana.persistence is defined %}
   persistence:
@@ -63,6 +96,10 @@ grafana:
     checksum/managed-dashboards: "{{grafana_dashboard_checksum}}"
 
   grafana.ini:
+{% if env == 'k3s' %}
+    unified_alerting:
+      enabled: false
+{% endif %}
     server:
       root_url: "https://{{grafana.hostname}}/"
 
@@ -219,11 +256,13 @@ raw:
           - secretKey: admin-password
             remoteRef:
               key: /k8s/common/admin-password
+{% if env != 'k3s' %}
           # Read through the SLACK_WEBHOOK_URL env var, not a file mount: the
           # alerting provisioning files interpolate $VAR but cannot read files.
           - secretKey: slack-webhook
             remoteRef:
               key: /k8s/common/slack-webhook/grafana
+{% endif %}
 {% if grafana.auth.github.enabled %}
           - secretKey: github-id
             remoteRef:

@@ -1,0 +1,98 @@
+raw:
+  resources:
+  - apiVersion: admissionregistration.k8s.io/v1
+    kind: MutatingAdmissionPolicy
+    metadata:
+      name: k3s-system-no-compute-budgets
+    spec:
+      failurePolicy: Fail
+      reinvocationPolicy: IfNeeded
+      matchConstraints:
+        resourceRules:
+        - apiGroups:
+          - apps
+          apiVersions:
+          - v1
+          operations:
+          - CREATE
+          - UPDATE
+          resources:
+          - deployments
+      matchConditions:
+      - name: bundled-system-deployments
+        expression: object.metadata.namespace == 'kube-system' && object.metadata.name in ['coredns', 'metrics-server']
+      mutations:
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.containers) ?
+            object.spec.template.spec.containers.transformList(i, c,
+              has(c.resources) && has(c.resources.requests) && 'cpu' in c.resources.requests,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/containers/' + string(i) + '/resources/requests/cpu'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.containers) ?
+            object.spec.template.spec.containers.transformList(i, c,
+              has(c.resources) && has(c.resources.requests) && 'memory' in c.resources.requests,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/containers/' + string(i) + '/resources/requests/memory'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.containers) ?
+            object.spec.template.spec.containers.transformList(i, c,
+              has(c.resources) && has(c.resources.limits) && 'cpu' in c.resources.limits,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/containers/' + string(i) + '/resources/limits/cpu'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.containers) ?
+            object.spec.template.spec.containers.transformList(i, c,
+              has(c.resources) && has(c.resources.limits) && 'memory' in c.resources.limits,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/containers/' + string(i) + '/resources/limits/memory'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.initContainers) ?
+            object.spec.template.spec.initContainers.transformList(i, c,
+              has(c.resources) && has(c.resources.requests) && 'cpu' in c.resources.requests,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/initContainers/' + string(i) + '/resources/requests/cpu'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.initContainers) ?
+            object.spec.template.spec.initContainers.transformList(i, c,
+              has(c.resources) && has(c.resources.requests) && 'memory' in c.resources.requests,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/initContainers/' + string(i) + '/resources/requests/memory'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.initContainers) ?
+            object.spec.template.spec.initContainers.transformList(i, c,
+              has(c.resources) && has(c.resources.limits) && 'cpu' in c.resources.limits,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/initContainers/' + string(i) + '/resources/limits/cpu'}
+            ) : []
+      - patchType: JSONPatch
+        jsonPatch:
+          expression: |-
+            has(object.spec.template.spec.initContainers) ?
+            object.spec.template.spec.initContainers.transformList(i, c,
+              has(c.resources) && has(c.resources.limits) && 'memory' in c.resources.limits,
+              JSONPatch{op: 'remove', path: '/spec/template/spec/initContainers/' + string(i) + '/resources/limits/memory'}
+            ) : []
+  - apiVersion: admissionregistration.k8s.io/v1
+    kind: MutatingAdmissionPolicyBinding
+    metadata:
+      name: k3s-system-no-compute-budgets
+    spec:
+      policyName: k3s-system-no-compute-budgets
+      matchResources:
+        namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
