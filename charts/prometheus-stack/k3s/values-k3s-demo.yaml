@@ -1,0 +1,195 @@
+kube-prometheus-stack:
+  fullnameOverride: prometheus
+
+  additionalPrometheusRulesMap:
+    agent-platform-workloads:
+      groups:
+        - name: agent-forge-workspaces
+          rules:
+          - alert: ForgeSandboxFailed
+            annotations:
+              description: Inspect Pod reason, events and Workspace interrupted status; never
+                replay an uncertain operation.
+              summary: Sandbox {{ $labels.pod }} failed or was evicted
+            expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-forge-workspaces",phase="Failed"})
+              == 1
+            for: 0m
+            labels:
+              service: agent-forge
+              severity: warning
+          - alert: ForgeSandboxPending
+            annotations:
+              description: Check scheduling, quota, image pull and Auto Mode capacity.
+              summary: Sandbox {{ $labels.pod }} exceeded its provisioning deadline
+            expr: max by (cluster, namespace, pod) (kube_pod_status_phase{namespace="agent-forge-workspaces",phase="Pending"})
+              == 1
+            for: 2m
+            labels:
+              service: agent-forge
+              severity: warning
+          - alert: ForgeSandboxOOM
+            annotations:
+              summary: Sandbox {{ $labels.pod }} exceeded its memory limit
+            expr: max by (cluster, namespace, pod) (kube_pod_container_status_last_terminated_reason{namespace="agent-forge-workspaces",reason="OOMKilled"})
+              == 1
+            for: 0m
+            labels:
+              service: agent-forge
+              severity: warning
+          - alert: ForgeSandboxQuota
+            annotations:
+              description: Verify idle checkpoint/cleanup and orphan sweeps before increasing
+                capacity.
+              summary: Workspace Pod quota is nearly exhausted
+            expr: kube_resourcequota{namespace="agent-forge-workspaces",resource="pods",type="used"}
+              / ignoring(type) kube_resourcequota{namespace="agent-forge-workspaces",resource="pods",type="hard"}
+              > 0.8
+            for: 5m
+            labels:
+              service: agent-forge
+              severity: warning
+          - alert: ForgeWorkspaceNodeDiskPressure
+            annotations:
+              description: Inspect kubelet image GC, emptyDir usage and evictions; retain
+                Forge DB checkpoints.
+              summary: Workspace node {{ $labels.node }} is under disk pressure
+            expr: (kube_node_status_condition{condition="DiskPressure",status="true"} == 1)
+              and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
+              or kube_node_labels{cluster=~"k3s-.+"})
+            for: 1m
+            labels:
+              service: agent-forge
+              severity: critical
+          - alert: ForgeWorkspaceNodeUnavailable
+            annotations:
+              summary: Workspace node {{ $labels.node }} is unavailable
+            expr: (kube_node_status_condition{condition="Ready",status=~"false|unknown"} ==
+              1) and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
+              or kube_node_labels{cluster=~"k3s-.+"})
+            for: 1m
+            labels:
+              service: agent-forge
+              severity: critical
+          - alert: StudioWorkspaceWorkerUnavailable
+            annotations:
+              summary: Studio Workspace observer is unavailable; observation and continuation
+                cannot progress
+            expr: (kube_deployment_status_replicas_available{namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+              < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-studio",deployment="agent-studio-workspace-worker"}
+              > 0)
+            for: 2m
+            labels:
+              service: agent-studio
+              severity: critical
+          - alert: ForgeWorkspaceStateMetricsUnavailable
+            annotations:
+              summary: Workspace state metrics are unavailable
+            expr: up{job="workspace-state"} == 0
+            for: 2m
+            labels:
+              service: agent-forge
+              severity: warning
+          - alert: ForgeServiceUnavailable
+            annotations:
+              summary: Forge API and execution worker are unavailable
+            expr: (kube_deployment_status_replicas_available{namespace="agent-forge",deployment="agent-forge"}
+              < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-forge",deployment="agent-forge"}
+              > 0)
+            for: 2m
+            labels:
+              service: agent-forge
+              severity: critical
+        - name: agent-librio-workers
+          rules:
+          - alert: LibrioWorkerUnavailable
+            annotations:
+              summary: Librio worker is unavailable; document and audio jobs cannot progress
+            expr: (kube_deployment_status_replicas_available{namespace="agent-librio",deployment="agent-librio-worker"}
+              < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-librio",deployment="agent-librio-worker"}
+              > 0)
+            for: 2m
+            labels:
+              service: agent-librio
+              severity: critical
+
+  prometheus:
+    route:
+      main:
+        enabled: False
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+            name: istio-ingressgateway
+            namespace: istio-system
+        hostnames:
+          - "prom.demo-in.opsp.dev"
+    prometheusSpec:
+
+      resources:
+        requests: null
+        limits: null
+
+
+      retention: 10d
+      retentionSize: 8GiB
+      enableRemoteWriteReceiver: true
+      scrapeInterval: 30s
+      evaluationInterval: 30s
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: local-path
+            accessModes: [ReadWriteOnce]
+            resources:
+              requests:
+                storage: 10Gi
+
+      # Nothing scraped here carries a cluster label, so every dashboard's
+      # cluster dropdown is empty and its cluster=~"^$cluster$" filters match
+      # only because an empty regex matches a missing label. The default scrape
+      # class stamps it on every target instead.
+      scrapeClasses:
+        - name: cluster
+          default: true
+          relabelings:
+            # action is spelled out because the CRD defaults it, and Argo CD
+            # reads the defaulted field back as drift.
+            - action: replace
+              targetLabel: cluster
+              replacement: "k3s-demo"
+
+      # Series keep the label above locally; this is what alertmanager and any
+      # remote write see, so an alert says which cluster it came from.
+      externalLabels:
+        cluster: "k3s-demo"
+
+
+  prometheusOperator:
+    resources: null
+    admissionWebhooks:
+      deployment:
+        resources: null
+      patch:
+        resources: null
+    prometheusConfigReloader:
+      resources:
+        requests: null
+        limits: null
+  alertmanager:
+    alertmanagerSpec:
+      resources: null
+  kube-state-metrics:
+    resources: null
+  prometheus-node-exporter:
+    resources: null
+
+
+  # k3s exposes CoreDNS on its bundled service; it has no Helm release label.
+  coreDns:
+    service:
+      selector:
+        k8s-app: kube-dns
+
+
+
+

@@ -43,4 +43,4 @@ def test_grafana_cni_failure_rule_uses_loki_and_keeps_node_identity():
     assert rules[0]['execErrState'] == 'Alerting'
     assert rules[0]['labels']['severity'] == 'critical'
     k3s = yaml.safe_load((ROOT / 'charts/grafana/k3s/values-k3s-demo.yaml').read_text())
-    assert 'cni-health.yaml' not in k3s['grafana'].get('alerting', {})
+    assert 'cni-health.yaml' not in (k3s['grafana'].get('alerting') or {})

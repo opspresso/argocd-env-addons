@@ -62,7 +62,7 @@ def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting
         assert not re.fullmatch(pattern, series), series
     # Every source must cross the same filter before remote_write allocates WAL series.
     assert config.count("prometheus.remote_write.grafana_cloud.receiver") == 1
-    replay_pattern = re.search(r'write_relabel_config\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
+    replay_pattern = re.search(r'prometheus.remote_write "grafana_cloud"\s*\{.*?write_relabel_config\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
     assert replay_pattern == pattern
     assert config.count("prometheus.relabel.retained_metrics.receiver") == 8
 

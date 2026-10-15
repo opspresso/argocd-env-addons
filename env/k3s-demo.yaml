@@ -43,14 +43,23 @@ argocd:
 
 prometheus:
   serviceMonitor:
-    enabled: false
+    enabled: true
+  retention: 10d
+  retention_size: 8GiB
+  storage_size: 10Gi
+  remote_write_url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090/api/v1/write
 
 metrics:
-  backend: grafana-cloud
+  backend: prometheus
 
 grafana_cloud:
   remote_write_url: https://prometheus-us-central1.grafana.net/api/prom/push
   remote_write_username: "2124611"
+
+loki:
+  hostname: loki.addon-loki.svc.cluster.local:3100
+  retention: 168h
+  storage_size: 10Gi
 
 grafana:
   hostname: grafana.demo.opsp.dev

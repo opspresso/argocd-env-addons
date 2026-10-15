@@ -115,7 +115,7 @@ kube-prometheus-stack:
   prometheus:
     route:
       main:
-        enabled: true
+        enabled: True
         parentRefs:
           - group: gateway.networking.k8s.io
             kind: Gateway
@@ -124,6 +124,8 @@ kube-prometheus-stack:
         hostnames:
           - "prom.demo-in.opspresso.com"
     prometheusSpec:
+
+
       # Nothing scraped here carries a cluster label, so every dashboard's
       # cluster dropdown is empty and its cluster=~"^$cluster$" filters match
       # only because an empty regex matches a missing label. The default scrape
@@ -142,6 +144,10 @@ kube-prometheus-stack:
       # remote write see, so an alert says which cluster it came from.
       externalLabels:
         cluster: "eks-demo"
+
+
+
+
 
 
 

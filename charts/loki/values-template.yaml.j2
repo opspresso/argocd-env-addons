@@ -1,6 +1,27 @@
 loki:
   fullnameOverride: loki
 
+{% if resources is defined and not resources.enabled %}
+{% if env != 'k3s' %}
+  singleBinary:
+    resources: null
+{% endif %}
+  sidecar:
+    resources: null
+{% endif %}
+{% if env == 'k3s' %}
+  singleBinary:
+    persistence:
+      storageClass: local-path
+      size: {{loki.storage_size}}
+    resources: null
+  loki:
+    limits_config:
+      retention_period: {{loki.retention}}
+      max_query_parallelism: 2
+    querier:
+      max_concurrent: 2
+{% endif %}
 {% if loki is defined %}
   # The chart labels its own metrics cluster=<release>, which lands as
   # cluster="loki" and puts this one job outside every cluster filter.
@@ -29,6 +50,7 @@ loki:
 {% endif %}
 {% endif %}
 
+{% if env == 'eks' %}
 raw:
   resources:
     - apiVersion: gateway.networking.k8s.io/v1
@@ -46,3 +68,5 @@ raw:
               - name: loki
                 port: 3100
 {% endif %}
+
+{%- endif %}

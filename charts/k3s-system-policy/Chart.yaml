@@ -1,0 +1,10 @@
+apiVersion: v2
+name: k3s-system-policy
+description: Keep bundled k3s addons free of CPU and memory resource budgets
+type: application
+version: 0.1.0
+kubeVersion: ">=1.36.0-0"
+dependencies:
+  - name: raw
+    repository: https://charts.helm.sh/incubator
+    version: "0.2.5"

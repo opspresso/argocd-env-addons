@@ -1,0 +1,2 @@
+# The policy targets only bundled k3s CoreDNS and metrics-server Deployments.
+{}

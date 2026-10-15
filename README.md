@@ -1,6 +1,7 @@
 # argocd-env-addons
 
-현재 운영 대상은 k3s alpha다. EKS는 향후 클러스터를 위한 배포 선언을 유지한다.
+현재 운영 대상은 k3s alpha이며 리소스 사용량을 우선한다. EKS는 prod이며 서비스 안정성을 우선한다.
+현재 EKS 클러스터는 없지만 향후 생성을 위해 배포 선언과 리소스·확장 설정을 유지한다.
 EKS의 자원 예산·확장 기준은 [운영 용량](docs/production-capacity.md)을 따른다.
 
 * <https://argo-cd.readthedocs.io/en/stable/getting_started/>
@@ -75,7 +76,7 @@ ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병
    `raw.templates`를 사용한다. 공통·환경별 리소스 목록이 함께 필요하면 raw alias로
    분리한다. Helm의 values 목록은 병합되지 않고 뒤의 목록으로 교체된다.
 
-현재 23개 wrapper chart는 모두 dependency와 values로 구성한다. k3s Traefik은
+wrapper chart는 모두 dependency와 values로 구성한다. k3s Traefik은
 기본 설치된 chart를 소유하므로 별도 controller를 설치하지 않고 raw의
 `HelmChartConfig`로 설정한다. EKS Auto Mode의 `TargetGroupBinding`과 Alloy의
 `ApplicationNetworkPolicy`도 전용 chart가 지원하지 않는 API이므로 raw가 관리한다.
@@ -129,6 +130,24 @@ k3s·local에서는 CPU·메모리 requests/limits와 HPA·VPA·KEDA autoscaler�
 PVC의 storage 요청은 유지한다. VictoriaMetrics의 `useDefaultResources`와 k3s Traefik의
 `HelmChartConfig`도 같은 규칙을 적용해 operator·upstream 기본값이 리소스를 다시 주입하지 않게 한다.
 `scripts/validate.py`는 실제 렌더 결과의 컨테이너·초기화 컨테이너·Job·operator CR까지 검사한다.
+
+k3s 기본 CoreDNS·metrics-server는 k3s가 설치·업그레이드를 계속 관리한다.
+`k3s-system-policy`는 Kubernetes 1.36 이상의 네이티브 `MutatingAdmissionPolicy`로
+이 두 Deployment의 CPU·메모리 requests/limits만 제거한다. 별도 controller는 실행하지 않는다.
+기존 설치에 정책을 처음 적용할 때는 두 Deployment를 갱신해야 새 Pod에도 반영된다.
+PVC storage와 다른 리소스 요청은 변경하지 않는다.
+
+### k3s alpha 모니터링
+
+Grafana는 `https://grafana.demo.opsp.dev`에서 로컬 Prometheus와 Loki를 조회한다.
+Prometheus는 클러스터·addon 메트릭을 수집하고, Alloy는 앱 메트릭을 Prometheus로 전송한다.
+기존 Grafana Cloud 메트릭 전송은 유지하며, Alloy가 컨테이너 로그를 로컬 Loki로 전송한다.
+alpha의 Grafana 경보 평가·Slack 알림과 미설치 addon 대시보드는 비활성화한다. prod 경보 설정은 유지한다.
+Prometheus·Loki는 클러스터 내부 Service로만 노출한다.
+
+저장소는 `local-path`를 사용한다. Grafana는 2 GiB, Prometheus는 10 GiB(10일/8 GiB 보존),
+Loki는 10 GiB(7일 보존)로 시작한다. `local-path` PVC 크기는 실제 디스크 사용량 상한이 아니므로
+노드 디스크 여유를 모니터링한다. CPU·메모리 requests/limits는 선언하지 않는다.
 
 ## gen chart
 
