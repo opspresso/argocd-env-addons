@@ -125,9 +125,7 @@ kube-prometheus-stack:
           - "prom.demo-in.opsp.dev"
     prometheusSpec:
 
-      resources:
-        requests: null
-        limits: null
+      resources: null
 
 
       retention: 10d

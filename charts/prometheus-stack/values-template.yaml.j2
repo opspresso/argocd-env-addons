@@ -20,9 +20,7 @@ kube-prometheus-stack:
           - "prom.{{hostname.internal}}"
     prometheusSpec:
 {% if resources is defined and not resources.enabled %}
-      resources:
-        requests: null
-        limits: null
+      resources: null
 {% endif %}
 {% if env == 'k3s' %}
       retention: {{prometheus.retention}}
