@@ -22,7 +22,7 @@
       "app_version": "v4.1.5",
       "chart": "argo/argo-workflows",
       "current": "2.0.8",
-      "version": "2.0.12"
+      "version": "2.0.13"
     },
     "atlantis": {
       "app_version": "v0.48.1",
@@ -95,7 +95,7 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "92.3.1"
+      "version": "92.7.0"
     },
     "victoria-metrics": {
       "app_version": "v1.154.0",

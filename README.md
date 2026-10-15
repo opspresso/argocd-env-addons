@@ -225,7 +225,7 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | alloy |  | 1.12.1 | 1.13.1 (v1.20.1) |
 | argo-cd |  | 10.9.2 | 10.10.3 (v3.5.5) |
 | argo-rollouts |  | 2.43.2 | 2.43.7 (v1.10.1) |
-| argo-workflows |  | 2.0.8 | 2.0.12 (v4.1.5) |
+| argo-workflows |  | 2.0.8 | 2.0.13 (v4.1.5) |
 | atlantis |  | 6.16.0 | 6.16.1 (v0.48.1) |
 | cert-manager | ✅ | v1.21.2 | v1.21.2 (v1.21.2) |
 | external-dns |  | 1.22.0 | 1.23.0 (0.23.0) |
@@ -237,7 +237,7 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy |  | 10.7.0 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack |  | 91.5.2 | 92.3.1 (v0.94.1) |
+| prometheus-stack |  | 91.5.2 | 92.7.0 (v0.94.1) |
 | victoria-metrics |  | 0.93.0 | 0.96.0 (v1.154.0) |
 | vllm-stack |  |  | 0.1.13 |
 <!--- END_VERSION --->
