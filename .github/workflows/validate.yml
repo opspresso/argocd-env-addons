@@ -1,13 +1,15 @@
 name: validate
 
+# On demand only. The build on main runs the same checks before it pushes rendered values, so pull
+# requests do not start a second validation.
 on:
-  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: validate-${{ github.event.pull_request.number }}
+  group: validate-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:

@@ -142,7 +142,7 @@ python3 -m pytest -q          # scripts 및 설치 회귀 테스트
 생성된 `charts/*/*/values-*.yaml`만 `nalbam-bot` 이름으로 커밋한다. 로컬에서 렌더해
 함께 커밋하면 diff 로 결과를 검토할 수 있다.
 
-`.github/workflows/validate.yml`은 PR에서 같은 검사를 읽기 권한으로 실행한다.
+`.github/workflows/validate.yml`은 같은 검사를 읽기 권한으로 수동 실행한다. Pull request는 CI를 시작하지 않으며, main push의 build가 생성 파일을 게시하기 전에 검사한다.
 렌더한 뒤 검증하므로 PR 에 렌더 결과가 빠져 있어도 템플릿 변경분이 검사된다.
 CLI의 기본 대상은 `addons/`다. PR·main CI는 `-d addons -d backup`으로 보관 chart도 검증한다.
 `backup/`은 배포되지 않지만 다시 활성화할 때의 route·자원 계약을 유지한다.
