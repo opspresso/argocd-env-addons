@@ -80,8 +80,9 @@ gateway:
   namespace: traefik-gateway
   class_name: traefik
   listener_port: 8443
+  # Also used as certificate DNS names. *.rovr.dev already covers demo.rovr.dev;
+  # Let's Encrypt rejects an explicit name alongside a wildcard that covers it.
   hosts:
-    - demo.rovr.dev
     - '*.demo.rovr.dev'
     - '*.rovr.dev'
     - memory.agrt.dev

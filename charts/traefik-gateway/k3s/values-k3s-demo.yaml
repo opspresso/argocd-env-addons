@@ -28,7 +28,6 @@ raw:
           name: "letsencrypt-prod"
           kind: ClusterIssuer
         dnsNames:
-          - demo.rovr.dev
           - '*.demo.rovr.dev'
           - '*.rovr.dev'
           - memory.agrt.dev
@@ -45,18 +44,6 @@ raw:
         gatewayClassName: "traefik"
         listeners:
           - name: https-0
-            hostname: "demo.rovr.dev"
-            port: 8443
-            protocol: HTTPS
-            tls:
-              mode: Terminate
-              certificateRefs:
-                - kind: Secret
-                  name: "traefik-gateway-tls"
-            allowedRoutes:
-              namespaces:
-                from: All
-          - name: https-1
             hostname: "*.demo.rovr.dev"
             port: 8443
             protocol: HTTPS
@@ -68,7 +55,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-2
+          - name: https-1
             hostname: "*.rovr.dev"
             port: 8443
             protocol: HTTPS
@@ -80,7 +67,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-3
+          - name: https-2
             hostname: "memory.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -92,7 +79,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-4
+          - name: https-3
             hostname: "studio.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -104,7 +91,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-5
+          - name: https-4
             hostname: "librio.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -116,7 +103,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-6
+          - name: https-5
             hostname: "forge.agrt.dev"
             port: 8443
             protocol: HTTPS
