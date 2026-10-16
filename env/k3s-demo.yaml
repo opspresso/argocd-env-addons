@@ -11,8 +11,8 @@ aws_region: ap-northeast-2
 aws_environment: demo
 
 hostname:
-  internal: demo-in.opsp.dev
-  public: demo.opsp.dev
+  internal: demo-in.rovr.dev
+  public: demo.rovr.dev
 
 resources:
   enabled: false
@@ -20,7 +20,7 @@ autoscaling:
   enabled: false
 
 argocd:
-  hostname: argocd.demo.opsp.dev
+  hostname: argocd.demo.rovr.dev
   replicas:
     server: 1
     repo_server: 1
@@ -62,7 +62,7 @@ loki:
   storage_size: 10Gi
 
 grafana:
-  hostname: grafana.demo.opsp.dev
+  hostname: grafana.demo.rovr.dev
   persistence:
     enabled: true
     size: 2Gi
@@ -81,10 +81,9 @@ gateway:
   class_name: traefik
   listener_port: 8443
   hosts:
-    - demo.opsp.dev
-    - '*.demo.opsp.dev'
-    - demo.agrt.dev
-    - '*.demo.agrt.dev'
+    - demo.rovr.dev
+    - '*.demo.rovr.dev'
+    - '*.rovr.dev'
     - memory.agrt.dev
     - studio.agrt.dev
     - librio.agrt.dev

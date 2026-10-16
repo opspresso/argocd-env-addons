@@ -140,7 +140,7 @@ PVC storage와 다른 리소스 요청은 변경하지 않는다.
 
 ### k3s alpha 모니터링
 
-Grafana는 `https://grafana.demo.opsp.dev`에서 로컬 Prometheus와 Loki를 조회한다.
+Grafana는 `https://grafana.demo.rovr.dev`에서 로컬 Prometheus와 Loki를 조회한다.
 Prometheus는 클러스터·addon 메트릭을 수집하고, Alloy는 앱 메트릭을 Prometheus로 전송한다.
 기존 Grafana Cloud 메트릭 전송은 유지하며, Alloy가 컨테이너 로그를 로컬 Loki로 전송한다.
 alpha의 Grafana 경보 평가·Slack 알림과 미설치 addon 대시보드는 비활성화한다. prod 경보 설정은 유지한다.

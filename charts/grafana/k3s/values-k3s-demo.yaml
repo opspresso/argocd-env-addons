@@ -64,7 +64,7 @@ grafana:
 
 
   podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
+    link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
     # Keep changes to the canonical dashboard files visible to the rollout.
     checksum/managed-dashboards: "969fb5b1635ef239afc94083de0b8003f4cee80bf545aa15d0e86ed1879daf4b"
 
@@ -74,7 +74,7 @@ grafana:
       enabled: false
 
     server:
-      root_url: "https://grafana.demo.opsp.dev/"
+      root_url: "https://grafana.demo.rovr.dev/"
 
 
     # https://grafana.com/docs/grafana/latest/auth/github/
@@ -100,7 +100,7 @@ grafana:
     main:
       enabled: true
       annotations:
-        link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
+        link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
       parentRefs:
         - group: gateway.networking.k8s.io
           kind: Gateway
@@ -109,7 +109,7 @@ grafana:
           namespace: "traefik-gateway"
 
       hostnames:
-        - "grafana.demo.opsp.dev"
+        - "grafana.demo.rovr.dev"
 
   datasources:
     datasources.yaml:

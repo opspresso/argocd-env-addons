@@ -28,10 +28,9 @@ raw:
           name: "letsencrypt-prod"
           kind: ClusterIssuer
         dnsNames:
-          - demo.opsp.dev
-          - '*.demo.opsp.dev'
-          - demo.agrt.dev
-          - '*.demo.agrt.dev'
+          - demo.rovr.dev
+          - '*.demo.rovr.dev'
+          - '*.rovr.dev'
           - memory.agrt.dev
           - studio.agrt.dev
           - librio.agrt.dev
@@ -46,7 +45,7 @@ raw:
         gatewayClassName: "traefik"
         listeners:
           - name: https-0
-            hostname: "demo.opsp.dev"
+            hostname: "demo.rovr.dev"
             port: 8443
             protocol: HTTPS
             tls:
@@ -58,7 +57,7 @@ raw:
               namespaces:
                 from: All
           - name: https-1
-            hostname: "*.demo.opsp.dev"
+            hostname: "*.demo.rovr.dev"
             port: 8443
             protocol: HTTPS
             tls:

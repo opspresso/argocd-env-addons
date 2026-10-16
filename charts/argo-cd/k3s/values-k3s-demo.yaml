@@ -26,10 +26,10 @@ argo-cd:
 
     ingress:
       enabled: false
-      hostname: "argocd.demo.opsp.dev"
+      hostname: "argocd.demo.rovr.dev"
       annotations:
         kubernetes.io/ingress.class: "alb"
-        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.opsp.dev"
+        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.rovr.dev"
         alb.ingress.kubernetes.io/scheme: "internet-facing"
         alb.ingress.kubernetes.io/target-type: "ip"
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
@@ -43,7 +43,7 @@ argo-cd:
         - name: traefik-gateway
           namespace: traefik-gateway
       hostnames:
-        - "argocd.demo.opsp.dev"
+        - "argocd.demo.rovr.dev"
 
     metrics:
       serviceMonitor:
@@ -96,7 +96,7 @@ argo-cd:
 
   notifications:
     enabled: False
-    argocdUrl: https://argocd.demo.opsp.dev
+    argocdUrl: https://argocd.demo.rovr.dev
 
     resources: null
 
@@ -128,9 +128,9 @@ argo-cd:
         g, mcp, role:mcp
 
     cm:
-      url: https://argocd.demo.opsp.dev
+      url: https://argocd.demo.rovr.dev
 
-      statusbadge.url: https://argocd.demo.opsp.dev/
+      statusbadge.url: https://argocd.demo.rovr.dev/
 
       help.chatUrl: ""
       help.chatText: "Chat now!"
@@ -155,12 +155,12 @@ argo-cd:
         - id: argo-workflows-sso
           name: Argo Workflow
           redirectURIs:
-            - https://workflows.demo.opsp.dev/oauth2/callback
+            - https://workflows.demo.rovr.dev/oauth2/callback
           secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
         - id: oauth2-proxy-sso
           name: OAuth2 Proxy
           redirectURIs:
-            - https://auth.demo.opsp.dev/oauth2/callback
+            - https://auth.demo.rovr.dev/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
 

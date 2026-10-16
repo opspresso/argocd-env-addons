@@ -32,7 +32,7 @@ def test_traefik_embedded_values_preserve_resource_mapping():
     assert {listener["hostname"] for listener in gateway["spec"]["listeners"]} == set(certificate["spec"]["dnsNames"])
     assert certificate["metadata"]["namespace"] == gateway["metadata"]["namespace"]
     assert {"studio.agrt.dev", "memory.agrt.dev", "librio.agrt.dev", "forge.agrt.dev"} <= set(certificate["spec"]["dnsNames"])
-    assert not {"studio.opsp.dev", "memory.opsp.dev", "librio.opsp.dev", "forge.opsp.dev"} & set(certificate["spec"]["dnsNames"])
-    assert "*.demo.opsp.dev" in certificate["spec"]["dnsNames"]
+    assert not {"studio.rovr.dev", "memory.rovr.dev", "librio.rovr.dev", "forge.rovr.dev"} & set(certificate["spec"]["dnsNames"])
+    assert "*.demo.rovr.dev" in certificate["spec"]["dnsNames"]
     for listener in gateway["spec"]["listeners"]:
         assert listener["tls"]["certificateRefs"] == [{"kind": "Secret", "name": certificate["spec"]["secretName"]}]

@@ -166,7 +166,7 @@ cat <<'EOF'
 
 설치가 완료되었습니다.
 
-접속 주소: https://argocd.demo.opsp.dev
+접속 주소: https://argocd.demo.rovr.dev
 
 인증서 상태 확인:
   kubectl -n traefik-gateway get certificate traefik-gateway-tls
