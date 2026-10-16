@@ -20,7 +20,7 @@ autoscaling:
   enabled: false
 
 argocd:
-  hostname: argocd.demo.rovr.dev
+  hostname: argocd.rovr.dev
   replicas:
     server: 1
     repo_server: 1
@@ -62,7 +62,7 @@ loki:
   storage_size: 10Gi
 
 grafana:
-  hostname: grafana.demo.rovr.dev
+  hostname: grafana.rovr.dev
   persistence:
     enabled: true
     size: 2Gi

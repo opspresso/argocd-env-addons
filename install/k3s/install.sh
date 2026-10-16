@@ -162,11 +162,11 @@ run_kubectl -n kube-system rollout restart deployment/coredns deployment/metrics
 run_kubectl -n kube-system rollout status deployment/coredns --timeout=5m
 run_kubectl -n kube-system rollout status deployment/metrics-server --timeout=5m
 
-cat <<'EOF'
+cat <<EOF
 
 설치가 완료되었습니다.
 
-접속 주소: https://argocd.demo.rovr.dev
+접속 주소: https://${ARGOCD_HOSTNAME}
 
 인증서 상태 확인:
   kubectl -n traefik-gateway get certificate traefik-gateway-tls
