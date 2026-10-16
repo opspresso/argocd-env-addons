@@ -69,7 +69,7 @@ raw:
               namespaces:
                 from: All
           - name: https-2
-            hostname: "demo.agrt.dev"
+            hostname: "*.rovr.dev"
             port: 8443
             protocol: HTTPS
             tls:
@@ -81,18 +81,6 @@ raw:
               namespaces:
                 from: All
           - name: https-3
-            hostname: "*.demo.agrt.dev"
-            port: 8443
-            protocol: HTTPS
-            tls:
-              mode: Terminate
-              certificateRefs:
-                - kind: Secret
-                  name: "traefik-gateway-tls"
-            allowedRoutes:
-              namespaces:
-                from: All
-          - name: https-4
             hostname: "memory.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -104,7 +92,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-5
+          - name: https-4
             hostname: "studio.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -116,7 +104,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-6
+          - name: https-5
             hostname: "librio.agrt.dev"
             port: 8443
             protocol: HTTPS
@@ -128,7 +116,7 @@ raw:
             allowedRoutes:
               namespaces:
                 from: All
-          - name: https-7
+          - name: https-6
             hostname: "forge.agrt.dev"
             port: 8443
             protocol: HTTPS
