@@ -257,6 +257,7 @@ alloy:
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
           }]
           metrics_path    = "/api/metrics"
+          bearer_token    = sys.env("AGENT_STUDIO_METRICS_BEARER_TOKEN")
           job_name        = "agent-studio"
           scrape_interval = "15s"
           forward_to      = [prometheus.relabel.retained_metrics.receiver]
@@ -397,6 +398,9 @@ raw:
           - secretKey: GCLOUD_RW_API_KEY
             remoteRef:
               key: /k8s/common/grafana-cloud/remote-write-api-key
+          - secretKey: AGENT_STUDIO_METRICS_BEARER_TOKEN
+            remoteRef:
+              key: /k8s/k3s-demo/agent-studio/metrics-bearer-token
           - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
             remoteRef:
               key: /k8s/k3s-demo/agent-memory/metrics-bearer-token
