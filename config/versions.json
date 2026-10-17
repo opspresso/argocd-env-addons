@@ -16,7 +16,7 @@
       "app_version": "v1.10.1",
       "chart": "argo/argo-rollouts",
       "current": "2.43.2",
-      "version": "2.43.7"
+      "version": "2.43.8"
     },
     "argo-workflows": {
       "app_version": "v4.1.5",
@@ -43,10 +43,10 @@
       "version": "1.23.0"
     },
     "external-secrets": {
-      "app_version": "v2.12.0",
+      "app_version": "v2.13.0",
       "chart": "external-secrets/external-secrets",
       "current": "2.11.0",
-      "version": "2.12.0"
+      "version": "2.13.0"
     },
     "grafana": {
       "app_version": "12.3.1",
@@ -95,7 +95,7 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "91.5.2",
-      "version": "92.9.0"
+      "version": "92.10.1"
     },
     "victoria-metrics": {
       "app_version": "v1.154.0",
