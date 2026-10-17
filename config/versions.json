@@ -55,11 +55,11 @@
       "version": "10.5.15"
     },
     "istiod": {
-      "app_version": "1.30.6",
+      "app_version": "1.31.2",
       "chart": "istio/istiod",
       "current": "1.30.6",
       "path": "istio",
-      "version": "1.30.6"
+      "version": "1.31.2"
     },
     "kite": {
       "app_version": "v0.16.0",

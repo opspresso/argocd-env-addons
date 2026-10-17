@@ -251,7 +251,7 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.13.0 | 2.13.0 (v2.13.0) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
-| istio | ✅ | 1.30.6 | 1.30.6 (1.30.6) |
+| istio |  | 1.30.6 | 1.31.2 (1.31.2) |
 | kite | ✅ | 0.16.0 | 0.16.0 (v0.16.0) |
 | loki | ✅ | 7.3.0 | 7.3.0 (3.6.12) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
