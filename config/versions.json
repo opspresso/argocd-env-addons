@@ -3,31 +3,31 @@
     "alloy": {
       "app_version": "v1.20.1",
       "chart": "grafana/alloy",
-      "current": "1.12.1",
+      "current": "1.13.1",
       "version": "1.13.1"
     },
     "argo-cd": {
       "app_version": "v3.5.5",
       "chart": "argo/argo-cd",
-      "current": "10.9.2",
+      "current": "10.10.5",
       "version": "10.10.5"
     },
     "argo-rollouts": {
       "app_version": "v1.10.1",
       "chart": "argo/argo-rollouts",
-      "current": "2.43.2",
+      "current": "2.43.8",
       "version": "2.43.8"
     },
     "argo-workflows": {
       "app_version": "v4.1.5",
       "chart": "argo/argo-workflows",
-      "current": "2.0.8",
+      "current": "2.0.13",
       "version": "2.0.13"
     },
     "atlantis": {
       "app_version": "v0.48.1",
       "chart": "atlantis/atlantis",
-      "current": "6.16.0",
+      "current": "6.16.1",
       "version": "6.16.1"
     },
     "cert-manager": {
@@ -39,13 +39,13 @@
     "external-dns": {
       "app_version": "0.23.0",
       "chart": "external-dns/external-dns",
-      "current": "1.22.0",
+      "current": "1.23.0",
       "version": "1.23.0"
     },
     "external-secrets": {
       "app_version": "v2.13.0",
       "chart": "external-secrets/external-secrets",
-      "current": "2.11.0",
+      "current": "2.13.0",
       "version": "2.13.0"
     },
     "grafana": {
@@ -57,14 +57,14 @@
     "istiod": {
       "app_version": "1.30.6",
       "chart": "istio/istiod",
-      "current": "1.30.5",
+      "current": "1.30.6",
       "path": "istio",
       "version": "1.30.6"
     },
     "kite": {
       "app_version": "v0.16.0",
       "chart": "kite/kite",
-      "current": "0.15.1",
+      "current": "0.16.0",
       "version": "0.16.0"
     },
     "loki": {
@@ -82,7 +82,7 @@
     "oauth2-proxy": {
       "app_version": "7.15.5",
       "chart": "oauth2-proxy/oauth2-proxy",
-      "current": "10.7.0",
+      "current": "10.7.1",
       "version": "10.7.1"
     },
     "prometheus-adapter": {
@@ -94,13 +94,13 @@
     "prometheus-stack": {
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
-      "current": "91.5.2",
+      "current": "92.10.1",
       "version": "92.10.1"
     },
     "victoria-metrics": {
       "app_version": "v1.154.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
-      "current": "0.93.0",
+      "current": "0.96.0",
       "version": "0.96.0"
     },
     "vllm-stack": {

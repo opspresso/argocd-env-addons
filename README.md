@@ -242,22 +242,22 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy |  | 1.12.1 | 1.13.1 (v1.20.1) |
-| argo-cd |  | 10.9.2 | 10.10.5 (v3.5.5) |
-| argo-rollouts |  | 2.43.2 | 2.43.8 (v1.10.1) |
-| argo-workflows |  | 2.0.8 | 2.0.13 (v4.1.5) |
-| atlantis |  | 6.16.0 | 6.16.1 (v0.48.1) |
+| alloy | ✅ | 1.13.1 | 1.13.1 (v1.20.1) |
+| argo-cd | ✅ | 10.10.5 | 10.10.5 (v3.5.5) |
+| argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
+| argo-workflows | ✅ | 2.0.13 | 2.0.13 (v4.1.5) |
+| atlantis | ✅ | 6.16.1 | 6.16.1 (v0.48.1) |
 | cert-manager | ✅ | v1.21.2 | v1.21.2 (v1.21.2) |
-| external-dns |  | 1.22.0 | 1.23.0 (0.23.0) |
-| external-secrets |  | 2.11.0 | 2.13.0 (v2.13.0) |
+| external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
+| external-secrets | ✅ | 2.13.0 | 2.13.0 (v2.13.0) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
-| istio |  | 1.30.5 | 1.30.6 (1.30.6) |
-| kite |  | 0.15.1 | 0.16.0 (v0.16.0) |
+| istio | ✅ | 1.30.6 | 1.30.6 (1.30.6) |
+| kite | ✅ | 0.16.0 | 0.16.0 (v0.16.0) |
 | loki | ✅ | 7.3.0 | 7.3.0 (3.6.12) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
-| oauth2-proxy |  | 10.7.0 | 10.7.1 (7.15.5) |
+| oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack |  | 91.5.2 | 92.10.1 (v0.94.1) |
-| victoria-metrics |  | 0.93.0 | 0.96.0 (v1.154.0) |
+| prometheus-stack | ✅ | 92.10.1 | 92.10.1 (v0.94.1) |
+| victoria-metrics | ✅ | 0.96.0 | 0.96.0 (v1.154.0) |
 | vllm-stack |  |  | 0.1.13 |
 <!--- END_VERSION --->
