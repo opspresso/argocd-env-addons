@@ -2,7 +2,7 @@
 
 EKS 클러스터의 **addon** 을 Argo CD 로 배포하는 GitOps 저장소.
 
-> 애플리케이션(서비스) 배포는 `argocd-env-demo` 저장소가 담당한다.
+> 애플리케이션(서비스) 배포는 `argocd-env-apps` 저장소가 담당한다.
 > 두 저장소는 디렉토리 모양이 닮았지만 **chart 규칙이 다르다** — 마지막 절 참고.
 
 ## 저장소 구조
@@ -54,7 +54,7 @@ charts/<addon>/
 ```
 
 **이 저장소에는 `values-<phase>.yaml` 도 `versions-<phase>.json` 도 없다.** phase 개념은
-`argocd-env-demo` 전용이다.
+`argocd-env-apps` 전용이다.
 
 ### 파일별 편집 규칙
 
@@ -185,11 +185,11 @@ helm repo update
 `helm registry login` 을 해 둬야 한다. 로그인이 없으면 해당 chart 만 Failed 로 집계되고
 나머지는 정상 진행된다.
 
-## argocd-env-demo 와 다른 점
+## argocd-env-apps 와 다른 점
 
 같은 이름의 파일이 다른 의미를 가지므로 두 저장소를 오갈 때 주의한다.
 
-| | argocd-env-addons (여기) | argocd-env-demo |
+| | argocd-env-addons (여기) | argocd-env-apps |
 |---|---|---|
 | 배포 단위 | addon | application |
 | 템플릿 파일 | `values-template.yaml.j2` | 같음 |
@@ -203,5 +203,5 @@ helm repo update
 ## 관련 저장소
 
 - `terraform-env-demo` — EKS·VPC·ALB·IAM Role. `env/*.yaml` 에 들어가는 ARN 의 출처.
-- `argocd-env-demo` — 애플리케이션 배포.
+- `argocd-env-apps` — 애플리케이션 배포.
 - `opspresso/helm-charts` — `gateway-api-crds` 등 자체 chart 의 저장소.

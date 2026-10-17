@@ -179,6 +179,7 @@ raw:
             namespace: "*"
             server: "*"
         sourceRepos:
+          - "https://github.com/opspresso/argocd-env-apps"
           - "https://github.com/opspresso/argocd-env-demo"
 
     - apiVersion: external-secrets.io/v1

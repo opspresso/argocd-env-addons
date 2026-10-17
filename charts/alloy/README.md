@@ -81,7 +81,7 @@ External Secrets가 `parameter-store` ClusterSecretStore를 통해 다음 SSM Se
 노드 IAM 역할에는 해당 SSM 파라미터 읽기·복호화 권한이 필요합니다.
 신규 파라미터를 준비한 뒤 addon을 동기화합니다. 일부 경로가 없으면 ExternalSecret 갱신이 실패합니다.
 Forge 앱은 수집 token의 SHA-256을 전용 principal에 등록하며 scope는 `workspace:read`만 허용합니다.
-Alloy에는 Studio 위임·정책 서명 키를 전달하지 않습니다. 앱별 receiver 설정은 `argocd-env-demo`,
+Alloy에는 Studio 위임·정책 서명 키를 전달하지 않습니다. 앱별 receiver 설정은 `argocd-env-apps`,
 SSM·IAM은 `terraform-env-demo`가 소유합니다.
 Secret을 환경변수로 읽으므로 토큰 교체 후 Alloy Pod를 재시작합니다.
 

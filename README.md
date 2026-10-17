@@ -62,7 +62,7 @@ charts/<addon>/
 sync 에 실패하기 때문이다.
 
 ApplicationSet 은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병합한다.
-이 저장소에는 `values-<phase>.yaml` 이 없다 — phase 는 `argocd-env-demo` 전용 개념이다.
+이 저장소에는 `values-<phase>.yaml` 이 없다 — phase 는 `argocd-env-apps` 전용 개념이다.
 
 차트 구성은 다음 순서를 따른다.
 

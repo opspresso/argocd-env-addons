@@ -77,7 +77,7 @@ aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-secret --value "${
 |---|---|
 | `/k8s/common/argocd-server-secret` | argocd-secret 의 `server.secretkey` — **없을 때만** 만듭니다 (32 bytes, hex) |
 | `/k8s/common/argocd-mcp-tokens` | argocd-secret 의 `accounts.mcp.tokens` — `install/eks/values.yaml` 과 `charts/argo-cd` 의 ExternalSecret 양쪽 |
-| `/k8s/common/mcp-argocd/argocd-api-token` | mcp-argocd 파드의 `ARGOCD_API_TOKEN` (argocd-env-demo) |
+| `/k8s/common/mcp-argocd/argocd-api-token` | mcp-argocd 파드의 `ARGOCD_API_TOKEN` (argocd-env-apps) |
 
 Argo CD 는 API 토큰을 자기 `server.secretkey` 로 서명 하고, `jti` 가 계정의 토큰
 목록에 있는지까지 봅니다. 그 키와 목록을 함께 SSM 에 고정해 두면 클러스터를 다시

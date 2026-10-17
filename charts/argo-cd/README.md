@@ -23,7 +23,7 @@ kubectl --context eks-demo -n argocd annotate externalsecret argocd-notification
 
 ## mcp account
 
-`accounts.mcp` 는 mcp-argocd (argocd-env-demo) 가 쓰는 API 토큰 전용 계정 입니다.
+`accounts.mcp` 는 mcp-argocd (argocd-env-apps) 가 쓰는 API 토큰 전용 계정 입니다.
 `apiKey` 만 주고 `login` 은 주지 않으므로 비밀번호가 없고, 권한은 `role:mcp` 가
 정합니다 — `values-template.yaml.j2` 를 보세요.
 
@@ -62,7 +62,7 @@ ExternalSecret 이 그 Secret 을 소유하므로 다음 refresh 에 지워집�
 |---|---|
 | `/k8s/common/argocd-server-secret` | 이 chart 의 `argocd-secret` ExternalSecret (`server.secretkey`), 그리고 `install/eks/values.yaml` |
 | `/k8s/common/argocd-mcp-tokens` | 이 chart 의 `argocd-secret` ExternalSecret (`accounts.mcp.tokens`), 그리고 `install/eks/values.yaml` |
-| `/k8s/common/mcp-argocd/argocd-api-token` | mcp-argocd 파드의 `ARGOCD_API_TOKEN` (argocd-env-demo) |
+| `/k8s/common/mcp-argocd/argocd-api-token` | mcp-argocd 파드의 `ARGOCD_API_TOKEN` (argocd-env-apps) |
 
 `/k8s/common/argocd-mcp-tokens` 는 이 chart 를 sync 하기 **전에** 있어야 합니다.
 없으면 ExternalSecret 이 통째로 실패해서, 새 클러스터에서는 `argocd-secret` 자체가

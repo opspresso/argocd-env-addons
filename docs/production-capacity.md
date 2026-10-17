@@ -2,7 +2,7 @@
 
 현재 운영 대상은 k3s alpha이며 EKS는 향후 클러스터의 배포 선언이다.
 addon 자원은 이 저장소, 앱·DB·Forge 실행 quota는
-`argocd-env-demo`, Auto Mode NodePool은 `terraform-env-demo/demo/6-eks-node`가 관리한다.
+`argocd-env-apps`, Auto Mode NodePool은 `terraform-env-demo/demo/6-eks-node`가 관리한다.
 
 ## 자원 정책
 
