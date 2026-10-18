@@ -48,6 +48,12 @@
       "current": "2.13.0",
       "version": "2.13.0"
     },
+    "gateway-api-crds": {
+      "app_version": "v1.6.1",
+      "chart": "opspresso/gateway-api-crds",
+      "current": "1.6.1",
+      "version": "1.6.1"
+    },
     "grafana": {
       "app_version": "12.3.1",
       "chart": "grafana/grafana",
@@ -107,6 +113,12 @@
       "app_version": "",
       "chart": "vllm/vllm-stack",
       "version": "0.1.13"
+    },
+    "workspace-metrics": {
+      "app_version": "2.20.0",
+      "chart": "prometheus/kube-state-metrics",
+      "current": "8.5.0",
+      "version": "8.6.0"
     }
   }
 }

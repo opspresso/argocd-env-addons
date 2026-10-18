@@ -8,6 +8,7 @@ jetstack https://charts.jetstack.io --force-update
 kite https://kite-org.github.io/kite
 metrics-server https://kubernetes-sigs.github.io/metrics-server
 oauth2-proxy https://oauth2-proxy.github.io/manifests
+opspresso https://opspresso.github.io/helm-charts
 prometheus https://prometheus-community.github.io/helm-charts
 victoria-metrics https://victoriametrics.github.io/helm-charts
 vllm https://vllm-project.github.io/production-stack

@@ -250,6 +250,7 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | cert-manager | ✅ | v1.21.2 | v1.21.2 (v1.21.2) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.13.0 | 2.13.0 (v2.13.0) |
+| gateway-api-crds | ✅ | 1.6.1 | 1.6.1 (v1.6.1) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio |  | 1.30.6 | 1.31.2 (1.31.2) |
 | kite | ✅ | 0.16.0 | 0.16.0 (v0.16.0) |
@@ -260,4 +261,5 @@ aws ecr-public get-login-password --region us-east-1 | helm registry login --use
 | prometheus-stack | ✅ | 92.10.1 | 92.10.1 (v0.94.1) |
 | victoria-metrics | ✅ | 0.96.0 | 0.96.0 (v1.154.0) |
 | vllm-stack |  |  | 0.1.13 |
+| workspace-metrics |  | 8.5.0 | 8.6.0 (2.20.0) |
 <!--- END_VERSION --->
