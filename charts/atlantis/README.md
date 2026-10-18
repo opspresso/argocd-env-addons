@@ -1,4 +1,4 @@
-# grafana
+# atlantis
 
 ## variables
 

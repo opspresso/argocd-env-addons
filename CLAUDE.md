@@ -144,7 +144,7 @@ python3 -m pytest -q          # scripts 및 설치 회귀 테스트
 
 `.github/workflows/validate.yml`은 같은 검사를 읽기 권한으로 수동 실행한다. Pull request는 CI를 시작하지 않으며, main push의 build가 생성 파일을 게시하기 전에 검사한다.
 렌더한 뒤 검증하므로 PR 에 렌더 결과가 빠져 있어도 템플릿 변경분이 검사된다.
-CLI의 기본 대상은 `addons/`다. PR·main CI는 `-d addons -d backup`으로 보관 chart도 검증한다.
+CLI의 기본 대상은 `addons/`다. main push·수동 validate CI는 `-d addons -d backup`으로 보관 chart도 검증한다.
 `backup/`은 배포되지 않지만 다시 활성화할 때의 route·자원 계약을 유지한다.
 
 `scripts/validate.py` 는 `helm dependency update` 로 upstream chart 를 내려받는다.
@@ -181,9 +181,9 @@ helm repo update
 ./scripts/update_versions.py
 ```
 
-`karpenter`(`public.ecr.aws` OCI) 조회는 `aws ecr-public get-login-password` 로
+`"type": "oci"` 항목은 `helm show chart` 로 조회한다. 로그인이 필요한 레지스트리는
 `helm registry login` 을 해 둬야 한다. 로그인이 없으면 해당 chart 만 Failed 로 집계되고
-나머지는 정상 진행된다.
+나머지는 정상 진행된다. `raw` chart 만 쓰는 매니페스트 chart 는 upstream 이 보관 상태라 감시하지 않는다.
 
 ## argocd-env-apps 와 다른 점
 
