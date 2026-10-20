@@ -345,7 +345,7 @@ helm repo update
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy | ✅ | 1.13.1 | 1.13.1 (v1.20.1) |
+| alloy |  | 1.13.1 | 1.14.0 (v1.21.0) |
 | argo-cd | ✅ | 10.10.5 | 10.10.5 (v3.5.5) |
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
 | argo-workflows | ✅ | 2.0.13 | 2.0.13 (v4.1.5) |
