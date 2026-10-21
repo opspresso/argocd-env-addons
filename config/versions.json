@@ -101,7 +101,7 @@
       "app_version": "v0.94.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.10.1",
-      "version": "92.10.1"
+      "version": "92.11.0"
     },
     "victoria-metrics": {
       "app_version": "v1.154.0",
