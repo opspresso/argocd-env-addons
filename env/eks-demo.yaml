@@ -129,4 +129,4 @@ vibemon:
   enabled: true
   hostname: vibemon.io
   display_name: "EKS Demo"
-  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:192fbb8fa55fb55346c19e5363c3b1d49d2c4363454ab02718b4347b8bd5dd4f
+  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:ac200839a44bd62c41ce2c1feb3a919b8308f6c029c0cac55b9a084382f9e93a
