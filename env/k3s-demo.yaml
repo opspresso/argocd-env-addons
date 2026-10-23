@@ -93,9 +93,3 @@ gateway:
     secret_name: traefik-gateway-tls
     issuer_name: letsencrypt-prod
 
-vibemon:
-  enabled: true
-  hostname: vibemon.io
-  display_name: "K3S Demo"
-  kubelet_stats: true
-  image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:c06284e916e34d643313795ffad31131526757f88e4108710e7d6ab79d0855c3
