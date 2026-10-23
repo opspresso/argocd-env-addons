@@ -254,7 +254,7 @@ raw:
                 type: RuntimeDefault
             containers:
               - name: collector
-                image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:ac200839a44bd62c41ce2c1feb3a919b8308f6c029c0cac55b9a084382f9e93a
+                image: public.ecr.aws/z5d8x0d6/vibemon-collector@sha256:c06284e916e34d643313795ffad31131526757f88e4108710e7d6ab79d0855c3
                 args:
                   - --source-id
                   - eks-demo
