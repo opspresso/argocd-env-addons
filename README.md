@@ -345,14 +345,14 @@ helm repo update
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy |  | 1.13.1 | 1.14.2 (v1.21.1) |
-| argo-cd | ✅ | 10.10.5 | 10.10.5 (v3.5.5) |
+| alloy |  | 1.13.1 | 1.14.3 (v1.21.2) |
+| argo-cd |  | 10.10.5 | 10.11.1 (v3.5.6) |
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
 | argo-workflows |  | 2.0.13 | 2.0.14 (v4.1.6) |
 | atlantis |  | 6.16.1 | 6.16.2 (v0.48.2) |
-| cert-manager | ✅ | v1.21.2 | v1.21.2 (v1.21.2) |
+| cert-manager |  | v1.21.2 | v1.21.3 (v1.21.3) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
-| external-secrets | ✅ | 2.13.0 | 2.13.0 (v2.13.0) |
+| external-secrets |  | 2.13.0 | 2.14.0 (v2.14.0) |
 | gateway-api-crds | ✅ | 1.6.1 | 1.6.1 (v1.6.1) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio |  | 1.30.6 | 1.31.3 (1.31.3) |
