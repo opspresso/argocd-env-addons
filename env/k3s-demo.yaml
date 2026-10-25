@@ -89,6 +89,7 @@ gateway:
     - studio.agrt.dev
     - librio.agrt.dev
     - forge.agrt.dev
+    - models.agrt.dev
   tls:
     secret_name: traefik-gateway-tls
     issuer_name: letsencrypt-prod

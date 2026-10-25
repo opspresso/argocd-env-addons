@@ -34,6 +34,7 @@ raw:
           - studio.agrt.dev
           - librio.agrt.dev
           - forge.agrt.dev
+          - models.agrt.dev
 
     - apiVersion: gateway.networking.k8s.io/v1
       kind: Gateway
@@ -105,6 +106,18 @@ raw:
                 from: All
           - name: https-5
             hostname: "forge.agrt.dev"
+            port: 8443
+            protocol: HTTPS
+            tls:
+              mode: Terminate
+              certificateRefs:
+                - kind: Secret
+                  name: "traefik-gateway-tls"
+            allowedRoutes:
+              namespaces:
+                from: All
+          - name: https-6
+            hostname: "models.agrt.dev"
             port: 8443
             protocol: HTTPS
             tls:
