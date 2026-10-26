@@ -362,7 +362,7 @@ helm repo update
 | oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
 | prometheus-stack |  | 92.10.1 | 92.13.1 (v0.94.1) |
-| victoria-metrics | ✅ | 0.96.0 | 0.96.0 (v1.154.0) |
+| victoria-metrics |  | 0.96.0 | 0.96.1 (v1.154.1) |
 | vllm-stack |  |  | 0.1.13 |
-| workspace-metrics |  | 8.5.0 | 8.7.0 (2.20.0) |
+| workspace-metrics |  | 8.5.0 | 8.7.1 (2.20.0) |
 <!--- END_VERSION --->

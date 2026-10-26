@@ -104,10 +104,10 @@
       "version": "92.13.1"
     },
     "victoria-metrics": {
-      "app_version": "v1.154.0",
+      "app_version": "v1.154.1",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
       "current": "0.96.0",
-      "version": "0.96.0"
+      "version": "0.96.1"
     },
     "vllm-stack": {
       "app_version": "",
@@ -118,7 +118,7 @@
       "app_version": "2.20.0",
       "chart": "prometheus/kube-state-metrics",
       "current": "8.5.0",
-      "version": "8.7.0"
+      "version": "8.7.1"
     }
   }
 }
