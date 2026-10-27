@@ -20,7 +20,7 @@ argo-workflows:
 
 
     podAnnotations:
-      link.argocd.argoproj.io/external-link: "https://workflows.demo.opspresso.com"
+      link.argocd.argoproj.io/external-link: "https://workflows.demo.rovr.dev"
 
     ingress:
       enabled: false
@@ -32,7 +32,7 @@ argo-workflows:
         - name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "workflows.demo.opspresso.com"
+        - "workflows.demo.rovr.dev"
 
 
 

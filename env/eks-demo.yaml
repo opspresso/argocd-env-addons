@@ -97,9 +97,9 @@ grafana:
       enabled: false
       allowed_domains: nalbam.com opspresso.com
   # datasource:
-  #   # demo: http://prom.demo-in.opspresso.com
-  #   # demo_a: http://prom.demo-in-a.opspresso.com
-  #   # demo_b: http://prom.demo-in-b.opspresso.com
+  #   # demo: http://prom.demo-in.rovr.dev
+  #   # demo_a: http://prom.demo-in-a.rovr.dev
+  #   # demo_b: http://prom.demo-in-b.rovr.dev
   #   loki: http://loki.demo-in.rovr.dev
 
 kite:

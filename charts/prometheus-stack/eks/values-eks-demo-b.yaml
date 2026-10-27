@@ -122,7 +122,7 @@ kube-prometheus-stack:
             name: istio-ingressgateway
             namespace: istio-system
         hostnames:
-          - "prom.demo-in.opspresso.com"
+          - "prom.demo-in.rovr.dev"
     prometheusSpec:
 
 
