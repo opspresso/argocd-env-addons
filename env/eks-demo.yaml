@@ -39,7 +39,7 @@ argocd:
         namespace: istio-system
   github:
     org: opspresso # github org
-    team: sre
+    team: dev
   google:
     enabled: false
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
@@ -47,7 +47,7 @@ argocd:
 argo_workflows:
   github:
     org: opspresso # github org
-    team: sre
+    team: dev
 
 atlantis:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
@@ -84,7 +84,8 @@ grafana:
     github:
       enabled: true
       org: opspresso # github org
-      team_ids: sre
+      # Members of this team become Grafana Admin; other org members are Viewer.
+      team: dev
     google:
       enabled: false
       allowed_domains: nalbam.com opspresso.com

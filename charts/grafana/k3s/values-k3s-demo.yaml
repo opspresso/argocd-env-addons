@@ -88,7 +88,10 @@ grafana:
       token_url: https://github.com/login/oauth/access_token
       api_url: https://api.github.com/user
       allowed_organizations: opspresso
-      # Set team_ids here to restrict access to specific GitHub teams.
+
+      # GitHub reports team membership as groups "@<org>/<team>". The role syncs on every login.
+      role_attribute_path: "contains(groups[*], '@opspresso/dev') && 'Admin' || 'Viewer'"
+
 
 
 

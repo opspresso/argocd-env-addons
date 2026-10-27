@@ -36,7 +36,7 @@ argocd:
         namespace: traefik-gateway
   github:
     org: opspresso
-    team: sre
+    team: dev
   google:
     enabled: false
   chatUrl: ""
@@ -71,6 +71,7 @@ grafana:
     github:
       enabled: true
       org: opspresso
+      team: dev
     google:
       enabled: false
 

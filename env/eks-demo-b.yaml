@@ -19,7 +19,7 @@ hostname:
 argo_workflows:
   github:
     org: opspresso # github org
-    team: sre
+    team: dev
 
 cluster_autoscaler:
   scan_interval: 20s
