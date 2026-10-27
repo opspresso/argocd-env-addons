@@ -233,6 +233,8 @@ raw:
         namespaceResourceWhitelist:
           - {group: "", kind: ServiceAccount}
           - {group: "", kind: ConfigMap}
+          # The executor-only ServiceAccount token of the runner steps.
+          - {group: "", kind: Secret}
           - {group: rbac.authorization.k8s.io, kind: Role}
           - {group: rbac.authorization.k8s.io, kind: RoleBinding}
           - {group: networking.k8s.io, kind: NetworkPolicy}
