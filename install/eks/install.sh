@@ -138,6 +138,6 @@ step "addons 등록"
 run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons-eks.yaml
 
 step "apps 등록"
-run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-apps/main/apps.yaml
+run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-apps/main/apps-eks.yaml
 
 ok "https://${ARGOCD_HOSTNAME}"

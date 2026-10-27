@@ -15,6 +15,13 @@ raw:
       metadata:
         name: parameter-store
       spec:
+        conditions: &platform-namespaces
+          # Platform paths hold every service's credentials. Only platform namespaces may
+          # reference them; tenant workloads use their own namespaced SecretStore.
+          - namespaceRegexes:
+              - "^(argocd|sample|sample-node)$"
+              - "^addon-[a-z0-9-]+$"
+              - "^agent-(studio|models|memory|librio|forge|mcps|broker)$"
         provider:
           aws:
             region: "ap-northeast-2"
@@ -25,6 +32,7 @@ raw:
       metadata:
         name: secrets-manager
       spec:
+        conditions: *platform-namespaces
         provider:
           aws:
             region: "ap-northeast-2"
