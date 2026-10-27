@@ -64,6 +64,6 @@ def test_provisioning_has_unique_uids_and_links_to_existing_panels(rendered_graf
                         ids = {str(p["id"]) for p in boards[a["__dashboardUid__"]]["panels"]}
                         assert a["__panelId__"] in ids
                     if "dashboard_url" in a:
-                        assert a["dashboard_url"].startswith("https://grafana.demo.opspresso.com/d/kube-workload?")
+                        assert a["dashboard_url"].startswith("https://grafana.demo.rovr.dev/d/kube-workload?")
                         assert "{{ $labels.namespace }}" in a["dashboard_url"]
                         assert '{{ "' not in a["dashboard_url"]

@@ -115,7 +115,7 @@ alloy:
 
         loki.write "default" {
           endpoint {
-            url = "http://loki.demo-in.opspresso.com/loki/api/v1/push"
+            url = "http://loki.demo-in.rovr.dev/loki/api/v1/push"
           }
 
           external_labels = {
@@ -175,7 +175,7 @@ raw:
                 port: 443
           - to:
               - domainNames:
-                  - loki.demo-in.opspresso.com
+                  - loki.demo-in.rovr.dev
             ports:
               - protocol: TCP
                 port: 80

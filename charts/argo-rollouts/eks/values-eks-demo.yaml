@@ -10,23 +10,23 @@ argo-rollouts:
 
   dashboard:
     podAnnotations:
-      link.argocd.argoproj.io/external-link: "https://rollouts.demo.opspresso.com"
+      link.argocd.argoproj.io/external-link: "https://rollouts.demo.rovr.dev"
 
     ingress:
       enabled: false
       ingressClassName: "nginx"
       hosts:
-        - "rollouts.demo.opspresso.com"
+        - "rollouts.demo.rovr.dev"
 
     httproute:
       enabled: true
       annotations:
-        link.argocd.argoproj.io/external-link: "https://rollouts.demo.opspresso.com"
+        link.argocd.argoproj.io/external-link: "https://rollouts.demo.rovr.dev"
       parentRefs:
         - name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "rollouts.demo.opspresso.com"
+        - "rollouts.demo.rovr.dev"
 
 route:
   resources:
@@ -46,4 +46,4 @@ route:
         - to:
           - operation:
               hosts:
-              - "rollouts.demo.opspresso.com"
+              - "rollouts.demo.rovr.dev"

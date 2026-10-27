@@ -19,7 +19,7 @@ terraform apply
 
 ```bash
 # variables
-export ARGOCD_HOSTNAME="argocd.demo.opspresso.com"
+export ARGOCD_HOSTNAME="argocd.demo.rovr.dev"
 
 export GITHUB_ORG="opspresso"
 export GITHUB_TEAM="sre"
@@ -168,7 +168,7 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 # sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
 ```
 
-* <https://argocd.demo.opspresso.com>
+* <https://argocd.demo.rovr.dev>
 
 ## Login to argocd
 
@@ -179,7 +179,7 @@ kubectl logs ${POD_NAME} -n addon-external-dns
 export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
-argocd login argocd.demo.opspresso.com --grpc-web --skip-test-tls --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
+argocd login argocd.demo.rovr.dev --grpc-web --skip-test-tls --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
 
 argocd cluster list
 argocd cluster add eks-demo -y
