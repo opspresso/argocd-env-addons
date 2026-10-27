@@ -53,6 +53,9 @@ argo_workflows:
 app_delivery:
   enabled: true
   domain: apps.rovr.dev
+  # The Kubernetes API server (Service IP and control plane endpoints) that Delivery runner Pods may reach.
+  # Check after a control plane change: kubectl get endpointslices -n default -l kubernetes.io/service-name=kubernetes
+  api_server_cidrs: [172.20.0.1/32, 10.10.114.40/32, 10.10.149.55/32]
 
 atlantis:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7

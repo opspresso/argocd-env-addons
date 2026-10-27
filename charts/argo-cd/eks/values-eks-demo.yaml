@@ -260,6 +260,8 @@ raw:
               registry: "396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/projects"
               pushRoleArn: "arn:aws:iam::396608815058:role/app-delivery-push"
               region: "ap-northeast-2"
+              apiServer:
+                cidrs: ["172.20.0.1/32", "10.10.114.40/32", "10.10.149.55/32"]
         syncPolicy:
           automated:
             prune: true
