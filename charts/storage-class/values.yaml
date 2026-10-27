@@ -9,9 +9,15 @@ raw:
         name: gp3
         annotations:
           storageclass.kubernetes.io/is-default-class: "true"
+          # parameters are immutable. Recreating the class does not touch
+          # existing PersistentVolumes.
+          argocd.argoproj.io/sync-options: Force=true,Replace=true
       provisioner: ebs.csi.eks.amazonaws.com
       volumeBindingMode: WaitForFirstConsumer
+      # Keep the EBS volume when its claim is deleted, so data survives an
+      # accidental prune. Delete released volumes by hand.
       reclaimPolicy: Retain
       parameters:
         type: gp3
+        encrypted: "true"
       allowVolumeExpansion: true
