@@ -6,9 +6,9 @@ oauth2-proxy:
       # upstreams = [ "file:///dev/null" ]
       upstreams = [ "static://200" ]
 
-      cookie_domains = ".demo.opspresso.com"
+      cookie_domains = ".demo.rovr.dev"
       email_domains = ["nalbam.com","opspresso.com"]
-      whitelist_domains = [".demo.opspresso.com"]
+      whitelist_domains = [".demo.rovr.dev"]
 
       pass_access_token = true
       pass_authorization_header = true
