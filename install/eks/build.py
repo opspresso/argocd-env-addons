@@ -55,30 +55,6 @@ def replace_values(value, replacements):
     return value
 
 
-def certificate_for(hostname):
-    try:
-        response = json.loads(
-            aws("acm", "list-certificates", "--certificate-statuses", "ISSUED", "--output", "json")
-        )
-        certificates = response["CertificateSummaryList"]
-        if not isinstance(certificates, list) or not all(isinstance(item, dict) for item in certificates):
-            raise ValueError("ACM 인증서 목록이 올바르지 않습니다.")
-    except (json.JSONDecodeError, KeyError, TypeError) as error:
-        raise ValueError("ACM 응답이 올바르지 않습니다.") from error
-    # The exact host wins; otherwise a certificate for the parent domain must list the wildcard that covers the host.
-    parent = hostname.split(".", 1)[1] if "." in hostname else ""
-    candidates = [c for c in certificates if c.get("DomainName") == hostname] or [
-        c for c in certificates
-        if parent and c.get("DomainName") == parent and f"*.{parent}" in (c.get("SubjectAlternativeNameSummaries") or [])
-    ]
-    for certificate in candidates:
-        arn = certificate.get("CertificateArn")
-        if isinstance(arn, str) and arn.startswith("arn:"):
-            return arn
-        raise ValueError("ACM 인증서 ARN이 올바르지 않습니다.")
-    raise ValueError("Argo CD 호스트를 포함하는 ISSUED ACM 인증서(정확한 이름 또는 상위 도메인 wildcard)를 찾을 수 없습니다.")
-
-
 def build():
     replacements = {
         key: ssm(f"/k8s/common/{name}")
@@ -98,8 +74,6 @@ def build():
         ("ARGOCD_GITHUB_SECRET", "argocd-github-secret"),
     ):
         replacements[key] = ssm(f"/k8s/{replacements['GITHUB_ORG']}/{name}")
-
-    replacements["AWS_ACM_CERT"] = certificate_for(replacements["ARGOCD_HOSTNAME"])
 
     template = yaml.safe_load((SCRIPT_DIR / "values.yaml").read_text())
     values = replace_values(template, replacements)
