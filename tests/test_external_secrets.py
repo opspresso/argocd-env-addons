@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import unittest
 
 from jinja2 import Environment, FileSystemLoader
@@ -28,6 +29,14 @@ class ExternalSecretsAWSTests(unittest.TestCase):
             with self.subTest(cluster=context["cluster"]):
                 for store in values["raw"]["resources"]:
                     self.assertNotIn("auth", store["spec"]["provider"]["aws"])
+                    patterns = [re.compile(pattern) for condition in store["spec"]["conditions"]
+                                for pattern in condition["namespaceRegexes"]]
+                    allowed = lambda namespace: any(pattern.search(namespace) for pattern in patterns)
+                    for namespace in ("argocd", "addon-grafana", "agent-studio", "agent-mcps", "agent-broker", "sample"):
+                        self.assertTrue(allowed(namespace), namespace)
+                    # Tenant apps and Forge Sandboxes must never read platform credentials.
+                    for namespace in ("app-demo-dev", "agent-forge-workspaces", "default", "vibemon", "agent-studio-x"):
+                        self.assertFalse(allowed(namespace), namespace)
                 controller = values["external-secrets"]
                 if context["env"] != "local":
                     self.assertNotIn("extraVolumes", controller)
