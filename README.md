@@ -10,10 +10,15 @@ Argo CD로 클러스터 addon을 배포하는 GitOps 저장소다. 애플리케�
 
 | 플랫폼 | 상태 | 우선순위 | App of Apps | 설치 문서 |
 | --- | --- | --- | --- | --- |
-| k3s | alpha. 현재 운영 대상 | 리소스 사용량 | `addons-k3s.yaml` → `addons/k3s/` | [install/k3s](install/k3s/README.md) |
-| EKS | prod. 현재 클러스터 없음 | 서비스 안정성 | `addons-eks.yaml` → `addons/eks/` | [install/eks](install/eks/README.md) |
+| EKS | 운영 중. `eks-demo`(Auto Mode, Kubernetes 1.37, phase `prod`) | 서비스 안정성 | `addons-eks.yaml` → `addons/eks/` | [install/eks](install/eks/README.md) |
+| k3s | 배포하지 않음. 선언만 유지 | 리소스 사용량 | `addons-k3s.yaml` → `addons/k3s/` | [install/k3s](install/k3s/README.md) |
 
-EKS 클러스터는 지금 없지만 향후 생성을 위해 배포 선언과 리소스·확장 설정을 유지한다.
+운영 클러스터 `eks-demo`의 Argo CD(`argocd.demo.rovr.dev`)가 `addons-eks.yaml`을 동기화한다.
+addon 공개 주소는 `*.demo.rovr.dev`, 내부 주소는 `*.demo-in.rovr.dev`를 사용하며 ACM 인증서 `demo.rovr.dev`는
+`terraform-env-demo`의 `3-alb`가 발급한다. `env/eks-demo-a.yaml`·`env/eks-demo-b.yaml`은 향후 서비스 클러스터
+선언이다.
+k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/`, `install/k3s/`)은 저장소에 남아 있지만
+어느 클러스터에도 배포하지 않는다.
 `local`은 공통 템플릿과 정책 검사에서만 지원하며, 로컬 클러스터용 env·Application·설치
 스크립트는 제공하지 않는다.
 
@@ -40,7 +45,7 @@ tests/            # 자동화 테스트
 
 Argo CD 설치부터 addon 등록까지는 플랫폼별 설치 문서를 따른다.
 
-- k3s: `install/k3s/install.sh`가 Argo CD 설치 후 `addons`·`apps` AppProject를 만들고
+- k3s(미배포 선언): `install/k3s/install.sh`가 Argo CD 설치 후 `addons`·`apps` AppProject를 만들고
   `addons-k3s.yaml`을 등록한다. [install/k3s](install/k3s/README.md)를 참고한다.
 - EKS: [install/eks](install/eks/README.md)의 절차로 Argo CD를 설치한 뒤 App of Apps를 등록한다.
 
@@ -208,17 +213,18 @@ Deployment를 갱신해야 새 Pod에 반영된다. `install/k3s/install.sh`는 
 
 ## 플랫폼별 운영 메모
 
-### k3s alpha 모니터링
+### EKS 모니터링
 
-- Grafana는 `https://grafana.rovr.dev`에서 로컬 Prometheus와 Loki를 조회한다.
-- Prometheus는 클러스터·addon 메트릭을 수집한다. Alloy는 앱 메트릭을 로컬 Prometheus와
-  Grafana Cloud에 전송하고, 컨테이너 로그를 로컬 Loki에 전송한다.
-- Prometheus·Loki는 클러스터 내부 Service로만 노출한다.
-- alpha에서는 Grafana 경보 평가·Slack 알림과 미설치 addon 대시보드를 비활성화한다. prod 경보 설정은 유지한다.
+- Grafana는 `https://grafana.demo.rovr.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
+  경보 평가와 Slack 알림을 사용한다.
+- Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor(`metrics.backend: prometheus`)를 수집한다.
+- Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.rovr.dev`다.
+- 저장소 크기와 보존 기간은 [Production addon 용량](docs/production-capacity.md)을 따른다.
 
-저장소는 `local-path`를 사용한다. 시작 크기는 Grafana 2 GiB, Prometheus 10 GiB(10일·8 GiB 보존),
-Loki 10 GiB(7일 보존)이다. `local-path` PVC 크기는 실제 디스크 사용량을 제한하지 않으므로 노드
-디스크 여유를 모니터링한다.
+### k3s 선언의 모니터링
+
+배포하지 않는 k3s 선언은 Alloy가 앱·호스트 메트릭을 Grafana Cloud로 전송하고, Grafana 경보 평가·Slack 알림을
+끄며, `local-path` 저장소를 사용한다. 세부 값은 `env/k3s-demo.yaml`과 각 chart의 `k3s/` 렌더 결과를 따른다.
 
 ### EKS Auto Mode NetworkPolicy
 

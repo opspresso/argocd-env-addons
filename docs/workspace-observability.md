@@ -1,11 +1,10 @@
 # Workspace와 Agent 서비스 관측성
 
-현재 운영 대상은 k3s alpha다. EKS의 Prometheus·kube-state-metrics 설정은 향후 클러스터를 위한
-선언이다. `config/workspace-alerts.yaml`이 Forge Sandbox 실패·준비 지연·OOM·quota,
+운영 클러스터는 EKS `eks-demo`이며 Prometheus·kube-state-metrics로 수집한다. `config/workspace-alerts.yaml`이 Forge Sandbox 실패·준비 지연·OOM·quota,
 실행 노드 DiskPressure/Ready, Forge·Librio worker·Studio 관찰 worker 가용성 경보의 정본이다.
 EKS는 이를 `prometheus-agent-platform-workloads` PrometheusRule로 렌더한다.
 
-k3s의 전송 경로는 Alloy → Grafana Cloud다. `workspace-metrics`는
+배포하지 않는 k3s 선언의 전송 경로는 Alloy → Grafana Cloud다. `workspace-metrics`는
 Pod·Node·ResourceQuota·Deployment만 list/watch하며, namespace 리소스는
 `agent-studio`, `agent-librio`, `agent-forge`, `agent-forge-workspaces`에서 조회한다.
 Forge 실행 Pod의 cAdvisor `service`는 `agent-forge-sandbox`다. VictoriaMetrics는 배포하지 않는다.
