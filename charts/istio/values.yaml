@@ -1,9 +1,9 @@
 istiod:
   revisionTags: ["default"]
 
+  # Images come from the chart default hub (docker.io/istio); Istio 1.31
+  # stopped publishing to gcr.io/istio-release.
   global:
-    hub: gcr.io/istio-release
-
     proxy:
       startupProbe:
         enabled: true

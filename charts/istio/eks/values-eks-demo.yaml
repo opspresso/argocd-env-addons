@@ -1,7 +1,4 @@
 istiod:
-  global:
-    hub: "gcr.io/istio-release"
-
   replicaCount: 2
 
   autoscaleEnabled: True

@@ -1,7 +1,4 @@
 istiod:
-  global:
-    hub: "{{istio.global.hub}}"
-
   replicaCount: {{istio.pilot.min}}
 
   autoscaleEnabled: {{istio.pilot.autoscale}}

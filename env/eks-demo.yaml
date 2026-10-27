@@ -65,8 +65,6 @@ atlantis:
     enabled: false
 
 istio:
-  global:
-    hub: gcr.io/istio-release
   pilot:
     autoscale: true
     min: 2
