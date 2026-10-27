@@ -115,7 +115,10 @@ grafana:
       token_url: https://github.com/login/oauth/access_token
       api_url: https://api.github.com/user
       allowed_organizations: {{grafana.auth.github.org}}
-      # Set team_ids here to restrict access to specific GitHub teams.
+{% if grafana.auth.github.team is defined %}
+      # GitHub reports team membership as groups "@<org>/<team>". The role syncs on every login.
+      role_attribute_path: "contains(groups[*], '@{{grafana.auth.github.org}}/{{grafana.auth.github.team}}') && 'Admin' || 'Viewer'"
+{% endif %}
 {% endif %}
 
 {% if grafana.auth.google.enabled %}

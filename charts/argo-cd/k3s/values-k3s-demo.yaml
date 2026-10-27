@@ -116,7 +116,7 @@ argo-cd:
       # Every account inherits policy.default; deny rules cannot remove those
       # default grants. Narrower reads require a smaller default role first.
       policy.csv: |
-        g, opspresso:sre, role:admin
+        g, opspresso:dev, role:admin
 
         p, role:mcp, applications, get, */*, allow
         p, role:mcp, applications, create, */*, allow
