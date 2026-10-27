@@ -12,8 +12,25 @@ external-secrets:
     limits:
       memory: 256Mi
 
+  # The validating webhooks use failurePolicy Fail, so one webhook pod would
+  # block every ExternalSecret change while a node drains.
   webhook:
     priorityClassName: system-cluster-critical
+    replicaCount: 2
+
+    podDisruptionBudget:
+      enabled: true
+      maxUnavailable: 1
+
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        matchLabelKeys:
+          - pod-template-hash
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: external-secrets-webhook
 
     resources:
       requests:

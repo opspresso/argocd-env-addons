@@ -1411,8 +1411,6 @@ grafana:
       release: prometheus-eks-demo
 
 
-
-
 raw:
   resources:
     - apiVersion: external-secrets.io/v1

@@ -10,6 +10,11 @@ spec:
         files:
           - path: "env/eks-demo.yaml"
 
+  # Keep CRDs, and every custom resource that depends on them, when the
+  # Application is removed from this ApplicationSet.
+  syncPolicy:
+    preserveResourcesOnDeletion: true
+
   template:
     metadata:
       name: "argocd" # only management cluster
@@ -39,3 +44,10 @@ spec:
         #   selfHeal: true
         syncOptions:
           - CreateNamespace=true
+        # Retry transient failures, such as a CR applied before its CRD exists.
+        retry:
+          limit: 5
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 3m

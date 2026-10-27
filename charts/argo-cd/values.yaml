@@ -25,6 +25,11 @@ argo-cd:
   server:
     replicas: 1
 
+    # maxUnavailable keeps drains possible when an env runs one replica.
+    pdb:
+      enabled: true
+      maxUnavailable: 1
+
     resources:
       requests:
         cpu: 10m
@@ -50,6 +55,9 @@ argo-cd:
   repoServer:
     replicas: 1
 
+    pdb:
+      enabled: true
+      maxUnavailable: 1
     # autoscaling:
     #   enabled: true
     #   minReplicas: 2
@@ -132,19 +140,6 @@ argo-cd:
     notifiers:
       service.slack: |
         token: $slack-token
-
-    subscriptions:
-      # For more information: https://argocd-notifications.readthedocs.io/en/stable/subscriptions/
-
-      - recipients:
-          - slack:noti-eks-demo
-        triggers:
-          - on-deployed
-          - on-health-degraded
-          - on-sync-failed
-          - on-sync-running
-          - on-sync-status-unknown
-          - on-sync-succeeded
 
     templates:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/templates/

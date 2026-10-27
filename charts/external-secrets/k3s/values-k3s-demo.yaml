@@ -10,10 +10,6 @@ external-secrets:
 
 
 
-
-
-
-
 raw:
   resources:
     - apiVersion: external-secrets.io/v1
