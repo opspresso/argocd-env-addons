@@ -1,6 +1,6 @@
 # Production addon 용량
 
-운영 클러스터는 EKS `eks-demo`(Auto Mode)다. 기준 NodePool은 Graviton arm64 `m7g.xlarge` 3대이고,
+운영 클러스터는 EKS `eks-demo`(Auto Mode)다. 기준 NodePool은 Graviton arm64 `m7g.xlarge` 2대이고,
 동적 NodePool `general`과 `workspaces`가 추가 용량을 만든다. k3s 선언은 배포하지 않는다.
 addon 자원은 이 저장소, 앱·DB·Forge 실행 quota는
 `argocd-env-apps`, Auto Mode NodePool은 `terraform-env-demo/demo/6-eks-node`가 관리한다.
@@ -13,22 +13,30 @@ CPU limit은 격리나 명확한 실행 예산이 필요한 곳에만 둔다. `s
 CI는 미배포 `backup/`도 검사한다. 보관 chart의 예산은 활성화 전 실제 부하로 다시 검증한다.
 Atlantis의 upstream 테스트는 자원 옵션이 없어, 제한을 선언한 HTTP UI 테스트로 대체한다.
 
+requests는 `eks-demo`에서 측정한 working set·CPU peak에 여유를 더한 값이다(2026-10-27, 클러스터 기동 후
+3시간 구간). memory limit은 peak보다 충분히 크게 둔다. CPU 기반 HPA를 쓰는 workload는 목표 사용률이
+의미를 갖도록 CPU request를 25~50m로 유지한다. 7일 peak가 쌓이면 아래 "확장 확인" 기준으로 다시 검토한다.
+
 | 구성 | requests CPU / memory | memory limit | 확장·운영 기준 |
 | --- | --- | --- | --- |
-| Argo controller | 250m / 1Gi | 2Gi | reconciliation 지연·메모리 관찰 |
-| Argo repo-server | 250m / 256Mi | 1Gi | 2 replicas, Helm 생성 시 CPU burst 허용 |
-| Argo server | 50m / 128Mi | 256Mi | 2 replicas |
-| Argo application-set / Dex / Redis | 50m/128Mi, 25m/64Mi, 25m/64Mi | 256Mi / 128Mi / 256Mi | 실제 사용량·queue 지연에 따라 조정 |
-| Argo notifications | 50m / 128Mi | 128Mi | `service.slack`과 기존 Secret의 `slack-token` 연결 |
-| metrics-server | 50m / 128Mi | 512Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
-| Prometheus adapter | 50m / 128Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
-| Prometheus | 500m / 1Gi | 4Gi | 80Gi PVC, 10일·60GiB retention |
-| Loki / rules sidecar | 250m/512Mi, 10m/96Mi | 1Gi / 256Mi | 50Gi PVC, 31일 retention |
-| Grafana | 100m / 256Mi | 512Mi | RWO PVC·SQLite, Recreate 배포 |
-| Alloy / reloader | 100m/128Mi, 10m/50Mi | 512Mi / 64Mi | 노드마다 1개 |
-| node-exporter | 25m / 32Mi | 64Mi | 노드마다 1개 |
-| Istiod / gateway | 100m / 128Mi | 512Mi / 1Gi | EKS에서 2~6 replicas, CPU HPA |
-| external-dns / external-secrets | 각 chart의 기존 예산 | 각 chart의 기존 예산 | 낮은 정상 사용량의 순간값만으로 예약을 줄이지 않는다 |
+| Argo controller | 100m / 768Mi | 2Gi | 초기 sync peak 1.1Gi, reconciliation 지연·메모리 관찰 |
+| Argo repo-server | 50m / 256Mi | 1Gi | 2 replicas, PDB 1, Helm 생성 시 CPU burst 허용 |
+| Argo server | 10m / 64Mi | 256Mi | 2 replicas, PDB 1 |
+| Argo application-set / Dex / Redis | 10m/64Mi, 5m/48Mi, 10m/32Mi | 128Mi / 128Mi / 128Mi | 실제 사용량·queue 지연에 따라 조정 |
+| Argo notifications | 5m / 48Mi | 128Mi | `service.slack`과 기존 Secret의 `slack-token` 연결 |
+| metrics-server | 10m / 48Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
+| Prometheus adapter | 10m / 48Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
+| Prometheus | 50m / 1Gi | 3Gi | 80Gi PVC, 10일·60GiB retention |
+| Loki / rules sidecar | 25m/192Mi, 5m/96Mi | 1Gi / 256Mi | 50Gi PVC, 31일 retention |
+| Grafana | 20m / 160Mi | 512Mi | RWO PVC·SQLite, Recreate 배포 |
+| Alloy / reloader | 20m/96Mi, 5m/16Mi | 256Mi / 64Mi | 노드마다 1개 |
+| node-exporter | 10m / 24Mi | 64Mi | 노드마다 1개 |
+| Istiod / gateway | 25m/128Mi, 50m/64Mi | 512Mi / 512Mi | EKS에서 2~6 replicas, CPU HPA, `system-cluster-critical` |
+| Istio sidecar | 10m / 64Mi | 256Mi | meshed Pod마다 1개 |
+| external-secrets controller / webhook / cert-controller | 10m/64Mi, 5m/64Mi, 5m/64Mi | 256Mi / 128Mi / 128Mi | webhook 2 replicas·PDB 1. ExternalSecret 수가 늘면 controller 메모리 확인 |
+
+Agent 앱의 requests·limits는 `argocd-env-apps`의 각 chart `values.yaml`이 소유한다. limit은 부하 시험
+peak(48 동시 요청에서 Studio 1.1Gi, Memory 530Mi, Models 400Mi)보다 크게 둔다.
 
 Prometheus는 API latency·SLO histogram을 유지하고 사용하지 않는 상세 요청 크기·watch bucket을
 스크레이프에서 제외한다. 새 대시보드나 규칙이 이 지표를 요구하면 필터도 함께 검토한다.
