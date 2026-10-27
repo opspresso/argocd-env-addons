@@ -40,8 +40,7 @@ k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/
 어느 클러스터에도 배포하지 않으며 삭제하지 않는다. `local` 템플릿·정책 지원은 남아 있지만
 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
-`argo-cd` 의 Dex 설정에는 `argo-workflows-sso` OIDC 클라이언트가 남아 있다. argo-workflows 는
-배포되지 않으므로 지금은 쓰이지 않는다.
+`argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
 
 ## charts 규칙
 
