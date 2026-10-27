@@ -182,37 +182,31 @@ raw:
                 - sidecar-injector
                 - istiod
 
-    # Sidecar metrics. Left off deliberately: it selects every service in every
-    # namespace, and nothing here is sidecar-injected, so it would add a
-    # cluster-wide scrape that finds nothing. Enable it with the release label
-    # when workloads actually join the mesh.
-    # - apiVersion: monitoring.coreos.com/v1
-    #   kind: ServiceMonitor
-    #   metadata:
-    #     labels:
-    #       app: istio-servicemesh
-    #       # release: prometheus-eks-demo-b
-    #     name: istio-servicemesh-metrics
-    #   spec:
-    #     endpoints:
-    #       - interval: 15s
-    #         path: /stats/prometheus
-    #         relabelings:
-    #           - sourceLabels: [__meta_kubernetes_pod_container_port_name]
-    #             action: keep
-    #             regex: ".*-envoy-prom"
-    #           - action: labeldrop
-    #             regex: "__meta_kubernetes_pod_label_(.+)"
-    #           - sourceLabels: [__meta_kubernetes_namespace]
-    #             action: replace
-    #             targetLabel: namespace
-    #           - sourceLabels: [__meta_kubernetes_pod_name]
-    #             action: replace
-    #             targetLabel: pod_name
-    #     jobLabel: istio-servicemesh
-    #     namespaceSelector:
-    #       any: true
-    #     selector:
-    #       matchExpressions:
-    #         - key: istio
-    #           operator: DoesNotExist
+    # Sidecar metrics for every meshed pod. Keep only the Istio standard
+    # metrics and the retry budget counter that meshConfig proxyStatsMatcher
+    # exposes; the raw Envoy stats would multiply the series per pod.
+    - apiVersion: monitoring.coreos.com/v1
+      kind: PodMonitor
+      metadata:
+        labels:
+          app: istio-sidecars
+
+          release: prometheus-eks-demo-b
+
+        name: istio-sidecars
+      spec:
+        jobLabel: istio-sidecars
+        namespaceSelector:
+          any: true
+        selector:
+          matchExpressions:
+            - key: security.istio.io/tlsMode
+              operator: Exists
+        podMetricsEndpoints:
+          - interval: 30s
+            path: /stats/prometheus
+            port: http-envoy-prom
+            metricRelabelings:
+              - sourceLabels: [__name__]
+                action: keep
+                regex: istio_.*|envoy_cluster_upstream_rq_retry_overflow
