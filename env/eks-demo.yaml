@@ -49,6 +49,11 @@ argo_workflows:
     org: opspresso # github org
     team: dev
 
+# Apps that Agent Broker delivers: hosts <slug>[-dev].<domain> (terraform-env-demo 3-alb issues the certificate).
+app_delivery:
+  enabled: true
+  domain: apps.rovr.dev
+
 atlantis:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
   allowlist: github.com/opspresso/terraform-*
