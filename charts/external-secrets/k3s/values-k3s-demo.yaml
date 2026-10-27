@@ -28,6 +28,7 @@ raw:
               - "^(argocd|sample|sample-node)$"
               - "^addon-[a-z0-9-]+$"
               - "^agent-(studio|models|memory|librio|forge|mcps|broker)$"
+              - "^broker-pool$"
         provider:
           aws:
             region: "ap-northeast-2"
