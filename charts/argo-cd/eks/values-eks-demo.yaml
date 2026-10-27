@@ -183,6 +183,153 @@ raw:
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
 
+    # Apps that Agent Broker delivers (agent-platform docs/APP_DELIVERY.md). The app-delivery workflow writes
+    # argocd-env-projects projects/<slug>/<env>.yaml; these Applications may only create the kinds the app chart
+    # renders, in app-* namespaces other than app-delivery.
+    - apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: projects
+      spec:
+        description: One Application per Agent Broker Project environment
+        sourceRepos:
+          - "https://github.com/opspresso/argocd-env-projects.git"
+        destinations:
+          - name: "eks-demo"
+            namespace: "app-*"
+          - name: "*"
+            namespace: "!app-delivery"
+        clusterResourceWhitelist:
+          - group: ""
+            kind: Namespace
+        namespaceResourceWhitelist:
+          - {group: "", kind: ServiceAccount}
+          - {group: "", kind: Service}
+          - {group: "", kind: ResourceQuota}
+          - {group: apps, kind: Deployment}
+          - {group: autoscaling, kind: HorizontalPodAutoscaler}
+          - {group: policy, kind: PodDisruptionBudget}
+          - {group: networking.k8s.io, kind: NetworkPolicy}
+          - {group: gateway.networking.k8s.io, kind: HTTPRoute}
+          - {group: external-secrets.io, kind: SecretStore}
+          - {group: external-secrets.io, kind: ExternalSecret}
+
+    # The app-delivery WorkflowTemplate, its step identities and the Broker's submit permission.
+    - apiVersion: argoproj.io/v1alpha1
+      kind: AppProject
+      metadata:
+        name: delivery
+      spec:
+        description: The Argo Workflows delivery of Agent Broker apps
+        sourceRepos:
+          - "https://github.com/opspresso/argocd-env-projects.git"
+        destinations:
+          - name: "eks-demo"
+            namespace: app-delivery
+        clusterResourceWhitelist:
+          - {group: "", kind: Namespace}
+          - {group: rbac.authorization.k8s.io, kind: ClusterRole}
+          - {group: rbac.authorization.k8s.io, kind: ClusterRoleBinding}
+        namespaceResourceWhitelist:
+          - {group: "", kind: ServiceAccount}
+          - {group: "", kind: ConfigMap}
+          - {group: rbac.authorization.k8s.io, kind: Role}
+          - {group: rbac.authorization.k8s.io, kind: RoleBinding}
+          - {group: networking.k8s.io, kind: NetworkPolicy}
+          - {group: external-secrets.io, kind: ExternalSecret}
+          - {group: argoproj.io, kind: WorkflowTemplate}
+
+    - apiVersion: argoproj.io/v1alpha1
+      kind: Application
+      metadata:
+        name: app-delivery
+        labels:
+          opspresso.com/cluster: "eks-demo"
+          opspresso.com/group: "projects"
+      spec:
+        project: delivery
+        destination:
+          name: "eks-demo"
+          namespace: app-delivery
+        source:
+          repoURL: https://github.com/opspresso/argocd-env-projects.git
+          targetRevision: HEAD
+          path: charts/delivery
+          helm:
+            valuesObject:
+              registry: "396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/projects"
+              pushRoleArn: "arn:aws:iam::396608815058:role/app-delivery-push"
+              region: "ap-northeast-2"
+        syncPolicy:
+          automated:
+            prune: true
+            selfHeal: true
+          syncOptions:
+            - CreateNamespace=true
+
+    # One Application per projects/<slug>/<env>.yaml. Project, environment, namespace and domain come from the
+    # file path and this cluster, never from the file, so a values file cannot move or rename an app.
+    - apiVersion: argoproj.io/v1alpha1
+      kind: ApplicationSet
+      metadata:
+        name: projects
+      spec:
+        goTemplate: true
+        goTemplateOptions: ["missingkey=error"]
+        generators:
+          - git:
+              repoURL: https://github.com/opspresso/argocd-env-projects.git
+              revision: HEAD
+              requeueAfterSeconds: 30
+              files:
+                - path: "projects/*/dev.yaml"
+                - path: "projects/*/prod.yaml"
+        template:
+          metadata:
+            name: 'app-{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}'
+            labels:
+              opspresso.com/cluster: "eks-demo"
+              opspresso.com/group: "projects"
+              opspresso.com/broker-project: '{{ .path.basename }}'
+              opspresso.com/broker-env: '{{ trimSuffix ".yaml" .path.filename }}'
+          spec:
+            project: projects
+            destination:
+              name: "eks-demo"
+              namespace: 'app-{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}'
+            source:
+              repoURL: https://github.com/opspresso/argocd-env-projects.git
+              targetRevision: HEAD
+              path: charts/app
+              helm:
+                valueFiles:
+                  - '../../{{ .path.path }}/{{ .path.filename }}'
+                parameters:
+                  - name: project
+                    value: '{{ .path.basename }}'
+                  - name: environment
+                    value: '{{ trimSuffix ".yaml" .path.filename }}'
+                  - name: domain
+                    value: "apps.rovr.dev"
+                  - name: cluster
+                    value: "eks-demo"
+                  - name: region
+                    value: "ap-northeast-2"
+                  - name: tenantSecretsRoleArn
+                    value: "arn:aws:iam::396608815058:role/agent-broker-tenant-secrets"
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+              syncOptions:
+                - CreateNamespace=true
+              # The Broker tenant secrets policy accepts the SecretStore only in a namespace with these labels.
+              managedNamespaceMetadata:
+                labels:
+                  opspresso.com/broker-tenant: "true"
+                  opspresso.com/broker-project: '{{ .path.basename }}'
+                  opspresso.com/broker-env: '{{ trimSuffix ".yaml" .path.filename }}'
+
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
