@@ -15,8 +15,6 @@ loki:
 
         release: prometheus-eks-demo
 
-
-
 raw:
   resources:
     - apiVersion: gateway.networking.k8s.io/v1

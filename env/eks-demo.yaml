@@ -21,12 +21,6 @@ resources:
 autoscaling:
   enabled: false
 
-# operation:
-#   nodeSelector: operation
-
-# monitoring:
-#   nodeSelector: monitoring
-
 argocd:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
   hostname: argocd.demo.rovr.dev

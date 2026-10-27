@@ -84,46 +84,6 @@ kube-prometheus-stack:
         k8s-app: kube-dns
 {% endif %}
 
-{% if monitoring is defined %}
-{% if monitoring.nodeSelector is defined %}
-      tolerations:
-        - key: group
-          operator: Equal
-          value: "{{monitoring.nodeSelector}}"
-          effect: NoSchedule
-      nodeSelector:
-        group: "{{monitoring.nodeSelector}}"
-
-  prometheusOperator:
-    tolerations:
-      - key: group
-        operator: Equal
-        value: "{{monitoring.nodeSelector}}"
-        effect: NoSchedule
-    nodeSelector:
-      group: "{{monitoring.nodeSelector}}"
-
-  alertmanager:
-    alertmanagerSpec:
-      tolerations:
-        - key: group
-          operator: Equal
-          value: "{{monitoring.nodeSelector}}"
-          effect: NoSchedule
-      nodeSelector:
-        group: "{{monitoring.nodeSelector}}"
-
-  kube-state-metrics:
-    tolerations:
-      - key: group
-        operator: Equal
-        value: "{{monitoring.nodeSelector}}"
-        effect: NoSchedule
-    nodeSelector:
-      group: "{{monitoring.nodeSelector}}"
-{% endif %}
-{% endif %}
-
 {%- if env == 'eks' %}
 raw:
   resources:

@@ -136,8 +136,6 @@ kube-prometheus-stack:
 
 
 
-
-
 raw:
   resources:
     # alertmanagerSpec.secrets mounts this at

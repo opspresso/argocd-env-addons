@@ -7,18 +7,6 @@ argo-workflows:
     workflowNamespaces:
       - default
 
-{% if operation is defined %}
-{% if operation.nodeSelector is defined %}
-    nodeSelector:
-      group: "{{operation.nodeSelector}}"
-    tolerations:
-    - effect: NoSchedule
-      key: group
-      operator: Equal
-      value: "{{operation.nodeSelector}}"
-{% endif %}
-{% endif %}
-
   server:
     revisionHistoryLimit: 2
 
@@ -61,18 +49,6 @@ argo-workflows:
           namespace: istio-system
       hostnames:
         - "workflows.{{hostname.public}}"
-
-{% if operation is defined %}
-{% if operation.nodeSelector is defined %}
-    nodeSelector:
-      group: "{{operation.nodeSelector}}"
-    tolerations:
-    - effect: NoSchedule
-      key: group
-      operator: Equal
-      value: "{{operation.nodeSelector}}"
-{% endif %}
-{% endif %}
 
 raw:
   resources:

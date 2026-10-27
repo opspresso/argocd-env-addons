@@ -1,14 +1,3 @@
 metrics-server:
   fullnameOverride: metrics-server
 
-{% if operation is defined %}
-{% if operation.nodeSelector is defined %}
-  nodeSelector:
-    group: "{{operation.nodeSelector}}"
-  tolerations:
-  - effect: NoSchedule
-    key: group
-    operator: Equal
-    value: "{{operation.nodeSelector}}"
-{% endif %}
-{% endif %}

@@ -7,8 +7,6 @@ argo-workflows:
     workflowNamespaces:
       - default
 
-
-
   server:
     revisionHistoryLimit: 2
 
@@ -51,8 +49,6 @@ argo-workflows:
           namespace: istio-system
       hostnames:
         - "workflows.demo.rovr.dev"
-
-
 
 raw:
   resources:

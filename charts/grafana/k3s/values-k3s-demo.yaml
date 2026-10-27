@@ -158,8 +158,6 @@ grafana:
       release: prometheus-k3s-demo
 
 
-
-
 raw:
   resources:
     - apiVersion: external-secrets.io/v1
