@@ -18,14 +18,14 @@ def test_workspace_firing_alerts_reach_grafana_with_identity_and_severity(render
         {"series": 'ALERTS{alertname="ForgeSandboxQuota",alertstate="firing",service="agent-forge",severity="warning",cluster="demo"}', "values": "1x5"},
         {"series": 'ALERTS{alertname="ForgeSandboxPending",alertstate="pending",service="agent-forge",severity="warning",cluster="demo"}', "values": "1x5"},
         {"series": 'ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing",service="agent-librio",severity="critical",cluster="demo"}', "values": "1x5"},
-        {"series": 'ALERTS{alertname="StudioWorkspaceWorkerUnavailable",alertstate="firing",service="agent-studio",severity="critical",cluster="demo"}', "values": "1x5"},
+        {"series": 'ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",service="agent-forge",severity="critical",cluster="demo"}', "values": "1x5"},
         {"series": 'ALERTS{alertname="Unrelated",alertstate="firing",service="other",severity="critical",cluster="demo"}', "values": "1x5"},
     ], "promql_expr_test": [{"expr": expr, "eval_time": "5m", "exp_samples": [{
         "labels": '{cluster="demo",service="agent-forge",severity="warning",workspace_alert="ForgeSandboxQuota"}', "value": 1,
     }, {
         "labels": '{cluster="demo",service="agent-librio",severity="critical",workspace_alert="LibrioWorkerUnavailable"}', "value": 1,
     }, {
-        "labels": '{cluster="demo",service="agent-studio",severity="critical",workspace_alert="StudioWorkspaceWorkerUnavailable"}', "value": 1,
+        "labels": '{cluster="demo",service="agent-forge",severity="critical",workspace_alert="ForgeServiceUnavailable"}', "value": 1,
     }]}]}]}
     (tmp_path / "tests.yaml").write_text(yaml.safe_dump(fixture))
     run_promtool(tmp_path)
