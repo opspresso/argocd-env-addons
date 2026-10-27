@@ -25,6 +25,11 @@ argo-cd:
   server:
     replicas: 1
 
+    # maxUnavailable keeps drains possible when an env runs one replica.
+    pdb:
+      enabled: true
+      maxUnavailable: 1
+
     resources:
       requests:
         cpu: 10m
@@ -50,6 +55,9 @@ argo-cd:
   repoServer:
     replicas: 1
 
+    pdb:
+      enabled: true
+      maxUnavailable: 1
     # autoscaling:
     #   enabled: true
     #   minReplicas: 2
