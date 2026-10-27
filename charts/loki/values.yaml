@@ -39,11 +39,10 @@ loki:
 
     resources:
       requests:
-        cpu: 250m
-        memory: 512Mi
+        cpu: 25m
+        memory: 192Mi
       limits:
-        cpu: 500m
-        memory: 1024Mi
+        memory: 1Gi
 
   # Rules sidecar in the loki pod; unset it and the whole pod drops to
   # BestEffort no matter what singleBinary asks for. The limit has room to
@@ -51,7 +50,7 @@ loki:
   sidecar:
     resources:
       requests:
-        cpu: 10m
+        cpu: 5m
         memory: 96Mi
       limits:
         memory: 256Mi

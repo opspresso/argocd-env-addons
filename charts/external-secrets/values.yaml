@@ -7,8 +7,8 @@ external-secrets:
 
   resources:
     requests:
-      cpu: 50m
-      memory: 96Mi
+      cpu: 10m
+      memory: 64Mi
     limits:
       memory: 256Mi
 
@@ -17,7 +17,7 @@ external-secrets:
 
     resources:
       requests:
-        cpu: 25m
+        cpu: 5m
         memory: 64Mi
       limits:
         memory: 128Mi
@@ -27,7 +27,7 @@ external-secrets:
 
     resources:
       requests:
-        cpu: 25m
+        cpu: 5m
         memory: 64Mi
       limits:
         memory: 128Mi

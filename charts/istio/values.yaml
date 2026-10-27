@@ -15,10 +15,13 @@ istiod:
               - pilot-agent
               - wait
 
+      # Every meshed pod carries one; Envoy idles near 40Mi.
       resources:
         requests:
-          cpu: 100m
-          memory: 128Mi
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
 
   env:
     EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
@@ -26,7 +29,7 @@ istiod:
 
   resources:
     requests:
-      cpu: 100m
+      cpu: 25m
       memory: 128Mi
     limits:
       memory: 512Mi
@@ -101,6 +104,13 @@ istiod:
 
 gateway:
   name: istio-ingressgateway
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 512Mi
 
   # Both replicas carry all cluster ingress, and Auto Mode recycles nodes on its
   # own schedule. Without this a consolidation can drain them together.

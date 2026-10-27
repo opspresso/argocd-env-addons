@@ -43,10 +43,10 @@ kube-prometheus-stack:
 
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 10m
+        memory: 48Mi
       limits:
-        memory: 256Mi
+        memory: 128Mi
 
     # Runs as a sidecar in the prometheus and alertmanager pods, and a pod is
     # only as good as its least specified container.
@@ -79,11 +79,10 @@ kube-prometheus-stack:
 
       resources:
         requests:
-          cpu: "500m"
+          cpu: 50m
           memory: 1Gi
         limits:
-          cpu: "2"
-          memory: 4Gi
+          memory: 3Gi
 
       # tolerations:
       #   - key: group
@@ -148,10 +147,10 @@ kube-prometheus-stack:
 
       resources:
         requests:
-          cpu: 50m
-          memory: 128Mi
+          cpu: 10m
+          memory: 48Mi
         limits:
-          memory: 512Mi
+          memory: 128Mi
 
       # tolerations:
       #   - key: group
@@ -167,10 +166,10 @@ kube-prometheus-stack:
 
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 10m
+        memory: 48Mi
       limits:
-        memory: 256Mi
+        memory: 128Mi
 
     # https://github.com/kubernetes/kube-state-metrics/tree/main/docs
     extraArgs:
@@ -207,8 +206,8 @@ kube-prometheus-stack:
 
     resources:
       requests:
-        cpu: 25m
-        memory: 32Mi
+        cpu: 10m
+        memory: 24Mi
       limits:
         memory: 64Mi
 

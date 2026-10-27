@@ -29,8 +29,8 @@ prometheus-adapter:
 
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 10m
+      memory: 48Mi
     limits:
       cpu: 200m
       memory: 256Mi
