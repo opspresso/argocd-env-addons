@@ -36,6 +36,9 @@ loki:
       enabled: true
       size: 50Gi
       storageClass: gp3 # aws-ebs-sc
+      # The chart default deletes the claim when the StatefulSet scales to zero. That
+      # detaches the log store from its volume during any maintenance stop.
+      enableStatefulSetAutoDeletePVC: false
 
     resources:
       requests:
