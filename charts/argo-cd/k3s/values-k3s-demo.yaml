@@ -11,10 +11,6 @@ argo-cd:
     resources: null
 
 
-    autoscaling:
-      enabled: false
-
-
   server:
     replicas: 1
 
@@ -72,10 +68,6 @@ argo-cd:
     resources: null
 
 
-    autoscaling:
-      enabled: false
-
-
   dex:
     enabled: True
 
@@ -97,6 +89,16 @@ argo-cd:
   notifications:
     enabled: False
     argocdUrl: https://argocd.rovr.dev
+    # Report outcomes only. Every GitOps commit syncs many apps, so the
+    # running and succeeded triggers flooded the channel.
+    subscriptions:
+      - recipients:
+          - slack:noti-k3s-demo
+        triggers:
+          - on-deployed
+          - on-health-degraded
+          - on-sync-failed
+          - on-sync-status-unknown
 
     resources: null
 
