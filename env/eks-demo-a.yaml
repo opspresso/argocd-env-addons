@@ -27,8 +27,6 @@ cluster_autoscaler:
   scale_down_utilization_threshold: 0.6
 
 istio:
-  global:
-    hub: gcr.io/istio-release
   pilot:
     autoscale: false
     min: 2
