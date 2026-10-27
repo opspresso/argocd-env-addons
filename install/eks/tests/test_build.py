@@ -20,20 +20,6 @@ import sys
 
 args = sys.argv[1:]
 scenario = os.environ.get("SCENARIO", "ready")
-if args[0] == "acm":
-    if scenario == "acm_failure":
-        sys.exit(254)
-    certificates = [{"DomainName": "other-argocd.example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/wrong-host"}]
-    if scenario == "acm_wildcard":
-        certificates.append({"DomainName": "example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/wildcard",
-                             "SubjectAlternativeNameSummaries": ["example.test", "*.example.test"]})
-    elif scenario == "acm_parent_without_wildcard":
-        certificates.append({"DomainName": "example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/apex",
-                             "SubjectAlternativeNameSummaries": ["example.test"]})
-    elif scenario != "acm_missing":
-        certificates.append({"DomainName": "argocd.example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/fixture"})
-    print(json.dumps({"CertificateSummaryList": certificates}))
-    sys.exit()
 parameter = args[args.index("--name") + 1].rsplit("/", 1)[-1]
 values = json.loads(Path(os.environ["SSM_VALUES"]).read_text())
 if parameter == "argocd-password":
@@ -102,14 +88,15 @@ def test_build_preserves_secret_characters_and_writes_private_yaml(tmp_path):
     assert secret["extra"]["dex.github.clientSecret"] == SECRET
     assert secret["extra"]["accounts.mcp.tokens"] == values["argocd-mcp-tokens"]
     assert rendered["configs"]["cm"]["url"] == "https://argocd.example.test"
-    assert rendered["server"]["ingress"]["annotations"]["alb.ingress.kubernetes.io/certificate-arn"] == "arn:aws:acm:fixture:123:certificate/fixture"
+    # The bootstrap exposes nothing publicly; the argo-cd addon's HTTPRoute serves the UI.
+    assert "ingress" not in rendered["server"]
     assert "g, fixture-org:fixture-team, role:admin" in rendered["configs"]["rbac"]["policy.csv"]
     assert output.stat().st_mode & 0o777 == 0o600
     assert list(output.parent.glob(".values.output-*.tmp")) == []
 
 
 @pytest.mark.parametrize("scenario", [
-    "ssm_failure", "invalid_json", "null", "empty", "wrong_type", "acm_failure", "acm_missing",
+    "ssm_failure", "invalid_json", "null", "empty", "wrong_type",
 ])
 def test_build_failure_preserves_existing_output(tmp_path, scenario):
     result, output, _ = run_build(tmp_path, scenario)
@@ -117,15 +104,3 @@ def test_build_failure_preserves_existing_output(tmp_path, scenario):
     assert output.read_text() == "previous output\n"
     assert "파일이 생성되었습니다" not in result.stdout
     assert list(output.parent.glob(".values.output-*.tmp")) == []
-
-
-def test_parent_wildcard_certificate_covers_the_argocd_host(tmp_path):
-    result, output, _ = run_build(tmp_path, "acm_wildcard")
-    assert result.returncode == 0, result.stderr
-    assert "certificate/wildcard" in output.read_text()
-
-
-def test_parent_certificate_without_the_wildcard_is_rejected(tmp_path):
-    result, output, _ = run_build(tmp_path, "acm_parent_without_wildcard")
-    assert result.returncode != 0
-    assert output.read_text() == "previous output\n"

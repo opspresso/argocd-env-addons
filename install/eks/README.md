@@ -5,7 +5,7 @@
 
 ## Create eks cluster
 
-* <https://github.com/opspresso/terraform-env-demo/tree/main/demo/7-eks>
+* <https://github.com/opspresso/terraform-env-demo/tree/main/demo/5-eks>
 
 ```bash
 terraform apply
@@ -36,7 +36,6 @@ export ARGOCD_NOTI_TOKEN="REPLACE_ME" # xoxp-xxxx <https://api.slack.com/apps>
 export ARGOCD_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
 export ARGOCD_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
 
-export AWS_ACM_CERT="arn:aws:acm:xxx:xxx:certificate/xxx"
 
 # put aws ssm parameter store
 aws ssm put-parameter --name /k8s/common/argocd-hostname --value "${ARGOCD_HOSTNAME}" --type SecureString --overwrite | jq .
@@ -99,18 +98,7 @@ SSM의 `ParameterNotFound`만 미생성 상태로 처리한다. 접근 거부·�
 > 덮이면서 mcp 토큰이 무효가 됩니다. 그때는 `./token.sh` 를 한 번 더 실행 하면
 > 자동으로 다시 발급 됩니다.
 
-## Install ingress-class
-
-> EKS Auto Mode 의 내장 로드밸런싱이 ingress 를 처리 하도록 IngressClass 를 먼저 생성 합니다.
-
-```bash
-kubectl apply -f ingress-class.yaml
-```
-
-## Install Argo CD
-
-> Argocd 를 설치 합니다.
-> addons 를 위해 ApplicationSet 도 함께 설치 합니다.
+## Install Argo CD and register addons
 
 Python 3와 PyYAML이 필요하다. `install/eks/`에서 다음 명령으로 실행 의존성을 설치한다.
 
@@ -118,100 +106,27 @@ Python 3와 PyYAML이 필요하다. `install/eks/`에서 다음 명령으로 실
 python3 -m pip install -r ../../requirements/runtime.txt
 ```
 
-`build.sh`는 SSM 조회·값 검증을 모두 마친 뒤 `values.output.yaml`을 원자적으로 교체한다.
-특수문자가 포함된 시크릿도 문자열로 보존하며 출력 파일 권한은 `0600`이다.
-조회 실패나 빈 필수 값이 있으면 기존 출력 파일을 유지하고 실패한다.
-ACM 인증서는 발급 완료 상태이며 `DomainName`이 Argo CD 호스트와 정확히 일치해야 한다.
+`./install.sh`는 다음을 차례로 실행한다. 한 단계라도 실패하면 그 단계 이름과 종료 코드를 출력하고 멈춘다.
 
-전체 설치는 `./install.sh` 로 실행합니다. 필요한 Helm repository를 등록하고,
-external-dns와 Argo CD 리소스가 준비될 때까지 기다립니다. 로그인은 SSM의
-`/k8s/common/argocd-hostname`에 있는 호스트의 `/healthz`가 HTTP 200을 반환한 뒤
-진행하므로 ALB 대상 등록과 DNS 전파 지연도 기다립니다.
+1. `token.sh`: Argo CD 서명 키와 mcp 계정 토큰을 SSM에서 확인하거나 만든다.
+2. `build.sh`: SSM 값으로 `values.output.yaml`(0600)을 만든다. 값 조회가 하나라도 실패하면 기존 파일을 유지한다.
+3. `helm upgrade --install argocd`: Argo CD를 설치하고 준비될 때까지 기다린다(`HELM_TIMEOUT`, 기본 10m).
+4. `bootstrap.yaml`: 이 클러스터를 이름 `eks-demo`로 등록하는 cluster Secret과 `addons`·`apps` AppProject를 적용한다.
+5. `addons-eks.yaml`과 `argocd-env-apps`의 `apps-eks.yaml`을 등록한다.
 
-기본 대기 시간은 Helm 설치마다 10분, HTTPS 접속 준비에 600초입니다.
-시간 초과 시 Pod·Ingress·ALB·DNS 상태를 확인한 뒤 다시 실행합니다.
-환경에 따라 `HELM_TIMEOUT=15m ARGOCD_READY_TIMEOUT=900 ./install.sh`로 조정할 수 있습니다.
-기존 필수 도구 외에 접속 확인용 `curl`이 필요합니다.
-
-아래는 Argo CD만 수동으로 설치하는 명령입니다.
+설치는 공개 DNS·로그인·`argocd` CLI를 사용하지 않는다. 부트스트랩 values는 Ingress를 만들지 않는다.
+Argo CD UI(`https://<argocd-hostname>`)는 `istio`와 `argo-cd` addon이 동기화된 뒤 공용 ALB와
+istio HTTPRoute로 응답한다. 도메인은 `terraform-env-demo`의 `3-alb`(`*.demo.rovr.dev`)가 소유한다.
+`argo-cd` addon은 수동 sync다. 처음 한 번 UI나 `kubectl`로 sync한다.
 
 ```bash
-# helm repo add argo https://argoproj.github.io/argo-helm
-
-# helm repo update
-# helm search repo argo-cd
-
-./build.sh
-
-helm upgrade --install argocd argo/argo-cd -n argocd --create-namespace -f values.output.yaml
-
-# kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+./install.sh
 ```
 
-## Install external-dns
-
-> argocd 도메인을 연결 하기 위해 external-dns 를 설치 합니다.
-
-* <https://github.com/kubernetes-sigs/external-dns>
-
-```bash
-# helm repo add external-dns https://kubernetes-sigs.github.io/external-dns
-
-# helm repo update
-# helm search repo external-dns
-
-helm upgrade --install external-dns external-dns/external-dns -n addon-external-dns --create-namespace -f external-dns/values.yaml
-
-POD_NAME=$(kubectl get pod -n addon-external-dns -o json | jq '.items[0].metadata.name' -r)
-kubectl logs ${POD_NAME} -n addon-external-dns
-
-# sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
-```
-
-* <https://argocd.demo.rovr.dev>
-
-## Login to argocd
-
-> argocd 에 로그인 합니다.
-> cluster 를 add 합니다.
-
-```bash
-export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
-export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
-
-argocd login argocd.demo.rovr.dev --grpc-web --skip-test-tls --username $ADMIN_USERNAME --password $ADMIN_PASSWORD
-
-argocd cluster list
-argocd cluster add eks-demo -y
-
-# argocd cluster add eks-demo-a -y
-# argocd cluster add eks-demo-b -y
-
-argocd proj create addons --allow-cluster-resource '*/*' --dest '*,*' --src '*'
-argocd proj create apps --allow-cluster-resource '*/*' --dest '*,*' --src '*'
-```
-
-## Install addons
-
-> addons 를 등록 합니다.
-
-```bash
-kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons-eks.yaml
-```
-
-## Delete addons
-
-### Delete ingress and aws alb
-
-> ingress 를 삭제 하여, aws-load-balancer-controller 로 생성한 alb 를 삭제 합니다.
-
-```bash
-kubectl delete ingress -n argocd argocd-server
-kubectl delete ingress -n addon-atlantis atlantis
-```
+## Delete
 
 ### Delete eks cluster
 
 ```bash
-terraform destory
+terraform destroy
 ```
