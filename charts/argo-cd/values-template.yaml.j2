@@ -277,6 +277,8 @@ raw:
               registry: "{{aws_account_id}}.dkr.ecr.{{aws_region}}.amazonaws.com/projects"
               pushRoleArn: "arn:aws:iam::{{aws_account_id}}:role/app-delivery-push"
               region: "{{aws_region}}"
+              apiServer:
+                cidrs: {{ app_delivery.api_server_cidrs | tojson }}
         syncPolicy:
           automated:
             prune: true
