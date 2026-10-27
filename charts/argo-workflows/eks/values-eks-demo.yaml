@@ -21,9 +21,9 @@ argo-workflows:
     sso:
       enabled: true
 
-      issuer: https://argocd.demo.opspresso.com/api/dex
+      issuer: https://argocd.demo.rovr.dev/api/dex
 
-      redirectUrl: https://workflows.demo.opspresso.com/oauth2/callback
+      redirectUrl: https://workflows.demo.rovr.dev/oauth2/callback
 
       clientId:
         key: client-id
@@ -38,7 +38,7 @@ argo-workflows:
 
 
     podAnnotations:
-      link.argocd.argoproj.io/external-link: "https://workflows.demo.opspresso.com"
+      link.argocd.argoproj.io/external-link: "https://workflows.demo.rovr.dev"
 
     ingress:
       enabled: false
@@ -50,7 +50,7 @@ argo-workflows:
         - name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "workflows.demo.opspresso.com"
+        - "workflows.demo.rovr.dev"
 
 
 

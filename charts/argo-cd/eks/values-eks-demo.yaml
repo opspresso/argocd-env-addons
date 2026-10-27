@@ -22,14 +22,14 @@ argo-cd:
 
     ingress:
       enabled: false
-      hostname: "argocd.demo.opspresso.com"
+      hostname: "argocd.demo.rovr.dev"
       annotations:
         kubernetes.io/ingress.class: "alb"
-        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.opspresso.com"
+        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.rovr.dev"
         alb.ingress.kubernetes.io/scheme: "internet-facing"
         alb.ingress.kubernetes.io/target-type: "ip"
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-        alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:396608815058:certificate/1e9672d7-627a-4e00-826c-925e330b5165"
+        alb.ingress.kubernetes.io/certificate-arn: "arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7"
         alb.ingress.kubernetes.io/actions.ssl-redirect: |
           {"Type": "redirect", "RedirectConfig": {"Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}
 
@@ -39,7 +39,7 @@ argo-cd:
         - name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "argocd.demo.opspresso.com"
+        - "argocd.demo.rovr.dev"
 
     metrics:
       serviceMonitor:
@@ -81,7 +81,7 @@ argo-cd:
 
   notifications:
     enabled: True
-    argocdUrl: https://argocd.demo.opspresso.com
+    argocdUrl: https://argocd.demo.rovr.dev
 
 
   configs:
@@ -111,9 +111,9 @@ argo-cd:
         g, mcp, role:mcp
 
     cm:
-      url: https://argocd.demo.opspresso.com
+      url: https://argocd.demo.rovr.dev
 
-      statusbadge.url: https://argocd.demo.opspresso.com/
+      statusbadge.url: https://argocd.demo.rovr.dev/
 
       help.chatUrl: "https://app.slack.com/client/T03FUG4UB/C035P1YD72A"
       help.chatText: "Chat now!"
@@ -138,12 +138,12 @@ argo-cd:
         - id: argo-workflows-sso
           name: Argo Workflow
           redirectURIs:
-            - https://workflows.demo.opspresso.com/oauth2/callback
+            - https://workflows.demo.rovr.dev/oauth2/callback
           secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
         - id: oauth2-proxy-sso
           name: OAuth2 Proxy
           redirectURIs:
-            - https://auth.demo.opspresso.com/oauth2/callback
+            - https://auth.demo.rovr.dev/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
 

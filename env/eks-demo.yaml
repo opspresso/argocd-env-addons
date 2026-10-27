@@ -13,8 +13,8 @@ aws_environment: demo
 vpcId: vpc-093b5bd80076c011d
 
 hostname:
-  internal: demo-in.opspresso.com
-  public: demo.opspresso.com
+  internal: demo-in.rovr.dev
+  public: demo.rovr.dev
 
 resources:
   enabled: true
@@ -28,8 +28,8 @@ autoscaling:
 #   nodeSelector: monitoring
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/1e9672d7-627a-4e00-826c-925e330b5165
-  hostname: argocd.demo.opspresso.com
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
+  hostname: argocd.demo.rovr.dev
   replicas:
     server: 2
     repo_server: 2
@@ -56,7 +56,7 @@ argo_workflows:
     team: sre
 
 atlantis:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/a68be62f-e8ba-4bf3-bdf9-cae7cab40650
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
   allowlist: github.com/opspresso/terraform-*
   github:
     org: opspresso # github org
@@ -87,7 +87,7 @@ target_group:
   public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-0/7f5705c5101010d1
 
 grafana:
-  hostname: grafana.demo.opspresso.com
+  hostname: grafana.demo.rovr.dev
   auth:
     github:
       enabled: true
@@ -100,10 +100,10 @@ grafana:
   #   # demo: http://prom.demo-in.opspresso.com
   #   # demo_a: http://prom.demo-in-a.opspresso.com
   #   # demo_b: http://prom.demo-in-b.opspresso.com
-  #   loki: http://loki.demo-in.opspresso.com
+  #   loki: http://loki.demo-in.rovr.dev
 
 kite:
-  hostname: kite.demo.opspresso.com
+  hostname: kite.demo.rovr.dev
 
 prometheus:
   serviceMonitor:
@@ -113,7 +113,7 @@ metrics:
   backend: prometheus
 
 loki:
-  hostname: loki.demo-in.opspresso.com
+  hostname: loki.demo-in.rovr.dev
 
 # Auto Mode node subnets and stable Service IPs used by the Alloy policy.
 alloy_network_policy:

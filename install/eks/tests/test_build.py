@@ -24,7 +24,13 @@ if args[0] == "acm":
     if scenario == "acm_failure":
         sys.exit(254)
     certificates = [{"DomainName": "other-argocd.example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/wrong-host"}]
-    if scenario != "acm_missing":
+    if scenario == "acm_wildcard":
+        certificates.append({"DomainName": "example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/wildcard",
+                             "SubjectAlternativeNameSummaries": ["example.test", "*.example.test"]})
+    elif scenario == "acm_parent_without_wildcard":
+        certificates.append({"DomainName": "example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/apex",
+                             "SubjectAlternativeNameSummaries": ["example.test"]})
+    elif scenario != "acm_missing":
         certificates.append({"DomainName": "argocd.example.test", "CertificateArn": "arn:aws:acm:fixture:123:certificate/fixture"})
     print(json.dumps({"CertificateSummaryList": certificates}))
     sys.exit()
@@ -111,3 +117,15 @@ def test_build_failure_preserves_existing_output(tmp_path, scenario):
     assert output.read_text() == "previous output\n"
     assert "파일이 생성되었습니다" not in result.stdout
     assert list(output.parent.glob(".values.output-*.tmp")) == []
+
+
+def test_parent_wildcard_certificate_covers_the_argocd_host(tmp_path):
+    result, output, _ = run_build(tmp_path, "acm_wildcard")
+    assert result.returncode == 0, result.stderr
+    assert "certificate/wildcard" in output.read_text()
+
+
+def test_parent_certificate_without_the_wildcard_is_rejected(tmp_path):
+    result, output, _ = run_build(tmp_path, "acm_parent_without_wildcard")
+    assert result.returncode != 0
+    assert output.read_text() == "previous output\n"

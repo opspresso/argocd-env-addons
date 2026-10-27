@@ -65,13 +65,18 @@ def certificate_for(hostname):
             raise ValueError("ACM 인증서 목록이 올바르지 않습니다.")
     except (json.JSONDecodeError, KeyError, TypeError) as error:
         raise ValueError("ACM 응답이 올바르지 않습니다.") from error
-    for certificate in certificates:
-        if certificate.get("DomainName") == hostname:
-            arn = certificate.get("CertificateArn")
-            if isinstance(arn, str) and arn.startswith("arn:"):
-                return arn
-            raise ValueError("ACM 인증서 ARN이 올바르지 않습니다.")
-    raise ValueError("Argo CD 호스트와 DomainName이 일치하는 ISSUED ACM 인증서를 찾을 수 없습니다.")
+    # The exact host wins; otherwise a certificate for the parent domain must list the wildcard that covers the host.
+    parent = hostname.split(".", 1)[1] if "." in hostname else ""
+    candidates = [c for c in certificates if c.get("DomainName") == hostname] or [
+        c for c in certificates
+        if parent and c.get("DomainName") == parent and f"*.{parent}" in (c.get("SubjectAlternativeNameSummaries") or [])
+    ]
+    for certificate in candidates:
+        arn = certificate.get("CertificateArn")
+        if isinstance(arn, str) and arn.startswith("arn:"):
+            return arn
+        raise ValueError("ACM 인증서 ARN이 올바르지 않습니다.")
+    raise ValueError("Argo CD 호스트를 포함하는 ISSUED ACM 인증서(정확한 이름 또는 상위 도메인 wildcard)를 찾을 수 없습니다.")
 
 
 def build():

@@ -4,8 +4,8 @@ external-dns:
   # Without a filter external-dns manages every hosted zone the Pod Identity
   # role can reach, and policy=sync deletes records it considers stale.
   domainFilters:
-    - demo.opspresso.com
-    - demo-in.opspresso.com
+    - demo.rovr.dev
+    - demo-in.rovr.dev
 
   # The default owner id is a literal "default", so two clusters would claim
   # each other's TXT registry entries.

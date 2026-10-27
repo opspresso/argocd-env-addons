@@ -3,7 +3,8 @@
 # Update env/*.yaml with current AWS data (vpcId, acm_arn, target_group).
 # Values are looked up by convention:
 #   vpcId                     : VPC tagged Name=vpc-{aws_environment}
-#   argocd.acm_arn            : ACM cert whose domain == argocd.hostname
+#   argocd.acm_arn            : ACM cert whose domain == argocd.hostname, else its parent domain
+#                               (terraform-env-demo issues <parent> with *.<parent>)
 #   atlantis.acm_arn          : ACM cert whose domain == hostname.public
 #   target_group.public_http  : target group named {aws_environment}-{istio.target_group}
 #   target_group.internal_http: target group named {aws_environment}-in-{istio.target_group}
@@ -106,6 +107,9 @@ for FILE in "${ROOT_DIR}"/env/*.yaml; do
   ARGOCD_HOST=$(yq '.argocd.hostname // ""' "${FILE}")
   if [ -n "${ARGOCD_HOST}" ]; then
     ARN=$(echo "${CERTS}" | awk -v d="${ARGOCD_HOST}" '$1==d {print $2; exit}')
+    if [ -z "${ARN}" ]; then
+      ARN=$(echo "${CERTS}" | awk -v d="${ARGOCD_HOST#*.}" '$1==d {print $2; exit}')
+    fi
     update "${WORK_FILE}" "argocd.acm_arn" "$(yq '.argocd.acm_arn // ""' "${FILE}")" "${ARN}"
   fi
 

@@ -2,13 +2,13 @@ atlantis:
   fullnameOverride: atlantis
 
 
-  atlantisUrl: "https://atlantis.demo.opspresso.com"
+  atlantisUrl: "https://atlantis.demo.rovr.dev"
 
   orgAllowlist: "github.com/opspresso/terraform-*"
 
   podTemplate:
     annotations:
-      link.argocd.argoproj.io/external-link: "https://atlantis.demo.opspresso.com"
+      link.argocd.argoproj.io/external-link: "https://atlantis.demo.rovr.dev"
 
   route:
     main:
@@ -17,7 +17,7 @@ atlantis:
         - name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "atlantis.demo.opspresso.com"
+        - "atlantis.demo.rovr.dev"
     public:
       enabled: true
       parentRefs:
@@ -26,7 +26,7 @@ atlantis:
           name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "atlantis-public.demo.opspresso.com"
+        - "atlantis-public.demo.rovr.dev"
       matches:
         - path:
             type: PathPrefix
@@ -81,4 +81,4 @@ raw:
         - to:
           - operation:
               hosts:
-              - "atlantis.demo.opspresso.com"
+              - "atlantis.demo.rovr.dev"
