@@ -32,7 +32,7 @@ class ExternalSecretsAWSTests(unittest.TestCase):
                     patterns = [re.compile(pattern) for condition in store["spec"]["conditions"]
                                 for pattern in condition["namespaceRegexes"]]
                     allowed = lambda namespace: any(pattern.search(namespace) for pattern in patterns)
-                    for namespace in ("argocd", "addon-grafana", "agent-studio", "agent-mcps", "agent-broker", "sample"):
+                    for namespace in ("argocd", "addon-grafana", "agent-studio", "agent-mcps", "agent-broker", "broker-pool", "sample"):
                         self.assertTrue(allowed(namespace), namespace)
                     # Tenant apps and Forge Sandboxes must never read platform credentials.
                     for namespace in ("app-demo-dev", "agent-forge-workspaces", "default", "vibemon", "agent-studio-x"):
