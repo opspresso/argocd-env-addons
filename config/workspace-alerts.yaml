@@ -41,12 +41,6 @@ groups:
         labels: {severity: critical, service: agent-forge}
         annotations:
           summary: "Workspace node {{ $labels.node }} is unavailable"
-      - alert: StudioWorkspaceWorkerUnavailable
-        expr: (kube_deployment_status_replicas_available{namespace="agent-studio",deployment="agent-studio-workspace-worker"} < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-studio",deployment="agent-studio-workspace-worker"} > 0)
-        for: 2m
-        labels: {severity: critical, service: agent-studio}
-        annotations:
-          summary: "Studio Workspace observer is unavailable; observation and continuation cannot progress"
       - alert: ForgeWorkspaceStateMetricsUnavailable
         expr: up{job="workspace-state"} == 0
         for: 2m

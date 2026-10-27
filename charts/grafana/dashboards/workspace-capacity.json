@@ -346,41 +346,6 @@
       }
     },
     {
-      "id": 9,
-      "title": "Studio observer available replicas",
-      "type": "timeseries",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 20,
-        "w": 12,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "expr": "max(kube_deployment_status_replicas_available{cluster=\"$cluster\",namespace=\"agent-studio\",deployment=\"agent-studio-workspace-worker\"})",
-          "legendFormat": "Available"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "min": 0
-        },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom"
-        }
-      }
-    },
-    {
       "id": 10,
       "title": "Workspace node memory used",
       "type": "timeseries",

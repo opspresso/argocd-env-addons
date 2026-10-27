@@ -12,7 +12,6 @@ Forge 실행 Pod의 cAdvisor `service`는 `agent-forge-sandbox`다. VictoriaMetr
 | 책임 | 지표·대상 |
 | --- | --- |
 | Studio 실행 정책·대화 | `agent_studio_active_execution_requests`: Studio Agent 실행만 집계 |
-| Studio 원격 작업 관찰·대화 재개 | `agent-studio-workspace-worker` Deployment |
 | Forge Sandbox·native 모델·checkpoint | `agent-forge`, `agent-forge-workspaces`, `agent_forge_active_model_requests` |
 | Librio 문서·오디오 작업 | `agent-librio-worker`; 웹과 worker는 별도 metrics target |
 | Memory 기억 저장·조회 | `agent-memory`; 별도 ingestion worker 없음 |

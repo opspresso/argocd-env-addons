@@ -70,17 +70,6 @@ kube-prometheus-stack:
             labels:
               service: agent-forge
               severity: critical
-          - alert: StudioWorkspaceWorkerUnavailable
-            annotations:
-              summary: Studio Workspace observer is unavailable; observation and continuation
-                cannot progress
-            expr: (kube_deployment_status_replicas_available{namespace="agent-studio",deployment="agent-studio-workspace-worker"}
-              < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-studio",deployment="agent-studio-workspace-worker"}
-              > 0)
-            for: 2m
-            labels:
-              service: agent-studio
-              severity: critical
           - alert: ForgeWorkspaceStateMetricsUnavailable
             annotations:
               summary: Workspace state metrics are unavailable
