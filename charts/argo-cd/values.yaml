@@ -9,8 +9,8 @@ argo-cd:
   controller:
     resources:
       requests:
-        cpu: 250m
-        memory: 1Gi
+        cpu: 100m
+        memory: 768Mi
       limits:
         memory: 2Gi
 
@@ -27,8 +27,8 @@ argo-cd:
 
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 10m
+        memory: 64Mi
       limits:
         memory: 256Mi
 
@@ -59,7 +59,7 @@ argo-cd:
 
     resources:
       requests:
-        cpu: 250m
+        cpu: 50m
         memory: 256Mi
       limits:
         memory: 1Gi
@@ -75,16 +75,16 @@ argo-cd:
   applicationSet:
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 10m
+        memory: 64Mi
       limits:
-        memory: 256Mi
+        memory: 128Mi
 
   dex:
     resources:
       requests:
-        cpu: 25m
-        memory: 64Mi
+        cpu: 5m
+        memory: 48Mi
       limits:
         memory: 128Mi
 
@@ -111,18 +111,18 @@ argo-cd:
   redis:
     resources:
       requests:
-        cpu: 25m
-        memory: 64Mi
+        cpu: 10m
+        memory: 32Mi
       limits:
-        memory: 256Mi
+        memory: 128Mi
 
   notifications:
     # argocdUrl: https://{{argocd.hostname}}
 
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 5m
+        memory: 48Mi
       limits:
         memory: 128Mi
 
