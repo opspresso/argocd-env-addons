@@ -1,5 +1,8 @@
 # k3s용 Argo CD 설치
 
+> k3s 선언은 현재 어느 클러스터에도 배포하지 않는다. 운영 클러스터는 EKS `eks-demo`이며
+> [install/eks](../eks/README.md)를 따른다. 이 문서는 k3s 선언을 다시 설치할 때의 절차다.
+
 Traefik Gateway API를 사용하는 단일 노드 k3s에 Argo CD와 이 저장소의
 `addons` Application을 설치한다. cert-manager와 Let's Encrypt DNS-01로
 `*.rovr.dev`와 `*.demo.rovr.dev` 와일드카드 인증서를 발급한다. AWS ACM, ALB, external-dns, GitHub OAuth에는
@@ -8,7 +11,7 @@ Traefik Gateway API를 사용하는 단일 노드 k3s에 Argo CD와 이 저장�
 
 ## 운영 환경
 
-현재 대상은 AWS EC2의 단일 노드 k3s다. `argocd-env-addons`가 클러스터 addon을,
+설치 대상은 AWS EC2의 단일 노드 k3s다. `argocd-env-addons`가 클러스터 addon을,
 `argocd-env-apps`가 Agent Studio 등 애플리케이션을 배포한다.
 운영 호스트에는 다음 SSH 명령으로 접속한다.
 

@@ -35,7 +35,9 @@ tests/                    # 자동화 테스트
 
 배포 여부는 `addons/`의 Application/ApplicationSet으로 판단한다. `charts/`에만 있는
 chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소다.
-현재 배포 대상은 EKS와 k3s다. `local` 템플릿·정책 지원은 남아 있지만
+운영 클러스터는 EKS `eks-demo`이며 같은 클러스터의 Argo CD가 `addons-eks.yaml`을 동기화한다.
+k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/`, `install/k3s/`)은 남아 있지만
+어느 클러스터에도 배포하지 않으며 삭제하지 않는다. `local` 템플릿·정책 지원은 남아 있지만
 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
 `argo-cd` 의 Dex 설정에는 `argo-workflows-sso` OIDC 클라이언트가 남아 있다. argo-workflows 는

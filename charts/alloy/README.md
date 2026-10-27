@@ -6,7 +6,7 @@ DaemonSet으로 배포하며, 수집 설정은 `values-template.yaml.j2`에서 �
 | 환경 | 배포 정의 | 수집 대상 | 전송 대상 |
 | --- | --- | --- | --- |
 | EKS | `addons/eks/alloy.yaml` | Pod 로그 | Loki |
-| k3s | `addons/k3s/alloy.yaml` | 호스트·컨테이너·앱 메트릭 | Grafana Cloud |
+| k3s(미배포 선언) | `addons/k3s/alloy.yaml` | 호스트·컨테이너·앱 메트릭 | Grafana Cloud |
 
 ## EKS 로그
 
@@ -40,7 +40,7 @@ Grafana의 Loki 데이터소스에서 다음 쿼리로 확인합니다.
 연결 정보는 `env/k3s-demo.yaml`의 `grafana_cloud`에서 읽습니다.
 호스트 메트릭 수집에 필요한 `/proc`, `/sys`, 호스트 루트는 읽기 전용으로 마운트하고,
 host network를 사용합니다. CPU·메모리 requests/limits와 시스템 우선순위는 지정하지 않습니다.
-현재 k3s 환경에는 Loki 전송 대상이 없어 로그를 수집하지 않습니다.
+k3s 선언에는 Loki 전송 대상이 없어 로그를 수집하지 않습니다.
 
 ## 수집 대상
 
