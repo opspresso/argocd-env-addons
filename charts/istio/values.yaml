@@ -39,15 +39,10 @@ istiod:
 
   trafficDistribution: PreferSameZone
 
+  # Spread by host only. The baseline nodes and every EBS volume sit in one
+  # zone, so a zone preference made Auto Mode keep an extra node in another
+  # zone without adding real zone redundancy.
   topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: ScheduleAnyway
-      matchLabelKeys:
-        - pod-template-hash
-      labelSelector:
-        matchLabels:
-          app: istiod
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
       whenUnsatisfiable: ScheduleAnyway
@@ -127,15 +122,10 @@ gateway:
 
     # externalTrafficPolicy: Local
 
+  # Spread by host only. The baseline nodes and every EBS volume sit in one
+  # zone, so a zone preference made Auto Mode keep an extra node in another
+  # zone without adding real zone redundancy.
   topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: ScheduleAnyway
-      matchLabelKeys:
-        - pod-template-hash
-      labelSelector:
-        matchLabels:
-          app: istio-ingressgateway
     - maxSkew: 1
       topologyKey: kubernetes.io/hostname
       whenUnsatisfiable: ScheduleAnyway
