@@ -325,19 +325,22 @@ raw:
               helm:
                 valueFiles:
                   - '{% raw %}../../{{ .path.path }}/{{ .path.filename }}{% endraw %}'
+                # charts/app wraps the opspresso app chart; its guard refuses any other namespace or host.
                 parameters:
-                  - name: project
+                  - name: app.tenant.project
                     value: '{% raw %}{{ .path.basename }}{% endraw %}'
-                  - name: environment
+                  - name: app.tenant.environment
                     value: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
-                  - name: domain
+                  - name: app.tenant.domain
                     value: "{{app_delivery.domain}}"
-                  - name: cluster
+                  - name: app.tenant.cluster
                     value: "{{cluster}}"
-                  - name: region
+                  - name: app.tenant.region
                     value: "{{aws_region}}"
-                  - name: tenantSecretsRoleArn
+                  - name: app.tenant.tenantSecretsRoleArn
                     value: "arn:aws:iam::{{aws_account_id}}:role/agent-broker-tenant-secrets"
+                  - name: app.routing.hosts[0]
+                    value: '{% raw %}{{ if eq (trimSuffix ".yaml" .path.filename) "prod" }}{{ .path.basename }}{{ else }}{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}{{ end }}{% endraw %}.{{app_delivery.domain}}'
             syncPolicy:
               automated:
                 prune: true
@@ -347,6 +350,8 @@ raw:
               # The Broker tenant secrets policy accepts the SecretStore only in a namespace with these labels.
               managedNamespaceMetadata:
                 labels:
+                  # Tenant Pods may not run privileged, share host namespaces or mount host paths.
+                  pod-security.kubernetes.io/enforce: baseline
                   opspresso.com/broker-tenant: "true"
                   opspresso.com/broker-project: '{% raw %}{{ .path.basename }}{% endraw %}'
                   opspresso.com/broker-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
