@@ -200,7 +200,7 @@ raw:
           - "https://github.com/opspresso/argocd-env-apps"
 {%- if app_delivery is defined and app_delivery.enabled %}
 
-    # Apps that Agent Broker delivers (agent-platform docs/APP_DELIVERY.md). The app-delivery workflow writes
+    # Apps that Agent Delivery deploys (agent-platform docs/APP_DELIVERY.md). The app-delivery workflow writes
     # argocd-env-projects projects/<slug>/<env>.yaml; these Applications may only create the kinds the app chart
     # renders, in app-* namespaces other than app-delivery.
     - apiVersion: argoproj.io/v1alpha1
@@ -208,7 +208,7 @@ raw:
       metadata:
         name: projects
       spec:
-        description: One Application per Agent Broker Project environment
+        description: One Application per Agent Delivery Project environment
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-projects.git"
         destinations:
@@ -231,13 +231,13 @@ raw:
           - {group: external-secrets.io, kind: SecretStore}
           - {group: external-secrets.io, kind: ExternalSecret}
 
-    # The app-delivery WorkflowTemplate, its step identities and the Broker's submit permission.
+    # The app-delivery WorkflowTemplate, its step identities and Agent Delivery's submit permission.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
         name: delivery
       spec:
-        description: The Argo Workflows delivery of Agent Broker apps
+        description: The Argo Workflows delivery of Agent Delivery apps
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-projects.git"
         destinations:
@@ -311,8 +311,8 @@ raw:
             labels:
               opspresso.com/cluster: "{{cluster}}"
               opspresso.com/group: "projects"
-              opspresso.com/broker-project: '{% raw %}{{ .path.basename }}{% endraw %}'
-              opspresso.com/broker-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
+              opspresso.com/delivery-project: '{% raw %}{{ .path.basename }}{% endraw %}'
+              opspresso.com/delivery-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
           spec:
             project: projects
             destination:
@@ -338,7 +338,7 @@ raw:
                   - name: app.tenant.region
                     value: "{{aws_region}}"
                   - name: app.tenant.tenantSecretsRoleArn
-                    value: "arn:aws:iam::{{aws_account_id}}:role/agent-broker-tenant-secrets"
+                    value: "arn:aws:iam::{{aws_account_id}}:role/agent-delivery-tenant-secrets"
                   - name: app.routing.hosts[0]
                     value: '{% raw %}{{ if eq (trimSuffix ".yaml" .path.filename) "prod" }}{{ .path.basename }}{{ else }}{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}{{ end }}{% endraw %}.{{app_delivery.domain}}'
             syncPolicy:
@@ -347,14 +347,14 @@ raw:
                 selfHeal: true
               syncOptions:
                 - CreateNamespace=true
-              # The Broker tenant secrets policy accepts the SecretStore only in a namespace with these labels.
+              # The Agent Delivery tenant secrets policy accepts the SecretStore only in a namespace with these labels.
               managedNamespaceMetadata:
                 labels:
                   # Tenant Pods may not run privileged, share host namespaces or mount host paths.
                   pod-security.kubernetes.io/enforce: baseline
-                  opspresso.com/broker-tenant: "true"
-                  opspresso.com/broker-project: '{% raw %}{{ .path.basename }}{% endraw %}'
-                  opspresso.com/broker-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
+                  opspresso.com/delivery-tenant: "true"
+                  opspresso.com/delivery-project: '{% raw %}{{ .path.basename }}{% endraw %}'
+                  opspresso.com/delivery-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
 {%- endif %}
 
     - apiVersion: external-secrets.io/v1

@@ -49,7 +49,7 @@ argo_workflows:
     org: opspresso # github org
     team: dev
 
-# Apps that Agent Broker delivers: hosts <slug>[-dev].<domain> (terraform-env-demo 3-alb issues the certificate).
+# Apps that Agent Delivery deploys: hosts <slug>[-dev].<domain> (terraform-env-demo 3-alb issues the certificate).
 app_delivery:
   enabled: true
   domain: apps.rovr.dev

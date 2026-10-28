@@ -1277,7 +1277,7 @@ grafana:
           orgId: 1
           rules:
           - annotations:
-              summary: A configured Forge, Librio or Studio observer alert is firing. Inspect
+              summary: A configured Forge, Knowledge or Studio observer alert is firing. Inspect
                 the workspace_alert label and Workspace Capacity dashboard.
             condition: C
             data:
@@ -1287,7 +1287,7 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service=~"agent-(studio|forge|librio)",alertname=~"(Forge.*|StudioWorkspace.*|LibrioWorkerUnavailable)"},
+                expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service=~"agent-(studio|forge|knowledge)",alertname=~"(Forge.*|StudioWorkspace.*|KnowledgeWorkerUnavailable)"},
                   "workspace_alert", "$1", "alertname", "(.*)"))
                 instant: true
                 range: false
@@ -1322,7 +1322,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
     # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "ba9d03562826ffaa7bd45f4aef1457552f62cb7f48f2fa7998636a362f95eeed"
+    checksum/managed-dashboards: "37c775e8f41513f1baf50602fc233a4018cb3af9a8bdfbb2c6659c0fdaf13e1c"
 
   grafana.ini:
 

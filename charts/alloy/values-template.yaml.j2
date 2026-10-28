@@ -20,7 +20,7 @@ alloy:
 {%- endif %}
 
 {%- if grafana_cloud is defined %}
-{%- set cloud_metric_allowlist = 'integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|agent-librio;.+|agent-forge;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))' %}
+{%- set cloud_metric_allowlist = 'integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|agent-knowledge;.+|agent-forge;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))' %}
   alloy:
     configMap:
       content: |
@@ -35,7 +35,7 @@ alloy:
             url = "{{prometheus.remote_write_url}}"
             write_relabel_config {
               source_labels = ["job"]
-              regex = "agent-(studio|memory|librio|forge)"
+              regex = "agent-(studio|memory|knowledge|forge)"
               action = "keep"
             }
           }
@@ -211,21 +211,21 @@ alloy:
           forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
 
-        prometheus.scrape "agent_librio" {
+        prometheus.scrape "agent_knowledge" {
           targets = [{
-            "__address__" = "agent-librio.agent-librio.svc:3000",
+            "__address__" = "agent-knowledge.agent-knowledge.svc:3000",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-            "namespace"   = "agent-librio",
+            "namespace"   = "agent-knowledge",
             "component"   = "web",
           }, {
-            "__address__" = "agent-librio-worker.agent-librio.svc:3000",
+            "__address__" = "agent-knowledge-worker.agent-knowledge.svc:3000",
             "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-            "namespace"   = "agent-librio",
+            "namespace"   = "agent-knowledge",
             "component"   = "worker",
           }]
           metrics_path    = "/api/metrics"
-          bearer_token    = sys.env("AGENT_LIBRIO_METRICS_BEARER_TOKEN")
-          job_name        = "agent-librio"
+          bearer_token    = sys.env("AGENT_KNOWLEDGE_METRICS_BEARER_TOKEN")
+          job_name        = "agent-knowledge"
           scrape_interval = "15s"
           forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
@@ -370,7 +370,7 @@ raw:
                 port: 80
 {%- endif %}
 {%- if grafana_cloud is defined %}
-{%- set cloud_metric_allowlist = 'integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|agent-librio;.+|agent-forge;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))' %}
+{%- set cloud_metric_allowlist = 'integrations/node_exporter;.+|agent-studio;.+|agent-memory;.+|agent-knowledge;.+|agent-forge;.+|workspace-state;(up|kube_(pod_status_phase|pod_container_status_last_terminated_reason|resourcequota|node_labels|node_status_condition|deployment_status_replicas_available|deployment_spec_replicas))|kubelet;(up|kubelet_(node_name|running_pods|running_containers|volume_stats_.+|runtime_operations_(total|errors_total)))|integrations/cadvisor;(up|container_(cpu_usage_seconds_total|memory_working_set_bytes|spec_memory_limit_bytes|network_receive_bytes_total|network_transmit_bytes_total|fs_usage_bytes|fs_limit_bytes|fs_reads_bytes_total|fs_writes_bytes_total|oom_events_total))' %}
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
@@ -393,9 +393,9 @@ raw:
           - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
             remoteRef:
               key: /k8s/{{cluster}}/agent-memory/metrics-bearer-token
-          - secretKey: AGENT_LIBRIO_METRICS_BEARER_TOKEN
+          - secretKey: AGENT_KNOWLEDGE_METRICS_BEARER_TOKEN
             remoteRef:
-              key: /k8s/{{cluster}}/agent-librio/metrics-bearer-token
+              key: /k8s/{{cluster}}/agent-knowledge/metrics-bearer-token
           - secretKey: AGENT_FORGE_METRICS_BEARER_TOKEN
             remoteRef:
               key: /k8s/{{cluster}}/agent-forge/metrics-bearer-token

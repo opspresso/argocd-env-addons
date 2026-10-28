@@ -466,7 +466,7 @@
     },
     {
       "id": 13,
-      "title": "Librio worker available replicas",
+      "title": "Knowledge worker available replicas",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -481,7 +481,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "max(kube_deployment_status_replicas_available{cluster=\"$cluster\",namespace=\"agent-librio\",deployment=\"agent-librio-worker\"})",
+          "expr": "max(kube_deployment_status_replicas_available{cluster=\"$cluster\",namespace=\"agent-knowledge\",deployment=\"agent-knowledge-worker\"})",
           "legendFormat": "Value"
         }
       ],

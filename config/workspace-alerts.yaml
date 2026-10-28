@@ -53,11 +53,11 @@ groups:
         labels: {severity: critical, service: agent-forge}
         annotations:
           summary: "Forge API and execution worker are unavailable"
-  - name: agent-librio-workers
+  - name: agent-knowledge-workers
     rules:
-      - alert: LibrioWorkerUnavailable
-        expr: (kube_deployment_status_replicas_available{namespace="agent-librio",deployment="agent-librio-worker"} < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-librio",deployment="agent-librio-worker"} > 0)
+      - alert: KnowledgeWorkerUnavailable
+        expr: (kube_deployment_status_replicas_available{namespace="agent-knowledge",deployment="agent-knowledge-worker"} < 1) and on(cluster,namespace,deployment) (kube_deployment_spec_replicas{namespace="agent-knowledge",deployment="agent-knowledge-worker"} > 0)
         for: 2m
-        labels: {severity: critical, service: agent-librio}
+        labels: {severity: critical, service: agent-knowledge}
         annotations:
-          summary: "Librio worker is unavailable; document and audio jobs cannot progress"
+          summary: "Knowledge worker is unavailable; document and audio jobs cannot progress"

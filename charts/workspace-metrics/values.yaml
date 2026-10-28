@@ -1,7 +1,7 @@
 kube-state-metrics:
   fullnameOverride: workspace-metrics
   collectors: [pods, nodes, resourcequotas, deployments]
-  namespaces: agent-studio,agent-librio,agent-forge,agent-forge-workspaces
+  namespaces: agent-studio,agent-knowledge,agent-forge,agent-forge-workspaces
   metricAllowlist:
     - kube_pod_status_phase
     - kube_pod_container_status_last_terminated_reason
