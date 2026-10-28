@@ -31,8 +31,10 @@ argo-workflows:
       clientSecret:
         key: client-secret
         name: argo-workflows-secret
+      # Each SSO user acts with the ServiceAccount whose rbac-rule matches (raw resources below), not the
+      # server's own account. Only Agent Broker submits app Deliveries, so no SSO user may create them.
       rbac:
-        enabled: false
+        enabled: true
       scopes:
         - groups
 {% endif %}
@@ -54,6 +56,77 @@ argo-workflows:
 
 raw:
   resources:
+{%- if argocd is defined %}
+    # SSO users of the platform team edit workflows in default and only read app Deliveries.
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: sso-team
+        annotations:
+          workflows.argoproj.io/rbac-rule: "'{{argo_workflows.github.org}}:{{argo_workflows.github.team}}' in groups"
+          workflows.argoproj.io/rbac-rule-precedence: "1"
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: sso-team.service-account-token
+        annotations:
+          kubernetes.io/service-account.name: sso-team
+      type: kubernetes.io/service-account-token
+    # Every other member of the GitHub organization reads workflows in default only.
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: sso-member
+        annotations:
+          workflows.argoproj.io/rbac-rule: "true"
+          workflows.argoproj.io/rbac-rule-precedence: "0"
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: sso-member.service-account-token
+        annotations:
+          kubernetes.io/service-account.name: sso-member
+      type: kubernetes.io/service-account-token
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: argo-workflows-sso-team
+        namespace: default
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: argo-workflows-edit
+      subjects:
+        - kind: ServiceAccount
+          name: sso-team
+          namespace: addon-argo-workflows
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: argo-workflows-sso-team
+        namespace: app-delivery
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: argo-workflows-view
+      subjects:
+        - kind: ServiceAccount
+          name: sso-team
+          namespace: addon-argo-workflows
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: argo-workflows-sso-member
+        namespace: default
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: ClusterRole
+        name: argo-workflows-view
+      subjects:
+        - kind: ServiceAccount
+          name: sso-member
+          namespace: addon-argo-workflows
+{%- endif %}
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
