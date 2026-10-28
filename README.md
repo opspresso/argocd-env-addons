@@ -351,24 +351,24 @@ helm repo update
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy |  | 1.13.1 | 1.14.3 (v1.21.2) |
-| argo-cd |  | 10.10.5 | 10.11.6 (v3.5.6) |
+| alloy | ✅ | 1.14.3 | 1.14.3 (v1.21.2) |
+| argo-cd | ✅ | 10.11.6 | 10.11.6 (v3.5.6) |
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
-| argo-workflows |  | 2.0.13 | 2.0.14 (v4.1.6) |
-| atlantis |  | 6.16.1 | 6.16.2 (v0.48.2) |
-| cert-manager |  | v1.21.2 | v1.21.3 (v1.21.3) |
+| argo-workflows | ✅ | 2.0.14 | 2.0.14 (v4.1.6) |
+| atlantis | ✅ | 6.16.2 | 6.16.2 (v0.48.2) |
+| cert-manager | ✅ | v1.21.3 | v1.21.3 (v1.21.3) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
-| external-secrets |  | 2.13.0 | 2.14.0 (v2.14.0) |
+| external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
 | gateway-api-crds | ✅ | 1.6.1 | 1.6.1 (v1.6.1) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
-| istio |  | 1.30.6 | 1.31.3 (1.31.3) |
+| istio | ✅ | 1.31.3 | 1.31.3 (1.31.3) |
 | kite | ✅ | 0.16.0 | 0.16.0 (v0.16.0) |
-| loki |  | 7.3.0 | 7.5.0 (3.6.16) |
+| loki | ✅ | 7.5.0 | 7.5.0 (3.6.16) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack |  | 92.10.1 | 92.14.0 (v0.94.2) |
-| victoria-metrics |  | 0.96.0 | 0.97.0 (v1.155.0) |
+| prometheus-stack |  | 92.14.0 | 92.14.1 (v0.94.2) |
+| victoria-metrics | ✅ | 0.97.0 | 0.97.0 (v1.155.0) |
 | vllm-stack |  |  | 0.1.13 |
-| workspace-metrics |  | 8.5.0 | 8.7.1 (2.20.0) |
+| workspace-metrics | ✅ | 8.7.1 | 8.7.1 (2.20.0) |
 <!--- END_VERSION --->

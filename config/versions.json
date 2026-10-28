@@ -3,13 +3,13 @@
     "alloy": {
       "app_version": "v1.21.2",
       "chart": "grafana/alloy",
-      "current": "1.13.1",
+      "current": "1.14.3",
       "version": "1.14.3"
     },
     "argo-cd": {
       "app_version": "v3.5.6",
       "chart": "argo/argo-cd",
-      "current": "10.10.5",
+      "current": "10.11.6",
       "version": "10.11.6"
     },
     "argo-rollouts": {
@@ -21,19 +21,19 @@
     "argo-workflows": {
       "app_version": "v4.1.6",
       "chart": "argo/argo-workflows",
-      "current": "2.0.13",
+      "current": "2.0.14",
       "version": "2.0.14"
     },
     "atlantis": {
       "app_version": "v0.48.2",
       "chart": "atlantis/atlantis",
-      "current": "6.16.1",
+      "current": "6.16.2",
       "version": "6.16.2"
     },
     "cert-manager": {
       "app_version": "v1.21.3",
       "chart": "jetstack/cert-manager",
-      "current": "v1.21.2",
+      "current": "v1.21.3",
       "version": "v1.21.3"
     },
     "external-dns": {
@@ -45,7 +45,7 @@
     "external-secrets": {
       "app_version": "v2.14.0",
       "chart": "external-secrets/external-secrets",
-      "current": "2.13.0",
+      "current": "2.14.0",
       "version": "2.14.0"
     },
     "gateway-api-crds": {
@@ -63,7 +63,7 @@
     "istiod": {
       "app_version": "1.31.3",
       "chart": "istio/istiod",
-      "current": "1.30.6",
+      "current": "1.31.3",
       "path": "istio",
       "version": "1.31.3"
     },
@@ -76,7 +76,7 @@
     "loki": {
       "app_version": "3.6.16",
       "chart": "grafana/loki",
-      "current": "7.3.0",
+      "current": "7.5.0",
       "version": "7.5.0"
     },
     "metrics-server": {
@@ -100,13 +100,13 @@
     "prometheus-stack": {
       "app_version": "v0.94.2",
       "chart": "prometheus/kube-prometheus-stack",
-      "current": "92.10.1",
-      "version": "92.14.0"
+      "current": "92.14.0",
+      "version": "92.14.1"
     },
     "victoria-metrics": {
       "app_version": "v1.155.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
-      "current": "0.96.0",
+      "current": "0.97.0",
       "version": "0.97.0"
     },
     "vllm-stack": {
@@ -117,7 +117,7 @@
     "workspace-metrics": {
       "app_version": "2.20.0",
       "chart": "prometheus/kube-state-metrics",
-      "current": "8.5.0",
+      "current": "8.7.1",
       "version": "8.7.1"
     }
   }
