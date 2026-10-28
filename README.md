@@ -242,7 +242,7 @@ k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는
    - Sandbox → Forge 모델 Gateway
    - Argo CD 내부 통신
    - Studio → 서비스 API/MCP, 서비스 → Studio 정책 callback
-3. Studio·Memory·Librio에 Sandbox 관리 권한이 없는지 확인한다.
+3. Studio·Memory·Knowledge에 Sandbox 관리 권한이 없는지 확인한다.
 
 ## 검증
 

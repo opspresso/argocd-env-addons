@@ -31,8 +31,8 @@ def test_traefik_embedded_values_preserve_resource_mapping():
     gateway = next(doc for doc in docs if doc["kind"] == "Gateway")
     assert {listener["hostname"] for listener in gateway["spec"]["listeners"]} == set(certificate["spec"]["dnsNames"])
     assert certificate["metadata"]["namespace"] == gateway["metadata"]["namespace"]
-    assert {"studio.agrt.dev", "memory.agrt.dev", "librio.agrt.dev", "forge.agrt.dev", "models.agrt.dev"} <= set(certificate["spec"]["dnsNames"])
-    assert not {"studio.rovr.dev", "memory.rovr.dev", "librio.rovr.dev", "forge.rovr.dev"} & set(certificate["spec"]["dnsNames"])
+    assert {"studio.agrt.dev", "memory.agrt.dev", "knowledge.agrt.dev", "forge.agrt.dev", "models.agrt.dev"} <= set(certificate["spec"]["dnsNames"])
+    assert not {"studio.rovr.dev", "memory.rovr.dev", "knowledge.rovr.dev", "forge.rovr.dev"} & set(certificate["spec"]["dnsNames"])
     assert "*.demo.rovr.dev" in certificate["spec"]["dnsNames"]
     for listener in gateway["spec"]["listeners"]:
         assert listener["tls"]["certificateRefs"] == [{"kind": "Secret", "name": certificate["spec"]["secretName"]}]

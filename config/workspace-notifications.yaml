@@ -12,7 +12,7 @@ groups:
     noDataState: OK
     execErrState: Alerting
     annotations:
-      summary: A configured Forge, Librio or Studio observer alert is firing. Inspect the workspace_alert label and Workspace Capacity dashboard.
+      summary: A configured Forge, Knowledge or Studio observer alert is firing. Inspect the workspace_alert label and Workspace Capacity dashboard.
     data:
     - refId: A
       relativeTimeRange: {from: 300, to: 0}
@@ -23,7 +23,7 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service=~"agent-(studio|forge|librio)",alertname=~"(Forge.*|StudioWorkspace.*|LibrioWorkerUnavailable)"}, "workspace_alert", "$1", "alertname", "(.*)"))
+        expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service=~"agent-(studio|forge|knowledge)",alertname=~"(Forge.*|StudioWorkspace.*|KnowledgeWorkerUnavailable)"}, "workspace_alert", "$1", "alertname", "(.*)"))
     - refId: C
       datasourceUid: __expr__
       model:

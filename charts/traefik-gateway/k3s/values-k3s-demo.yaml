@@ -32,7 +32,7 @@ raw:
           - '*.rovr.dev'
           - memory.agrt.dev
           - studio.agrt.dev
-          - librio.agrt.dev
+          - knowledge.agrt.dev
           - forge.agrt.dev
           - models.agrt.dev
 
@@ -93,7 +93,7 @@ raw:
               namespaces:
                 from: All
           - name: https-4
-            hostname: "librio.agrt.dev"
+            hostname: "knowledge.agrt.dev"
             port: 8443
             protocol: HTTPS
             tls:

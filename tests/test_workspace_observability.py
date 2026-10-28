@@ -17,13 +17,13 @@ def test_workspace_firing_alerts_reach_grafana_with_identity_and_severity(render
     fixture = {"evaluation_interval": "1m", "tests": [{"interval": "1m", "input_series": [
         {"series": 'ALERTS{alertname="ForgeSandboxQuota",alertstate="firing",service="agent-forge",severity="warning",cluster="demo"}', "values": "1x5"},
         {"series": 'ALERTS{alertname="ForgeSandboxPending",alertstate="pending",service="agent-forge",severity="warning",cluster="demo"}', "values": "1x5"},
-        {"series": 'ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing",service="agent-librio",severity="critical",cluster="demo"}', "values": "1x5"},
+        {"series": 'ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing",service="agent-knowledge",severity="critical",cluster="demo"}', "values": "1x5"},
         {"series": 'ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",service="agent-forge",severity="critical",cluster="demo"}', "values": "1x5"},
         {"series": 'ALERTS{alertname="Unrelated",alertstate="firing",service="other",severity="critical",cluster="demo"}', "values": "1x5"},
     ], "promql_expr_test": [{"expr": expr, "eval_time": "5m", "exp_samples": [{
         "labels": '{cluster="demo",service="agent-forge",severity="warning",workspace_alert="ForgeSandboxQuota"}', "value": 1,
     }, {
-        "labels": '{cluster="demo",service="agent-librio",severity="critical",workspace_alert="LibrioWorkerUnavailable"}', "value": 1,
+        "labels": '{cluster="demo",service="agent-knowledge",severity="critical",workspace_alert="KnowledgeWorkerUnavailable"}', "value": 1,
     }, {
         "labels": '{cluster="demo",service="agent-forge",severity="critical",workspace_alert="ForgeServiceUnavailable"}', "value": 1,
     }]}]}]}
@@ -43,7 +43,7 @@ def test_k3s_exporter_exposes_only_required_read_only_state():
     assert {resource for rule in role["rules"] for resource in rule["resources"]} == {"pods", "nodes", "resourcequotas", "deployments"}
     assert all(set(rule["verbs"]) == {"list", "watch"} for rule in role["rules"])
     container = next(doc for doc in docs if doc["kind"] == "Deployment")["spec"]["template"]["spec"]["containers"][0]
-    assert "--namespaces=agent-studio,agent-librio,agent-forge,agent-forge-workspaces" in container["args"]
+    assert "--namespaces=agent-studio,agent-knowledge,agent-forge,agent-forge-workspaces" in container["args"]
     assert not container.get("resources")
 
 
@@ -55,7 +55,7 @@ def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting
                    "workspace-state;kube_node_status_condition", "integrations/cadvisor;container_fs_usage_bytes",
                    "integrations/cadvisor;container_fs_limit_bytes", "kubelet;up",
                    "kubelet;kubelet_volume_stats_available_bytes", "agent-studio;agent_studio_build_info",
-                   "agent-librio;agent_librio_build_info", "agent-forge;agent_forge_active_model_requests"]:
+                   "agent-knowledge;agent_knowledge_build_info", "agent-forge;agent_forge_active_model_requests"]:
         assert re.fullmatch(pattern, series), series
     for series in ["workspace-state;unbounded_arbitrary_series", "kubelet;apiserver_request_duration_seconds_bucket",
                    "integrations/cadvisor;container_tasks_state"]:
@@ -127,7 +127,7 @@ def test_application_scrapes_use_separate_credentials_and_exporter_roles():
     values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
     config = values["alloy"]["alloy"]["configMap"]["content"]
     targets = {}
-    for name in ("agent_studio", "agent_memory", "agent_librio", "agent_forge"):
+    for name in ("agent_studio", "agent_memory", "agent_knowledge", "agent_forge"):
         block = re.search(r'prometheus.scrape "' + name + r'" \{(.*?)^\}', config, re.S | re.M).group(1)
         targets[name] = re.findall(r'"__address__"\s*=\s*"([^\"]+)"', block)
         assert f'"namespace"   = "{name.replace("_", "-")}"' in block
@@ -138,14 +138,14 @@ def test_application_scrapes_use_separate_credentials_and_exporter_roles():
     assert targets == {
         "agent_studio": ["agent-studio.agent-studio.svc:3000"],
         "agent_memory": ["agent-memory.agent-memory.svc:3000"],
-        "agent_librio": ["agent-librio.agent-librio.svc:3000", "agent-librio-worker.agent-librio.svc:3000"],
+        "agent_knowledge": ["agent-knowledge.agent-knowledge.svc:3000", "agent-knowledge-worker.agent-knowledge.svc:3000"],
         "agent_forge": ["agent-forge.agent-forge.svc:3103"],
     }
     assert '"component"   = "worker"' in config
     secret = next(resource for resource in values["raw"]["resources"]
                   if resource["kind"] == "ExternalSecret" and resource["metadata"]["name"] == "alloy-grafana-cloud")
     paths = {entry["secretKey"]: entry["remoteRef"]["key"] for entry in secret["spec"]["data"]}
-    for service in ("MEMORY", "LIBRIO", "FORGE"):
+    for service in ("MEMORY", "KNOWLEDGE", "FORGE"):
         assert paths[f"AGENT_{service}_METRICS_BEARER_TOKEN"] == f"/k8s/k3s-demo/agent-{service.lower()}/metrics-bearer-token"
     assert all("delegation" not in value and "policy" not in value for value in paths.values())
 

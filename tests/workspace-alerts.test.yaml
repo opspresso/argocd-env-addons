@@ -31,9 +31,9 @@ tests:
     values: 0+0x5
   - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
     values: 1+0x5
-  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 0+0x5
-  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 1+0x5
   promql_expr_test:
   - expr: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing"}
@@ -41,10 +41,10 @@ tests:
     exp_samples:
     - labels: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge",service="agent-forge",severity="critical"}
       value: 1
-  - expr: ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing"}
+  - expr: ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing"}
     eval_time: 3m
     exp_samples:
-    - labels: ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker",service="agent-librio",severity="critical"}
+    - labels: ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker",service="agent-knowledge",severity="critical"}
       value: 1
 - name: maintenance suppresses component alerts
   interval: 1m
@@ -53,9 +53,9 @@ tests:
     values: 0+0x5
   - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
     values: 0+0x5
-  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 0+0x5
-  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-librio",deployment="agent-librio-worker"}
+  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 0+0x5
   promql_expr_test:
   - expr: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing"}
@@ -64,6 +64,6 @@ tests:
   - expr: ALERTS{alertname="StudioWorkspaceWorkerUnavailable",alertstate="firing"}
     eval_time: 3m
     exp_samples: []
-  - expr: ALERTS{alertname="LibrioWorkerUnavailable",alertstate="firing"}
+  - expr: ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing"}
     eval_time: 3m
     exp_samples: []

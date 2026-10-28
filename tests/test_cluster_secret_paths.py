@@ -18,7 +18,7 @@ class ClusterSecretPathTests(unittest.TestCase):
         environment.filters["to_yaml"] = to_yaml
         rendered = environment.get_template("values-template.yaml.j2").render(context)
         self.assertNotIn("/k8s/k3s-demo/", rendered)
-        for service in ("memory", "librio", "forge"):
+        for service in ("memory", "knowledge", "forge"):
             self.assertIn(f"/k8s/k3s-other/agent-{service}/metrics-bearer-token", rendered)
 
     def test_common_values_do_not_choose_a_cluster_secret_namespace(self):

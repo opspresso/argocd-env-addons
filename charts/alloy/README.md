@@ -51,15 +51,15 @@ k3s 선언에는 Loki 전송 대상이 없어 로그를 수집하지 않습니�
 | 컨테이너 | `integrations/cadvisor` | 15초 |
 | Agent Studio | `agent-studio` | 15초 |
 | Agent Memory | `agent-memory` | 15초 |
-| Agent Librio 웹·worker | `agent-librio` (`component=web` 또는 `worker`) | 15초 |
+| Agent Knowledge 웹·worker | `agent-knowledge` (`component=web` 또는 `worker`) | 15초 |
 | Agent Forge API·실행 worker | `agent-forge` | 15초 |
 | Workspace·worker 상태 | `workspace-state` | 15초 |
 
 호스트와 앱의 `instance`는 클러스터 이름입니다. cAdvisor의 `service`는 workload
 이름으로 맞춰 `../dockpad/grafana`의 Agent Platform 대시보드에서 조회할 수 있습니다.
-Studio·Memory·Librio 웹·worker의 내부 Service 포트는 `3000`, Forge는 `3103`이며 Pod 포트와 같습니다.
-Studio·Memory·Librio는 `/api/metrics`, Forge는 `/metrics`를 제공합니다.
-Memory·Librio·Forge는 각각 별도의 Bearer token을 사용합니다. 앱의 `namespace`를 대상에 붙이며,
+Studio·Memory·Knowledge 웹·worker의 내부 Service 포트는 `3000`, Forge는 `3103`이며 Pod 포트와 같습니다.
+Studio·Memory·Knowledge는 `/api/metrics`, Forge는 `/metrics`를 제공합니다.
+Memory·Knowledge·Forge는 각각 별도의 Bearer token을 사용합니다. 앱의 `namespace`를 대상에 붙이며,
 `agent-forge-workspaces`에서 Job controller가 생성한 `forge-ws-<40hex>-<5자 suffix>` Pod의
 cAdvisor `service`는 `agent-forge-sandbox`입니다. 노드 단위 수집에는 Pod discovery 라벨이 없으므로
 namespace와 전체 Pod 이름 형식을 함께 확인합니다.
@@ -74,7 +74,7 @@ External Secrets가 `parameter-store` ClusterSecretStore를 통해 다음 SSM Se
 
 - `/k8s/common/grafana-cloud/remote-write-api-key`: Grafana Cloud metrics write token
 - `/k8s/<cluster>/agent-memory/metrics-bearer-token`: Agent Memory metrics token
-- `/k8s/<cluster>/agent-librio/metrics-bearer-token`: Librio 웹·worker의 `METRICS_BEARER_TOKEN`
+- `/k8s/<cluster>/agent-knowledge/metrics-bearer-token`: Knowledge 웹·worker의 `METRICS_BEARER_TOKEN`
 - `/k8s/<cluster>/agent-forge/metrics-bearer-token`: Forge 전용 수집 principal의 token
 
 `<cluster>`는 `env/<cluster>.yaml`의 `cluster`입니다. 기존 파라미터를 재사용하며,

@@ -6,7 +6,7 @@ argo-workflows:
 
     workflowNamespaces:
       - default
-      # Agent Broker app deliveries (argocd-env-projects charts/delivery).
+      # Agent Delivery app deliveries (argocd-env-projects charts/delivery).
       - app-delivery
 
   server:
@@ -32,7 +32,7 @@ argo-workflows:
         key: client-secret
         name: argo-workflows-secret
       # Each SSO user acts with the ServiceAccount whose rbac-rule matches (raw resources below), not the
-      # server's own account. Only Agent Broker submits app Deliveries, so no SSO user may create them.
+      # server's own account. Only Agent Delivery submits app Deliveries, so no SSO user may create them.
       rbac:
         enabled: true
       scopes:
