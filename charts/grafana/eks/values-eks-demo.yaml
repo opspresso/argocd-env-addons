@@ -14,11 +14,11 @@ grafana:
   dashboards:
     addons:
       kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/e6e0c72229d714463f41350a4061ddc4b0cb28c7/charts/grafana/dashboards/kube-cluster.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/e6e0c72229d714463f41350a4061ddc4b0cb28c7/charts/grafana/dashboards/kube-workload.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/kube-workload.json
       workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/e6e0c72229d714463f41350a4061ddc4b0cb28c7/charts/grafana/dashboards/workspace-capacity.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/workspace-capacity.json
 
 
 
