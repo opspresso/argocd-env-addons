@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 concurrency:
   group: validate-${{ github.ref }}
@@ -31,6 +32,19 @@ jobs:
 
       - name: Install Helm 📝
         uses: azure/setup-helm@v5
+
+      # Anonymous public.ecr.aws pulls share a per-IP data limit with other GitHub-hosted runners and fail with 429.
+      # The role (terraform-env-demo demo/4-role) only gets the pull token and trusts runs on main only.
+      - name: Configure AWS credentials 🔑
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::396608815058:role/github--argocd-env-addons-ecr-public
+          aws-region: us-east-1
+
+      - name: Log in to public.ecr.aws 🔑
+        if: github.ref == 'refs/heads/main'
+        run: aws ecr-public get-login-password --region us-east-1 | helm registry login public.ecr.aws --username AWS --password-stdin
 
       - name: Build
         run: bash ./scripts/build.sh
