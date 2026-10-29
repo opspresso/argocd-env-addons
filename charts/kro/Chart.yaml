@@ -1,0 +1,14 @@
+apiVersion: v2
+name: kro
+description: kro (Kube Resource Orchestrator) and the platform ResourceGraphDefinitions
+type: application
+version: "0.9.4" # helm chart kro version
+
+dependencies:
+- name: kro
+  repository: oci://registry.k8s.io/kro/charts
+  version: "0.9.4" # helm chart kro version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

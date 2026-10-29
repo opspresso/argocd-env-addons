@@ -1,0 +1,18 @@
+kro:
+  fullnameOverride: kro
+
+  # The default "unrestricted" mode gives kro cluster-admin, so anyone who can create a
+  # ResourceGraphDefinition is cluster admin. With "aggregation", kro gets only the rules of
+  # ClusterRoles labeled rbac.kro.run/aggregate-to-controller=true (values-template.yaml.j2).
+  rbac:
+    mode: aggregation
+
+  deployment:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      # Drop the upstream 1000m CPU limit; this repository sets no CPU limits.
+      limits:
+        cpu: null
+        memory: 512Mi

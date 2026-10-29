@@ -183,9 +183,10 @@ raw:
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
 
-    # Apps that Agent Delivery deploys (agent-platform docs/APP_DELIVERY.md). The app-delivery workflow writes
-    # argocd-env-projects projects/<slug>/<env>.yaml; these Applications may only create the kinds the app chart
-    # renders, in app-* namespaces other than app-delivery.
+    # Apps that Agent Delivery deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
+    # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml; these Applications
+    # may only create the kinds the app chart renders and the platform kro instances, in app-* namespaces other than
+    # app-delivery.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
@@ -213,8 +214,11 @@ raw:
           - {group: gateway.networking.k8s.io, kind: HTTPRoute}
           - {group: external-secrets.io, kind: SecretStore}
           - {group: external-secrets.io, kind: ExternalSecret}
+          # Instances of the platform ResourceGraphDefinitions (charts/kro); resource-sync writes only these kinds.
+          - {group: kro.run, kind: RdsPostgres}
 
-    # The app-delivery WorkflowTemplate, its step identities and Agent Delivery's submit permission.
+    # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Delivery's submit
+    # permission.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
@@ -271,8 +275,12 @@ raw:
           syncOptions:
             - CreateNamespace=true
 
-    # One Application per projects/<slug>/<env>.yaml. Project, environment, namespace and domain come from the
-    # file path and this cluster, never from the file, so a values file cannot move or rename an app.
+    # One Application per projects/<slug>/<env> directory of an allowed environment. Project, environment, namespace
+    # and host come from the directory path and the environment profile of this cluster, not from the files, and the
+    # charts/app guard checks them. A values file could still turn the guard off: the boundary is that only the
+    # app-deploy step writes app.yaml, through the fixed render.jq mapping, with a deploy key that only the delivery-git
+    # steps hold. The Application syncs the app chart with app.yaml (tenant objects only until the first deployment)
+    # and the kro instances in resources.yaml.
     - apiVersion: argoproj.io/v1alpha1
       kind: ApplicationSet
       metadata:
@@ -285,45 +293,57 @@ raw:
               repoURL: https://github.com/opspresso/argocd-env-projects.git
               revision: HEAD
               requeueAfterSeconds: 30
-              files:
-                - path: "projects/*/dev.yaml"
-                - path: "projects/*/prod.yaml"
+              directories:
+                - path: "projects/*/dev"
+                - path: "projects/*/prod"
         template:
           metadata:
-            name: 'app-{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}'
+            name: 'app-{{ index .path.segments 1 }}-{{ .path.basename }}'
             labels:
               opspresso.com/cluster: "eks-demo"
               opspresso.com/group: "projects"
-              opspresso.com/delivery-project: '{{ .path.basename }}'
-              opspresso.com/delivery-env: '{{ trimSuffix ".yaml" .path.filename }}'
+              opspresso.com/delivery-project: '{{ index .path.segments 1 }}'
+              opspresso.com/delivery-env: '{{ .path.basename }}'
           spec:
             project: projects
             destination:
               name: "eks-demo"
-              namespace: 'app-{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}'
-            source:
-              repoURL: https://github.com/opspresso/argocd-env-projects.git
-              targetRevision: HEAD
-              path: charts/app
-              helm:
-                valueFiles:
-                  - '../../{{ .path.path }}/{{ .path.filename }}'
-                # charts/app wraps the opspresso app chart; its guard refuses any other namespace or host.
-                parameters:
-                  - name: app.tenant.project
-                    value: '{{ .path.basename }}'
-                  - name: app.tenant.environment
-                    value: '{{ trimSuffix ".yaml" .path.filename }}'
-                  - name: app.tenant.domain
-                    value: "apps.rovr.dev"
-                  - name: app.tenant.cluster
-                    value: "eks-demo"
-                  - name: app.tenant.region
-                    value: "ap-northeast-2"
-                  - name: app.tenant.tenantSecretsRoleArn
-                    value: "arn:aws:iam::396608815058:role/agent-delivery-tenant-secrets"
-                  - name: app.routing.hosts[0]
-                    value: '{{ if eq (trimSuffix ".yaml" .path.filename) "prod" }}{{ .path.basename }}{{ else }}{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}{{ end }}.apps.rovr.dev'
+              namespace: 'app-{{ index .path.segments 1 }}-{{ .path.basename }}'
+            sources:
+              - repoURL: https://github.com/opspresso/argocd-env-projects.git
+                targetRevision: HEAD
+                path: charts/app
+                helm:
+                  valueFiles:
+                    - '../../{{ .path.path }}/app.yaml'
+                  # resources.yaml may come before the first deployment writes app.yaml.
+                  ignoreMissingValueFiles: true
+                  # charts/app wraps the opspresso app chart; its guard refuses any other environment, namespace or host.
+                  parameters:
+                    - name: app.tenant.project
+                      value: '{{ index .path.segments 1 }}'
+                    - name: app.tenant.environment
+                      value: '{{ .path.basename }}'
+                    - name: app.tenant.environments
+                      value: "dev prod"
+                    - name: app.tenant.primaryEnvironment
+                      value: "prod"
+                    - name: app.tenant.domain
+                      value: "apps.rovr.dev"
+                    - name: app.tenant.cluster
+                      value: "eks-demo"
+                    - name: app.tenant.region
+                      value: "ap-northeast-2"
+                    - name: app.tenant.tenantSecretsRoleArn
+                      value: "arn:aws:iam::396608815058:role/agent-delivery-tenant-secrets"
+                    - name: app.routing.hosts[0]
+                      value: '{{ if eq .path.basename "prod" }}{{ index .path.segments 1 }}{{ else }}{{ index .path.segments 1 }}-{{ .path.basename }}{{ end }}.apps.rovr.dev'
+              # The namespaced resources (kro instances) that resource-sync writes; AppProject projects limits the kinds.
+              - repoURL: https://github.com/opspresso/argocd-env-projects.git
+                targetRevision: HEAD
+                path: '{{ .path.path }}'
+                directory:
+                  include: resources.yaml
             syncPolicy:
               automated:
                 prune: true
@@ -336,8 +356,8 @@ raw:
                   # Tenant Pods may not run privileged, share host namespaces or mount host paths.
                   pod-security.kubernetes.io/enforce: baseline
                   opspresso.com/delivery-tenant: "true"
-                  opspresso.com/delivery-project: '{{ .path.basename }}'
-                  opspresso.com/delivery-env: '{{ trimSuffix ".yaml" .path.filename }}'
+                  opspresso.com/delivery-project: '{{ index .path.segments 1 }}'
+                  opspresso.com/delivery-env: '{{ .path.basename }}'
 
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret

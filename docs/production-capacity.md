@@ -34,6 +34,8 @@ requests는 `eks-demo`에서 측정한 working set·CPU peak에 여유를 더한
 | Istiod / gateway | 25m/128Mi, 50m/64Mi | 512Mi / 512Mi | EKS에서 2~6 replicas, CPU HPA, `system-cluster-critical` |
 | Istio sidecar | 10m / 64Mi | 256Mi | meshed Pod마다 1개 |
 | external-secrets controller / webhook / cert-controller | 10m/64Mi, 5m/64Mi, 5m/64Mi | 256Mi / 128Mi / 128Mi | webhook 2 replicas·PDB 1. ExternalSecret 수가 늘면 controller 메모리 확인 |
+| kro | 50m / 128Mi | 512Mi | 측정 전 초기값. 인스턴스·RGD 수가 늘면 메모리 확인 |
+| ACK RDS controller | 10m / 64Mi | 256Mi | 측정 전 초기값. chart schema가 CPU limit을 요구해 200m을 둔다 |
 
 Agent 앱의 requests·limits는 `argocd-env-apps`의 각 chart `values.yaml`이 소유한다. limit은 부하 시험
 peak(48 동시 요청에서 Studio 1.1Gi, Memory 530Mi, Models 400Mi)보다 크게 둔다.
