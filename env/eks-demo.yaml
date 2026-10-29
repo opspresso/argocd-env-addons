@@ -150,7 +150,7 @@ delivery_resources:
   # Network objects for the kro ValkeyCache template (charts/kro). The serverless caches use the same intra subnets
   # as RDS and their own security group from demo/8-app-delivery; the template renders only when security_group_id is set.
   valkey:
-    security_group_id: "" # terraform -chdir=demo/8-app-delivery output -raw valkey_security_group_id
+    security_group_id: sg-0ecaf6567cc13ac2f # terraform -chdir=demo/8-app-delivery output -raw valkey_security_group_id
     # terraform -chdir=demo/8-app-delivery output -json intra_subnet_ids. The same subnets as subnet_cidrs, in order.
     subnet_ids:
       - subnet-0676873c1895088a2

@@ -128,6 +128,146 @@ raw:
                         port: 5432
 
 
+    # kro reconciles ValkeyCache instances and the ElastiCache kinds the template creates.
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: kro:controller:valkey-cache
+        labels:
+          rbac.kro.run/aggregate-to-controller: "true"
+      rules:
+        - apiGroups: [kro.run]
+          resources: [valkeycaches, valkeycaches/status, valkeycaches/finalizers]
+          verbs: ["*"]
+        - apiGroups: [elasticache.services.k8s.aws]
+          resources: [serverlesscaches, users, usergroups]
+          verbs: ["*"]
+        - apiGroups: [networking.k8s.io]
+          resources: [networkpolicies]
+          verbs: ["*"]
+
+    # One ElastiCache Serverless Valkey cache per ValkeyCache, with its own user and user group, in the intra
+    # subnets and the security group from terraform-env-demo demo/8-app-delivery, plus the egress NetworkPolicy
+    # that lets the instance namespace reach the cache subnets. Serverless caches accept TLS connections only.
+    - apiVersion: kro.run/v1alpha1
+      kind: ResourceGraphDefinition
+      metadata:
+        name: valkey-cache
+      spec:
+        schema:
+          apiVersion: v1alpha1
+          kind: ValkeyCache
+          spec:
+            username: string | default="app" immutable=true pattern="^[a-z][a-z0-9_-]{0,31}$" description="Valkey user name"
+            passwordSecret:
+              name: string | default="app-env" pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" maxLength=253 description="Secret in the instance namespace that holds the user password"
+              key: string | required=true pattern="^[A-Z][A-Z0-9_]{0,63}$" description="Key of the user password in the Secret (an Agent Delivery Variable name)"
+            maxDataStorageGiB: integer | default=1 minimum=1 maximum=10 description="Upper limit of stored data in GB"
+            maxECPUPerSecond: integer | default=1000 minimum=1000 maximum=15000 description="Upper limit of ElastiCache Processing Units per second"
+          status:
+            serverlessCacheName: ${serverlessCache.spec.serverlessCacheName}
+            endpointAddress: ${serverlessCache.status.endpoint.address}
+            endpointPort: ${serverlessCache.status.endpoint.port}
+            username: ${user.spec.userName}
+            cacheStatus: ${serverlessCache.status.?status.orValue("")}
+            # ACK.Terminal on any of the three objects: the controller stops retrying until the spec changes.
+            terminal: '${user.status.?conditions.orValue([]).exists(c, c.type == "ACK.Terminal" && c.status == "True") || userGroup.status.?conditions.orValue([]).exists(c, c.type == "ACK.Terminal" && c.status == "True") || serverlessCache.status.?conditions.orValue([]).exists(c, c.type == "ACK.Terminal" && c.status == "True")}'
+            # The first object in creation order that reports an error. Later objects may not exist yet, so the
+            # conditionals read them only when the earlier ones are clean.
+            message: '${user.status.?conditions.orValue([]).filter(c, (c.type == "ACK.Terminal" || c.type == "ACK.Recoverable") && c.status == "True").map(c, c.?message.orValue("")).join("; ") != "" ? user.status.?conditions.orValue([]).filter(c, (c.type == "ACK.Terminal" || c.type == "ACK.Recoverable") && c.status == "True").map(c, c.?message.orValue("")).join("; ") : userGroup.status.?conditions.orValue([]).filter(c, (c.type == "ACK.Terminal" || c.type == "ACK.Recoverable") && c.status == "True").map(c, c.?message.orValue("")).join("; ") != "" ? userGroup.status.?conditions.orValue([]).filter(c, (c.type == "ACK.Terminal" || c.type == "ACK.Recoverable") && c.status == "True").map(c, c.?message.orValue("")).join("; ") : serverlessCache.status.?conditions.orValue([]).filter(c, (c.type == "ACK.Terminal" || c.type == "ACK.Recoverable") && c.status == "True").map(c, c.?message.orValue("")).join("; ")}'
+        resources:
+          # IDs are app-<first 32 hex digits of SHA-256 over "<cluster>/<namespace>/<name>">, like RdsPostgres: 36
+          # characters (ElastiCache allows 40), unique per cluster, namespace and name, and inside the IAM scope app-*.
+          - id: user
+            readyWhen:
+              - ${user.status.?status.orValue("") == "active"}
+            template:
+              apiVersion: elasticache.services.k8s.aws/v1alpha1
+              kind: User
+              metadata:
+                name: ${schema.metadata.name}
+              spec:
+                userID: '${"app-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32)}'
+                userName: ${schema.spec.username}
+                engine: valkey
+                # Every key, channel and command the engine allows. The user group holds only this user, so no
+                # default user can connect.
+                accessString: "on ~* &* +@all"
+                authenticationMode:
+                  type: password
+                  passwords:
+                    - namespace: ${schema.metadata.namespace}
+                      name: ${schema.spec.passwordSecret.name}
+                      key: ${schema.spec.passwordSecret.key}
+
+          - id: userGroup
+            readyWhen:
+              - ${userGroup.status.?status.orValue("") == "active"}
+            template:
+              apiVersion: elasticache.services.k8s.aws/v1alpha1
+              kind: UserGroup
+              metadata:
+                name: ${schema.metadata.name}
+              spec:
+                userGroupID: '${"app-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32)}'
+                engine: valkey
+                userIDs:
+                  - ${user.spec.userID}
+
+          - id: serverlessCache
+            readyWhen:
+              - ${serverlessCache.status.?status.orValue("") == "available"}
+              - ${serverlessCache.status.?endpoint.?address.orValue("") != ""}
+            template:
+              apiVersion: elasticache.services.k8s.aws/v1alpha1
+              kind: ServerlessCache
+              metadata:
+                name: ${schema.metadata.name}
+              spec:
+                serverlessCacheName: '${"app-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32)}'
+                engine: valkey
+                # No majorEngineVersion: ElastiCache uses its default major version, and ACK writes it back to the spec.
+                description: '${"Agent Delivery " + schema.metadata.namespace + "/" + schema.metadata.name}'
+                cacheUsageLimits:
+                  dataStorage:
+                    maximum: ${schema.spec.maxDataStorageGiB}
+                    unit: GB
+                  eCPUPerSecond:
+                    maximum: ${schema.spec.maxECPUPerSecond}
+                userGroupID: ${userGroup.spec.userGroupID}
+                subnetIDs:
+
+                  - "subnet-0676873c1895088a2"
+
+                  - "subnet-0a41d250a592aa73c"
+
+                securityGroupIDs:
+                  - "sg-0ecaf6567cc13ac2f"
+
+          # App namespaces deny egress to private ranges. This adds TCP 6379 to the cache subnets for the instance
+          # namespace only; other namespaces stay blocked.
+          - id: networkPolicy
+            template:
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: valkey-cache-${schema.metadata.name}
+              spec:
+                podSelector: {}
+                policyTypes: [Egress]
+                egress:
+                  - to:
+
+                      - ipBlock:
+                          cidr: "10.10.208.0/20"
+
+                      - ipBlock:
+                          cidr: "10.10.240.0/20"
+
+                    ports:
+                      - protocol: TCP
+                        port: 6379
+
 
     # kro reconciles S3Bucket instances and the Bucket objects the template creates.
     - apiVersion: rbac.authorization.k8s.io/v1
