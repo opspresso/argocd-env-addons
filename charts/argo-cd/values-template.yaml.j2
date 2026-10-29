@@ -200,9 +200,10 @@ raw:
           - "https://github.com/opspresso/argocd-env-apps"
 {%- if app_delivery is defined and app_delivery.enabled %}
 
-    # Apps that Agent Delivery deploys (agent-platform docs/APP_DELIVERY.md). The app-delivery workflow writes
-    # argocd-env-projects projects/<slug>/<env>.yaml; these Applications may only create the kinds the app chart
-    # renders, in app-* namespaces other than app-delivery.
+    # Apps that Agent Delivery deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
+    # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml; these Applications
+    # may only create the kinds the app chart renders and the platform kro instances, in app-* namespaces other than
+    # app-delivery.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
@@ -230,8 +231,11 @@ raw:
           - {group: gateway.networking.k8s.io, kind: HTTPRoute}
           - {group: external-secrets.io, kind: SecretStore}
           - {group: external-secrets.io, kind: ExternalSecret}
+          # Instances of the platform ResourceGraphDefinitions (charts/kro); resource-sync writes only these kinds.
+          - {group: kro.run, kind: RdsPostgres}
 
-    # The app-delivery WorkflowTemplate, its step identities and Agent Delivery's submit permission.
+    # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Delivery's submit
+    # permission.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
@@ -288,8 +292,10 @@ raw:
           syncOptions:
             - CreateNamespace=true
 
-    # One Application per projects/<slug>/<env>.yaml. Project, environment, namespace and domain come from the
-    # file path and this cluster, never from the file, so a values file cannot move or rename an app.
+    # One Application per projects/<slug>/<env> directory of an allowed environment. Project, environment, namespace
+    # and host come from the directory path and the environment profile of this cluster, never from the files, so a
+    # file cannot move or rename an app, add an environment or claim another host. The Application syncs the app chart
+    # with app.yaml (tenant objects only until the first deployment) and the kro instances in resources.yaml.
     - apiVersion: argoproj.io/v1alpha1
       kind: ApplicationSet
       metadata:
@@ -302,45 +308,58 @@ raw:
               repoURL: https://github.com/opspresso/argocd-env-projects.git
               revision: HEAD
               requeueAfterSeconds: 30
-              files:
-                - path: "projects/*/dev.yaml"
-                - path: "projects/*/prod.yaml"
+              directories:
+{%- for environment in app_delivery.environments %}
+                - path: "projects/*/{{environment}}"
+{%- endfor %}
         template:
           metadata:
-            name: '{% raw %}app-{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
+            name: '{% raw %}app-{{ index .path.segments 1 }}-{{ .path.basename }}{% endraw %}'
             labels:
               opspresso.com/cluster: "{{cluster}}"
               opspresso.com/group: "projects"
-              opspresso.com/delivery-project: '{% raw %}{{ .path.basename }}{% endraw %}'
-              opspresso.com/delivery-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
+              opspresso.com/delivery-project: '{% raw %}{{ index .path.segments 1 }}{% endraw %}'
+              opspresso.com/delivery-env: '{% raw %}{{ .path.basename }}{% endraw %}'
           spec:
             project: projects
             destination:
               name: "{{cluster}}"
-              namespace: '{% raw %}app-{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
-            source:
-              repoURL: https://github.com/opspresso/argocd-env-projects.git
-              targetRevision: HEAD
-              path: charts/app
-              helm:
-                valueFiles:
-                  - '{% raw %}../../{{ .path.path }}/{{ .path.filename }}{% endraw %}'
-                # charts/app wraps the opspresso app chart; its guard refuses any other namespace or host.
-                parameters:
-                  - name: app.tenant.project
-                    value: '{% raw %}{{ .path.basename }}{% endraw %}'
-                  - name: app.tenant.environment
-                    value: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
-                  - name: app.tenant.domain
-                    value: "{{app_delivery.domain}}"
-                  - name: app.tenant.cluster
-                    value: "{{cluster}}"
-                  - name: app.tenant.region
-                    value: "{{aws_region}}"
-                  - name: app.tenant.tenantSecretsRoleArn
-                    value: "arn:aws:iam::{{aws_account_id}}:role/agent-delivery-tenant-secrets"
-                  - name: app.routing.hosts[0]
-                    value: '{% raw %}{{ if eq (trimSuffix ".yaml" .path.filename) "prod" }}{{ .path.basename }}{{ else }}{{ .path.basename }}-{{ trimSuffix ".yaml" .path.filename }}{{ end }}{% endraw %}.{{app_delivery.domain}}'
+              namespace: '{% raw %}app-{{ index .path.segments 1 }}-{{ .path.basename }}{% endraw %}'
+            sources:
+              - repoURL: https://github.com/opspresso/argocd-env-projects.git
+                targetRevision: HEAD
+                path: charts/app
+                helm:
+                  valueFiles:
+                    - '{% raw %}../../{{ .path.path }}/app.yaml{% endraw %}'
+                  # resources.yaml may come before the first deployment writes app.yaml.
+                  ignoreMissingValueFiles: true
+                  # charts/app wraps the opspresso app chart; its guard refuses any other environment, namespace or host.
+                  parameters:
+                    - name: app.tenant.project
+                      value: '{% raw %}{{ index .path.segments 1 }}{% endraw %}'
+                    - name: app.tenant.environment
+                      value: '{% raw %}{{ .path.basename }}{% endraw %}'
+                    - name: app.tenant.environments
+                      value: "{{ app_delivery.environments | join(' ') }}"
+                    - name: app.tenant.primaryEnvironment
+                      value: "{{app_delivery.primary_environment}}"
+                    - name: app.tenant.domain
+                      value: "{{app_delivery.domain}}"
+                    - name: app.tenant.cluster
+                      value: "{{cluster}}"
+                    - name: app.tenant.region
+                      value: "{{aws_region}}"
+                    - name: app.tenant.tenantSecretsRoleArn
+                      value: "arn:aws:iam::{{aws_account_id}}:role/agent-delivery-tenant-secrets"
+                    - name: app.routing.hosts[0]
+                      value: '{% raw %}{{ if eq .path.basename "{% endraw %}{{app_delivery.primary_environment}}{% raw %}" }}{{ index .path.segments 1 }}{{ else }}{{ index .path.segments 1 }}-{{ .path.basename }}{{ end }}{% endraw %}.{{app_delivery.domain}}'
+              # The namespaced resources (kro instances) that resource-sync writes; AppProject projects limits the kinds.
+              - repoURL: https://github.com/opspresso/argocd-env-projects.git
+                targetRevision: HEAD
+                path: '{% raw %}{{ .path.path }}{% endraw %}'
+                directory:
+                  include: resources.yaml
             syncPolicy:
               automated:
                 prune: true
@@ -353,8 +372,8 @@ raw:
                   # Tenant Pods may not run privileged, share host namespaces or mount host paths.
                   pod-security.kubernetes.io/enforce: baseline
                   opspresso.com/delivery-tenant: "true"
-                  opspresso.com/delivery-project: '{% raw %}{{ .path.basename }}{% endraw %}'
-                  opspresso.com/delivery-env: '{% raw %}{{ trimSuffix ".yaml" .path.filename }}{% endraw %}'
+                  opspresso.com/delivery-project: '{% raw %}{{ index .path.segments 1 }}{% endraw %}'
+                  opspresso.com/delivery-env: '{% raw %}{{ .path.basename }}{% endraw %}'
 {%- endif %}
 
     - apiVersion: external-secrets.io/v1

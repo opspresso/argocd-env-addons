@@ -49,10 +49,15 @@ argo_workflows:
     org: opspresso # github org
     team: dev
 
-# Apps that Agent Delivery deploys: hosts <slug>[-dev].<domain> (terraform-env-demo 3-alb issues the certificate).
+# Apps that Agent Delivery deploys: hosts <slug>.<domain> for the primary environment and <slug>-<env>.<domain> for the
+# others (terraform-env-demo 3-alb issues the wildcard certificate).
 app_delivery:
   enabled: true
   domain: apps.rovr.dev
+  # The ordered environment profile. Keep it equal to Agent Delivery's DELIVERY_ENVIRONMENTS (argocd-env-apps
+  # agent-delivery): an environment missing here gets no Application, so its deployments never sync.
+  environments: [dev, prod]
+  primary_environment: prod
   # The Kubernetes API server (Service IP and control plane endpoints) that Delivery runner Pods may reach.
   # Check after a control plane change: kubectl get endpointslices -n default -l kubernetes.io/service-name=kubernetes
   api_server_cidrs: [172.20.0.1/32, 10.10.114.40/32, 10.10.149.55/32]
