@@ -10,5 +10,5 @@ dependencies:
   version: "10.5.15" # helm chart grafana version
 
 - name: raw
-  repository: https://charts.helm.sh/incubator
+  repository: https://opspresso.github.io/helm-charts/
   version: "0.2.5" # helm chart raw version

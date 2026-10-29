@@ -10,5 +10,5 @@ dependencies:
   version: "2.14.0" # helm chart external-secrets version
 
 - name: raw
-  repository: https://charts.helm.sh/incubator
+  repository: https://opspresso.github.io/helm-charts/
   version: "0.2.5" # helm chart raw version

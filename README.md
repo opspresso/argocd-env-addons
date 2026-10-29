@@ -160,7 +160,7 @@ charts/<addon>/
 
 1. addon의 전용 chart와 values 옵션을 우선 사용한다. HTTPRoute, ServiceMonitor,
    PrometheusRule처럼 chart가 제공하는 리소스를 별도로 중복 정의하지 않는다.
-2. 전용 옵션이 없는 리소스는 `https://charts.helm.sh/incubator`의 `raw` chart `0.2.5`를
+2. 전용 옵션이 없는 리소스는 `https://opspresso.github.io/helm-charts/`의 `raw` chart `0.2.5`를
    dependency로 추가하고 `raw.resources`에 선언한다. 일반 리소스를 addon의
    `extraObjects`·`extraManifests`에 넣지 않는다.
 3. wrapper에 `templates/`를 만들지 않는다. 환경 분기는 `values-template.yaml.j2`에서 처리하고,
@@ -302,7 +302,7 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 
 - 표의 행은 감시 목록이며 배포 목록이 아니다. 배포 여부는 `addons/`로 판단한다.
 - 감시 목록의 key가 chart 디렉터리 이름과 다르면 `path` 필드로 맞춘다(`istiod` → `istio`).
-- `raw` chart만 쓰는 매니페스트 chart는 upstream 저장소가 보관(archived) 상태라 감시하지 않는다.
+- `raw` chart만 쓰는 매니페스트 chart는 `raw`가 `opspresso/helm-charts`의 고정 사본(0.2.5)이라 감시하지 않는다.
 - 표와 `Chart.yaml`이 다르면 `Chart.yaml`이 기준이다.
 
 | 열·표시 | 의미 |

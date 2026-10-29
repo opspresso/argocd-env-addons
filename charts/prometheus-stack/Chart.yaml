@@ -10,5 +10,5 @@ dependencies:
   version: "92.14.1" # helm chart kube-prometheus-stack version
 
 - name: raw
-  repository: https://charts.helm.sh/incubator
+  repository: https://opspresso.github.io/helm-charts/
   version: "0.2.5" # helm chart raw version
