@@ -276,9 +276,11 @@ raw:
             - CreateNamespace=true
 
     # One Application per projects/<slug>/<env> directory of an allowed environment. Project, environment, namespace
-    # and host come from the directory path and the environment profile of this cluster, never from the files, so a
-    # file cannot move or rename an app, add an environment or claim another host. The Application syncs the app chart
-    # with app.yaml (tenant objects only until the first deployment) and the kro instances in resources.yaml.
+    # and host come from the directory path and the environment profile of this cluster, not from the files, and the
+    # charts/app guard checks them. A values file could still turn the guard off: the boundary is that only the
+    # app-deploy step writes app.yaml, through the fixed render.jq mapping, with a deploy key that only the delivery-git
+    # steps hold. The Application syncs the app chart with app.yaml (tenant objects only until the first deployment)
+    # and the kro instances in resources.yaml.
     - apiVersion: argoproj.io/v1alpha1
       kind: ApplicationSet
       metadata:
