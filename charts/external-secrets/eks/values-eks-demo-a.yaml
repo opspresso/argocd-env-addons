@@ -21,6 +21,8 @@ raw:
               - "^delivery-pool$"
               # The app-delivery workflow reads its GitHub token (argocd-env-projects charts/delivery).
               - "^app-delivery$"
+              # rovr reads its GitHub App, model and database credentials (argocd-env-apps charts/rovr).
+              - "^rovr$"
         provider:
           aws:
             region: "ap-northeast-2"
