@@ -351,7 +351,7 @@ helm repo update
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy | ✅ | 1.14.3 | 1.14.3 (v1.21.2) |
+| alloy |  | 1.14.3 | 1.14.4 (v1.21.3) |
 | argo-cd | ✅ | 10.11.6 | 10.11.6 (v3.5.6) |
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
 | argo-workflows | ✅ | 2.0.14 | 2.0.14 (v4.1.6) |
@@ -359,7 +359,7 @@ helm repo update
 | cert-manager | ✅ | v1.21.3 | v1.21.3 (v1.21.3) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
-| gateway-api-crds | ✅ | 1.6.1 | 1.6.1 (v1.6.1) |
+| gateway-api-crds |  | 1.6.1 | 1.6.3 (v1.6.3) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio | ✅ | 1.31.3 | 1.31.3 (1.31.3) |
 | kite | ✅ | 0.16.0 | 0.16.0 (v0.16.0) |
