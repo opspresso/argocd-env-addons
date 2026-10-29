@@ -21,3 +21,19 @@ raw:
         type: gp3
         encrypted: "true"
       allowVolumeExpansion: true
+
+    # Scratch volumes whose data ends with their claim, such as Argo Workflows
+    # volumeClaimTemplates. Deleting the claim deletes the EBS volume.
+    - apiVersion: storage.k8s.io/v1
+      kind: StorageClass
+      metadata:
+        name: gp3-ephemeral
+        annotations:
+          argocd.argoproj.io/sync-options: Force=true,Replace=true
+      provisioner: ebs.csi.eks.amazonaws.com
+      volumeBindingMode: WaitForFirstConsumer
+      reclaimPolicy: Delete
+      parameters:
+        type: gp3
+        encrypted: "true"
+      allowVolumeExpansion: true
