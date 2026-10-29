@@ -32,10 +32,10 @@ class ExternalSecretsAWSTests(unittest.TestCase):
                     patterns = [re.compile(pattern) for condition in store["spec"]["conditions"]
                                 for pattern in condition["namespaceRegexes"]]
                     allowed = lambda namespace: any(pattern.search(namespace) for pattern in patterns)
-                    for namespace in ("argocd", "addon-grafana", "agent-studio", "agent-mcps", "agent-delivery", "delivery-pool", "app-delivery", "sample"):
+                    for namespace in ("argocd", "addon-grafana", "agent-studio", "agent-mcps", "agent-delivery", "delivery-pool", "app-delivery", "rovr", "sample"):
                         self.assertTrue(allowed(namespace), namespace)
                     # Tenant apps and Forge Sandboxes must never read platform credentials.
-                    for namespace in ("app-demo-dev", "app-delivery-dev", "agent-forge-workspaces", "default", "vibemon", "agent-studio-x"):
+                    for namespace in ("app-demo-dev", "app-delivery-dev", "agent-forge-workspaces", "rovr-sandboxes", "default", "vibemon", "agent-studio-x"):
                         self.assertFalse(allowed(namespace), namespace)
                 controller = values["external-secrets"]
                 if context["env"] != "local":
