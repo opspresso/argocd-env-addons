@@ -7,10 +7,11 @@ argo-cd:
       limits: {memory: 128Mi}
 
   controller:
+    # Working set idles near 800Mi and reaches 2.8Gi during full reconciles.
     resources:
       requests:
         cpu: 100m
-        memory: 1Gi
+        memory: 1536Mi
       limits:
         memory: 4Gi
 
@@ -92,9 +93,9 @@ argo-cd:
     resources:
       requests:
         cpu: 5m
-        memory: 48Mi
+        memory: 96Mi
       limits:
-        memory: 128Mi
+        memory: 256Mi
 
     env:
       - name: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
