@@ -1,3 +1,9 @@
 rds:
   aws:
     region: "ap-northeast-2"
+s3:
+  aws:
+    region: "ap-northeast-2"
+elasticache:
+  aws:
+    region: "ap-northeast-2"

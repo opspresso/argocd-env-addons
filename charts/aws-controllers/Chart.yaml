@@ -12,3 +12,15 @@ dependencies:
   condition: rds.enabled
   repository: oci://public.ecr.aws/aws-controllers-k8s
   version: "1.13.4" # helm chart rds-chart version
+
+- name: s3-chart
+  alias: s3
+  condition: s3.enabled
+  repository: oci://public.ecr.aws/aws-controllers-k8s
+  version: "1.15.0" # helm chart s3-chart version
+
+- name: elasticache-chart
+  alias: elasticache
+  condition: elasticache.enabled
+  repository: oci://public.ecr.aws/aws-controllers-k8s
+  version: "1.11.1" # helm chart elasticache-chart version

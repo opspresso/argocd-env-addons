@@ -20,7 +20,8 @@ def render(**rds):
 
 class RdsPostgresTemplateTests(unittest.TestCase):
     def test_the_template_waits_for_the_security_group(self):
-        self.assertNotIn("raw", render(security_group_id=""))
+        resources = render(security_group_id="").get("raw", {}).get("resources") or []
+        self.assertNotIn("rds-postgres", [r["metadata"]["name"] for r in resources])
 
     def test_instances_are_private_and_reachable_only_from_their_namespace(self):
         values = render(security_group_id="sg-0123456789abcdef0")
@@ -41,7 +42,8 @@ class RdsPostgresTemplateTests(unittest.TestCase):
         self.assertIn("schema.metadata.uid", annotations["rds.services.k8s.aws/final-db-snapshot-identifier"])
         self.assertNotIn("rds.services.k8s.aws/delete-automated-backups", annotations)
         # The IAM policy of the ACK controller allows only db:app-* identifiers.
-        self.assertTrue(db["dbInstanceIdentifier"].startswith('${"app-" +'))
+        self.assertTrue(db["dbInstanceIdentifier"].startswith('${"app-" + "%x".format([hash.sha256('))
+        self.assertTrue(db["dbInstanceIdentifier"].endswith(".substring(0, 32)}"))
         # The password comes from a Secret of the instance namespace, never from the manifest.
         self.assertEqual(db["masterUserPassword"]["namespace"], "${schema.metadata.namespace}")
         policy = resources["networkPolicy"]["spec"]

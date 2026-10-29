@@ -36,6 +36,15 @@
       "current": "v1.21.3",
       "version": "v1.21.3"
     },
+    "elasticache-chart": {
+      "app_version": "1.11.1",
+      "chart": "public.ecr.aws/aws-controllers-k8s",
+      "current": "1.11.1",
+      "locked": true,
+      "path": "aws-controllers",
+      "type": "oci",
+      "version": "1.11.1"
+    },
     "external-dns": {
       "app_version": "0.23.0",
       "chart": "external-dns/external-dns",
@@ -118,6 +127,15 @@
       "path": "aws-controllers",
       "type": "oci",
       "version": "1.13.4"
+    },
+    "s3-chart": {
+      "app_version": "1.15.0",
+      "chart": "public.ecr.aws/aws-controllers-k8s",
+      "current": "1.15.0",
+      "locked": true,
+      "path": "aws-controllers",
+      "type": "oci",
+      "version": "1.15.0"
     },
     "victoria-metrics": {
       "app_version": "v1.155.0",

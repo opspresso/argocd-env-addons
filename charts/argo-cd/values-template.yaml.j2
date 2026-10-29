@@ -233,6 +233,8 @@ raw:
           - {group: external-secrets.io, kind: ExternalSecret}
           # Instances of the platform ResourceGraphDefinitions (charts/kro); resource-sync writes only these kinds.
           - {group: kro.run, kind: RdsPostgres}
+          - {group: kro.run, kind: S3Bucket}
+          - {group: kro.run, kind: ValkeyCache}
 
     # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Delivery's submit
     # permission.

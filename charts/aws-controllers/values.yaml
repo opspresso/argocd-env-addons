@@ -37,3 +37,66 @@ rds:
     limits:
       cpu: 200m
       memory: 256Mi
+
+s3:
+  # kro S3Bucket instances (charts/kro) create Bucket objects.
+  enabled: true
+  fullnameOverride: ack-s3-controller
+
+  # EKS Pod Identity binds the IAM role pod-role--ack-s3 to this ServiceAccount (terraform-env-demo demo/5-eks).
+  serviceAccount:
+    create: true
+    name: ack-s3-controller
+
+  reconcile:
+    resources:
+      - Bucket
+
+  installScope: cluster
+  enableCARM: false
+
+  # Deleting a Bucket deletes the S3 bucket. S3 refuses to delete a bucket that still holds objects, so ACK keeps
+  # retrying and the Bucket stays until the bucket is emptied; no object is deleted by the controller.
+  deletionPolicy: delete
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+elasticache:
+  # kro ValkeyCache instances (charts/kro) create ServerlessCache, User and UserGroup objects.
+  enabled: true
+  fullnameOverride: ack-elasticache-controller
+
+  # EKS Pod Identity binds the IAM role pod-role--ack-elasticache to this ServiceAccount (terraform-env-demo demo/5-eks).
+  serviceAccount:
+    create: true
+    name: ack-elasticache-controller
+
+  # The IAM policy allows these kinds only.
+  reconcile:
+    resources:
+      - ServerlessCache
+      - User
+      - UserGroup
+
+  # installScope stays cluster for the same reason as rds: the upstream ClusterRole reads Secrets in every
+  # namespace (User passwords). Only kro creates User objects, and the ValkeyCache template pins the password
+  # Secret to the instance namespace.
+  installScope: cluster
+  enableCARM: false
+
+  # Deleting a ServerlessCache deletes the cache and its data without a final snapshot.
+  deletionPolicy: delete
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
