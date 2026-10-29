@@ -283,6 +283,9 @@ raw:
         - apiGroups: [s3.services.k8s.aws]
           resources: [buckets]
           verbs: ["*"]
+        - apiGroups: [networking.k8s.io]
+          resources: [networkpolicies]
+          verbs: ["*"]
 
     # One private S3 bucket per S3Bucket. Apps in the instance namespace reach it with the shared Pod Identity role
     # agent-delivery-tenant-objects (terraform-env-demo demo/8-agent-delivery), which matches the bucket tag
@@ -341,3 +344,22 @@ raw:
                         sseAlgorithm: AES256
                 versioning:
                   status: '${schema.spec.versioning ? "Enabled" : "Suspended"}'
+
+          # App namespaces deny egress to link-local addresses. The AWS SDK gets the Pod Identity credentials from the
+          # EKS Pod Identity Agent at 169.254.170.23:80, so this opens only that address for the instance namespace.
+          - id: networkPolicy
+            template:
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: s3-bucket-${schema.metadata.name}
+              spec:
+                podSelector: {}
+                policyTypes: [Egress]
+                egress:
+                  - to:
+                      - ipBlock:
+                          cidr: 169.254.170.23/32
+                    ports:
+                      - protocol: TCP
+                        port: 80

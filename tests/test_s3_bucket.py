@@ -22,7 +22,7 @@ class S3BucketTemplateTests(unittest.TestCase):
     def test_buckets_are_private_and_tagged_for_the_tenant_role(self):
         rgd = graph()
         self.assertEqual((rgd["spec"]["schema"]["apiVersion"], rgd["spec"]["schema"]["kind"]), ("v1alpha1", "S3Bucket"))
-        (bucket,) = rgd["spec"]["resources"]
+        bucket = next(r for r in rgd["spec"]["resources"] if r["id"] == "bucket")
         spec = bucket["template"]["spec"]
         # The name never contains the namespace: ACK adopts an existing bucket of the same name, so names of two
         # namespaces must not be able to collide. The IAM scopes of ACK (eks-demo-*) and the tenant role rely on the prefix.
@@ -38,6 +38,13 @@ class S3BucketTemplateTests(unittest.TestCase):
         self.assertEqual(tags["eks-cluster-name"], "eks-demo")
         self.assertEqual(tags["kubernetes-namespace"], "${schema.metadata.namespace}")
         self.assertNotIn("policy", spec)
+
+    def test_instance_namespace_reaches_only_the_pod_identity_agent(self):
+        # The app chart denies link-local egress; without this the SDK cannot get the tenant role credentials.
+        rgd = graph()
+        policy = next(r["template"]["spec"] for r in rgd["spec"]["resources"] if r["id"] == "networkPolicy")
+        self.assertEqual(policy["policyTypes"], ["Egress"])
+        self.assertEqual(policy["egress"], [{"to": [{"ipBlock": {"cidr": "169.254.170.23/32"}}], "ports": [{"protocol": "TCP", "port": 80}]}])
 
 
 if __name__ == "__main__":
