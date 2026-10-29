@@ -77,7 +77,7 @@ ApplicationSet 의 `valueFiles` 에 적힌 파일이 없으면 Argo CD 가 sync 
 ### Chart.yaml
 
 - `version` 은 upstream chart 버전과 같은 값을 쓴다 (예: argo-cd → `"10.2.2"`).
-  순수 매니페스트만 담는 chart(`ingress-class`, `storage-class`)는 incubator `raw` chart 버전을 쓴다.
+  순수 매니페스트만 담는 chart(`ingress-class`, `storage-class`)는 `raw` chart 버전을 쓴다. `raw`는 보관된 incubator/raw 0.2.5를 `opspresso/helm-charts`에 옮긴 사본이다.
 - dependency 이름이 디렉토리 이름과 다르면 `alias` 로 맞춘다
   (예: `kube-prometheus-stack` → `prometheus-stack`). 한 chart 를 두 번 쓰면 `alias` 로 구분한다
   (istio 의 `raw` / `tgb`).
@@ -184,7 +184,7 @@ helm repo update
 
 `"type": "oci"` 항목은 `helm show chart` 로 조회한다. 로그인이 필요한 레지스트리는
 `helm registry login` 을 해 둬야 한다. 로그인이 없으면 해당 chart 만 Failed 로 집계되고
-나머지는 정상 진행된다. `raw` chart 만 쓰는 매니페스트 chart 는 upstream 이 보관 상태라 감시하지 않는다.
+나머지는 정상 진행된다. `raw` chart 만 쓰는 매니페스트 chart 는 `raw` 가 `opspresso/helm-charts` 의 고정 사본(0.2.5)이라 감시하지 않는다.
 
 ## argocd-env-apps 와 다른 점
 
