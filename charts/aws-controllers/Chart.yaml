@@ -1,0 +1,14 @@
+apiVersion: v2
+name: aws-controllers
+description: AWS Controllers for Kubernetes (ACK). One controller per AWS service, each turned on by <service>.enabled
+type: application
+# The wrapper follows the rds-chart version (scripts/update_charts.sh updates both lines). Other controllers are
+# locked in config/versions.json and updated by hand; see README "ACK 컨트롤러 추가".
+version: "1.13.4" # helm chart rds-chart version
+
+dependencies:
+- name: rds-chart
+  alias: rds
+  condition: rds.enabled
+  repository: oci://public.ecr.aws/aws-controllers-k8s
+  version: "1.13.4" # helm chart rds-chart version

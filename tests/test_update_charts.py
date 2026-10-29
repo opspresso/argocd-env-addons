@@ -98,24 +98,24 @@ def test_dependency_mismatch_fails_without_overwriting_chart(tmp_path):
 def test_oci_entry_matches_dependency_by_key(tmp_path):
     # An OCI entry's chart field is the registry path; the key is the chart name.
     chart = (
-        'name: ack-rds\nversion: "1.13.4" # wrapper\n\ndependencies:\n'
-        '- name: rds-chart\n  alias: ack-rds\n  repository: oci://public.ecr.aws/aws-controllers-k8s\n'
+        'name: aws-controllers\nversion: "1.13.4" # wrapper\n\ndependencies:\n'
+        '- name: rds-chart\n  alias: rds\n  repository: oci://public.ecr.aws/aws-controllers-k8s\n'
         '  version: "1.13.4" # rds-chart\n'
     )
     script = setup_repo(
         tmp_path,
         {
             "rds-chart": {
-                "path": "ack-rds",
+                "path": "aws-controllers",
                 "chart": "public.ecr.aws/aws-controllers-k8s",
                 "type": "oci",
                 "current": "1.13.4",
                 "version": "1.14.0",
             },
         },
-        {"ack-rds": chart},
+        {"aws-controllers": chart},
     )
 
     result = run(script, "--chart", "rds-chart")
     assert result.returncode == 0, result.stderr
-    assert (tmp_path / "charts/ack-rds/Chart.yaml").read_text() == chart.replace("1.13.4", "1.14.0")
+    assert (tmp_path / "charts/aws-controllers/Chart.yaml").read_text() == chart.replace("1.13.4", "1.14.0")

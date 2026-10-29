@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: ack-rds
+  name: aws-controllers
 spec:
   generators:
     - git:
@@ -19,9 +19,9 @@ spec:
 
   template:
     metadata:
-      name: "ack-rds-{{cluster}}"
+      name: "aws-controllers-{{cluster}}"
       annotations:
-        argocd.argoproj.io/manifest-generate-paths: /charts/ack-rds
+        argocd.argoproj.io/manifest-generate-paths: /charts/aws-controllers
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         opspresso.com/cluster: "{{cluster}}"
@@ -30,11 +30,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-ack-rds
+        namespace: addon-aws-controllers
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/ack-rds
+        path: charts/aws-controllers
         helm:
           valueFiles:
             - values.yaml
