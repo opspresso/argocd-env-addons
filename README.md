@@ -254,6 +254,11 @@ k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는
   `rbac.kro.run/aggregate-to-controller: "true"` label의 ClusterRole로 추가한다.
 - ACK RDS는 `DBInstance`만 reconcile한다. IAM 역할 `pod-role--ack-rds`는 `terraform-env-demo`의 `4-role`이 만들고,
   Pod Identity association(`addon-ack-rds`/`ack-rds-controller`)은 `5-eks`가 만든다.
+- `RdsPostgres` 인스턴스는 parameter group `delivery_resources.rds.parameter_group`(`rds.force_ssl=1`)으로 TLS 없는 연결을 거부한다.
+  앱 연결 정보는 `sslmode=require`를 쓴다. 다른 namespace의 접근은 네트워크가 아니라 인스턴스별 자격 증명과 TLS로 거부된다
+  (security group은 cluster primary SG 전체, 즉 모든 Pod의 5432를 받는다).
+- 인스턴스를 지우면(리소스 삭제, 또는 환경의 Application 삭제로 인한 cascade) ACK가 final snapshot
+  `<DB 식별자>-final-<인스턴스 UID>`를 남기고 RDS를 지운다. snapshot은 직접 지울 때까지 남고 비용이 든다.
 - `rds-postgres` RGD는 `env/<cluster>.yaml`의 `delivery_resources.rds.security_group_id`가 있을 때만 렌더한다.
   `terraform-env-demo/demo/8-app-delivery`를 적용한 뒤 그 output `rds_security_group_id`를 넣고 `./scripts/build.sh`를 실행한다.
 - 확인: `kubectl get rgd rds-postgres`의 state가 `Active`이고, 인스턴스의 `Ready` condition이 `True`이며

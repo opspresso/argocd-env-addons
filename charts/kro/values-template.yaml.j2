@@ -65,9 +65,11 @@ raw:
               metadata:
                 name: ${schema.metadata.name}
                 annotations:
-                  # Dev-stage databases: deleting the instance deletes its data and backups.
-                  rds.services.k8s.aws/skip-final-snapshot: "true"
-                  rds.services.k8s.aws/delete-automated-backups: "true"
+                  # Deleting the instance (resource removed, or its environment's Application deleted) always keeps a
+                  # final snapshot. ACK skips it unless told otherwise. The name is the DB identifier plus the instance
+                  # UID, so a later instance with the same name never collides with an old snapshot.
+                  rds.services.k8s.aws/skip-final-snapshot: "false"
+                  rds.services.k8s.aws/final-db-snapshot-identifier: '${"app-" + "%x".format([hash.fnv64a("{{cluster}}/" + schema.metadata.namespace + "/" + schema.metadata.name)]) + "-final-" + schema.metadata.uid}'
               spec:
                 # app-<16 hex digits of FNV-1a 64 over "<cluster>/<namespace>/<name>">: 20 characters,
                 # unique per cluster, namespace and name, and inside the IAM scope db:app-*.
@@ -91,6 +93,8 @@ raw:
                   name: ${schema.spec.passwordSecret.name}
                   key: ${schema.spec.passwordSecret.key}
                 dbSubnetGroupName: "{{rds.subnet_group}}"
+                # rds.force_ssl=1: connections without TLS are refused (clients use sslmode=require).
+                dbParameterGroupName: "{{rds.parameter_group}}"
                 vpcSecurityGroupIDs:
                   - "{{rds.security_group_id}}"
 

@@ -55,7 +55,10 @@ app_delivery:
   enabled: true
   domain: apps.rovr.dev
   # The ordered environment profile. Keep it equal to Agent Delivery's DELIVERY_ENVIRONMENTS (argocd-env-apps
-  # agent-delivery): an environment missing here gets no Application, so its deployments never sync.
+  # agent-delivery). An environment missing here gets no Application. Removing an environment deletes the Applications
+  # of that environment, and their resources finalizer deletes every app and RdsPostgres in it: RDS keeps only its
+  # final snapshot. Before adding an environment, check that no Project slug ends with -<environment>
+  # (ls argocd-env-projects/projects | grep -- '-<environment>$'), or two hosts collide.
   environments: [dev, prod]
   primary_environment: prod
   # The Kubernetes API server (Service IP and control plane endpoints) that Delivery runner Pods may reach.
@@ -138,6 +141,8 @@ alloy_network_policy:
 delivery_resources:
   rds:
     subnet_group: app-delivery-rds
+    # rds.force_ssl=1 (terraform output rds_parameter_group_name). Its family must match the RDS default major version.
+    parameter_group: app-delivery-postgres18
     security_group_id: "" # terraform -chdir=demo/8-app-delivery output -raw rds_security_group_id
     subnet_cidrs:
       - 10.10.208.0/20
