@@ -65,7 +65,8 @@ class AppDeliveryProfileTests(unittest.TestCase):
             project = resource(values, "AppProject", "projects")
             with self.subTest(cluster=context["cluster"]):
                 kinds = {(k["group"], k["kind"]) for k in project["spec"]["namespaceResourceWhitelist"]}
-                self.assertIn(("kro.run", "RdsPostgres"), kinds)
+                for kind in ("RdsPostgres", "S3Bucket", "ValkeyCache"):
+                    self.assertIn(("kro.run", kind), kinds)
                 self.assertNotIn(("", "Secret"), kinds)
                 self.assertNotIn(("kro.run", "ResourceGraphDefinition"), kinds)
                 self.assertEqual(project["spec"]["clusterResourceWhitelist"], [{"group": "", "kind": "Namespace"}])

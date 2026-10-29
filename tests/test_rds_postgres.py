@@ -20,7 +20,8 @@ def render(**rds):
 
 class RdsPostgresTemplateTests(unittest.TestCase):
     def test_the_template_waits_for_the_security_group(self):
-        self.assertNotIn("raw", render(security_group_id=""))
+        resources = render(security_group_id="").get("raw", {}).get("resources") or []
+        self.assertNotIn("rds-postgres", [r["metadata"]["name"] for r in resources])
 
     def test_instances_are_private_and_reachable_only_from_their_namespace(self):
         values = render(security_group_id="sg-0123456789abcdef0")
