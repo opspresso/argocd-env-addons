@@ -244,16 +244,19 @@ k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는
    - Studio → 서비스 API/MCP, 서비스 → Studio 정책 callback
 3. Studio·Memory·Knowledge에 Sandbox 관리 권한이 없는지 확인한다.
 
-### Agent Delivery namespace 리소스 (kro·ACK RDS)
+### Agent Delivery namespace 리소스 (kro·ACK)
 
-`addons/eks/kro.yaml`은 kro와 플랫폼 ResourceGraphDefinition을, `addons/eks/ack-rds.yaml`은 ACK RDS controller를
-설치한다. Agent Delivery는 `app-<slug>-<env>` namespace에 `RdsPostgres`(`kro.run/v1alpha1`) 인스턴스를 GitOps로 만들고
+`addons/eks/kro.yaml`은 kro와 플랫폼 ResourceGraphDefinition을, `addons/eks/aws-controllers.yaml`은 ACK(AWS Controllers for
+Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Agent Delivery는 `app-<slug>-<env>` namespace에 `RdsPostgres`(`kro.run/v1alpha1`) 인스턴스를 GitOps로 만들고
 그 status를 읽는다([agent-platform DELIVERY_V2](https://github.com/opspresso/agent-platform/blob/main/docs/DELIVERY_V2.md) D3·D4).
 
 - kro는 `rbac.mode: aggregation`으로 실행한다. RGD가 만드는 종류의 권한은
   `rbac.kro.run/aggregate-to-controller: "true"` label의 ClusterRole로 추가한다.
+- `charts/aws-controllers`는 ACK 서비스별 chart를 alias dependency로 두고 `<service>.enabled`로 켠다. 지금은 `rds`만 켜져 있다.
+  controller마다 ServiceAccount `ack-<service>-controller`, IAM 역할 `pod-role--ack-<service>`, Pod Identity association이 따로 있다.
+  권한을 한 역할에 합치지 않는다.
 - ACK RDS는 `DBInstance`만 reconcile한다. IAM 역할 `pod-role--ack-rds`는 `terraform-env-demo`의 `4-role`이 만들고,
-  Pod Identity association(`addon-ack-rds`/`ack-rds-controller`)은 `5-eks`가 만든다.
+  Pod Identity association(`addon-aws-controllers`/`ack-rds-controller`)은 `5-eks`가 만든다.
 - `RdsPostgres` 인스턴스는 parameter group `delivery_resources.rds.parameter_group`(`rds.force_ssl=1`)으로 TLS 없는 연결을 거부한다.
   앱 연결 정보는 `sslmode=require`를 쓴다. 다른 namespace의 접근은 네트워크가 아니라 인스턴스별 자격 증명과 TLS로 거부된다
   (security group은 cluster primary SG 전체, 즉 모든 Pod의 5432를 받는다).
@@ -263,6 +266,31 @@ k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는
   `terraform-env-demo/demo/8-app-delivery`를 적용한 뒤 그 output `rds_security_group_id`를 넣고 `./scripts/build.sh`를 실행한다.
 - 확인: `kubectl get rgd rds-postgres`의 state가 `Active`이고, 인스턴스의 `Ready` condition이 `True`이며
   `status.address`·`status.port`가 채워진다. 실패는 `status.terminal`·`status.message`로 확인한다.
+
+#### ACK 컨트롤러 추가
+
+예: S3(`s3-chart`)를 추가한다. 순서대로 진행한다.
+
+1. `terraform-env-demo`
+   - `4-role/policies/ack-s3.json`에 그 서비스에 필요한 최소 권한을 쓴다. 역할 `pod-role--ack-s3`는 4-role이 만든다.
+   - `5-eks/70-pod-identity.tf`의 `demo_targets`에 association(`addon-aws-controllers`/`ack-s3-controller`)을 추가한다.
+   - 둘 다 적용한다. association이 없으면 controller가 AWS credential을 받지 못해 CrashLoop이 된다.
+2. `charts/aws-controllers/Chart.yaml`에 dependency를 추가한다. `name: s3-chart`, `alias: s3`, `condition: s3.enabled`,
+   `repository: oci://public.ecr.aws/aws-controllers-k8s`, 고정 버전을 쓴다.
+3. `charts/aws-controllers/values.yaml`에 `s3:` 블록을 추가한다. 다음 값을 넣는다.
+   - `enabled: true`
+   - `fullnameOverride: ack-s3-controller`
+   - `serviceAccount.name: ack-s3-controller`
+   - `reconcile.resources`: 쓸 종류만
+   - `installScope: cluster`, `enableCARM: false`
+   - requests·limits
+   
+   `values-template.yaml.j2`에는 `s3.aws.region`을 추가한다.
+4. `config/versions.json`에 `s3-chart` 항목(`type: oci`, `path: aws-controllers`, `locked: true`)을 추가한다.
+   wrapper `version`은 `rds-chart`를 따르므로 `scripts/update_charts.sh`는 다른 controller를 갱신하지 못한다. 그래서 버전은 손으로 올린다.
+5. 새 종류를 RGD로 쓰면 `charts/kro`에 집계 ClusterRole 규칙과 RGD를 추가하고, `charts/argo-cd` AppProject `projects`에 인스턴스 종류를 허용한다.
+6. `./scripts/build.sh`, `./scripts/validate.py -r aws-controllers`, `python3 -m pytest -q`를 실행한다.
+   배포 뒤 `kubectl -n addon-aws-controllers get deploy ack-s3-controller`가 Ready인지 확인한다.
 
 ## 검증
 
@@ -389,7 +417,7 @@ helm repo update
 | oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
 | prometheus-stack | ✅ | 92.14.1 | 92.14.1 (v0.94.2) |
-| ack-rds | ✅ | 1.13.4 | 1.13.4 (1.13.4) |
+| aws-controllers | ✅ | 1.13.4 | 1.13.4 (1.13.4) |
 | victoria-metrics | ✅ | 0.97.0 | 0.97.0 (v1.155.0) |
 | vllm-stack |  |  | 0.1.13 |
 | workspace-metrics | ✅ | 8.7.1 | 8.7.1 (2.20.0) |

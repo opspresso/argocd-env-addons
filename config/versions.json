@@ -115,7 +115,7 @@
       "app_version": "1.13.4",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
-      "path": "ack-rds",
+      "path": "aws-controllers",
       "type": "oci",
       "version": "1.13.4"
     },

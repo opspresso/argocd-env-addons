@@ -1,4 +1,8 @@
-ack-rds:
+# One ACK controller per AWS service, each with its own ServiceAccount ack-<service>-controller and its own IAM role
+# pod-role--ack-<service> (terraform-env-demo 4-role, Pod Identity in 5-eks). Permissions are never shared.
+rds:
+  # kro RdsPostgres instances (charts/kro) create DBInstance objects.
+  enabled: true
   fullnameOverride: ack-rds-controller
 
   # EKS Pod Identity binds the IAM role pod-role--ack-rds to this ServiceAccount
