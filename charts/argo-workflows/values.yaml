@@ -13,6 +13,18 @@ argo-workflows:
       limits: {memory: 512Mi}
     revisionHistoryLimit: 2
 
+    # Applies only where a Workflow and its WorkflowTemplate leave these unset.
+    # Successful Pods go at once; failed Pods and Workflows stay a day for logs.
+    workflowDefaults:
+      spec:
+        ttlStrategy:
+          secondsAfterSuccess: 3600
+          secondsAfterFailure: 86400
+        podGC:
+          strategy: OnPodSuccess
+        volumeClaimGC:
+          strategy: OnWorkflowCompletion
+
     workflowNamespaces:
       - default
 
