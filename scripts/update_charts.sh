@@ -47,14 +47,16 @@ command -v yq >/dev/null || die "yq v4 is required"
 [ -f "${VERSIONS_FILE}" ] || die "missing ${VERSIONS_FILE}"
 
 # A chart can be selected by its config key, local directory, or upstream name.
+# An OCI entry's chart field is the registry path and its key is the chart name
+# (update_versions.py reads oci://<chart>/<key>).
 entries=$(jq -er --arg chart "${CHART}" '
+  def upstream: if .value.type == "oci" then .key else (.value.chart // "" | split("/")[-1]) end;
   .versions | to_entries
   | if $chart == "" then . else
-      map(select(.key == $chart or (.value.path // .key) == $chart
-        or (.value.chart | split("/")[-1]) == $chart))
+      map(select(.key == $chart or (.value.path // .key) == $chart or upstream == $chart))
     end
   | if length == 0 then error("chart not found: " + $chart) else .[] end
-  | [.key, (.value.path // .key), (.value.chart // "" | split("/")[-1]),
+  | [.key, (.value.path // .key), upstream,
      (.value.version // ""),
      (.value.current // ""), (.value.locked // false),
      (.value.disabled // false)] | join("|")

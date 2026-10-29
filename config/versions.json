@@ -73,6 +73,14 @@
       "current": "0.16.0",
       "version": "0.16.0"
     },
+    "kro": {
+      "app_version": "v0.9.4",
+      "chart": "registry.k8s.io/kro/charts",
+      "current": "0.9.4",
+      "locked": true,
+      "type": "oci",
+      "version": "v0.9.4"
+    },
     "loki": {
       "app_version": "3.6.16",
       "chart": "grafana/loki",
@@ -102,6 +110,14 @@
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
       "version": "92.14.1"
+    },
+    "rds-chart": {
+      "app_version": "1.13.4",
+      "chart": "public.ecr.aws/aws-controllers-k8s",
+      "current": "1.13.4",
+      "path": "ack-rds",
+      "type": "oci",
+      "version": "1.13.4"
     },
     "victoria-metrics": {
       "app_version": "v1.155.0",

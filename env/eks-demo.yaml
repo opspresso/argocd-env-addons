@@ -131,3 +131,13 @@ alloy_network_policy:
   api_server_cidrs:
     - 172.20.0.1/32
 
+# Network objects for the kro RdsPostgres template (charts/kro). terraform-env-demo demo/8-app-delivery
+# creates the DB subnet group and the security group; the template renders only when security_group_id is set.
+# subnet_cidrs are the private subnets of that subnet group (demo/2-vpc).
+delivery_resources:
+  rds:
+    subnet_group: app-delivery-rds
+    security_group_id: "" # terraform -chdir=demo/8-app-delivery output -raw rds_security_group_id
+    subnet_cidrs:
+      - 10.10.112.0/20
+      - 10.10.144.0/20

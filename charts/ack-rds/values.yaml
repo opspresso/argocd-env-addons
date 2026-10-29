@@ -1,0 +1,30 @@
+ack-rds:
+  fullnameOverride: ack-rds-controller
+
+  # EKS Pod Identity binds the IAM role pod-role--ack-rds to this ServiceAccount
+  # (terraform-env-demo demo/5-eks), so the ServiceAccount has no IRSA annotation.
+  serviceAccount:
+    create: true
+    name: ack-rds-controller
+
+  # kro RdsPostgres instances create DBInstance only. The other RDS kinds stay
+  # unreconciled, and the IAM policy allows DBInstance actions only.
+  reconcile:
+    resources:
+      - DBInstance
+
+  # One account, no cross-account role map (CARM) ConfigMaps.
+  enableCARM: false
+
+  # Deleting a DBInstance deletes the RDS instance. The DBInstance annotations
+  # from the RdsPostgres template skip the final snapshot.
+  deletionPolicy: delete
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    # The chart's values schema requires a CPU limit.
+    limits:
+      cpu: 200m
+      memory: 256Mi
