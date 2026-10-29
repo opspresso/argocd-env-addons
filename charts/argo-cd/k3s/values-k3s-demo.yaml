@@ -22,10 +22,10 @@ argo-cd:
 
     ingress:
       enabled: false
-      hostname: "argocd.rovr.dev"
+      hostname: "argocd.demo.rovr.dev"
       annotations:
         kubernetes.io/ingress.class: "alb"
-        external-dns.alpha.kubernetes.io/hostname: "argocd.rovr.dev"
+        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.rovr.dev"
         alb.ingress.kubernetes.io/scheme: "internet-facing"
         alb.ingress.kubernetes.io/target-type: "ip"
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
@@ -39,7 +39,7 @@ argo-cd:
         - name: traefik-gateway
           namespace: traefik-gateway
       hostnames:
-        - "argocd.rovr.dev"
+        - "argocd.demo.rovr.dev"
 
     metrics:
       serviceMonitor:
@@ -88,7 +88,7 @@ argo-cd:
 
   notifications:
     enabled: False
-    argocdUrl: https://argocd.rovr.dev
+    argocdUrl: https://argocd.demo.rovr.dev
     # Report outcomes only. Every GitOps commit syncs many apps, so the
     # running and succeeded triggers flooded the channel.
     subscriptions:
@@ -130,9 +130,9 @@ argo-cd:
         g, mcp, role:mcp
 
     cm:
-      url: https://argocd.rovr.dev
+      url: https://argocd.demo.rovr.dev
 
-      statusbadge.url: https://argocd.rovr.dev/
+      statusbadge.url: https://argocd.demo.rovr.dev/
 
       help.chatUrl: ""
       help.chatText: "Chat now!"

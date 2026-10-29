@@ -20,7 +20,7 @@ autoscaling:
   enabled: false
 
 argocd:
-  hostname: argocd.rovr.dev
+  hostname: argocd.demo.rovr.dev
   replicas:
     server: 1
     repo_server: 1
@@ -62,7 +62,7 @@ loki:
   storage_size: 10Gi
 
 grafana:
-  hostname: grafana.rovr.dev
+  hostname: grafana.demo.rovr.dev
   persistence:
     enabled: true
     size: 2Gi
@@ -94,4 +94,3 @@ gateway:
   tls:
     secret_name: traefik-gateway-tls
     issuer_name: letsencrypt-prod
-

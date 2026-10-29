@@ -25,7 +25,7 @@ ssh -i ~/.ssh/id_ed25519_bruce ec2-user@100.113.136.122
 - `kubectl`이 대상 k3s 클러스터를 가리켜야 한다.
 - `../terraform-env-demo/demo/9-agent-studio/bootstrap-k3s.sh`를 먼저 실행해야 한다.
 - bootstrap이 설치한 `helm`, `aws`, `jq`, `argocd` CLI와 접속 확인용 `curl`이 PATH에 있어야 한다.
-- `argocd.rovr.dev`가 k3s 인스턴스의 public IP를 가리켜야 한다.
+- `argocd.demo.rovr.dev`가 k3s 인스턴스의 public IP를 가리켜야 한다.
 - Route53 `rovr.dev` Hosted Zone이 있어야 한다.
 - EC2 Instance Profile에 cert-manager용 Route53 권한이 있어야 한다.
 
@@ -39,7 +39,7 @@ DNS에 다음 A 레코드를 먼저 등록한다. `<k3s-instance-public-ip>`에�
 현재 public IP를 입력한다.
 
 ```text
-argocd.rovr.dev.  A  <k3s-instance-public-ip>
+argocd.demo.rovr.dev.  A  <k3s-instance-public-ip>
 ```
 
 인증서 발급 전까지는 DNS 전파가 완료되어야 한다. `sre@opspresso.com`을 사용할 수
@@ -86,14 +86,14 @@ Argo CD는 `Ingress`를 생성하지 않는다. `traefik-gateway` Gateway와
 
 ## 접속
 
-주소는 `https://argocd.rovr.dev`이다. 관리자 계정은 AWS SSM Parameter Store의
+주소는 `https://argocd.demo.rovr.dev`이다. 관리자 계정은 AWS SSM Parameter Store의
 다음 파라미터를 사용한다.
 
 ```bash
 export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
-argocd login argocd.rovr.dev \
+argocd login argocd.demo.rovr.dev \
   --grpc-web --skip-test-tls \
   --username "$ADMIN_USERNAME" --password "$ADMIN_PASSWORD"
 ```
