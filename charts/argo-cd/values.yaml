@@ -439,6 +439,31 @@ argo-cd:
           clusters:
             - "*"
 
+      # Agent Delivery RdsPostgres (kro, charts/kro): Healthy when kro reports Ready, Degraded when ACK reports a
+      # terminal error, Progressing while RDS is created (about 10 minutes).
+      resource.customizations.health.kro.run_RdsPostgres: |
+        local hs = {status = "Progressing", message = "Waiting for the RDS instance"}
+        local status = obj.status
+        if status == nil then
+          return hs
+        end
+        if status.message ~= nil and status.message ~= "" then
+          hs.message = status.message
+        end
+        if status.terminal == true then
+          hs.status = "Degraded"
+          return hs
+        end
+        if status.conditions ~= nil then
+          for _, condition in ipairs(status.conditions) do
+            if condition.type == "Ready" and condition.status == "True" then
+              hs.status = "Healthy"
+              hs.message = "The RDS instance is available"
+            end
+          end
+        end
+        return hs
+
       # help.chatUrl: "{{argocd.chatUrl}}"
       # help.chatText: "Chat now!"
 
