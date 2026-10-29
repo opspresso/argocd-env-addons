@@ -13,6 +13,11 @@ ack-rds:
     resources:
       - DBInstance
 
+  # installScope stays cluster: the namespace scope takes a fixed namespace list and cannot follow new app-*
+  # namespaces. The upstream ClusterRole therefore reads Secrets in every namespace. Only kro creates DBInstance
+  # objects, and the RdsPostgres template pins the password Secret to the instance namespace.
+  installScope: cluster
+
   # One account, no cross-account role map (CARM) ConfigMaps.
   enableCARM: false
 
