@@ -50,7 +50,8 @@ class ValkeyCacheTemplateTests(unittest.TestCase):
         self.assertEqual(password["namespace"], "${schema.metadata.namespace}")
         # The IAM policy of the ACK controller allows only app-* identifiers.
         for kind, field in (("user", "userID"), ("userGroup", "userGroupID"), ("serverlessCache", "serverlessCacheName")):
-            self.assertTrue(resources[kind]["spec"][field].startswith('${"app-" +'), kind)
+            self.assertTrue(resources[kind]["spec"][field].startswith('${"app-" + "%x".format([hash.sha256('), kind)
+            self.assertTrue(resources[kind]["spec"][field].endswith(".substring(0, 32)}"), kind)
 
     def test_only_the_instance_namespace_reaches_the_cache_subnets(self):
         rgd = graph(render(security_group_id="sg-0123456789abcdef0"))

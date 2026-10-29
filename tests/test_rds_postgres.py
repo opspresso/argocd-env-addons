@@ -42,7 +42,8 @@ class RdsPostgresTemplateTests(unittest.TestCase):
         self.assertIn("schema.metadata.uid", annotations["rds.services.k8s.aws/final-db-snapshot-identifier"])
         self.assertNotIn("rds.services.k8s.aws/delete-automated-backups", annotations)
         # The IAM policy of the ACK controller allows only db:app-* identifiers.
-        self.assertTrue(db["dbInstanceIdentifier"].startswith('${"app-" +'))
+        self.assertTrue(db["dbInstanceIdentifier"].startswith('${"app-" + "%x".format([hash.sha256('))
+        self.assertTrue(db["dbInstanceIdentifier"].endswith(".substring(0, 32)}"))
         # The password comes from a Secret of the instance namespace, never from the manifest.
         self.assertEqual(db["masterUserPassword"]["namespace"], "${schema.metadata.namespace}")
         policy = resources["networkPolicy"]["spec"]

@@ -72,11 +72,13 @@ raw:
                   # final snapshot. ACK skips it unless told otherwise. The name is the DB identifier plus the instance
                   # UID, so a later instance with the same name never collides with an old snapshot.
                   rds.services.k8s.aws/skip-final-snapshot: "false"
-                  rds.services.k8s.aws/final-db-snapshot-identifier: '${"app-" + "%x".format([hash.fnv64a("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]) + "-final-" + schema.metadata.uid}'
+                  rds.services.k8s.aws/final-db-snapshot-identifier: '${"app-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32) + "-final-" + schema.metadata.uid}'
               spec:
-                # app-<16 hex digits of FNV-1a 64 over "<cluster>/<namespace>/<name>">: 20 characters,
-                # unique per cluster, namespace and name, and inside the IAM scope db:app-*.
-                dbInstanceIdentifier: '${"app-" + "%x".format([hash.fnv64a("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)])}'
+                # app-<first 32 hex digits (128 bits) of SHA-256 over "<cluster>/<namespace>/<name>">: 36 characters,
+                # unique per cluster, namespace and name, and inside the IAM scope db:app-*. ACK takes over an existing
+                # instance of the same identifier, so a tenant must not be able to choose a name that hashes to another
+                # tenant's identifier: a 64-bit FNV hash allows that, a 128-bit SHA-256 prefix does not.
+                dbInstanceIdentifier: '${"app-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32)}'
                 engine: postgres
                 # No engineVersion: RDS uses its default major version. ACK writes the full version
                 # back to the spec, and a template value would make kro and ACK overwrite each other.
@@ -171,10 +173,10 @@ raw:
               metadata:
                 name: ${schema.metadata.name}
               spec:
-                # <cluster>-<16 hex digits of FNV-1a 64 over "<cluster>/<namespace>/<name>">: at most 25 characters,
-                # unique per cluster, namespace and name, and inside the IAM scope <cluster>-* of the ACK S3 role.
+                # <cluster>-<first 32 hex digits of SHA-256 over "<cluster>/<namespace>/<name>">: 41 characters for
+                # eks-demo, unique per cluster, namespace and name, and inside the IAM scope <cluster>-* of the ACK S3 role.
                 # ACK adopts an existing bucket of the same name in the account, so the name must never be shared.
-                name: '${"eks-demo-" + "%x".format([hash.fnv64a("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)])}'
+                name: '${"eks-demo-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32)}'
                 abac:
                   status: Enabled
                 tagging:

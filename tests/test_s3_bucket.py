@@ -26,7 +26,9 @@ class S3BucketTemplateTests(unittest.TestCase):
         spec = bucket["template"]["spec"]
         # The name never contains the namespace: ACK adopts an existing bucket of the same name, so names of two
         # namespaces must not be able to collide. The IAM scopes of ACK (eks-demo-*) and the tenant role rely on the prefix.
-        self.assertTrue(spec["name"].startswith('${"eks-demo-" + "%x".format([hash.fnv64a("eks-demo/" + schema.metadata.namespace'))
+        self.assertTrue(spec["name"].startswith('${"eks-demo-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace'))
+        # 128 bits: a tenant cannot find a name of its own that hashes to another tenant's bucket.
+        self.assertTrue(spec["name"].endswith(".substring(0, 32)}"))
         self.assertEqual(spec["publicAccessBlock"], dict.fromkeys(["blockPublicACLs", "ignorePublicACLs", "blockPublicPolicy", "restrictPublicBuckets"], True))
         self.assertEqual(spec["ownershipControls"], {"rules": [{"objectOwnership": "BucketOwnerEnforced"}]})
         self.assertEqual(spec["encryption"]["rules"][0]["applyServerSideEncryptionByDefault"], {"sseAlgorithm": "AES256"})
