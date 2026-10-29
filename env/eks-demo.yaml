@@ -143,7 +143,7 @@ delivery_resources:
     subnet_group: app-delivery-rds
     # rds.force_ssl=1 (terraform output rds_parameter_group_name). Its family must match the RDS default major version.
     parameter_group: app-delivery-postgres18
-    security_group_id: "" # terraform -chdir=demo/8-app-delivery output -raw rds_security_group_id
+    security_group_id: sg-05504ccc76aad30f0 # terraform -chdir=demo/8-app-delivery output -raw rds_security_group_id
     subnet_cidrs:
       - 10.10.208.0/20
       - 10.10.240.0/20
