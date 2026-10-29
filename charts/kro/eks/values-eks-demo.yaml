@@ -1,3 +1,123 @@
 kro:
   fullnameOverride: kro
 
+
+
+# Platform templates that Agent Delivery instantiates in app-<slug>-<env> namespaces
+# (agent-platform docs/DELIVERY_V2.md D3, D4).
+raw:
+  resources:
+    # kro reconciles RdsPostgres instances and the kinds the template creates. The chart's
+    # aggregated ClusterRole kro:controller picks these rules up by the label.
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: ClusterRole
+      metadata:
+        name: kro:controller:rds-postgres
+        labels:
+          rbac.kro.run/aggregate-to-controller: "true"
+      rules:
+        - apiGroups: [kro.run]
+          resources: [rdspostgres, rdspostgres/status, rdspostgres/finalizers]
+          verbs: ["*"]
+        - apiGroups: [rds.services.k8s.aws]
+          resources: [dbinstances]
+          verbs: ["*"]
+        - apiGroups: [networking.k8s.io]
+          resources: [networkpolicies]
+          verbs: ["*"]
+
+    # One single-AZ RDS for PostgreSQL instance per RdsPostgres, in the shared subnet group and
+    # security group from terraform-env-demo demo/8-app-delivery, plus the egress NetworkPolicy
+    # that lets the instance namespace reach the DB subnets.
+    - apiVersion: kro.run/v1alpha1
+      kind: ResourceGraphDefinition
+      metadata:
+        name: rds-postgres
+      spec:
+        schema:
+          apiVersion: v1alpha1
+          kind: RdsPostgres
+          spec:
+            dbName: string | default="app" immutable=true pattern="^[a-z][a-z0-9_]{0,62}$" description="Initial database name"
+            username: string | default="app" immutable=true pattern="^[a-z][a-z0-9_]{0,15}$" description="Master user name"
+            passwordSecret:
+              name: string | default="app-env" pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" maxLength=253 description="Secret in the instance namespace that holds the master password"
+              key: string | required=true pattern="^[A-Z][A-Z0-9_]{0,63}$" description="Key of the master password in the Secret (an Agent Delivery Variable name)"
+            instanceClass: string | default="db.t4g.micro" enum="db.t4g.micro,db.t4g.small" description="RDS instance class"
+            storageGiB: integer | default=20 minimum=20 maximum=100 description="gp3 storage in GiB. RDS can only increase it"
+          status:
+            dbInstanceIdentifier: ${dbInstance.spec.dbInstanceIdentifier}
+            address: ${dbInstance.status.endpoint.address}
+            port: ${dbInstance.status.endpoint.port}
+            dbInstanceStatus: ${dbInstance.status.?dbInstanceStatus.orValue("")}
+            engineVersion: ${dbInstance.spec.?engineVersion.orValue("")}
+            # ACK.Terminal: the controller stops retrying until the spec changes.
+            terminal: '${dbInstance.status.?conditions.orValue([]).exists(c, c.type == "ACK.Terminal" && c.status == "True")}'
+            message: '${dbInstance.status.?conditions.orValue([]).filter(c, (c.type == "ACK.Terminal" || c.type == "ACK.Recoverable") && c.status == "True").map(c, c.?message.orValue("")).join("; ")}'
+        resources:
+          - id: dbInstance
+            readyWhen:
+              - ${dbInstance.status.?dbInstanceStatus.orValue("") == "available"}
+              - ${dbInstance.status.?endpoint.?address.orValue("") != ""}
+            template:
+              apiVersion: rds.services.k8s.aws/v1alpha1
+              kind: DBInstance
+              metadata:
+                name: ${schema.metadata.name}
+                annotations:
+                  # Deleting the instance (resource removed, or its environment's Application deleted) always keeps a
+                  # final snapshot. ACK skips it unless told otherwise. The name is the DB identifier plus the instance
+                  # UID, so a later instance with the same name never collides with an old snapshot.
+                  rds.services.k8s.aws/skip-final-snapshot: "false"
+                  rds.services.k8s.aws/final-db-snapshot-identifier: '${"app-" + "%x".format([hash.fnv64a("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]) + "-final-" + schema.metadata.uid}'
+              spec:
+                # app-<16 hex digits of FNV-1a 64 over "<cluster>/<namespace>/<name>">: 20 characters,
+                # unique per cluster, namespace and name, and inside the IAM scope db:app-*.
+                dbInstanceIdentifier: '${"app-" + "%x".format([hash.fnv64a("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)])}'
+                engine: postgres
+                # No engineVersion: RDS uses its default major version. ACK writes the full version
+                # back to the spec, and a template value would make kro and ACK overwrite each other.
+                dbInstanceClass: ${schema.spec.instanceClass}
+                storageType: gp3
+                allocatedStorage: ${schema.spec.storageGiB}
+                storageEncrypted: true
+                multiAZ: false
+                publiclyAccessible: false
+                deletionProtection: false
+                backupRetentionPeriod: 1
+                port: 5432
+                dbName: ${schema.spec.dbName}
+                masterUsername: ${schema.spec.username}
+                masterUserPassword:
+                  namespace: ${schema.metadata.namespace}
+                  name: ${schema.spec.passwordSecret.name}
+                  key: ${schema.spec.passwordSecret.key}
+                dbSubnetGroupName: "app-delivery-rds"
+                # rds.force_ssl=1: connections without TLS are refused (clients use sslmode=require).
+                dbParameterGroupName: "app-delivery-postgres18"
+                vpcSecurityGroupIDs:
+                  - "sg-05504ccc76aad30f0"
+
+          # App namespaces deny egress to private ranges. This adds TCP 5432 to the DB subnets for
+          # the instance namespace only; other namespaces stay blocked.
+          - id: networkPolicy
+            template:
+              apiVersion: networking.k8s.io/v1
+              kind: NetworkPolicy
+              metadata:
+                name: rds-postgres-${schema.metadata.name}
+              spec:
+                podSelector: {}
+                policyTypes: [Egress]
+                egress:
+                  - to:
+
+                      - ipBlock:
+                          cidr: "10.10.208.0/20"
+
+                      - ipBlock:
+                          cidr: "10.10.240.0/20"
+
+                    ports:
+                      - protocol: TCP
+                        port: 5432
