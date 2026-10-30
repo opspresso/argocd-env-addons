@@ -53,6 +53,8 @@ class AppDeliveryProfileTests(unittest.TestCase):
                 # The chart guard checks the environment against these parameters, which a values file cannot override.
                 self.assertEqual(parameters["app.tenant.environments"], " ".join(profile["environments"]))
                 self.assertEqual(parameters["app.tenant.primaryEnvironment"], profile["primary_environment"])
+                self.assertEqual(parameters["app.tenant.tenantSecretsRoleArn"],
+                                 f"arn:aws:iam::{context['aws_account_id']}:role/agent-runway-tenant-secrets")
                 self.assertIn(f'eq .path.basename "{profile["primary_environment"]}"', parameters["app.routing.hosts[0]"])
                 self.assertTrue(parameters["app.routing.hosts[0]"].endswith("." + profile["domain"]))
                 self.assertEqual(chart["helm"]["valueFiles"], ["../../{{ .path.path }}/app.yaml"])

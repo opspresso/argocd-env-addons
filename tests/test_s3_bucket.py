@@ -37,6 +37,7 @@ class S3BucketTemplateTests(unittest.TestCase):
         tags = {t["key"]: t["value"] for t in spec["tagging"]["tagSet"]}
         self.assertEqual(tags["eks-cluster-name"], "eks-demo")
         self.assertEqual(tags["kubernetes-namespace"], "${schema.metadata.namespace}")
+        self.assertEqual(tags["agent-runway-resource"], "${schema.metadata.name}")
         self.assertNotIn("policy", spec)
 
     def test_instance_namespace_reaches_only_the_pod_identity_agent(self):

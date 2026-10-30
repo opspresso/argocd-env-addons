@@ -280,7 +280,7 @@ raw:
           verbs: ["*"]
 
     # One private S3 bucket per S3Bucket. Apps in the instance namespace reach it with the shared Pod Identity role
-    # agent-delivery-tenant-objects (terraform-env-demo demo/8-agent-delivery), which matches the bucket tag
+    # agent-runway-tenant-objects (terraform-env-demo demo/8-agent-delivery), which matches the bucket tag
     # kubernetes-namespace against the Pod's session tag. ABAC must be on for S3 to evaluate bucket tags.
     - apiVersion: kro.run/v1alpha1
       kind: ResourceGraphDefinition
@@ -320,7 +320,7 @@ raw:
                       value: "{{cluster}}"
                     - key: kubernetes-namespace
                       value: ${schema.metadata.namespace}
-                    - key: agent-delivery-resource
+                    - key: agent-runway-resource
                       value: ${schema.metadata.name}
                 publicAccessBlock:
                   blockPublicACLs: true
