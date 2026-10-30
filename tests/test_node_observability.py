@@ -53,28 +53,21 @@ def run_promtool(tmp_path):
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-def test_dashboard_change_updates_the_pod_template(tmp_path):
-    """A JSON-only GitOps change must update mounted dashboards and the Pod template."""
-    chart = tmp_path / "charts/grafana"
-    shutil.copytree(ROOT / "charts/grafana", chart, ignore=shutil.ignore_patterns("charts"))
-    shutil.copytree(ROOT / "env", tmp_path / "env")
-    # The generator resolves its policy file relative to its own script.
-    import gen_values
-    previous = Path.cwd()
-    try:
-        os.chdir(tmp_path)
-        args = type("Args", (), {"reponame": "grafana", "platform": "eks"})()
-        gen_values.gen_repos(args, "yaml.j2")
-        first = yaml.safe_load((chart / "eks/values-eks-demo.yaml").read_text())
-        dashboard = chart / "dashboards/kube-cluster.json"
-        data = json.loads(dashboard.read_text())
-        data["description"] += " Updated host-health explanation."
-        dashboard.write_text(json.dumps(data))
-        gen_values.gen_repos(args, "yaml.j2")
-        second = yaml.safe_load((chart / "eks/values-eks-demo.yaml").read_text())
-    finally:
-        os.chdir(previous)
-    assert first["grafana"]["podAnnotations"]["checksum/managed-dashboards"] != second["grafana"]["podAnnotations"]["checksum/managed-dashboards"]
+def test_dashboard_change_reaches_the_mounted_configmap(tmp_path):
+    """A JSON-only GitOps change must reach Grafana through the bundled ConfigMap."""
+    chart = tmp_path / "grafana"
+    shutil.copytree(ROOT / "charts/grafana", chart)
+    dashboard = chart / "dashboards/kube-cluster.json"
+    data = json.loads(dashboard.read_text())
+    data["description"] += " Updated host-health explanation."
+    dashboard.write_text(json.dumps(data))
+    result = subprocess.run(
+        ["helm", "template", "grafana", str(chart), "-f", str(chart / "values.yaml"),
+         "-f", str(chart / "eks/values-eks-demo.yaml")], capture_output=True, text=True, check=True,
+    )
+    configs = [doc for doc in yaml.safe_load_all(result.stdout) if doc and doc["kind"] == "ConfigMap"]
+    bundled = next(doc for doc in configs if doc["metadata"]["name"] == "grafana-dashboards")
+    assert "Updated host-health explanation." in bundled["data"]["kube-cluster.json"]
 
 
 def test_host_collection_renders_node_labels_and_short_scrapes():
@@ -100,14 +93,19 @@ def test_eks_job_alerts_are_not_provisioned_on_k3s():
     assert "node-health.yaml" not in (values["grafana"].get("alerting") or {})
 
 
-def test_managed_dashboards_download_public_json_without_embedding(rendered_grafana):
-    configs = [doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"]
-    assert not any(key.endswith(".json") for doc in configs for key in (doc.get("data") or {}))
-    main = next(doc for doc in configs if doc["metadata"]["name"] == "grafana")
-    script = main["data"]["download_dashboards.sh"]
-    for name in ["kube-cluster", "kube-workload"]:
-        assert re.search(
-            rf"https://raw\.githubusercontent\.com/opspresso/argocd-env-addons/[0-9a-f]{{40}}/charts/grafana/dashboards/{name}\.json",
-            script,
-        )
-        assert f"{name}.json?v=" not in script
+def test_dashboards_ship_inside_the_chart(rendered_grafana):
+    dashboards = sorted(path.name for path in (ROOT / "charts/grafana/dashboards").glob("*.json"))
+    configs = {doc["metadata"]["name"]: doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"}
+    assert sorted(configs["grafana-dashboards"]["data"]) == dashboards
+    for name in dashboards:
+        json.loads(configs["grafana-dashboards"]["data"][name])
+    deployment = next(doc for doc in rendered_grafana if doc["kind"] == "Deployment")
+    pod = deployment["spec"]["template"]["spec"]
+    mounts = {m["mountPath"]: m["name"] for c in pod["containers"] if c["name"] == "grafana" for m in c["volumeMounts"]}
+    assert mounts["/var/lib/grafana/dashboards/managed"] == "dashboards-managed"
+    # Third-party dashboards come from their publishers' latest version.
+    script = configs["grafana"]["data"]["download_dashboards.sh"]
+    assert "raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json" in script
+    assert "raw.githubusercontent.com/opspresso" not in script
+    for gnet in ["7639/revisions/latest", "7645/revisions/latest"]:
+        assert gnet in script

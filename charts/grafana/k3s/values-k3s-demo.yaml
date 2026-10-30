@@ -19,34 +19,6 @@ grafana:
 
 
 
-  # Use the committed dashboard revision; branch URLs can return stale JSON.
-
-  dashboards:
-    managed: null
-    alpha:
-      kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/kube-cluster.json
-      kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/kube-workload.json
-      workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/workspace-capacity.json
-      argo-cd:
-        url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
-        datasource: Prometheus
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: alpha
-          orgId: 1
-          folder: ''
-          type: file
-          disableDeletion: false
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/alpha
-
-
 
   # Alpha is for resource inspection; production owns alert delivery.
   alerting: null
@@ -65,8 +37,6 @@ grafana:
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
-    # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "07e2184f6ba5cecabf740ddd9f32a9cdad088710386fa6870faeecc031a845f5"
 
   grafana.ini:
 

@@ -19,47 +19,6 @@ grafana:
 {% endif %}
 
 {% if grafana is defined %}
-  # Use the committed dashboard revision; branch URLs can return stale JSON.
-{% if env == 'k3s' %}
-  dashboards:
-    managed: null
-    alpha:
-      kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
-      kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-workload.json
-      workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/workspace-capacity.json
-      argo-cd:
-        url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
-        datasource: Prometheus
-  dashboardProviders:
-    dashboardproviders.yaml:
-      apiVersion: 1
-      providers:
-        - name: alpha
-          orgId: 1
-          folder: ''
-          type: file
-          disableDeletion: false
-          editable: true
-          options:
-            path: /var/lib/grafana/dashboards/alpha
-{% else %}
-  dashboards:
-    managed:
-      cluster-overview:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/cluster-overview.json
-      service-status:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/service-status.json
-      kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
-      kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-workload.json
-      workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/workspace-capacity.json
-{% endif %}
-
 {% if env == 'k3s' %}
   # Alpha is for resource inspection; production owns alert delivery.
   alerting: null
@@ -96,8 +55,6 @@ grafana:
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
-    # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "{{grafana_dashboard_checksum}}"
 
   grafana.ini:
 {% if env == 'k3s' %}
@@ -107,7 +64,7 @@ grafana:
     server:
       root_url: "https://{{grafana.hostname}}/"
 {% if env != 'k3s' %}
-    # Users land on the overview; the file is written by the dashboard download.
+    # Users land on the overview, mounted from the bundled dashboards ConfigMap.
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
 {% endif %}
