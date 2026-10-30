@@ -14,15 +14,15 @@ grafana:
   dashboards:
     managed:
       cluster-overview:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/cluster-overview.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/cluster-overview.json
       service-status:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/service-status.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/service-status.json
       kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/kube-cluster.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/kube-workload.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/kube-workload.json
       workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/workspace-capacity.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/workspace-capacity.json
 
 
 
