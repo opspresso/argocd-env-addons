@@ -125,8 +125,8 @@ raw:
     # backend is down or being redeployed. local_reply_config rewrites only
     # replies the gateway generates itself, so a 5xx from an application keeps
     # its own body. Browsers get this page; API and gRPC clients, which do not
-    # send Accept: text/html, keep the plain text. Envoy expands %COMMAND% in
-    # the body, so the page must not contain a literal percent sign.
+    # send Accept: text/html, keep the plain text. The page polls the URL and
+    # reloads itself once the gateway stops answering 502-504.
     - apiVersion: networking.istio.io/v1alpha3
       kind: EnvoyFilter
       metadata:
@@ -183,32 +183,550 @@ raw:
                         body_format_override:
                           content_type: text/html; charset=UTF-8
                           text_format_source:
+                            # Source: unavailable-page.html. Envoy expands %COMMAND% in
+                            # it, so the file must not contain another literal percent sign.
                             inline_string: |
                               <!doctype html>
-                              <html lang="ko">
+                              <html lang="en" data-code="%RESPONSE_CODE%" data-detail="%RESPONSE_CODE_DETAILS%" data-request="%REQ(X-REQUEST-ID):64%">
                               <head>
                               <meta charset="utf-8">
                               <meta name="viewport" content="width=device-width, initial-scale=1">
-                              <meta http-equiv="refresh" content="30">
-                              <title>잠시 후 다시 시도해 주세요</title>
+                              <meta name="robots" content="noindex">
+                              <noscript><meta http-equiv="refresh" content="30"></noscript>
+                              <title>Service unavailable</title>
                               <style>
-                              :root { color-scheme: light dark; }
-                              body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f7f9; color: #1f2328; }
-                              main { max-width: 32rem; padding: 2rem 1.5rem; text-align: center; }
-                              h1 { font-size: 1.5rem; margin: 0 0 1rem; }
-                              p { line-height: 1.6; margin: 0 0 0.75rem; }
-                              .en { color: #59636e; font-size: 0.9rem; }
-                              .meta { margin-top: 2rem; color: #818b98; font-size: 0.75rem; font-family: ui-monospace, monospace; }
-                              @media (prefers-color-scheme: dark) { body { background: #0d1117; color: #e6edf3; } .en { color: #9198a1; } }
+                              :root {
+                                color-scheme: light dark;
+                                --bg: #e8ecf0;
+                                --ink: #17202b;
+                                --muted: #5a6676;
+                                --line: #2f55d4;
+                                --signal: #d9822b;
+                                --ok: #1c9462;
+                                --rule: #c3cbd5;
+                                --gutter: clamp(20px, 7vw, 112px);
+                                --font: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Hiragino Sans", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif;
+                              }
+                              @media (prefers-color-scheme: dark) {
+                                :root {
+                                  --bg: #0f1724;
+                                  --ink: #e6ecf3;
+                                  --muted: #94a2b4;
+                                  --line: #8aa6ff;
+                                  --signal: #f2b45f;
+                                  --ok: #52d49c;
+                                  --rule: #2b3749;
+                                }
+                              }
+                              * { box-sizing: border-box; }
+                              html, body { margin: 0; }
+                              body {
+                                min-height: 100vh;
+                                min-height: 100dvh;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: center;
+                                background: var(--bg);
+                                color: var(--ink);
+                                font-family: var(--font);
+                                -webkit-font-smoothing: antialiased;
+                              }
+                              .top {
+                                position: absolute;
+                                top: 0;
+                                right: 0;
+                                padding: 20px var(--gutter);
+                              }
+                              .top label {
+                                position: absolute;
+                                width: 1px;
+                                height: 1px;
+                                overflow: hidden;
+                                clip: rect(0 0 0 0);
+                              }
+                              select {
+                                font: inherit;
+                                font-size: 0.8125rem;
+                                color: var(--muted);
+                                background: transparent;
+                                border: 1px solid var(--rule);
+                                border-radius: 8px;
+                                padding: 6px 10px;
+                              }
+                              .wire {
+                                position: relative;
+                                height: clamp(120px, 22vh, 220px);
+                                padding: 0 var(--gutter);
+                              }
+                              canvas {
+                                display: block;
+                                touch-action: none;
+                                cursor: grab;
+                              }
+                              canvas.grabbing { cursor: grabbing; }
+                              .ends {
+                                position: absolute;
+                                left: var(--gutter);
+                                right: var(--gutter);
+                                top: calc(var(--mid, 70px) + 16px);
+                                display: flex;
+                                justify-content: space-between;
+                                align-items: baseline;
+                                gap: 16px;
+                                font-size: 0.8125rem;
+                                color: var(--muted);
+                                pointer-events: none;
+                              }
+                              .ends .host { color: var(--ink); font-weight: 600; text-align: right; overflow-wrap: anywhere; }
+                              .ends .hint { transition: opacity 600ms ease; }
+                              .ends .hint.done { opacity: 0; }
+                              main {
+                                max-width: calc(44rem + 2 * var(--gutter));
+                                padding: 64px var(--gutter) 56px;
+                              }
+                              h1 {
+                                margin: 0 0 18px;
+                                font-size: clamp(1.875rem, 1.2rem + 2.8vw, 3.25rem);
+                                font-weight: 650;
+                                line-height: 1.15;
+                                letter-spacing: -0.022em;
+                                word-break: keep-all;
+                                overflow-wrap: anywhere;
+                              }
+                              .lead {
+                                margin: 0;
+                                max-width: 34em;
+                                font-size: 1.0625rem;
+                                line-height: 1.65;
+                                color: var(--muted);
+                                word-break: keep-all;
+                              }
+                              .status {
+                                display: flex;
+                                flex-wrap: wrap;
+                                align-items: center;
+                                gap: 10px 20px;
+                                margin-top: 32px;
+                              }
+                              .state { display: flex; align-items: center; gap: 10px; font-size: 0.9375rem; font-variant-numeric: tabular-nums; }
+                              .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--muted); flex: none; }
+                              body[data-state="checking"] .dot { background: var(--signal); }
+                              body[data-state="recovered"] .dot { background: var(--ok); }
+                              button {
+                                font: inherit;
+                                font-size: 0.9375rem;
+                                font-weight: 600;
+                                color: var(--bg);
+                                background: var(--ink);
+                                border: 0;
+                                border-radius: 999px;
+                                padding: 10px 20px;
+                                cursor: pointer;
+                              }
+                              button:disabled { opacity: 0.4; cursor: default; }
+                              button.copy {
+                                color: var(--line);
+                                background: transparent;
+                                padding: 0 4px;
+                                font-size: inherit;
+                              }
+                              :focus-visible { outline: 2px solid var(--line); outline-offset: 3px; }
+                              dl {
+                                display: flex;
+                                flex-wrap: wrap;
+                                gap: 8px 32px;
+                                margin: 40px 0 0;
+                                font-size: 0.8125rem;
+                                color: var(--muted);
+                              }
+                              dl div { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+                              dt, button.copy { flex: none; white-space: nowrap; }
+                              dd { margin: 0; min-width: 0; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+                              [hidden] { display: none !important; }
+                              @media (max-width: 560px) {
+                                .ends .hint { display: none; }
+                                main { padding-top: 48px; }
+                              }
                               </style>
                               </head>
-                              <body>
+                              <body data-state="waiting">
+                              <div class="top">
+                                <label for="lang" data-i18n="lang">Language</label>
+                                <select id="lang"></select>
+                              </div>
+                              <div class="wire" id="wire">
+                                <canvas id="string" tabindex="0" role="button" aria-label="Pluck the line while you wait"></canvas>
+                                <div class="ends" aria-hidden="true">
+                                  <span data-i18n="you">Your browser</span>
+                                  <span class="hint" id="hint" data-i18n="hint">Pluck the line while you wait</span>
+                                  <span class="host" id="host"></span>
+                                </div>
+                              </div>
                               <main>
-                              <h1>서비스를 잠시 이용할 수 없습니다</h1>
-                              <p>점검 또는 배포 작업 중이거나 일시적인 문제가 발생했습니다.<br>잠시 후 자동으로 다시 시도합니다.</p>
-                              <p class="en">This service is temporarily unavailable due to maintenance or a temporary issue. This page retries automatically.</p>
-                              <p class="meta">%RESPONSE_CODE% · %RESPONSE_CODE_DETAILS% · %REQ(X-REQUEST-ID)%</p>
+                                <h1 data-i18n="title">This service isn't responding right now</h1>
+                                <p class="lead" data-i18n="body">It may be under maintenance or being updated. Keep this page open. It reloads by itself as soon as the service is back.</p>
+                                <div class="status">
+                                  <p class="state"><span class="dot"></span><span id="live" aria-live="polite"></span><span id="count" aria-hidden="true"></span></p>
+                                  <button type="button" id="retry" data-i18n="retry">Check now</button>
+                                </div>
+                                <dl>
+                                  <div><dt data-i18n="code">Error code</dt><dd id="code"></dd></div>
+                                  <div id="request-row"><dt data-i18n="request">Request ID</dt><dd id="request"></dd><button type="button" class="copy" id="copy" data-i18n="copy">Copy</button></div>
+                                </dl>
                               </main>
+                              <script>
+                              (() => {
+                                // Envoy fills the data attributes. A literal percent sign in this file
+                                // would be read as a format command, so it is built from its char code.
+                                const PCT = String.fromCharCode(37);
+                                const root = document.documentElement;
+                                const value = (v, fallback) => (!v || v === "-" || v.charAt(0) === PCT) ? fallback : v;
+                                const code = value(root.dataset.code, "503");
+                                const detail = value(root.dataset.detail, "").split("{")[0];
+                                const requestId = value(root.dataset.request, "");
+
+                                const I18N = {
+                                  ko: { name: "한국어", title: "지금 이 서비스가 응답하지 않습니다", body: "점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 돌아오는 즉시 자동으로 다시 불러옵니다.", you: "내 브라우저", hint: "기다리는 동안 선을 튕겨 보세요", checkIn: "{s}초 후 다시 확인합니다", checking: "확인하는 중…", notYet: "아직 응답이 없습니다.", recovered: "서비스가 돌아왔습니다. 페이지를 불러옵니다…", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
+                                  en: { name: "English", title: "This service isn't responding right now", body: "It may be under maintenance or being updated. Keep this page open. It reloads by itself as soon as the service is back.", you: "Your browser", hint: "Pluck the line while you wait", checkIn: "Checking again in {s}s", checking: "Checking…", notYet: "No response yet.", recovered: "The service is back. Loading the page…", offline: "You're offline. Checking resumes when your connection is back.", retry: "Check now", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" },
+                                  ja: { name: "日本語", title: "このサービスは現在応答していません", body: "メンテナンスまたは更新中の可能性があります。このページを開いたままにしておくと、サービスが復旧しだい自動的に再読み込みします。", you: "お使いのブラウザ", hint: "待っている間、線をはじいてみてください", checkIn: "{s}秒後に再確認します", checking: "確認中…", notYet: "まだ応答がありません。", recovered: "サービスが復旧しました。ページを読み込んでいます…", offline: "オフラインです。接続が戻ると確認を再開します。", retry: "今すぐ確認", code: "エラーコード", request: "リクエスト ID", copy: "コピー", copied: "コピーしました", lang: "言語" },
+                                  "zh-Hans": { name: "简体中文", title: "该服务暂时没有响应", body: "可能正在维护或更新。保持此页面打开，服务恢复后会自动重新加载。", you: "你的浏览器", hint: "等待时，拨动这根线试试", checkIn: "{s} 秒后重新检查", checking: "正在检查…", notYet: "暂无响应。", recovered: "服务已恢复，正在加载页面…", offline: "网络已断开。恢复连接后将继续检查。", retry: "立即检查", code: "错误代码", request: "请求 ID", copy: "复制", copied: "已复制", lang: "语言" },
+                                  "zh-Hant": { name: "繁體中文", title: "此服務暫時沒有回應", body: "可能正在維護或更新。保持此頁面開啟，服務恢復後會自動重新載入。", you: "你的瀏覽器", hint: "等待時，撥動這條線試試", checkIn: "{s} 秒後重新檢查", checking: "正在檢查…", notYet: "尚無回應。", recovered: "服務已恢復，正在載入頁面…", offline: "網路已中斷。恢復連線後將繼續檢查。", retry: "立即檢查", code: "錯誤代碼", request: "請求 ID", copy: "複製", copied: "已複製", lang: "語言" },
+                                  es: { name: "Español", title: "Este servicio no responde en este momento", body: "Puede estar en mantenimiento o actualizándose. Deja esta página abierta: se recargará sola en cuanto el servicio vuelva.", you: "Tu navegador", hint: "Mientras esperas, pulsa la línea", checkIn: "Nueva comprobación en {s} s", checking: "Comprobando…", notYet: "Aún no hay respuesta.", recovered: "El servicio ha vuelto. Cargando la página…", offline: "Sin conexión. La comprobación se reanudará cuando vuelva la conexión.", retry: "Comprobar ahora", code: "Código de error", request: "ID de solicitud", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
+                                  fr: { name: "Français", title: "Ce service ne répond pas pour le moment", body: "Il est peut-être en maintenance ou en cours de mise à jour. Gardez cette page ouverte : elle se recharge d’elle-même dès que le service est rétabli.", you: "Votre navigateur", hint: "En attendant, pincez la ligne", checkIn: "Nouvelle vérification dans {s} s", checking: "Vérification…", notYet: "Toujours pas de réponse.", recovered: "Le service est rétabli. Chargement de la page…", offline: "Vous êtes hors ligne. La vérification reprendra au retour de la connexion.", retry: "Vérifier maintenant", code: "Code d’erreur", request: "ID de requête", copy: "Copier", copied: "Copié", lang: "Langue" },
+                                  de: { name: "Deutsch", title: "Dieser Dienst antwortet gerade nicht", body: "Möglicherweise wird er gewartet oder aktualisiert. Lassen Sie diese Seite geöffnet. Sie lädt sich automatisch neu, sobald der Dienst wieder da ist.", you: "Ihr Browser", hint: "Zupfen Sie in der Zwischenzeit an der Linie", checkIn: "Nächste Prüfung in {s} s", checking: "Wird geprüft …", notYet: "Noch keine Antwort.", recovered: "Der Dienst ist wieder da. Seite wird geladen …", offline: "Sie sind offline. Die Prüfung wird fortgesetzt, sobald die Verbindung zurück ist.", retry: "Jetzt prüfen", code: "Fehlercode", request: "Anfrage-ID", copy: "Kopieren", copied: "Kopiert", lang: "Sprache" },
+                                  pt: { name: "Português", title: "Este serviço não está respondendo agora", body: "Ele pode estar em manutenção ou sendo atualizado. Deixe esta página aberta: ela recarrega sozinha assim que o serviço voltar.", you: "Seu navegador", hint: "Enquanto espera, dedilhe a linha", checkIn: "Nova verificação em {s} s", checking: "Verificando…", notYet: "Ainda sem resposta.", recovered: "O serviço voltou. Carregando a página…", offline: "Você está offline. A verificação continua quando a conexão voltar.", retry: "Verificar agora", code: "Código de erro", request: "ID da solicitação", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
+                                  vi: { name: "Tiếng Việt", title: "Dịch vụ này hiện không phản hồi", body: "Có thể dịch vụ đang được bảo trì hoặc cập nhật. Hãy giữ trang này mở. Trang sẽ tự tải lại ngay khi dịch vụ hoạt động trở lại.", you: "Trình duyệt của bạn", hint: "Trong lúc chờ, hãy gảy sợi dây", checkIn: "Kiểm tra lại sau {s} giây", checking: "Đang kiểm tra…", notYet: "Chưa có phản hồi.", recovered: "Dịch vụ đã hoạt động trở lại. Đang tải trang…", offline: "Bạn đang ngoại tuyến. Việc kiểm tra sẽ tiếp tục khi có kết nối.", retry: "Kiểm tra ngay", code: "Mã lỗi", request: "Mã yêu cầu", copy: "Sao chép", copied: "Đã sao chép", lang: "Ngôn ngữ" }
+                                };
+                                const LANG_KEY = "unavailable-page.lang";
+                                const $ = (id) => document.getElementById(id);
+
+                                function match(tag) {
+                                  tag = String(tag || "").toLowerCase();
+                                  if (tag.startsWith("zh")) return /hant|tw|hk|mo/.test(tag) ? "zh-Hant" : "zh-Hans";
+                                  const base = tag.split("-")[0];
+                                  return I18N[base] ? base : null;
+                                }
+                                function pickLang() {
+                                  try {
+                                    const saved = localStorage.getItem(LANG_KEY);
+                                    if (saved && I18N[saved]) return saved;
+                                  } catch (e) {}
+                                  for (const tag of navigator.languages || [navigator.language]) {
+                                    const m = match(tag);
+                                    if (m) return m;
+                                  }
+                                  return "en";
+                                }
+
+                                let lang = pickLang();
+                                let t = I18N[lang];
+
+                                // Recovery polling ------------------------------------------------------
+                                const DELAYS = [5, 10, 15, 20, 30];
+                                let state = "waiting";
+                                let attempt = 0;
+                                let missed = false;
+                                let deadline = 0;
+
+                                function setLive(text) {
+                                  const live = $("live");
+                                  if (live.textContent !== text) live.textContent = text;
+                                }
+                                function render() {
+                                  document.body.dataset.state = state;
+                                  $("retry").disabled = state === "checking" || state === "recovered";
+                                  if (state === "checking") { setLive(t.checking); $("count").textContent = ""; }
+                                  else if (state === "recovered") { setLive(t.recovered); $("count").textContent = ""; }
+                                  else if (state === "offline") { setLive(t.offline); $("count").textContent = ""; }
+                                  else {
+                                    setLive(missed ? t.notYet : "");
+                                    const s = Math.max(1, Math.ceil((deadline - Date.now()) / 1000));
+                                    $("count").textContent = t.checkIn.replace("{s}", s);
+                                  }
+                                }
+                                function schedule() {
+                                  deadline = Date.now() + DELAYS[Math.min(attempt, DELAYS.length - 1)] * 1000;
+                                  state = navigator.onLine === false ? "offline" : "waiting";
+                                  render();
+                                }
+                                async function probe() {
+                                  const ctrl = new AbortController();
+                                  const timer = setTimeout(() => ctrl.abort(), 10000);
+                                  try {
+                                    const res = await fetch(location.href, {
+                                      cache: "no-store",
+                                      credentials: "same-origin",
+                                      redirect: "manual",
+                                      headers: { accept: "text/html" },
+                                      signal: ctrl.signal
+                                    });
+                                    // Any answer other than a gateway failure means the service is back,
+                                    // including a redirect to sign in.
+                                    return !(res.status >= 502 && res.status <= 504);
+                                  } catch (e) {
+                                    return false;
+                                  } finally {
+                                    clearTimeout(timer);
+                                  }
+                                }
+                                async function check() {
+                                  if (state === "checking" || state === "recovered") return;
+                                  if (navigator.onLine === false) { state = "offline"; render(); return; }
+                                  state = "checking";
+                                  render();
+                                  wire.send();
+                                  const started = performance.now();
+                                  const ok = await probe();
+                                  // Let the pulse reach the far end before the answer is shown.
+                                  const wait = Math.max(0, wire.travelMs() - (performance.now() - started));
+                                  setTimeout(() => {
+                                    if (ok) {
+                                      state = "recovered";
+                                      render();
+                                      wire.recover();
+                                      setTimeout(() => location.replace(location.href), 1400);
+                                    } else {
+                                      missed = true;
+                                      attempt += 1;
+                                      schedule();
+                                    }
+                                  }, wait);
+                                }
+                                setInterval(() => {
+                                  if (state !== "waiting" || document.hidden) return;
+                                  if (Date.now() >= deadline) check();
+                                  else render();
+                                }, 250);
+                                addEventListener("online", () => { if (state === "offline") check(); });
+                                addEventListener("offline", () => { if (state === "waiting") { state = "offline"; render(); } });
+                                $("retry").addEventListener("click", check);
+
+                                // The line ---------------------------------------------------------------
+                                // A string fixed between the two ends, simulated with the 1D wave
+                                // equation. The left end is the visitor, the right end is the service.
+                                function Wire(canvas, band) {
+                                  const ctx = canvas.getContext("2d");
+                                  const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+                                  const K = 0.22;
+                                  const SUB = 3;
+                                  const SPEED = Math.sqrt(K) * SUB;
+                                  let w = 0, h = 0, x0 = 0, x1 = 0, n = 0, mid = 0;
+                                  let u = new Float32Array(0), v = new Float32Array(0);
+                                  let grab = -1, grabX = 0, grabY = 0, last = null;
+                                  let colors = {};
+                                  let tone = "line";
+                                  let pulse = -1, pulseAlpha = 0, absorb = true;
+                                  let touched = false;
+
+                                  function readColors() {
+                                    const css = getComputedStyle(root);
+                                    for (const k of ["line", "muted", "signal", "ok"]) colors[k] = css.getPropertyValue("--" + k).trim();
+                                  }
+                                  function resize() {
+                                    const dpr = Math.min(devicePixelRatio || 1, 2);
+                                    const pad = parseFloat(getComputedStyle(band).paddingLeft) || 0;
+                                    w = band.clientWidth;
+                                    h = band.clientHeight;
+                                    canvas.style.width = w + "px";
+                                    canvas.style.height = h + "px";
+                                    canvas.style.marginLeft = -pad + "px";
+                                    canvas.width = Math.round(w * dpr);
+                                    canvas.height = Math.round(h * dpr);
+                                    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                                    x0 = pad;
+                                    x1 = w - pad;
+                                    mid = Math.round(h * 0.6);
+                                    band.style.setProperty("--mid", mid + "px");
+                                    n = Math.max(48, Math.round((x1 - x0) / 5));
+                                    u = new Float32Array(n);
+                                    v = new Float32Array(n);
+                                    pulse = -1;
+                                  }
+                                  const indexAt = (x) => Math.round((x - x0) / (x1 - x0) * (n - 1));
+                                  const limit = () => Math.min(mid, h - mid) * 0.9;
+                                  const clamp = (a, lo, hi) => Math.min(hi, Math.max(lo, a));
+
+                                  function shapeTo(i, y) {
+                                    i = clamp(i, 2, n - 3);
+                                    y = clamp(y, -limit(), limit());
+                                    for (let j = 0; j < n; j++) {
+                                      u[j] = j <= i ? y * j / i : y * (n - 1 - j) / (n - 1 - i);
+                                      v[j] = 0;
+                                    }
+                                  }
+                                  function kick(i, dv, spread) {
+                                    for (let j = Math.max(1, Math.round(i - spread * 3)); j <= Math.min(n - 2, Math.round(i + spread * 3)); j++) {
+                                      const d = (j - i) / spread;
+                                      v[j] += dv * Math.exp(-d * d);
+                                    }
+                                  }
+                                  function noticed() {
+                                    if (!touched) { touched = true; $("hint").classList.add("done"); }
+                                  }
+
+                                  function step() {
+                                    for (let s = 0; s < SUB; s++) {
+                                      for (let i = 1; i < n - 1; i++) {
+                                        v[i] += K * (u[i - 1] + u[i + 1] - 2 * u[i]);
+                                        v[i] *= 0.998;
+                                      }
+                                      // Until the service answers, its end swallows the wave: no echo.
+                                      if (absorb) {
+                                        const zone = 24;
+                                        for (let i = n - 1 - zone; i < n - 1; i++) {
+                                          const k = (i - (n - 1 - zone)) / zone;
+                                          v[i] *= 1 - 0.12 * k * k;
+                                        }
+                                      }
+                                      for (let i = 1; i < n - 1; i++) u[i] += v[i];
+                                    }
+                                    if (grab >= 0) shapeTo(grab, grabY - mid);
+                                    if (!reduce.matches && grab < 0) {
+                                      // A faint tremor keeps the line from looking frozen.
+                                      const i = 1 + Math.floor(Math.random() * (n - 2));
+                                      v[i] += (Math.random() - 0.5) * 0.06;
+                                    }
+                                    if (pulse >= 0) {
+                                      pulse += SPEED;
+                                      if (pulse >= n - 1) { pulse = n - 1; pulseAlpha -= 0.04; if (pulseAlpha <= 0) pulse = -1; }
+                                    }
+                                  }
+                                  function draw() {
+                                    ctx.clearRect(0, 0, w, h);
+                                    const dx = (x1 - x0) / (n - 1);
+                                    ctx.lineWidth = 2;
+                                    ctx.lineJoin = "round";
+                                    ctx.lineCap = "round";
+                                    ctx.strokeStyle = colors[tone];
+                                    ctx.beginPath();
+                                    for (let i = 0; i < n; i++) {
+                                      const x = x0 + i * dx, y = mid + u[i];
+                                      if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+                                    }
+                                    ctx.stroke();
+                                    ctx.fillStyle = colors.line;
+                                    ctx.beginPath(); ctx.arc(x0, mid, 4, 0, Math.PI * 2); ctx.fill();
+                                    ctx.fillStyle = tone === "ok" ? colors.ok : colors.muted;
+                                    ctx.beginPath(); ctx.arc(x1, mid, 4, 0, Math.PI * 2); ctx.fill();
+                                    if (pulse >= 0) {
+                                      const i = Math.round(pulse);
+                                      ctx.globalAlpha = clamp(pulseAlpha, 0, 1);
+                                      ctx.fillStyle = colors.signal;
+                                      ctx.beginPath(); ctx.arc(x0 + i * dx, mid + u[i], 5, 0, Math.PI * 2); ctx.fill();
+                                      ctx.globalAlpha = 1;
+                                    }
+                                  }
+                                  function frame() {
+                                    step();
+                                    draw();
+                                    requestAnimationFrame(frame);
+                                  }
+
+                                  canvas.addEventListener("pointerdown", (e) => {
+                                    const r = canvas.getBoundingClientRect();
+                                    const x = e.clientX - r.left, y = e.clientY - r.top;
+                                    const i = indexAt(x);
+                                    if (i < 1 || i > n - 2 || Math.abs(y - (mid + u[i])) > 36) return;
+                                    grab = i; grabX = x; grabY = y;
+                                    canvas.setPointerCapture(e.pointerId);
+                                    canvas.classList.add("grabbing");
+                                    noticed();
+                                  });
+                                  canvas.addEventListener("pointermove", (e) => {
+                                    const r = canvas.getBoundingClientRect();
+                                    const x = e.clientX - r.left, y = e.clientY - r.top;
+                                    if (grab >= 0) { grabY = y; return; }
+                                    const i = indexAt(x);
+                                    if (last && i > 0 && i < n - 1) {
+                                      const ys = mid + u[i];
+                                      // Sweeping across the line strums it.
+                                      if ((last.y - ys) * (y - ys) < 0) {
+                                        kick(i, clamp(y - last.y, -30, 30) * 0.35, 4);
+                                        noticed();
+                                      }
+                                    }
+                                    last = { x, y };
+                                  });
+                                  const release = () => { grab = -1; canvas.classList.remove("grabbing"); };
+                                  canvas.addEventListener("pointerup", release);
+                                  canvas.addEventListener("pointercancel", release);
+                                  canvas.addEventListener("pointerleave", () => { last = null; });
+                                  canvas.addEventListener("keydown", (e) => {
+                                    if (e.key !== "Enter" && e.key !== " ") return;
+                                    e.preventDefault();
+                                    shapeTo(Math.round(n * (0.3 + Math.random() * 0.4)), -limit() * 0.6);
+                                    noticed();
+                                  });
+
+                                  readColors();
+                                  resize();
+                                  new ResizeObserver(resize).observe(band);
+                                  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readColors);
+                                  requestAnimationFrame(frame);
+
+                                  return {
+                                    send() {
+                                      tone = "line";
+                                      absorb = true;
+                                      kick(3, -9, 2.5);
+                                      pulse = 0;
+                                      pulseAlpha = 1;
+                                    },
+                                    travelMs() {
+                                      return Math.round(n / SPEED / 60 * 1000);
+                                    },
+                                    recover() {
+                                      tone = "ok";
+                                      absorb = false;
+                                      kick(n - 4, -10, 2.5);
+                                    },
+                                    setLabel(text) { canvas.setAttribute("aria-label", text); }
+                                  };
+                                }
+
+                                const wire = Wire($("string"), $("wire"));
+
+                                // Text -------------------------------------------------------------------
+                                function applyLang(next) {
+                                  lang = next;
+                                  t = I18N[lang];
+                                  root.lang = lang;
+                                  document.title = t.title;
+                                  for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t[el.dataset.i18n];
+                                  wire.setLabel(t.hint);
+                                  $("lang").value = lang;
+                                  render();
+                                }
+                                const select = $("lang");
+                                for (const key of Object.keys(I18N)) {
+                                  const opt = document.createElement("option");
+                                  opt.value = key;
+                                  opt.textContent = I18N[key].name;
+                                  select.appendChild(opt);
+                                }
+                                select.addEventListener("change", () => {
+                                  try { localStorage.setItem(LANG_KEY, select.value); } catch (e) {}
+                                  applyLang(select.value);
+                                });
+
+                                $("host").textContent = location.host;
+                                $("code").textContent = detail ? code + " (" + detail + ")" : code;
+                                if (requestId) $("request").textContent = requestId;
+                                else $("request-row").hidden = true;
+                                $("copy").addEventListener("click", async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(requestId);
+                                    $("copy").textContent = t.copied;
+                                    setTimeout(() => { $("copy").textContent = t.copy; }, 2000);
+                                  } catch (e) {
+                                    getSelection().selectAllChildren($("request"));
+                                  }
+                                });
+
+                                applyLang(lang);
+                                schedule();
+                              })();
+                              </script>
                               </body>
                               </html>
 

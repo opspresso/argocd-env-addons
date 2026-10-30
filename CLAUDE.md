@@ -42,6 +42,11 @@ k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/
 
 `argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
 
+istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해
+`charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`). 템플릿이 이 파일을 include 하므로
+수정 후 `./scripts/gen_values.py -p eks -r istio` 를 돌린다. Envoy 가 `%COMMAND%` 를 치환하므로 파일에
+허용된 명령 외의 `%` 를 쓰지 않는다 (`tests/test_unavailable_page.py` 가 검사).
+
 ## charts 규칙
 
 ```
