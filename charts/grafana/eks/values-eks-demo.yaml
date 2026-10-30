@@ -9,22 +9,6 @@ grafana:
 
 
 
-  # Use the committed dashboard revision; branch URLs can return stale JSON.
-
-  dashboards:
-    managed:
-      cluster-overview:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/cluster-overview.json
-      service-status:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/service-status.json
-      kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/kube-cluster.json
-      kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/kube-workload.json
-      workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/fabb23c3f91ce514030f66857a85fbf12c02fd4b/charts/grafana/dashboards/workspace-capacity.json
-
-
 
   alerting:
     workload-health.yaml:
@@ -1549,15 +1533,13 @@ grafana:
 
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
-    # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "07e2184f6ba5cecabf740ddd9f32a9cdad088710386fa6870faeecc031a845f5"
 
   grafana.ini:
 
     server:
       root_url: "https://grafana.demo.rovr.dev/"
 
-    # Users land on the overview; the file is written by the dashboard download.
+    # Users land on the overview, mounted from the bundled dashboards ConfigMap.
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
 

@@ -119,12 +119,6 @@ grafana:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-      # The provider name is also the download directory on the persistent
-      # volume. Grafana drops dashboards whose provisioner is gone from the
-      # config, and that is the only way to clear dashboards removed from the
-      # list below: their files stay on the volume under the old directory.
-      # 'addons' was retired for that reason when the unused Istio and Argo
-      # Rollouts dashboards were removed.
       - name: 'managed'
         orgId: 1
         folder: ''
@@ -133,27 +127,41 @@ grafana:
         editable: true
         options:
           path: /var/lib/grafana/dashboards/managed
-  # Public GitHub dashboards are downloaded at pod startup. The repository
-  # dashboards (cluster-overview, service-status, kube-cluster, kube-workload,
-  # workspace-capacity) are added per platform by values-template.yaml.j2.
+      # Downloaded at pod startup into the persistent volume. A dashboard
+      # dropped from `dashboards.upstream` keeps its file there; rename this
+      # provider to make Grafana forget it.
+      - name: 'upstream'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/upstream
+  # templates/dashboards.yaml bundles this repository's own dashboards
+  # (charts/grafana/dashboards/*.json). The mount follows ConfigMap updates, so
+  # a dashboard change needs no restart.
+  dashboardsConfigMaps:
+    managed: grafana-dashboards
+  # Third-party dashboards come from their publishers' latest version at pod
+  # startup.
   dashboards:
-    managed:
+    upstream:
       argo-cd:
         url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
         datasource: Prometheus
-
-      # Published by the istio org on grafana.com. revision pins them the way a
-      # commit sha pins the urls above. Only the gateway reports request
-      # metrics here, so the per-service and per-workload Istio dashboards
-      # (destination reporter) stay empty; Service Status replaces them.
+      # Published by the istio org on grafana.com. Without `revision` the chart
+      # downloads revision 1, so `latest` is explicit.
+      # Only the gateway reports request metrics here, so the per-service and
+      # per-workload Istio dashboards stay empty; Service Status replaces them.
       istio-mesh-dashboard:
         datasource: Prometheus
         gnetId: 7639 # Istio Mesh Dashboard
-        revision: 319
+        revision: latest
       pilot-dashboard:
         datasource: Prometheus
         gnetId: 7645 # Istio Control Plane Dashboard
-        revision: 318
+        revision: latest
 
   # Alertmanager is disabled in prometheus-stack, so the bundled PrometheusRules
   # are evaluated but go nowhere. Grafana evaluates the rules in config/*.yaml

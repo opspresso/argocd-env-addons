@@ -165,13 +165,19 @@ workload 경보(`Container restarting repeatedly`)로 보고한다.
 
 ## 반영과 검증
 
-`charts/grafana/dashboards/*.json`이 대시보드 원본이다. `scripts/build.sh`는 dashboards 디렉터리를 마지막으로 바꾼
-Git revision의 GitHub raw URL을 환경별 values에 넣는다. Grafana의 init container가 시작할 때 그 revision의 JSON을
-`/var/lib/grafana/dashboards/managed/`에 내려받는다. JSON checksum이 Pod annotation에 들어가므로 JSON만 바뀌어도
-Grafana가 다시 배포되며, `Recreate` 중 잠시 중단된다. UI에서 provisioned dashboard를 수정해도 다음 프로비저닝에서 덮어써진다.
+대시보드는 두 경로로 프로비저닝한다. 두 경로 모두 코드에서 만들어지므로 Grafana를 재설치해도 같은 대시보드가 생긴다.
 
-대시보드를 목록에서 제거해도 내려받은 파일은 영구 볼륨에 남는다. 제거한 대시보드를 Grafana에서 지우려면 provider 이름을
-바꾼다. 현재 provider는 `managed`이고, 이전 `addons` 디렉터리의 파일은 더 이상 읽지 않는다.
+| provider | 원본 | 전달 방식 |
+|---|---|---|
+| `managed` | 이 저장소의 `charts/grafana/dashboards/*.json` | `templates/dashboards.yaml`이 ConfigMap `grafana-dashboards`로 묶고 `/var/lib/grafana/dashboards/managed`에 mount한다 |
+| `upstream` | 게시자 원본의 최신 버전: Argo CD `examples/dashboard.json`(master), grafana.com Istio 7639·7645(`revision: latest`) | Pod 시작 시 init container가 영구 볼륨의 `/var/lib/grafana/dashboards/upstream`에 내려받는다 |
+
+- `managed` 대시보드를 바꾸면 ConfigMap이 갱신되고 Grafana가 mount된 파일 변경을 읽는다. Pod를 재시작하지 않는다.
+  JSON 파일을 지우면 Grafana에서도 사라진다.
+- ConfigMap이 256 KiB를 넘으므로 EKS ApplicationSet은 `ServerSideApply=true`로 동기화한다.
+- `upstream` 대시보드는 Pod가 시작될 때마다 최신 버전을 받는다. 목록에서 지운 대시보드의 파일은 영구 볼륨에 남으므로,
+  Grafana에서 지우려면 provider 이름을 바꾼다.
+- UI에서 provisioned dashboard를 수정해도 다음 프로비저닝에서 덮어써진다.
 
 ```bash
 ./scripts/build.sh

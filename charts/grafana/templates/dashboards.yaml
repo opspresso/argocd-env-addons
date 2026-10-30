@@ -1,0 +1,12 @@
+# Every dashboard ships inside the chart, so a reinstall restores the same set
+# without reaching GitHub or grafana.com. Grafana mounts this ConfigMap as the
+# `managed` provider directory; a JSON file removed here disappears from Grafana.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: {{ .Release.Name }}
+data:
+{{ (.Files.Glob "dashboards/*.json").AsConfig | indent 2 }}
