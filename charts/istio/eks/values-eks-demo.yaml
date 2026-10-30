@@ -133,6 +133,97 @@ raw:
                       "@type": type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
                       pack_trace_reason: false
 
+    # Envoy answers with a bare "no healthy upstream" (and similar) when a
+    # backend is down or being redeployed. local_reply_config rewrites only
+    # replies the gateway generates itself, so a 5xx from an application keeps
+    # its own body. Browsers get this page; API and gRPC clients, which do not
+    # send Accept: text/html, keep the plain text. Envoy expands %COMMAND% in
+    # the body, so the page must not contain a literal percent sign.
+    - apiVersion: networking.istio.io/v1alpha3
+      kind: EnvoyFilter
+      metadata:
+        name: unavailable-page
+        namespace: istio-system
+      spec:
+        workloadSelector:
+          labels:
+            istio: ingressgateway
+        configPatches:
+          - applyTo: NETWORK_FILTER
+            match:
+              context: GATEWAY
+              listener:
+                filterChain:
+                  filter:
+                    name: envoy.filters.network.http_connection_manager
+            patch:
+              operation: MERGE
+              value:
+                typed_config:
+                  "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+                  local_reply_config:
+                    mappers:
+                      - filter:
+                          and_filter:
+                            filters:
+                              - status_code_filter:
+                                  comparison:
+                                    op: GE
+                                    value:
+                                      default_value: 502
+                                      runtime_key: unavailable_page.status_min
+                              - status_code_filter:
+                                  comparison:
+                                    op: LE
+                                    value:
+                                      default_value: 504
+                                      runtime_key: unavailable_page.status_max
+                              - header_filter:
+                                  header:
+                                    name: accept
+                                    string_match:
+                                      contains: text/html
+                        headers_to_add:
+                          - header:
+                              key: cache-control
+                              value: no-store
+                            append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                          - header:
+                              key: retry-after
+                              value: "30"
+                            append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                        body_format_override:
+                          content_type: text/html; charset=UTF-8
+                          text_format_source:
+                            inline_string: |
+                              <!doctype html>
+                              <html lang="ko">
+                              <head>
+                              <meta charset="utf-8">
+                              <meta name="viewport" content="width=device-width, initial-scale=1">
+                              <meta http-equiv="refresh" content="30">
+                              <title>잠시 후 다시 시도해 주세요</title>
+                              <style>
+                              :root { color-scheme: light dark; }
+                              body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f7f9; color: #1f2328; }
+                              main { max-width: 32rem; padding: 2rem 1.5rem; text-align: center; }
+                              h1 { font-size: 1.5rem; margin: 0 0 1rem; }
+                              p { line-height: 1.6; margin: 0 0 0.75rem; }
+                              .en { color: #59636e; font-size: 0.9rem; }
+                              .meta { margin-top: 2rem; color: #818b98; font-size: 0.75rem; font-family: ui-monospace, monospace; }
+                              @media (prefers-color-scheme: dark) { body { background: #0d1117; color: #e6edf3; } .en { color: #9198a1; } }
+                              </style>
+                              </head>
+                              <body>
+                              <main>
+                              <h1>서비스를 잠시 이용할 수 없습니다</h1>
+                              <p>점검 또는 배포 작업 중이거나 일시적인 문제가 발생했습니다.<br>잠시 후 자동으로 다시 시도합니다.</p>
+                              <p class="en">This service is temporarily unavailable due to maintenance or a temporary issue. This page retries automatically.</p>
+                              <p class="meta">%RESPONSE_CODE% · %RESPONSE_CODE_DETAILS% · %REQ(X-REQUEST-ID)%</p>
+                              </main>
+                              </body>
+                              </html>
+
     # Prometheus only adopts a ServiceMonitor carrying its release label, so
     # without it these are collected by nobody and the istio dashboards stay
     # empty. The metrics service above is what this scrapes.
