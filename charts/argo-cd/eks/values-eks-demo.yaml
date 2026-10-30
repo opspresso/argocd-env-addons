@@ -336,7 +336,7 @@ raw:
                     - name: app.tenant.region
                       value: "ap-northeast-2"
                     - name: app.tenant.tenantSecretsRoleArn
-                      value: "arn:aws:iam::396608815058:role/agent-delivery-tenant-secrets"
+                      value: "arn:aws:iam::396608815058:role/agent-runway-tenant-secrets"
                     - name: app.routing.hosts[0]
                       value: '{{ if eq .path.basename "prod" }}{{ index .path.segments 1 }}{{ else }}{{ index .path.segments 1 }}-{{ .path.basename }}{{ end }}.apps.rovr.dev'
               # The namespaced resources (kro instances) that resource-sync writes; AppProject projects limits the kinds.

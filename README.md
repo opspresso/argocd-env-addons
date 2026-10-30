@@ -273,8 +273,8 @@ Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Age
 - `valkey-cache` RGD는 `delivery_resources.valkey.security_group_id`가 있을 때만 렌더한다. `8-app-delivery`의 output
   `valkey_security_group_id`·`intra_subnet_ids`를 넣고 `./scripts/build.sh`를 실행한다.
 - `S3Bucket` 인스턴스는 전용 S3 bucket `<cluster>-<SHA-256 앞 32 hex>`를 만든다. public access 차단, SSE-S3, `BucketOwnerEnforced`,
-  ABAC를 켜고 tag `eks-cluster-name`·`kubernetes-namespace`·`agent-delivery-resource`를 붙인다. 앱은 공유 Pod Identity 역할
-  `agent-delivery-tenant-objects`로 접근하며, IAM은 bucket tag `kubernetes-namespace`가 Pod의 namespace와 같을 때만 허용한다.
+  ABAC를 켜고 tag `eks-cluster-name`·`kubernetes-namespace`·`agent-runway-resource`를 붙인다. 앱은 공유 Pod Identity 역할
+  `agent-runway-tenant-objects`로 접근하며, IAM은 bucket tag `kubernetes-namespace`가 Pod의 namespace와 같을 때만 허용한다.
   bucket 이름에 namespace를 넣지 않는다. ACK는 같은 이름의 기존 bucket을 자기 것으로 받아들이므로, 다른 namespace와 이름이 겹칠 수 있는
   규칙(`<cluster>-<namespace>-<name>`)은 다른 테넌트의 bucket을 넘겨받을 수 있다.
 - `S3Bucket`을 지우면 ACK가 bucket을 지운다. 객체가 남아 있으면 S3가 삭제를 거부하고 ACK가 계속 다시 시도하므로, 인스턴스는

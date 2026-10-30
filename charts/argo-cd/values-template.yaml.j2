@@ -354,7 +354,7 @@ raw:
                     - name: app.tenant.region
                       value: "{{aws_region}}"
                     - name: app.tenant.tenantSecretsRoleArn
-                      value: "arn:aws:iam::{{aws_account_id}}:role/agent-delivery-tenant-secrets"
+                      value: "arn:aws:iam::{{aws_account_id}}:role/agent-runway-tenant-secrets"
                     - name: app.routing.hosts[0]
                       value: '{% raw %}{{ if eq .path.basename "{% endraw %}{{app_delivery.primary_environment}}{% raw %}" }}{{ index .path.segments 1 }}{{ else }}{{ index .path.segments 1 }}-{{ .path.basename }}{{ end }}{% endraw %}.{{app_delivery.domain}}'
               # The namespaced resources (kro instances) that resource-sync writes; AppProject projects limits the kinds.
