@@ -32,7 +32,7 @@ class S3BucketTemplateTests(unittest.TestCase):
         self.assertEqual(spec["publicAccessBlock"], dict.fromkeys(["blockPublicACLs", "ignorePublicACLs", "blockPublicPolicy", "restrictPublicBuckets"], True))
         self.assertEqual(spec["ownershipControls"], {"rules": [{"objectOwnership": "BucketOwnerEnforced"}]})
         self.assertEqual(spec["encryption"]["rules"][0]["applyServerSideEncryptionByDefault"], {"sseAlgorithm": "AES256"})
-        # The tenant role (terraform-env-demo demo/8-agent-delivery) matches these tags; S3 reads them only with ABAC on.
+        # The tenant role (terraform-env-demo demo/8-agent-runway) matches these tags; S3 reads them only with ABAC on.
         self.assertEqual(spec["abac"], {"status": "Enabled"})
         tags = {t["key"]: t["value"] for t in spec["tagging"]["tagSet"]}
         self.assertEqual(tags["eks-cluster-name"], "eks-demo")
