@@ -420,6 +420,7 @@ helm repo update
 | argo-workflows | ✅ | 2.0.14 | 2.0.14 (v4.1.6) |
 | atlantis | ✅ | 6.16.2 | 6.16.2 (v0.48.2) |
 | cert-manager | ✅ | v1.21.3 | v1.21.3 (v1.21.3) |
+| aws-controllers | 🔒 | 1.13.4 | 1.11.1 (1.11.1) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
@@ -431,9 +432,10 @@ helm repo update
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack | ✅ | 92.14.1 | 92.14.1 (v0.94.2) |
-| aws-controllers | ✅ | 1.13.4 | 1.13.4 (1.13.4) |
+| prometheus-stack |  | 92.14.1 | 92.16.0 (v0.94.2) |
+| aws-controllers |  | 1.13.4 | 1.14.1 (1.14.1) |
+| aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
 | victoria-metrics | ✅ | 0.97.0 | 0.97.0 (v1.155.0) |
 | vllm-stack |  |  | 0.1.13 |
-| workspace-metrics | ✅ | 8.7.1 | 8.7.1 (2.20.0) |
+| workspace-metrics |  | 8.7.1 | 8.8.0 (2.20.0) |
 <!--- END_VERSION --->

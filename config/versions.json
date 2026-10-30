@@ -39,7 +39,7 @@
     "elasticache-chart": {
       "app_version": "1.11.1",
       "chart": "public.ecr.aws/aws-controllers-k8s",
-      "current": "1.11.1",
+      "current": "1.13.4",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
@@ -118,20 +118,20 @@
       "app_version": "v0.94.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "92.14.1"
+      "version": "92.16.0"
     },
     "rds-chart": {
-      "app_version": "1.13.4",
+      "app_version": "1.14.1",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.13.4"
+      "version": "1.14.1"
     },
     "s3-chart": {
       "app_version": "1.15.0",
       "chart": "public.ecr.aws/aws-controllers-k8s",
-      "current": "1.15.0",
+      "current": "1.13.4",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
@@ -152,7 +152,7 @@
       "app_version": "2.20.0",
       "chart": "prometheus/kube-state-metrics",
       "current": "8.7.1",
-      "version": "8.7.1"
+      "version": "8.8.0"
     }
   }
 }
