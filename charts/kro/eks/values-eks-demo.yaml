@@ -4,7 +4,7 @@ kro:
 
 
 
-# Platform templates that Agent Delivery instantiates in app-<slug>-<env> namespaces
+# Platform templates that Agent Runway instantiates in app-<slug>-<env> namespaces
 # (agent-platform docs/DELIVERY_V2.md D3, D4). A template that needs network objects from
 # terraform-env-demo demo/8-app-delivery renders only once its security group is set.
 raw:
@@ -45,7 +45,7 @@ raw:
             username: string | default="app" immutable=true pattern="^[a-z][a-z0-9_]{0,15}$" description="Master user name"
             passwordSecret:
               name: string | default="app-env" pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" maxLength=253 description="Secret in the instance namespace that holds the master password"
-              key: string | required=true pattern="^[A-Z][A-Z0-9_]{0,63}$" description="Key of the master password in the Secret (an Agent Delivery Variable name)"
+              key: string | required=true pattern="^[A-Z][A-Z0-9_]{0,63}$" description="Key of the master password in the Secret (an Agent Runway Variable name)"
             instanceClass: string | default="db.t4g.micro" enum="db.t4g.micro,db.t4g.small" description="RDS instance class"
             storageGiB: integer | default=20 minimum=20 maximum=100 description="gp3 storage in GiB. RDS can only increase it"
           status:
@@ -161,7 +161,7 @@ raw:
             username: string | default="app" immutable=true pattern="^[a-z][a-z0-9_-]{0,31}$" description="Valkey user name"
             passwordSecret:
               name: string | default="app-env" pattern="^[a-z0-9]([-a-z0-9]*[a-z0-9])?$" maxLength=253 description="Secret in the instance namespace that holds the user password"
-              key: string | required=true pattern="^[A-Z][A-Z0-9_]{0,63}$" description="Key of the user password in the Secret (an Agent Delivery Variable name)"
+              key: string | required=true pattern="^[A-Z][A-Z0-9_]{0,63}$" description="Key of the user password in the Secret (an Agent Runway Variable name)"
             maxDataStorageGiB: integer | default=1 minimum=1 maximum=10 description="Upper limit of stored data in GB"
             maxECPUPerSecond: integer | default=1000 minimum=1000 maximum=15000 description="Upper limit of ElastiCache Processing Units per second"
           status:
@@ -227,7 +227,7 @@ raw:
                 serverlessCacheName: '${"app-" + "%x".format([hash.sha256("eks-demo/" + schema.metadata.namespace + "/" + schema.metadata.name)]).substring(0, 32)}'
                 engine: valkey
                 # No majorEngineVersion: ElastiCache uses its default major version, and ACK writes it back to the spec.
-                description: '${"Agent Delivery " + schema.metadata.namespace + "/" + schema.metadata.name}'
+                description: '${"Agent Runway " + schema.metadata.namespace + "/" + schema.metadata.name}'
                 cacheUsageLimits:
                   dataStorage:
                     maximum: ${schema.spec.maxDataStorageGiB}

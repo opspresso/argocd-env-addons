@@ -244,10 +244,10 @@ k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는
    - Studio → 서비스 API/MCP, 서비스 → Studio 정책 callback
 3. Studio·Memory·Knowledge에 Sandbox 관리 권한이 없는지 확인한다.
 
-### Agent Delivery namespace 리소스 (kro·ACK)
+### Agent Runway namespace 리소스 (kro·ACK)
 
 `addons/eks/kro.yaml`은 kro와 플랫폼 ResourceGraphDefinition을, `addons/eks/aws-controllers.yaml`은 ACK(AWS Controllers for
-Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Agent Delivery는 `app-<slug>-<env>` namespace에 `RdsPostgres`·`ValkeyCache`·`S3Bucket`(`kro.run/v1alpha1`) 인스턴스를 GitOps로 만들고
+Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Agent Runway는 `app-<slug>-<env>` namespace에 `RdsPostgres`·`ValkeyCache`·`S3Bucket`(`kro.run/v1alpha1`) 인스턴스를 GitOps로 만들고
 그 status를 읽는다([agent-platform DELIVERY_V2](https://github.com/opspresso/agent-platform/blob/main/docs/DELIVERY_V2.md) D3·D4).
 
 - kro는 `rbac.mode: aggregation`으로 실행한다. RGD가 만드는 종류의 권한은
