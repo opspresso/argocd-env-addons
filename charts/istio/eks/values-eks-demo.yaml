@@ -276,8 +276,12 @@ raw:
                                 margin: 0 0 20px;
                                 font-family: var(--display);
                                 font-weight: 300;
-                                font-size: clamp(2.375rem, 1.2rem + 4vw, 4.5rem);
-                                line-height: 1.04;
+                                font-size: clamp(2.125rem, 1.1rem + 3.4vw, 3.875rem);
+                                line-height: 1.08;
+                                /* Two lines are reserved so a longer phrase does not move the text below. */
+                                display: grid;
+                                align-content: end;
+                                min-height: 2.16em;
                                 letter-spacing: -0.025em;
                                 word-break: keep-all;
                                 overflow-wrap: anywhere;
@@ -374,7 +378,7 @@ raw:
                               <div class="flash" id="flash"></div>
                               <main>
                                 <div class="copy">
-                                  <h1 data-i18n="title">Arriving shortly</h1>
+                                  <h1><span id="title">Arriving shortly</span></h1>
                                   <p class="lead" data-i18n="body">This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.</p>
                                   <div class="controls">
                                     <button type="button" class="retry" id="retry" data-i18n="retry">Check now</button>
@@ -413,16 +417,16 @@ raw:
                                 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 
                                 const I18N = {
-                                  ko: { name: "한국어", title: "곧 도착합니다", body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
-                                  en: { name: "English", title: "Arriving shortly", body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" },
-                                  ja: { name: "日本語", title: "まもなく到着します", body: "このサービスは現在応答していません。メンテナンスまたは更新中の可能性があります。このページを開いたままにしておくと、準備が整いしだい自動的に移動します。", recovered: "到着しました。ページを開きます。", offline: "オフラインです。接続が戻ると確認を再開します。", retry: "今すぐ確認", details: "技術情報", code: "エラーコード", request: "リクエスト ID", copy: "コピー", copied: "コピーしました", lang: "言語" },
-                                  "zh-Hans": { name: "简体中文", title: "即将抵达", body: "该服务暂时没有响应，可能正在维护或更新。保持此页面打开，服务就绪后将自动前往。", recovered: "已抵达，正在打开页面。", offline: "网络已断开。恢复连接后将继续检查。", retry: "立即检查", details: "技术信息", code: "错误代码", request: "请求 ID", copy: "复制", copied: "已复制", lang: "语言" },
-                                  "zh-Hant": { name: "繁體中文", title: "即將抵達", body: "此服務暫時沒有回應，可能正在維護或更新。保持此頁面開啟，服務就緒後將自動前往。", recovered: "已抵達，正在開啟頁面。", offline: "網路已中斷。恢復連線後將繼續檢查。", retry: "立即檢查", details: "技術資訊", code: "錯誤代碼", request: "請求 ID", copy: "複製", copied: "已複製", lang: "語言" },
-                                  es: { name: "Español", title: "Llegamos en breve", body: "Este servicio no responde en este momento. Puede estar en mantenimiento o actualizándose. Deja esta página abierta y te llevará allí en cuanto el servicio esté listo.", recovered: "Hemos llegado. Abriendo la página.", offline: "Sin conexión. La comprobación se reanudará al reconectar.", retry: "Comprobar ahora", details: "Detalles técnicos", code: "Código de error", request: "ID de solicitud", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
-                                  fr: { name: "Français", title: "Arrivée imminente", body: "Ce service ne répond pas pour le moment. Il est peut-être en maintenance ou en cours de mise à jour. Gardez cette page ouverte : elle vous y conduira dès que le service sera prêt.", recovered: "Arrivé. Ouverture de la page.", offline: "Vous êtes hors ligne. La vérification reprendra à la reconnexion.", retry: "Vérifier maintenant", details: "Détails techniques", code: "Code d’erreur", request: "ID de requête", copy: "Copier", copied: "Copié", lang: "Langue" },
-                                  de: { name: "Deutsch", title: "Gleich am Ziel", body: "Dieser Dienst antwortet gerade nicht. Möglicherweise wird er gewartet oder aktualisiert. Lassen Sie diese Seite geöffnet. Sie bringt Sie hin, sobald der Dienst bereit ist.", recovered: "Angekommen. Seite wird geöffnet.", offline: "Sie sind offline. Die Prüfung läuft weiter, sobald die Verbindung zurück ist.", retry: "Jetzt prüfen", details: "Technische Details", code: "Fehlercode", request: "Anfrage-ID", copy: "Kopieren", copied: "Kopiert", lang: "Sprache" },
-                                  pt: { name: "Português", title: "Chegando em instantes", body: "Este serviço não está respondendo agora. Ele pode estar em manutenção ou sendo atualizado. Deixe esta página aberta e ela levará você até lá assim que o serviço estiver pronto.", recovered: "Chegamos. Abrindo a página.", offline: "Você está offline. A verificação continua quando a conexão voltar.", retry: "Verificar agora", details: "Detalhes técnicos", code: "Código de erro", request: "ID da solicitação", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
-                                  vi: { name: "Tiếng Việt", title: "Sắp đến nơi", body: "Dịch vụ này hiện không phản hồi. Có thể dịch vụ đang được bảo trì hoặc cập nhật. Hãy giữ trang này mở, trang sẽ tự đưa bạn đến ngay khi dịch vụ sẵn sàng.", recovered: "Đã đến nơi. Đang mở trang.", offline: "Bạn đang ngoại tuyến. Việc kiểm tra sẽ tiếp tục khi có kết nối.", retry: "Kiểm tra ngay", details: "Thông tin kỹ thuật", code: "Mã lỗi", request: "Mã yêu cầu", copy: "Sao chép", copied: "Đã sao chép", lang: "Ngôn ngữ" }
+                                  ko: { name: "한국어", titles: ["곧 도착합니다", "광속으로 이동 중입니다", "목적지 좌표를 확인하고 있습니다", "항로를 다시 계산하고 있습니다", "별 사이를 지나는 중입니다", "도킹 허가를 기다리고 있습니다", "조금만 더 가면 됩니다", "엔진을 최대 출력으로 유지하고 있습니다"], body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
+                                  en: { name: "English", titles: ["Arriving shortly", "Traveling at light speed", "Confirming the destination", "Recalculating the route", "Passing between the stars", "Waiting for docking clearance", "Almost there", "Engines at full power"], body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" },
+                                  ja: { name: "日本語", titles: ["まもなく到着します", "光速で移動中です", "目的地の座標を確認しています", "航路を再計算しています", "星々のあいだを通過中です", "ドッキング許可を待っています", "もう少しで到着です", "エンジンを最大出力で維持しています"], body: "このサービスは現在応答していません。メンテナンスまたは更新中の可能性があります。このページを開いたままにしておくと、準備が整いしだい自動的に移動します。", recovered: "到着しました。ページを開きます。", offline: "オフラインです。接続が戻ると確認を再開します。", retry: "今すぐ確認", details: "技術情報", code: "エラーコード", request: "リクエスト ID", copy: "コピー", copied: "コピーしました", lang: "言語" },
+                                  "zh-Hans": { name: "简体中文", titles: ["即将抵达", "正在以光速前进", "正在确认目的地坐标", "正在重新计算航线", "正在穿越星海", "正在等待对接许可", "马上就到", "引擎保持全速运转"], body: "该服务暂时没有响应，可能正在维护或更新。保持此页面打开，服务就绪后将自动前往。", recovered: "已抵达，正在打开页面。", offline: "网络已断开。恢复连接后将继续检查。", retry: "立即检查", details: "技术信息", code: "错误代码", request: "请求 ID", copy: "复制", copied: "已复制", lang: "语言" },
+                                  "zh-Hant": { name: "繁體中文", titles: ["即將抵達", "正在以光速前進", "正在確認目的地座標", "正在重新計算航線", "正在穿越星海", "正在等待對接許可", "馬上就到", "引擎保持全速運轉"], body: "此服務暫時沒有回應，可能正在維護或更新。保持此頁面開啟，服務就緒後將自動前往。", recovered: "已抵達，正在開啟頁面。", offline: "網路已中斷。恢復連線後將繼續檢查。", retry: "立即檢查", details: "技術資訊", code: "錯誤代碼", request: "請求 ID", copy: "複製", copied: "已複製", lang: "語言" },
+                                  es: { name: "Español", titles: ["Llegamos en breve", "Viajando a la velocidad de la luz", "Confirmando el destino", "Recalculando la ruta", "Cruzando entre las estrellas", "Esperando permiso de atraque", "Ya casi llegamos", "Motores a plena potencia"], body: "Este servicio no responde en este momento. Puede estar en mantenimiento o actualizándose. Deja esta página abierta y te llevará allí en cuanto el servicio esté listo.", recovered: "Hemos llegado. Abriendo la página.", offline: "Sin conexión. La comprobación se reanudará al reconectar.", retry: "Comprobar ahora", details: "Detalles técnicos", code: "Código de error", request: "ID de solicitud", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
+                                  fr: { name: "Français", titles: ["Arrivée imminente", "En route à la vitesse de la lumière", "Confirmation de la destination", "Recalcul de la trajectoire", "Entre les étoiles", "En attente d’autorisation d’amarrage", "Nous y sommes presque", "Moteurs à pleine puissance"], body: "Ce service ne répond pas pour le moment. Il est peut-être en maintenance ou en cours de mise à jour. Gardez cette page ouverte : elle vous y conduira dès que le service sera prêt.", recovered: "Arrivé. Ouverture de la page.", offline: "Vous êtes hors ligne. La vérification reprendra à la reconnexion.", retry: "Vérifier maintenant", details: "Détails techniques", code: "Code d’erreur", request: "ID de requête", copy: "Copier", copied: "Copié", lang: "Langue" },
+                                  de: { name: "Deutsch", titles: ["Gleich am Ziel", "Unterwegs mit Lichtgeschwindigkeit", "Ziel wird bestätigt", "Route wird neu berechnet", "Zwischen den Sternen unterwegs", "Warten auf Andockfreigabe", "Fast geschafft", "Triebwerke auf voller Leistung"], body: "Dieser Dienst antwortet gerade nicht. Möglicherweise wird er gewartet oder aktualisiert. Lassen Sie diese Seite geöffnet. Sie bringt Sie hin, sobald der Dienst bereit ist.", recovered: "Angekommen. Seite wird geöffnet.", offline: "Sie sind offline. Die Prüfung läuft weiter, sobald die Verbindung zurück ist.", retry: "Jetzt prüfen", details: "Technische Details", code: "Fehlercode", request: "Anfrage-ID", copy: "Kopieren", copied: "Kopiert", lang: "Sprache" },
+                                  pt: { name: "Português", titles: ["Chegando em instantes", "Viajando à velocidade da luz", "Confirmando o destino", "Recalculando a rota", "Passando entre as estrelas", "Aguardando autorização de acoplagem", "Quase lá", "Motores em potência máxima"], body: "Este serviço não está respondendo agora. Ele pode estar em manutenção ou sendo atualizado. Deixe esta página aberta e ela levará você até lá assim que o serviço estiver pronto.", recovered: "Chegamos. Abrindo a página.", offline: "Você está offline. A verificação continua quando a conexão voltar.", retry: "Verificar agora", details: "Detalhes técnicos", code: "Código de erro", request: "ID da solicitação", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
+                                  vi: { name: "Tiếng Việt", titles: ["Sắp đến nơi", "Đang di chuyển với tốc độ ánh sáng", "Đang xác nhận điểm đến", "Đang tính lại lộ trình", "Đang băng qua các vì sao", "Đang chờ cấp phép cập bến", "Sắp tới rồi", "Động cơ đang chạy hết công suất"], body: "Dịch vụ này hiện không phản hồi. Có thể dịch vụ đang được bảo trì hoặc cập nhật. Hãy giữ trang này mở, trang sẽ tự đưa bạn đến ngay khi dịch vụ sẵn sàng.", recovered: "Đã đến nơi. Đang mở trang.", offline: "Bạn đang ngoại tuyến. Việc kiểm tra sẽ tiếp tục khi có kết nối.", retry: "Kiểm tra ngay", details: "Thông tin kỹ thuật", code: "Mã lỗi", request: "Mã yêu cầu", copy: "Sao chép", copied: "Đã sao chép", lang: "Ngôn ngữ" }
                                 };
                                 // One display face per script; only the family for the shown language loads.
                                 const DISPLAY = { ko: "Noto Sans KR", ja: "Noto Sans JP", "zh-Hans": "Noto Sans SC", "zh-Hant": "Noto Sans TC" };
@@ -469,8 +473,8 @@ raw:
                                 // The page opens at cruise, then jumps to light speed and stays there
                                 // until the service answers; arrival drops out of light speed.
                                 const CRUISE = 0.07;
-                                const WARP = 3.6;
-                                const SURGE = 5.6;
+                                const WARP = 2.4;
+                                const SURGE = 3.8;
                                 const LAUNCH_MS = 1800;
                                 let w = 0, h = 0, focal = 0, stars = [];
                                 let field = null;
@@ -529,7 +533,7 @@ raw:
                                   // Trail length grows with the square of speed: points at cruise, streaks in a jump.
                                   const stretch = Math.min(0.5, speed * speed * 0.035);
                                   // In a jump the streaks clear the middle of the screen so the text stays legible.
-                                  const tunnel = Math.min(1, Math.max(0, (speed - 0.6) / 2.4)) * Math.min(w, h) * 0.42;
+                                  const tunnel = Math.min(1, Math.max(0, (speed - 0.6) / 1.6)) * Math.min(w, h) * 0.42;
                                   const blue = Math.min(1, Math.max(0, (speed - 0.4) / 3));
                                   // Light ahead blue-shifts as the ship approaches light speed.
                                   const cool = "rgb(" + Math.round(255 - 95 * blue) + "," + Math.round(255 - 50 * blue) + ",255)";
@@ -681,12 +685,34 @@ raw:
                                   check();
                                 });
 
+                                // Headline ------------------------------------------------------------
+                                // The headline changes to another phrase from the shown language every
+                                // few seconds, never repeating the one on screen.
+                                const title = $("title");
+                                let titleIndex = 0;
+                                function showTitle(index, animate) {
+                                  titleIndex = index;
+                                  if (!animate || reduce.matches) { title.textContent = t.titles[index]; return; }
+                                  const out = title.animate([{ opacity: 1, filter: "blur(0)", transform: "none" }, { opacity: 0, filter: "blur(8px)", transform: "translateY(-10px)" }], { duration: 450, easing: "ease-in", fill: "forwards" });
+                                  out.finished.then(() => {
+                                    title.textContent = t.titles[index];
+                                    title.animate([{ opacity: 0, filter: "blur(8px)", transform: "translateY(10px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 650, easing: "cubic-bezier(0.16, 0.8, 0.2, 1)", fill: "forwards" });
+                                  });
+                                }
+                                setInterval(() => {
+                                  if (document.hidden || state === "recovered") return;
+                                  let next = Math.floor(Math.random() * (t.titles.length - 1));
+                                  if (next >= titleIndex) next += 1;
+                                  showTitle(next, true);
+                                }, 5500);
+
                                 // Text ----------------------------------------------------------------
                                 function applyLang(next) {
                                   lang = next;
                                   t = I18N[lang];
                                   root.lang = lang;
-                                  document.title = t.title;
+                                  document.title = t.titles[0];
+                                  showTitle(0, false);
                                   useDisplay(lang);
                                   for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t[el.dataset.i18n];
                                   $("lang").value = lang;
