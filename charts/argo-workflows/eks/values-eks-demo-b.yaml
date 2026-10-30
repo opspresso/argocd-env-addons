@@ -6,7 +6,7 @@ argo-workflows:
 
     workflowNamespaces:
       - default
-      # Agent Delivery app deliveries (argocd-env-projects charts/delivery).
+      # Agent Runway app deliveries (argocd-env-projects charts/delivery).
       - app-delivery
 
   server:

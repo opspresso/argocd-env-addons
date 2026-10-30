@@ -182,7 +182,7 @@ raw:
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
 
-    # Apps that Agent Delivery deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
+    # Apps that Agent Runway deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
     # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml; these Applications
     # may only create the kinds the app chart renders and the platform kro instances, in app-* namespaces other than
     # app-delivery.
@@ -191,7 +191,7 @@ raw:
       metadata:
         name: projects
       spec:
-        description: One Application per Agent Delivery Project environment
+        description: One Application per Agent Runway Project environment
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-projects.git"
         destinations:
@@ -218,14 +218,14 @@ raw:
           - {group: kro.run, kind: S3Bucket}
           - {group: kro.run, kind: ValkeyCache}
 
-    # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Delivery's submit
+    # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Runway's submit
     # permission.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
         name: delivery
       spec:
-        description: The Argo Workflows delivery of Agent Delivery apps
+        description: The Argo Workflows delivery of Agent Runway apps
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-projects.git"
         destinations:
@@ -351,7 +351,7 @@ raw:
                 selfHeal: true
               syncOptions:
                 - CreateNamespace=true
-              # The Agent Delivery tenant secrets policy accepts the SecretStore only in a namespace with these labels.
+              # The Agent Runway tenant secrets policy accepts the SecretStore only in a namespace with these labels.
               managedNamespaceMetadata:
                 labels:
                   # Tenant Pods may not run privileged, share host namespaces or mount host paths.
