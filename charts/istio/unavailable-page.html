@@ -52,7 +52,7 @@ canvas {
 .flash {
   position: fixed;
   inset: 0;
-  background: radial-gradient(circle at var(--fx, 50vw) var(--fy, 50vh), #ffffff, #cfe0ff 30vmax, #9fb8ff 80vmax);
+  background: var(--space);
   opacity: 0;
   pointer-events: none;
 }
@@ -94,10 +94,9 @@ h1 {
 }
 .controls {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  gap: 14px 22px;
+  gap: 16px;
   margin-top: 36px;
 }
 .status {
@@ -105,8 +104,8 @@ h1 {
   font-size: 0.9375rem;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
-  min-height: 1.5em;
 }
+.status:empty { display: none; }
 .retry {
   font: inherit;
   font-size: 0.9375rem;
@@ -123,13 +122,6 @@ h1 {
 }
 .retry:hover:not(:disabled) { background: var(--ink); color: var(--space); border-color: var(--ink); }
 .retry:disabled { opacity: 0.35; cursor: default; }
-.hint {
-  margin: 28px 0 0;
-  font-size: 0.8125rem;
-  color: var(--faint);
-  transition: opacity 800ms ease;
-}
-.hint.done { opacity: 0; }
 :focus-visible { outline: 1.5px solid var(--ink); outline-offset: 4px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -177,7 +169,7 @@ option { color: #111; }
 }
 </style>
 </head>
-<body data-state="waiting">
+<body data-state="travel">
 <canvas id="space" aria-hidden="true"></canvas>
 <div class="flash" id="flash"></div>
 <main>
@@ -185,10 +177,9 @@ option { color: #111; }
     <h1 data-i18n="title">Arriving shortly</h1>
     <p class="lead" data-i18n="body">This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.</p>
     <div class="controls">
-      <p class="status" id="status" aria-hidden="true"></p>
       <button type="button" class="retry" id="retry" data-i18n="retry">Check now</button>
+      <p class="status" id="status" aria-hidden="true"></p>
     </div>
-    <p class="hint" id="hint" data-i18n="hint">Press and hold to jump to light speed</p>
     <p class="sr" id="live" aria-live="polite"></p>
   </div>
 </main>
@@ -222,16 +213,16 @@ option { color: #111; }
   const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 
   const I18N = {
-    ko: { name: "한국어", title: "곧 도착합니다", body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", hint: "길게 눌러 광속으로 도약해 보세요", next: "다음 확인까지 {s}초", checking: "확인하는 중…", notYet: "아직 준비되지 않았습니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
-    en: { name: "English", title: "Arriving shortly", body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", hint: "Press and hold to jump to light speed", next: "Next check in {s}s", checking: "Checking…", notYet: "Not ready yet.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" },
-    ja: { name: "日本語", title: "まもなく到着します", body: "このサービスは現在応答していません。メンテナンスまたは更新中の可能性があります。このページを開いたままにしておくと、準備が整いしだい自動的に移動します。", hint: "長押しで光速にジャンプ", next: "次の確認まで {s} 秒", checking: "確認しています…", notYet: "まだ準備ができていません。", recovered: "到着しました。ページを開きます。", offline: "オフラインです。接続が戻ると確認を再開します。", retry: "今すぐ確認", details: "技術情報", code: "エラーコード", request: "リクエスト ID", copy: "コピー", copied: "コピーしました", lang: "言語" },
-    "zh-Hans": { name: "简体中文", title: "即将抵达", body: "该服务暂时没有响应，可能正在维护或更新。保持此页面打开，服务就绪后将自动前往。", hint: "长按以光速跃迁", next: "{s} 秒后再次检查", checking: "正在检查…", notYet: "尚未就绪。", recovered: "已抵达，正在打开页面。", offline: "网络已断开。恢复连接后将继续检查。", retry: "立即检查", details: "技术信息", code: "错误代码", request: "请求 ID", copy: "复制", copied: "已复制", lang: "语言" },
-    "zh-Hant": { name: "繁體中文", title: "即將抵達", body: "此服務暫時沒有回應，可能正在維護或更新。保持此頁面開啟，服務就緒後將自動前往。", hint: "長按以光速躍遷", next: "{s} 秒後再次檢查", checking: "正在檢查…", notYet: "尚未就緒。", recovered: "已抵達，正在開啟頁面。", offline: "網路已中斷。恢復連線後將繼續檢查。", retry: "立即檢查", details: "技術資訊", code: "錯誤代碼", request: "請求 ID", copy: "複製", copied: "已複製", lang: "語言" },
-    es: { name: "Español", title: "Llegamos en breve", body: "Este servicio no responde en este momento. Puede estar en mantenimiento o actualizándose. Deja esta página abierta y te llevará allí en cuanto el servicio esté listo.", hint: "Mantén pulsado para saltar a la velocidad de la luz", next: "Próxima comprobación en {s} s", checking: "Comprobando…", notYet: "Aún no está listo.", recovered: "Hemos llegado. Abriendo la página.", offline: "Sin conexión. La comprobación se reanudará al reconectar.", retry: "Comprobar ahora", details: "Detalles técnicos", code: "Código de error", request: "ID de solicitud", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
-    fr: { name: "Français", title: "Arrivée imminente", body: "Ce service ne répond pas pour le moment. Il est peut-être en maintenance ou en cours de mise à jour. Gardez cette page ouverte : elle vous y conduira dès que le service sera prêt.", hint: "Maintenez appuyé pour passer en vitesse lumière", next: "Prochaine vérification dans {s} s", checking: "Vérification…", notYet: "Pas encore prêt.", recovered: "Arrivé. Ouverture de la page.", offline: "Vous êtes hors ligne. La vérification reprendra à la reconnexion.", retry: "Vérifier maintenant", details: "Détails techniques", code: "Code d’erreur", request: "ID de requête", copy: "Copier", copied: "Copié", lang: "Langue" },
-    de: { name: "Deutsch", title: "Gleich am Ziel", body: "Dieser Dienst antwortet gerade nicht. Möglicherweise wird er gewartet oder aktualisiert. Lassen Sie diese Seite geöffnet. Sie bringt Sie hin, sobald der Dienst bereit ist.", hint: "Gedrückt halten für Lichtgeschwindigkeit", next: "Nächste Prüfung in {s} s", checking: "Wird geprüft …", notYet: "Noch nicht bereit.", recovered: "Angekommen. Seite wird geöffnet.", offline: "Sie sind offline. Die Prüfung läuft weiter, sobald die Verbindung zurück ist.", retry: "Jetzt prüfen", details: "Technische Details", code: "Fehlercode", request: "Anfrage-ID", copy: "Kopieren", copied: "Kopiert", lang: "Sprache" },
-    pt: { name: "Português", title: "Chegando em instantes", body: "Este serviço não está respondendo agora. Ele pode estar em manutenção ou sendo atualizado. Deixe esta página aberta e ela levará você até lá assim que o serviço estiver pronto.", hint: "Mantenha pressionado para saltar à velocidade da luz", next: "Próxima verificação em {s} s", checking: "Verificando…", notYet: "Ainda não está pronto.", recovered: "Chegamos. Abrindo a página.", offline: "Você está offline. A verificação continua quando a conexão voltar.", retry: "Verificar agora", details: "Detalhes técnicos", code: "Código de erro", request: "ID da solicitação", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
-    vi: { name: "Tiếng Việt", title: "Sắp đến nơi", body: "Dịch vụ này hiện không phản hồi. Có thể dịch vụ đang được bảo trì hoặc cập nhật. Hãy giữ trang này mở, trang sẽ tự đưa bạn đến ngay khi dịch vụ sẵn sàng.", hint: "Nhấn giữ để nhảy tới tốc độ ánh sáng", next: "Kiểm tra lại sau {s} giây", checking: "Đang kiểm tra…", notYet: "Chưa sẵn sàng.", recovered: "Đã đến nơi. Đang mở trang.", offline: "Bạn đang ngoại tuyến. Việc kiểm tra sẽ tiếp tục khi có kết nối.", retry: "Kiểm tra ngay", details: "Thông tin kỹ thuật", code: "Mã lỗi", request: "Mã yêu cầu", copy: "Sao chép", copied: "Đã sao chép", lang: "Ngôn ngữ" }
+    ko: { name: "한국어", title: "곧 도착합니다", body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
+    en: { name: "English", title: "Arriving shortly", body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" },
+    ja: { name: "日本語", title: "まもなく到着します", body: "このサービスは現在応答していません。メンテナンスまたは更新中の可能性があります。このページを開いたままにしておくと、準備が整いしだい自動的に移動します。", recovered: "到着しました。ページを開きます。", offline: "オフラインです。接続が戻ると確認を再開します。", retry: "今すぐ確認", details: "技術情報", code: "エラーコード", request: "リクエスト ID", copy: "コピー", copied: "コピーしました", lang: "言語" },
+    "zh-Hans": { name: "简体中文", title: "即将抵达", body: "该服务暂时没有响应，可能正在维护或更新。保持此页面打开，服务就绪后将自动前往。", recovered: "已抵达，正在打开页面。", offline: "网络已断开。恢复连接后将继续检查。", retry: "立即检查", details: "技术信息", code: "错误代码", request: "请求 ID", copy: "复制", copied: "已复制", lang: "语言" },
+    "zh-Hant": { name: "繁體中文", title: "即將抵達", body: "此服務暫時沒有回應，可能正在維護或更新。保持此頁面開啟，服務就緒後將自動前往。", recovered: "已抵達，正在開啟頁面。", offline: "網路已中斷。恢復連線後將繼續檢查。", retry: "立即檢查", details: "技術資訊", code: "錯誤代碼", request: "請求 ID", copy: "複製", copied: "已複製", lang: "語言" },
+    es: { name: "Español", title: "Llegamos en breve", body: "Este servicio no responde en este momento. Puede estar en mantenimiento o actualizándose. Deja esta página abierta y te llevará allí en cuanto el servicio esté listo.", recovered: "Hemos llegado. Abriendo la página.", offline: "Sin conexión. La comprobación se reanudará al reconectar.", retry: "Comprobar ahora", details: "Detalles técnicos", code: "Código de error", request: "ID de solicitud", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
+    fr: { name: "Français", title: "Arrivée imminente", body: "Ce service ne répond pas pour le moment. Il est peut-être en maintenance ou en cours de mise à jour. Gardez cette page ouverte : elle vous y conduira dès que le service sera prêt.", recovered: "Arrivé. Ouverture de la page.", offline: "Vous êtes hors ligne. La vérification reprendra à la reconnexion.", retry: "Vérifier maintenant", details: "Détails techniques", code: "Code d’erreur", request: "ID de requête", copy: "Copier", copied: "Copié", lang: "Langue" },
+    de: { name: "Deutsch", title: "Gleich am Ziel", body: "Dieser Dienst antwortet gerade nicht. Möglicherweise wird er gewartet oder aktualisiert. Lassen Sie diese Seite geöffnet. Sie bringt Sie hin, sobald der Dienst bereit ist.", recovered: "Angekommen. Seite wird geöffnet.", offline: "Sie sind offline. Die Prüfung läuft weiter, sobald die Verbindung zurück ist.", retry: "Jetzt prüfen", details: "Technische Details", code: "Fehlercode", request: "Anfrage-ID", copy: "Kopieren", copied: "Kopiert", lang: "Sprache" },
+    pt: { name: "Português", title: "Chegando em instantes", body: "Este serviço não está respondendo agora. Ele pode estar em manutenção ou sendo atualizado. Deixe esta página aberta e ela levará você até lá assim que o serviço estiver pronto.", recovered: "Chegamos. Abrindo a página.", offline: "Você está offline. A verificação continua quando a conexão voltar.", retry: "Verificar agora", details: "Detalhes técnicos", code: "Código de erro", request: "ID da solicitação", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
+    vi: { name: "Tiếng Việt", title: "Sắp đến nơi", body: "Dịch vụ này hiện không phản hồi. Có thể dịch vụ đang được bảo trì hoặc cập nhật. Hãy giữ trang này mở, trang sẽ tự đưa bạn đến ngay khi dịch vụ sẵn sàng.", recovered: "Đã đến nơi. Đang mở trang.", offline: "Bạn đang ngoại tuyến. Việc kiểm tra sẽ tiếp tục khi có kết nối.", retry: "Kiểm tra ngay", details: "Thông tin kỹ thuật", code: "Mã lỗi", request: "Mã yêu cầu", copy: "Sao chép", copied: "Đã sao chép", lang: "Ngôn ngữ" }
   };
   // One display face per script; only the family for the shown language loads.
   const DISPLAY = { ko: "Noto Sans KR", ja: "Noto Sans JP", "zh-Hans": "Noto Sans SC", "zh-Hant": "Noto Sans TC" };
@@ -275,15 +266,17 @@ option { color: #111; }
   // points into streaks.
   const canvas = $("space");
   const ctx = canvas.getContext("2d");
+  // The page opens at cruise, then jumps to light speed and stays there
+  // until the service answers; arrival drops out of light speed.
   const CRUISE = 0.07;
-  const BOOST = 1.2;
   const WARP = 3.6;
-  const EXIT = 7;
+  const SURGE = 5.6;
+  const LAUNCH_MS = 1800;
   let w = 0, h = 0, focal = 0, stars = [];
   let field = null;
   let speed = CRUISE;
   let target = CRUISE;
-  const view = { x: 0, y: 0, tx: 0, ty: 0 };
+  const view = { x: 0, y: 0, roll: 0, tx: 0, ty: 0, troll: 0 };
 
   function spawn(s, far) {
     s.x = Math.random() * 2 - 1;
@@ -323,6 +316,11 @@ option { color: #111; }
   }
   function draw(dt) {
     ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    // Banking: the view rolls around the screen centre as the ship turns.
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(view.roll);
+    ctx.translate(-w / 2, -h / 2);
     const cx = w / 2 + view.x;
     const cy = h / 2 + view.y;
     // The far field fades as the jump starts, and drifts a little with the view.
@@ -330,7 +328,7 @@ option { color: #111; }
     ctx.drawImage(field, view.x * 0.15, view.y * 0.15, w, h);
     // Trail length grows with the square of speed: points at cruise, streaks in a jump.
     const stretch = Math.min(0.5, speed * speed * 0.035);
-    // In a jump the streaks clear the middle of the view so the text stays legible.
+    // In a jump the streaks clear the middle of the screen so the text stays legible.
     const tunnel = Math.min(1, Math.max(0, (speed - 0.6) / 2.4)) * Math.min(w, h) * 0.42;
     const blue = Math.min(1, Math.max(0, (speed - 0.4) / 3));
     // Light ahead blue-shifts as the ship approaches light speed.
@@ -349,7 +347,7 @@ option { color: #111; }
       const near = 1 - s.z;
       let alpha = Math.min(1, near * near * 1.6 + 0.08);
       if (tunnel > 0) {
-        const d = Math.hypot((x - cx) / 1.6, y - cy) / tunnel;
+        const d = Math.hypot((x - w / 2) / 1.6, y - h / 2) / tunnel;
         if (d < 1) alpha *= d * d;
       }
       ctx.globalAlpha = alpha;
@@ -363,71 +361,55 @@ option { color: #111; }
     ctx.globalAlpha = 1;
     if (speed > 1) {
       // The bloom of light at the vanishing point during a jump.
-      const glow = Math.min(0.55, (speed - 1) / 6);
+      const glow = Math.min(0.4, (speed - 1) / 7);
       const r = Math.max(w, h) * 0.35;
       const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
       g.addColorStop(0, "rgba(190, 215, 255, " + glow.toFixed(3) + ")");
       g.addColorStop(1, "rgba(190, 215, 255, 0)");
       ctx.fillStyle = g;
-      ctx.fillRect(0, 0, w, h);
+      ctx.fillRect(-w, -h, w * 3, h * 3);
     }
+    ctx.restore();
   }
+  const launchAt = performance.now() + (reduce.matches ? 0 : LAUNCH_MS);
+  let surgeUntil = 0;
+  let arriving = false;
   let last = performance.now();
   function frame(now) {
     const dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     if (!reduce.matches) {
-      // Accelerate briskly, coast down gently.
-      const rate = target > speed ? 1.6 : 1.1;
+      const target = state === "recovered" ? 0 : now < launchAt ? CRUISE : now < surgeUntil ? SURGE : WARP;
+      // Accelerate briskly, come out of light speed a little slower.
+      const rate = target > speed ? 1.5 : 1.3;
       speed += (target - speed) * (1 - Math.exp(-dt * rate));
-      view.x += (view.tx - view.x) * (1 - Math.exp(-dt * 2));
-      view.y += (view.ty - view.y) * (1 - Math.exp(-dt * 2));
-      if (holding && now - holding > 2000) { holding = 0; check(); }
+      const steer = 1 - Math.exp(-dt * 3);
+      view.x += (view.tx - view.x) * steer;
+      view.y += (view.ty - view.y) * steer;
+      view.roll += (view.troll - view.roll) * steer;
       draw(dt);
+      if (state === "recovered" && speed < 0.15) arrive();
     }
     requestAnimationFrame(frame);
   }
-  function setCourse() {
-    target = state === "recovered" ? EXIT : state === "checking" ? WARP : holding ? BOOST : CRUISE;
-  }
 
-  // Steering and thrust ------------------------------------------------
-  let holding = 0;
-  let touched = false;
+  // Steering ------------------------------------------------------------
   addEventListener("pointermove", (e) => {
-    view.tx = (e.clientX - w / 2) * -0.12;
-    view.ty = (e.clientY - h / 2) * -0.12;
+    const dx = e.clientX - w / 2;
+    const dy = e.clientY - h / 2;
+    view.tx = dx * 0.55;
+    view.ty = dy * 0.55;
+    view.troll = dx / w * -0.35;
   });
-  const interactive = (el) => el.closest("button, select, summary, details, a, dl");
-  function startThrust(e) {
-    if (e && interactive(e.target)) return;
-    if (holding || state === "recovered") return;
-    holding = performance.now();
-    if (!touched) { touched = true; $("hint").classList.add("done"); }
-    setCourse();
-  }
-  function stopThrust() {
-    holding = 0;
-    setCourse();
-  }
-  addEventListener("pointerdown", startThrust);
-  addEventListener("pointerup", stopThrust);
-  addEventListener("pointercancel", stopThrust);
-  addEventListener("blur", stopThrust);
-  addEventListener("keydown", (e) => {
-    if (e.code !== "Space" || e.repeat || interactive(document.activeElement || document.body)) return;
-    e.preventDefault();
-    startThrust();
-  });
-  addEventListener("keyup", (e) => { if (e.code === "Space") stopThrust(); });
+  document.addEventListener("pointerleave", () => { view.tx = 0; view.ty = 0; view.troll = 0; });
 
   // Recovery polling ----------------------------------------------------
   const DELAYS = [5, 10, 15, 20, 30];
   let lang = pickLang();
   let t = I18N[lang];
-  let state = "waiting";
+  let state = "travel";
   let attempt = 0;
-  let missed = false;
+  let probing = false;
   let deadline = 0;
 
   function setLive(text) {
@@ -436,23 +418,13 @@ option { color: #111; }
   }
   function render() {
     document.body.dataset.state = state;
-    $("retry").disabled = state === "checking" || state === "recovered";
-    let line;
-    if (state === "checking") line = t.checking;
-    else if (state === "recovered") line = t.recovered;
-    else if (state === "offline") line = t.offline;
-    else {
-      const next = t.next.replace("{s}", Math.max(1, Math.ceil((deadline - Date.now()) / 1000)));
-      line = missed ? t.notYet + " " + next : next;
-    }
+    $("retry").disabled = state === "recovered";
+    const line = state === "recovered" ? t.recovered : state === "offline" ? t.offline : "";
     $("status").textContent = line;
-    setLive(state === "waiting" ? (missed ? t.notYet : "") : line);
-    setCourse();
+    setLive(line);
   }
   function schedule() {
     deadline = Date.now() + DELAYS[Math.min(attempt, DELAYS.length - 1)] * 1000;
-    state = navigator.onLine === false ? "offline" : "waiting";
-    render();
   }
   async function probe() {
     const ctrl = new AbortController();
@@ -475,42 +447,39 @@ option { color: #111; }
     }
   }
   function arrive() {
-    const flash = $("flash");
+    if (arriving) return;
+    arriving = true;
     if (reduce.matches) { location.replace(location.href); return; }
-    flash.style.setProperty("--fx", (w / 2 + view.x) + "px");
-    flash.style.setProperty("--fy", (h / 2 + view.y) + "px");
-    flash.animate([{ opacity: 0 }, { opacity: 0 }, { opacity: 1 }], { duration: 1300, easing: "cubic-bezier(0.6, 0, 0.9, 0.4)", fill: "forwards" })
+    $("flash").animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: "ease-in", fill: "forwards" })
       .finished.then(() => location.replace(location.href));
   }
   async function check() {
-    if (state === "checking" || state === "recovered") return;
+    if (probing || state === "recovered") return;
     if (navigator.onLine === false) { state = "offline"; render(); return; }
-    state = "checking";
-    render();
-    const started = performance.now();
+    probing = true;
     const ok = await probe();
-    // Hold the jump long enough to be felt.
-    const wait = Math.max(0, (reduce.matches ? 400 : 2200) - (performance.now() - started));
-    setTimeout(() => {
-      if (ok) {
-        state = "recovered";
-        render();
-        arrive();
-      } else {
-        missed = true;
-        attempt += 1;
-        schedule();
-      }
-    }, wait);
+    probing = false;
+    if (ok) {
+      state = "recovered";
+      render();
+      if (reduce.matches) arrive();
+      return;
+    }
+    if (state === "offline") { state = "travel"; render(); }
+    attempt += 1;
+    schedule();
   }
   setInterval(() => {
-    if (state !== "waiting" || document.hidden) return;
+    if (state === "recovered" || document.hidden || probing) return;
     if (Date.now() >= deadline) check();
-    else render();
   }, 250);
-  addEventListener("online", () => { if (state === "offline") check(); });
-  addEventListener("offline", () => { if (state === "waiting") { state = "offline"; render(); } });
-  $("retry").addEventListener("click", check);
+  addEventListener("online", () => { if (state === "offline") { state = "travel"; render(); check(); } });
+  addEventListener("offline", () => { if (state === "travel") { state = "offline"; render(); } });
+  $("retry").addEventListener("click", () => {
+    // A manual check pushes the ship past light speed for a moment.
+    surgeUntil = performance.now() + 1200;
+    check();
+  });
 
   // Text ----------------------------------------------------------------
   function applyLang(next) {
