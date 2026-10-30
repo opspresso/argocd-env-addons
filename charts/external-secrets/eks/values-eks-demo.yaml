@@ -17,7 +17,7 @@ raw:
           - namespaceRegexes:
               - "^(argocd|sample|sample-node)$"
               - "^addon-[a-z0-9-]+$"
-              - "^agent-(studio|models|memory|knowledge|forge|mcps|delivery)$"
+              - "^agent-(studio|models|memory|knowledge|forge|mcps|delivery|runway)$"
               - "^delivery-pool$"
               # The app-delivery workflow reads its GitHub token (argocd-env-projects charts/delivery).
               - "^app-delivery$"
