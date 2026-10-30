@@ -48,7 +48,10 @@ def test_workload_rules_and_scoped_panels(rendered_grafana, tmp_path):
 
 
 def test_provisioning_has_unique_uids_and_links_to_existing_panels(rendered_grafana):
-    boards = {uid: json.loads((ROOT / f"charts/grafana/dashboards/{uid}.json").read_text()) for uid in ["kube-cluster", "kube-workload"]}
+    boards = {}
+    for path in (ROOT / "charts/grafana/dashboards").glob("*.json"):
+        board = json.loads(path.read_text())
+        boards[board["uid"]] = board
     uids = set()
     for doc in rendered_grafana:
         for name, content in (doc.get("stringData") or {}).items():
@@ -64,6 +67,38 @@ def test_provisioning_has_unique_uids_and_links_to_existing_panels(rendered_graf
                         ids = {str(p["id"]) for p in boards[a["__dashboardUid__"]]["panels"]}
                         assert a["__panelId__"] in ids
                     if "dashboard_url" in a:
-                        assert a["dashboard_url"].startswith("https://grafana.demo.rovr.dev/d/kube-workload?")
+                        assert a["dashboard_url"].startswith(("https://grafana.demo.rovr.dev/d/kube-workload?",
+                                                              "https://grafana.demo.rovr.dev/d/service-status?"))
                         assert "{{ $labels.namespace }}" in a["dashboard_url"]
                         assert '{{ "' not in a["dashboard_url"]
+
+
+def test_rules_are_actionable_and_query_errors_do_not_page(rendered_grafana):
+    """Every rule names its severity and object; only the dedicated rule turns a Prometheus error into an alert."""
+    secret = next(doc for doc in rendered_grafana if "workload-health.yaml" in (doc.get("stringData") or {}))
+    erroring, provisioned = [], set()
+    for name, content in secret["stringData"].items():
+        config = yaml.safe_load(content)
+        for group in config.get("groups", []):
+            for rule in group["rules"]:
+                provisioned.add(rule["uid"])
+                a = rule["annotations"]
+                assert a.get("summary") and a.get("description"), rule["uid"]
+                assert "{{`" not in a["summary"], rule["uid"]
+                if rule["data"][0]["datasourceUid"] == "prometheus" and rule["uid"] != "addons-workspace-prometheus-alerts":
+                    assert rule["labels"]["severity"] in ("critical", "warning"), rule["uid"]
+                if rule["execErrState"] != "KeepLast":
+                    erroring.append(rule["uid"])
+    assert erroring == ["addons-prometheus-unreachable"]
+    retired = yaml.safe_load(secret["stringData"]["workload-health.yaml"])["deleteRules"]
+    assert {r["uid"] for r in retired}.isdisjoint(provisioned)
+
+
+def test_slack_messages_use_the_provisioned_template(rendered_grafana):
+    secret = next(doc for doc in rendered_grafana if "templates.yaml" in (doc.get("stringData") or {}))
+    template = yaml.safe_load(secret["stringData"]["templates.yaml"])["templates"][0]["template"]
+    settings = yaml.safe_load(secret["stringData"]["contactpoints.yaml"])["contactPoints"][0]["receivers"][0]["settings"]
+    for name in ("title", "text"):
+        assert settings[name] == '{{ template "addons.slack.%s" . }}' % name
+        assert '{{ define "addons.slack.%s" -}}' % name in template
+    assert settings["url"] == "$SLACK_WEBHOOK_URL"

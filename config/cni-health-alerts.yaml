@@ -10,13 +10,16 @@ groups:
     condition: C
     for: 0s
     noDataState: OK
-    execErrState: Alerting
+    execErrState: KeepLast
     labels:
       severity: critical
       scope: cluster
     annotations:
-      summary: Egress BPF attach failed after ingress allocation. Check node kernel vmalloc and CNI cleanup before repeated
+      summary: AWS network policy agent failed to attach the egress BPF probe on node {{`{{ $labels.node }}`}}
+      description: Egress BPF attach failed after ingress allocation. Check node kernel vmalloc and CNI cleanup before repeated
         short-lived Pods accumulate memory.
+      __dashboardUid__: kube-cluster
+      __panelId__: '108'
     data:
     - refId: A
       relativeTimeRange:

@@ -28,6 +28,26 @@
   "id": null,
   "links": [
     {
+      "title": "Cluster Overview",
+      "type": "link",
+      "url": "/d/cluster-overview",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "title": "Service Status",
+      "type": "link",
+      "url": "/d/service-status",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
       "title": "Cluster / node health",
       "type": "link",
       "url": "/d/kube-cluster",
@@ -40,7 +60,7 @@
     {
       "id": 300,
       "type": "row",
-      "title": "Resource totals \u2014 All or selected workload",
+      "title": "Resource totals — All or selected workload",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -1294,7 +1314,7 @@
         "w": 4,
         "h": 4
       },
-      "description": "",
+      "description": "Container restarts in the selected scope over 10 minutes, including init and native sidecar containers.",
       "targets": [
         {
           "refId": "A",
@@ -1456,7 +1476,7 @@
         "w": 12,
         "h": 4
       },
-      "description": "5xx and response code 0. No traffic or no mesh telemetry remains N/A, never 100% successful.",
+      "description": "5xx and response code 0, excluding client disconnects (response flag DC). No traffic or no mesh telemetry remains N/A, never 100% successful.",
       "targets": [
         {
           "refId": "A",
@@ -1464,7 +1484,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(100 * (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\",response_code=~\"0|5..\"}[5m])) or (0 * sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])))) / sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) and on() (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])) > 0)",
+          "expr": "(100 * (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\",response_code=~\"0|5..\",response_flags!=\"DC\"}[5m])) or (0 * sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])))) / sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) and on() (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])) > 0)",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -1623,7 +1643,7 @@
     {
       "id": 400,
       "type": "alertlist",
-      "title": "Active workload alerts \u2014 all namespaces",
+      "title": "Active workload alerts — all namespaces",
       "description": "Live alert state across this monitoring scope; independent of the resource selectors above. Includes pending, firing, collection errors and missing data.",
       "gridPos": {
         "x": 0,
@@ -1939,7 +1959,7 @@
         "w": 12,
         "h": 7
       },
-      "description": "",
+      "description": "Restarts per container over 10 minutes. The repeated-restart alert fires at 3 restarts of one container within 15 minutes.",
       "targets": [
         {
           "refId": "A",
@@ -2478,13 +2498,13 @@
           }
         }
       ],
-      "title": "Last container termination \u2014 reason and time",
+      "title": "Last container termination — reason and time",
       "type": "table"
     },
     {
       "id": 115,
       "type": "row",
-      "title": "Container resources \u2014 sidecars included",
+      "title": "Container resources — sidecars included",
       "collapsed": false,
       "gridPos": {
         "x": 0,
@@ -2508,7 +2528,7 @@
         "w": 12,
         "h": 8
       },
-      "description": "",
+      "description": "CPU cores used per container, sidecars included.",
       "targets": [
         {
           "refId": "A",
@@ -2702,7 +2722,7 @@
         "w": 12,
         "h": 8
       },
-      "description": "",
+      "description": "Working set memory per container, sidecars included. This is the value the kernel compares with the memory limit.",
       "targets": [
         {
           "refId": "A",
@@ -3153,7 +3173,7 @@
         "w": 8,
         "h": 8
       },
-      "description": "",
+      "description": "Requests per second to the selected destination services, as reported by the ingress gateway.",
       "targets": [
         {
           "refId": "A",
@@ -3246,7 +3266,7 @@
         "w": 8,
         "h": 8
       },
-      "description": "",
+      "description": "Failure percentage: 5xx and transport code 0, excluding client disconnects (response flag DC). The alert fires above 5% for 5 minutes with more than 0.1 requests/s.",
       "targets": [
         {
           "refId": "A",
@@ -3254,7 +3274,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(100 * (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\",response_code=~\"0|5..\"}[5m])) or (0 * sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])))) / sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) and on() (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])) > 0)",
+          "expr": "(100 * (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\",response_code=~\"0|5..\",response_flags!=\"DC\"}[5m])) or (0 * sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])))) / sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m]))) and on() (sum(rate(istio_requests_total{cluster=~\"$cluster\",reporter=\"source\",destination_workload_namespace=~\"$namespace\",destination_workload=~\"$workload\",destination_service_name=~\"$service\"}[5m])) > 0)",
           "legendFormat": "errors",
           "instant": false,
           "range": true,
@@ -3464,7 +3484,7 @@
         "w": 12,
         "h": 7
       },
-      "description": "",
+      "description": "Requests per second by HTTP response code. Code 0 means the request did not get an HTTP response.",
       "targets": [
         {
           "refId": "A",
@@ -3557,7 +3577,7 @@
         "w": 12,
         "h": 7
       },
-      "description": "",
+      "description": "Network bytes per second received and transmitted per pod, excluding loopback.",
       "targets": [
         {
           "refId": "A",

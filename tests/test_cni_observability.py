@@ -40,7 +40,8 @@ def test_grafana_cni_failure_rule_uses_loki_and_keeps_node_identity():
     assert 'Failed to Attach Egress TC probe' in query['model']['expr']
     assert threshold['model']['type'] == 'threshold'
     assert rules[0]['noDataState'] == 'OK'
-    assert rules[0]['execErrState'] == 'Alerting'
+    # A Loki outage is not a CNI failure; the core target rule reports Loki itself.
+    assert rules[0]['execErrState'] == 'KeepLast'
     assert rules[0]['labels']['severity'] == 'critical'
     k3s = yaml.safe_load((ROOT / 'charts/grafana/k3s/values-k3s-demo.yaml').read_text())
     assert 'cni-health.yaml' not in (k3s['grafana'].get('alerting') or {})

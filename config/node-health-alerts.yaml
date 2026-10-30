@@ -5,18 +5,289 @@ groups:
   folder: addons
   interval: 30s
   rules:
-  - uid: addons-node-memory-high
-    title: Host memory usage above 85%
+  - uid: addons-prometheus-unreachable
+    title: Prometheus is not answering alert queries
+    condition: C
+    for: 3m
+    noDataState: OK
+    execErrState: Alerting
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Grafana cannot query Prometheus; metric-based alerts are blind
+      description: Every Prometheus rule keeps its last state while queries fail, so this is the only alert for the outage.
+        Check the prometheus-prometheus-prometheus-0 pod in addon-prometheus (scheduling, PVC attach, OOM) and the Grafana
+        datasource.
+      __dashboardUid__: kube-cluster
+      __panelId__: '113'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 300
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: vector(0)
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-node-not-ready
+    title: Kubernetes node is not Ready
+    condition: C
+    for: 2m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Node {{`{{ $labels.node }}`}} is NotReady
+      description: The kubelet stopped reporting Ready. Pods there are not served and are evicted after 5 minutes. Nodes that
+        Auto Mode is draining are excluded. Check EC2 status checks, kubelet and network; a node that stays NotReady is not
+        being replaced.
+      __dashboardUid__: cluster-overview
+      __panelId__: '24'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, node) (kube_node_status_condition{condition="Ready",status=~"false|unknown"}) unless on (cluster,
+          node) kube_node_spec_taint{key="karpenter.sh/disrupted"}
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-node-pressure
+    title: Node under memory or PID pressure
+    condition: C
+    for: 1m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Node {{`{{ $labels.node }}`}} reports {{`{{ $labels.condition }}`}}
+      description: The kubelet is evicting pods or refusing new processes. Find the largest consumers on the node and move
+        or limit them.
+      __dashboardUid__: kube-cluster
+      __panelId__: '206'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, node, condition) (kube_node_status_condition{condition=~"MemoryPressure|PIDPressure",status="true"})
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-node-disk-pressure
+    title: Node under disk pressure
     condition: C
     for: 5m
-    noDataState: NoData
-    execErrState: Alerting
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Node {{`{{ $labels.node }}`}} reports DiskPressure and is evicting pods
+      description: Image and ephemeral storage are nearly full. Check large emptyDir volumes and container logs on the node.
+      __dashboardUid__: kube-cluster
+      __panelId__: '205'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, node) (kube_node_status_condition{condition="DiskPressure",status="true"})
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-node-disk-usage-high
+    title: Node filesystem above 85% used
+    condition: C
+    for: 10m
+    noDataState: OK
+    execErrState: KeepLast
     labels:
       severity: warning
       scope: cluster
     annotations:
-      summary: Host memory availability is below 15%. Inspect kernel vmalloc, PSI and swap; pod working sets do
-        not include all host memory.
+      summary: Filesystem {{`{{ $labels.mountpoint }}`}} on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{ printf "%.0f"
+        $values.A.Value }}`}}% full
+      description: Free space before 95% (critical) and kubelet DiskPressure. Check emptyDir usage and unused images.
+      __dashboardUid__: kube-cluster
+      __panelId__: '7'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, instance, node, mountpoint) (100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
+          / node_filesystem_size_bytes{job="node-exporter",mountpoint=~"/|/local"}) and on (cluster, instance, device, mountpoint)
+          (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"} == 0))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 85
+  - uid: addons-node-disk-critical
+    title: Node filesystem above 95% used
+    condition: C
+    for: 2m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+      scope: cluster
+    annotations:
+      summary: Filesystem {{`{{ $labels.mountpoint }}`}} on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{ printf "%.0f"
+        $values.A.Value }}`}}% full
+      description: Pods will be evicted soon. Free space now or replace the node.
+      __dashboardUid__: kube-cluster
+      __panelId__: '205'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, instance, node, mountpoint) (100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
+          / node_filesystem_size_bytes{job="node-exporter",mountpoint=~"/|/local"}) and on (cluster, instance, device, mountpoint)
+          (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"} == 0))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 95
+  - uid: addons-node-memory-high
+    title: Host memory usage above 85%
+    condition: C
+    for: 5m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+      scope: cluster
+    annotations:
+      summary: Host memory on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% used
+      description: Less than 15% of host memory is available. Pod working sets do not include kernel memory; check vmalloc,
+        PSI and the largest pods.
       __dashboardUid__: kube-cluster
       __panelId__: '107'
     data:
@@ -33,7 +304,7 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by (cluster, instance) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
+        expr: max by (cluster, instance, node) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -52,13 +323,15 @@ groups:
     title: Host memory usage above 92%
     condition: C
     for: 2m
-    noDataState: NoData
-    execErrState: Alerting
+    noDataState: OK
+    execErrState: KeepLast
     labels:
       severity: critical
       scope: cluster
     annotations:
-      summary: Host memory availability is below 8%. Add capacity and move workloads before probe failures spread.
+      summary: Host memory on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% used
+      description: Less than 8% of host memory is available; OOM kills and probe failures follow. Move or limit workloads
+        now.
       __dashboardUid__: kube-cluster
       __panelId__: '107'
     data:
@@ -75,7 +348,7 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by (cluster, instance) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
+        expr: max by (cluster, instance, node) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"}))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -94,14 +367,16 @@ groups:
     title: Kernel vmalloc above 20% of RAM
     condition: C
     for: 15m
-    noDataState: NoData
-    execErrState: Alerting
+    noDataState: OK
+    execErrState: KeepLast
     labels:
       severity: warning
       scope: cluster
     annotations:
-      summary: Large kernel allocations reduce workload headroom. Inspect BPF maps and vmalloc growth; process or
-        pod restarts may not reclaim them.
+      summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} uses {{`{{ printf "%.0f" $values.A.Value }}`}}%
+        of RAM
+      description: Large kernel allocations reduce workload headroom. Inspect BPF maps and vmalloc growth; pod restarts may
+        not reclaim them.
       __dashboardUid__: kube-cluster
       __panelId__: '115'
     data:
@@ -118,7 +393,7 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by (cluster, instance) (100 * node_memory_VmallocUsed_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"})
+        expr: max by (cluster, instance, node) (100 * node_memory_VmallocUsed_bytes{job="node-exporter"} / node_memory_MemTotal_bytes{job="node-exporter"})
     - refId: C
       datasourceUid: __expr__
       model:
@@ -138,13 +413,15 @@ groups:
     condition: C
     for: 15m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: KeepLast
     labels:
       severity: warning
       scope: cluster
     annotations:
-      summary: Kernel vmalloc grew by more than 256 MiB compared with six hours ago. Requires six hours of history;
-        inspect BPF lifecycle cleanup before host memory is exhausted.
+      summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew {{`{{ printf "%.0f" $values.A.Value }}`}}
+        MiB in 6 hours
+      description: Growth above 256 MiB compared with six hours ago. Needs six hours of history. Inspect BPF lifecycle cleanup
+        before host memory runs out.
       __dashboardUid__: kube-cluster
       __panelId__: '108'
     data:
@@ -161,8 +438,8 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: (max by (cluster, instance) (node_memory_VmallocUsed_bytes{job="node-exporter"}) - max by (cluster,
-          instance) (node_memory_VmallocUsed_bytes{job="node-exporter"} offset 6h)) / 1024 / 1024
+        expr: (max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"}) - max by (cluster, instance,
+          node) (node_memory_VmallocUsed_bytes{job="node-exporter"} offset 6h)) / 1024 / 1024
     - refId: C
       datasourceUid: __expr__
       model:
@@ -182,13 +459,14 @@ groups:
     condition: C
     for: 2m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: KeepLast
     labels:
       severity: warning
       scope: cluster
     annotations:
-      summary: Tasks spend more than 10% of wall time waiting on memory. Correlate swap, vmalloc and load; PSI requires
-        kernel support.
+      summary: Tasks on {{`{{ or $labels.node $labels.instance }}`}} wait on memory {{`{{ printf "%.0f" $values.A.Value }}`}}%
+        of the time
+      description: Memory pressure (PSI) slows every process on the node. Correlate with swap, vmalloc and host memory.
       __dashboardUid__: kube-cluster
       __panelId__: '109'
     data:
@@ -205,7 +483,7 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by (cluster, instance) (100 * rate(node_pressure_memory_waiting_seconds_total{job="node-exporter"}[2m]))
+        expr: max by (cluster, instance, node) (100 * rate(node_pressure_memory_waiting_seconds_total{job="node-exporter"}[2m]))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -220,18 +498,62 @@ groups:
             type: gt
             params:
             - 10
-  - uid: addons-core-target-down
-    title: Core monitoring target scrape failed
+  - uid: addons-node-cpu-busy
+    title: Node CPU busy above 90%
     condition: C
-    for: 0s
-    noDataState: NoData
-    execErrState: Alerting
+    for: 10m
+    noDataState: OK
+    execErrState: KeepLast
     labels:
       severity: warning
       scope: cluster
     annotations:
-      summary: A core target failed a scrape within the last two minutes. Short node stalls can recover before a
-        pending period elapses; inspect the scrape-health panel.
+      summary: CPU on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% busy
+      description: Sustained CPU saturation causes throttling and latency. Find the top CPU workloads on the node.
+      __dashboardUid__: kube-cluster
+      __panelId__: '204'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 21600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: 100 * (1 - avg by (cluster, instance, node) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[2m])))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 90
+  - uid: addons-core-target-down
+    title: Core monitoring target down
+    condition: C
+    for: 5m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: warning
+      scope: cluster
+    annotations:
+      summary: '{{`{{ $labels.job }}`}} target {{`{{ $labels.instance }}`}} has failed scrapes for 5 minutes'
+      description: Metrics from this target are missing, so alerts based on it cannot fire. Targets of nodes that Auto Mode
+        removes disappear within a few minutes and do not reach this alert.
       __dashboardUid__: kube-cluster
       __panelId__: '113'
     data:
@@ -248,7 +570,7 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: min by (cluster, job, instance, metrics_path) (min_over_time(up{job=~"node-exporter|kubelet|apiserver|kube-state-metrics"}[2m]))
+        expr: min by (cluster, job, instance) (up{job=~"node-exporter|kubelet|apiserver|kube-state-metrics|addon-loki/loki"})
     - refId: C
       datasourceUid: __expr__
       model:
@@ -263,107 +585,19 @@ groups:
             type: lt
             params:
             - 1
-  - uid: addons-node-restart-burst
-    title: Multiple containers restarting on one node
-    condition: C
-    for: 0s
-    noDataState: NoData
-    execErrState: Alerting
-    labels:
-      severity: critical
-      scope: cluster
-    annotations:
-      summary: More than two container restarts on the same node within 10 minutes. Check node pressure and liveness
-        failures even when exit reason is Completed.
-      __dashboardUid__: kube-cluster
-      __panelId__: '114'
-    data:
-    - refId: A
-      relativeTimeRange:
-        from: 21600
-        to: 0
-      datasourceUid: prometheus
-      model:
-        refId: A
-        datasource:
-          type: prometheus
-          uid: prometheus
-        editorMode: code
-        instant: true
-        range: false
-        expr: sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total[10m]) or increase(kube_pod_init_container_status_restarts_total[10m]))
-          * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info))
-    - refId: C
-      datasourceUid: __expr__
-      model:
-        refId: C
-        datasource:
-          type: __expr__
-          uid: __expr__
-        type: threshold
-        expression: A
-        conditions:
-        - evaluator:
-            type: gt
-            params:
-            - 2
-  - uid: addons-node-liveness-burst
-    title: Repeated liveness probe failures
-    condition: C
-    for: 0s
-    noDataState: NoData
-    execErrState: Alerting
-    labels:
-      severity: critical
-      scope: cluster
-    annotations:
-      summary: More than two failed liveness checks within 5 minutes on one kubelet. Check host pressure and networking
-        before restarting applications.
-      __dashboardUid__: kube-cluster
-      __panelId__: '112'
-    data:
-    - refId: A
-      relativeTimeRange:
-        from: 21600
-        to: 0
-      datasourceUid: prometheus
-      model:
-        refId: A
-        datasource:
-          type: prometheus
-          uid: prometheus
-        editorMode: code
-        instant: true
-        range: false
-        expr: sum by (cluster, instance) (increase(prober_probe_total{probe_type="Liveness",result="failed"}[5m]))
-          or on (cluster, instance) (0 * max by (cluster, instance) (up{job="kubelet",metrics_path="/metrics/probes"}
-          == 1))
-    - refId: C
-      datasourceUid: __expr__
-      model:
-        refId: C
-        datasource:
-          type: __expr__
-          uid: __expr__
-        type: threshold
-        expression: A
-        conditions:
-        - evaluator:
-            type: gt
-            params:
-            - 2
   - uid: addons-core-job-missing
     title: Core monitoring job has no targets
     condition: C
     for: 2m
     noDataState: OK
-    execErrState: Alerting
+    execErrState: KeepLast
     labels:
       severity: critical
       scope: cluster
     annotations:
-      summary: A required EKS monitoring job disappeared from service discovery. Check ServiceMonitor selection
-        and target discovery; an empty result for this absent() rule means all required jobs exist.
+      summary: Scrape job {{`{{ $labels.job }}`}} has no targets
+      description: A required monitoring job disappeared from service discovery; alerts based on it are blind. Check the ServiceMonitor
+        and the exporter pods.
       __dashboardUid__: kube-cluster
       __panelId__: '113'
     data:
@@ -381,6 +615,7 @@ groups:
         instant: true
         range: false
         expr: absent(up{job="node-exporter"}) or absent(up{job="kubelet"}) or absent(up{job="apiserver"}) or absent(up{job="kube-state-metrics"})
+          or absent(up{job="addon-loki/loki"})
     - refId: C
       datasourceUid: __expr__
       model:
@@ -395,62 +630,22 @@ groups:
             type: gt
             params:
             - 0
-  - uid: addons-node-not-ready
-    title: Kubernetes node is not Ready
+  - uid: addons-node-restart-burst
+    title: Several containers restarting on one node
     condition: C
-    for: 1m
-    noDataState: NoData
-    execErrState: Alerting
-    labels:
-      severity: critical
-      scope: cluster
-    annotations:
-      summary: A Kubernetes node is NotReady or Unknown. Inspect its lease, host pressure and network before moving
-        workloads.
-      __dashboardUid__: kube-cluster
-      __panelId__: '106'
-    data:
-    - refId: A
-      relativeTimeRange:
-        from: 21600
-        to: 0
-      datasourceUid: prometheus
-      model:
-        refId: A
-        datasource:
-          type: prometheus
-          uid: prometheus
-        editorMode: code
-        instant: true
-        range: false
-        expr: max by (cluster,node) (kube_node_status_condition{condition="Ready",status=~"false|unknown"})
-    - refId: C
-      datasourceUid: __expr__
-      model:
-        refId: C
-        datasource:
-          type: __expr__
-          uid: __expr__
-        type: threshold
-        expression: A
-        conditions:
-        - evaluator:
-            type: gt
-            params:
-            - 0
-  - uid: addons-node-cpu-busy
-    title: Node CPU busy above 90%
-    condition: C
-    for: 10m
-    noDataState: NoData
-    execErrState: Alerting
+    for: 0s
+    noDataState: OK
+    execErrState: KeepLast
     labels:
       severity: warning
       scope: cluster
     annotations:
-      summary: A node is CPU busy for ten minutes. Inspect workload CPU, throttling and load before increasing capacity.
+      summary: '{{`{{ printf "%.0f" $values.A.Value }}`}} different containers restarted on node {{`{{ $labels.node }}`}}
+        in 10 minutes'
+      description: Restarts of unrelated containers on one node point to the node (memory, PSI, network), not to one application.
+        A single crash-looping container is reported by the repeated-restart alert instead.
       __dashboardUid__: kube-cluster
-      __panelId__: '204'
+      __panelId__: '114'
     data:
     - refId: A
       relativeTimeRange:
@@ -465,7 +660,10 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: 100 * (1 - avg by(cluster,instance)(rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[2m])))
+        expr: count by (cluster, node) ((max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total[10m])
+          or increase(kube_pod_init_container_status_restarts_total[10m])) >= 1) * on (cluster, namespace, pod) group_left(node)
+          (max by (cluster, namespace, pod, node) (kube_pod_info) and on (cluster, namespace, pod) (count by (cluster, namespace,
+          pod) (kube_pod_info) == 1)))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -479,20 +677,23 @@ groups:
         - evaluator:
             type: gt
             params:
-            - 90
-  - uid: addons-node-pressure
-    title: Node under memory or PID pressure
+            - 2
+  - uid: addons-node-liveness-burst
+    title: Liveness probes failing for several pods on one node
     condition: C
-    for: 1m
+    for: 0s
     noDataState: OK
-    execErrState: Alerting
+    execErrState: KeepLast
     labels:
-      severity: critical
+      severity: warning
       scope: cluster
     annotations:
-      summary: Node pressure can evict pods or prevent new processes. Inspect node conditions and move workloads.
+      summary: '{{`{{ printf "%.0f" $values.A.Value }}`}} pods on kubelet {{`{{ $labels.instance }}`}} failed liveness checks
+        in 5 minutes'
+      description: Several pods failing liveness on the same node at once point to host pressure or networking. Check the
+        node before restarting applications.
       __dashboardUid__: kube-cluster
-      __panelId__: '206'
+      __panelId__: '112'
     data:
     - refId: A
       relativeTimeRange:
@@ -507,7 +708,8 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: max by(cluster,node,condition)(kube_node_status_condition{condition=~"MemoryPressure|PIDPressure",status="true"})
+        expr: count by (cluster, instance) (sum by (cluster, instance, namespace, pod) (increase(prober_probe_total{probe_type="Liveness",result="failed"}[5m]))
+          >= 1)
     - refId: C
       datasourceUid: __expr__
       model:
@@ -521,48 +723,4 @@ groups:
         - evaluator:
             type: gt
             params:
-            - 0
-  - uid: addons-node-disk-critical
-    title: Writable node filesystem above 95% used
-    condition: C
-    for: 2m
-    noDataState: OK
-    execErrState: Alerting
-    labels:
-      severity: critical
-      scope: cluster
-    annotations:
-      summary: Writable node disk is nearly full. Free space or add capacity before pod eviction.
-      __dashboardUid__: kube-cluster
-      __panelId__: '205'
-    data:
-    - refId: A
-      relativeTimeRange:
-        from: 21600
-        to: 0
-      datasourceUid: prometheus
-      model:
-        refId: A
-        datasource:
-          type: prometheus
-          uid: prometheus
-        editorMode: code
-        instant: true
-        range: false
-        expr: max by(cluster,instance,mountpoint)(100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
-          / node_filesystem_size_bytes{job="node-exporter",mountpoint=~"/|/local"}) and on(cluster,instance,device,mountpoint)
-          (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"} == 0))
-    - refId: C
-      datasourceUid: __expr__
-      model:
-        refId: C
-        datasource:
-          type: __expr__
-          uid: __expr__
-        type: threshold
-        expression: A
-        conditions:
-        - evaluator:
-            type: gt
-            params:
-            - 95
+            - 1

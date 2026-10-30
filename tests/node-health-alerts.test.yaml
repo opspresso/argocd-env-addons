@@ -52,21 +52,26 @@ tests:
         exp_alerts:
           - exp_labels: {cluster: demo, instance: 'bad:9100'}
 
-  - name: a single short scrape failure is visible after recovery
+  - name: a node removed by consolidation is quiet while a target down for 5 minutes alerts
     interval: 30s
     input_series:
-      - series: 'up{cluster="demo",job="node-exporter",instance="bad:9100"}'
-        values: '1 0 1+0x8'
+      # Auto Mode drains the node; its targets fail a few scrapes and then leave discovery.
+      - series: 'up{cluster="demo",job="node-exporter",instance="removed:9100"}'
+        values: '1 0 0 0 0 stale'
+      - series: 'up{cluster="demo",job="kubelet",instance="stuck:10250",metrics_path="/metrics"}'
+        values: '1 0+0x19'
+      - series: 'up{cluster="demo",job="kubelet",instance="stuck:10250",metrics_path="/metrics/cadvisor"}'
+        values: '1 0+0x19'
       - series: 'up{cluster="demo",job="node-exporter",instance="good:9100"}'
-        values: '1+0x10'
+        values: '1+0x20'
     alert_rule_test:
-      - eval_time: 1m
-        alertname: addons-core-target-down
-        exp_alerts:
-          - exp_labels: {cluster: demo, job: node-exporter, instance: 'bad:9100'}
-      - eval_time: 3m
+      - eval_time: 4m
         alertname: addons-core-target-down
         exp_alerts: []
+      - eval_time: 6m
+        alertname: addons-core-target-down
+        exp_alerts:
+          - exp_labels: {cluster: demo, job: kubelet, instance: 'stuck:10250'}
 
   - name: disappearing service discovery is different from a successful scrape
     interval: 30s
@@ -82,6 +87,7 @@ tests:
         alertname: addons-core-job-missing
         exp_alerts:
           - exp_labels: {job: kube-state-metrics}
+          - exp_labels: {job: addon-loki/loki}
 
   - name: healthy scrape jobs and absent failure counters do not alert
     interval: 30s
@@ -94,6 +100,8 @@ tests:
         values: '1+0x10'
       - series: 'up{cluster="demo",job="kube-state-metrics",instance="ksm:8080"}'
         values: '1+0x10'
+      - series: 'up{cluster="demo",job="addon-loki/loki",instance="loki:3100"}'
+        values: '1+0x10'
     alert_rule_test:
       - eval_time: 3m
         alertname: addons-core-job-missing
@@ -105,7 +113,7 @@ tests:
         alertname: addons-node-liveness-burst
         exp_alerts: []
 
-  - name: restart burst includes Completed exits and preserves node and cluster identity
+  - name: three different containers restarting on one node is a node incident
     interval: 1m
     input_series:
       - series: 'kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="a",container="app"}'
@@ -135,8 +143,13 @@ tests:
     input_series:
       - series: 'node_pressure_memory_waiting_seconds_total{cluster="demo",instance="bad:9100",job="node-exporter"}'
         values: '0+6x20'
-      - series: 'prober_probe_total{cluster="demo",instance="bad:10250",probe_type="Liveness",result="failed"}'
+      - series: 'prober_probe_total{cluster="demo",instance="bad:10250",namespace="apps",pod="a",probe_type="Liveness",result="failed"}'
         values: '0 0 4+0x18'
+      - series: 'prober_probe_total{cluster="demo",instance="bad:10250",namespace="apps",pod="b",probe_type="Liveness",result="failed"}'
+        values: '0 0 1+0x18'
+      # One application failing its own probe is not a node incident.
+      - series: 'prober_probe_total{cluster="demo",instance="app-only:10250",namespace="apps",pod="c",probe_type="Liveness",result="failed"}'
+        values: '0 0 9+0x18'
       - series: 'up{cluster="demo",instance="bad:10250",job="kubelet",metrics_path="/metrics/probes"}'
         values: '1+0x20'
     alert_rule_test:
@@ -160,6 +173,10 @@ tests:
       values: 1+0x10
     - series: kube_node_status_condition{cluster="demo",node="good",condition="Ready",status="false"}
       values: 0+0x10
+    - series: kube_node_status_condition{cluster="demo",node="draining",condition="Ready",status="unknown"}
+      values: 1+0x10
+    - series: kube_node_spec_taint{cluster="demo",node="draining",key="karpenter.sh/disrupted",value="",effect="NoSchedule"}
+      values: 1+0x10
     alert_rule_test:
     - eval_time: 2m
       alertname: addons-node-not-ready
@@ -182,18 +199,28 @@ tests:
           cluster: demo
           instance: bad:9100
 
-  - name: native sidecar restart bursts count toward node incidents
+  - name: one crash-looping container, native sidecar included, is not a node incident
     interval: 1m
     input_series:
       - series: 'kube_pod_init_container_status_restarts_total{cluster="demo",namespace="apps",pod="app-0",container="istio-proxy"}'
         values: '0 4+0x9'
       - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="app-0",node="bad"}'
         values: '1+0x10'
+      - series: 'kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="web",container="app"}'
+        values: '0 1+0x9'
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="web",node="bad"}'
+        values: '1+0x10'
+      - series: 'kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="db-0",container="app"}'
+        values: '0 1+0x9'
+      # A StatefulSet pod recreated on another node briefly has two kube_pod_info series.
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="db-0",node="bad"}'
+        values: '1+0x10'
+      - series: 'kube_pod_info{cluster="demo",namespace="apps",pod="db-0",node="other"}'
+        values: '1+0x10'
     alert_rule_test:
       - eval_time: 2m
         alertname: addons-node-restart-burst
-        exp_alerts:
-          - exp_labels: {cluster: demo, node: bad}
+        exp_alerts: []
   - name: critical pressure and storage distinguish affected resources
     interval: 1m
     input_series:

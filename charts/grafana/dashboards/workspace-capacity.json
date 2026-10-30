@@ -77,7 +77,8 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Used / hard Pod quota in agent-forge-workspaces. The Prometheus rule ForgeSandboxQuota fires above 80% for 5 minutes."
     },
     {
       "id": 2,
@@ -119,7 +120,8 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Workspace Pods counted against the agent-forge-workspaces Pod quota."
     },
     {
       "id": 3,
@@ -161,7 +163,8 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Nodes in the workspaces node pool. 0 on EKS Auto Mode clusters that run workspaces on the shared node pool."
     },
     {
       "id": 4,
@@ -203,7 +206,8 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Agent executions in progress in agent-studio."
     },
     {
       "id": 5,
@@ -229,7 +233,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "min": 0
+          "min": 0,
+          "noValue": "No workspace Pods"
         },
         "overrides": []
       },
@@ -238,7 +243,8 @@
           "displayMode": "table",
           "placement": "bottom"
         }
-      }
+      },
+      "description": "Workspace Pods by phase. Empty when no workspace Pod exists."
     },
     {
       "id": 6,
@@ -273,7 +279,8 @@
           "displayMode": "table",
           "placement": "bottom"
         }
-      }
+      },
+      "description": "Used / hard for each resource quota in agent-forge-workspaces."
     },
     {
       "id": 7,
@@ -299,7 +306,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "cores",
-          "min": 0
+          "min": 0,
+          "noValue": "No sandbox running"
         },
         "overrides": []
       },
@@ -308,7 +316,8 @@
           "displayMode": "table",
           "placement": "bottom"
         }
-      }
+      },
+      "description": "CPU cores used by each sandbox container. Empty when no sandbox runs."
     },
     {
       "id": 8,
@@ -334,7 +343,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
-          "min": 0
+          "min": 0,
+          "noValue": "No sandbox running"
         },
         "overrides": []
       },
@@ -343,7 +353,8 @@
           "displayMode": "table",
           "placement": "bottom"
         }
-      }
+      },
+      "description": "Working set memory of each sandbox container. Empty when no sandbox runs."
     },
     {
       "id": 10,
@@ -369,7 +380,8 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "min": 0
+          "min": 0,
+          "noValue": "No workspaces node pool"
         },
         "overrides": []
       },
@@ -378,7 +390,8 @@
           "displayMode": "table",
           "placement": "bottom"
         }
-      }
+      },
+      "description": "Host memory used on nodes of the workspaces node pool. Empty when the cluster has no such node pool."
     },
     {
       "id": 11,
@@ -420,7 +433,8 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Model requests in progress in the Forge native runtime."
     },
     {
       "id": 12,
@@ -462,7 +476,8 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Available replicas of the agent-forge Deployment, which serves the API and execution worker."
     },
     {
       "id": 13,
@@ -504,7 +519,30 @@
         "textMode": "auto",
         "colorMode": "value",
         "graphMode": "area"
-      }
+      },
+      "description": "Available replicas of agent-knowledge-worker, which processes document and audio jobs."
+    }
+  ],
+  "links": [
+    {
+      "title": "Cluster Overview",
+      "type": "link",
+      "url": "/d/cluster-overview",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "title": "Service Status",
+      "type": "link",
+      "url": "/d/service-status",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": ""
     }
   ]
 }

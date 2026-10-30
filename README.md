@@ -216,7 +216,8 @@ Deployment를 갱신해야 새 Pod에 반영된다. `install/k3s/install.sh`는 
 ### EKS 모니터링
 
 - Grafana는 `https://grafana.demo.rovr.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
-  경보 평가와 Slack 알림을 사용한다.
+  경보 평가와 Slack 알림을 사용한다. 홈 대시보드는 Cluster Overview다. 대시보드와 경보 목록은
+  [grafana README](charts/grafana/README.md)에 있다.
 - Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor(`metrics.backend: prometheus`)를 수집한다.
 - Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.rovr.dev`다.
 - 저장소 크기와 보존 기간은 [Production addon 용량](docs/production-capacity.md)을 따른다.

@@ -22,14 +22,14 @@ grafana:
   # Use the committed dashboard revision; branch URLs can return stale JSON.
 
   dashboards:
-    addons: null
+    managed: null
     alpha:
       kube-cluster:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/kube-cluster.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/kube-workload.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/kube-workload.json
       workspace-capacity:
-        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/workspace-capacity.json
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/1f9713bc447edea0e74c232c10e45cf4ac2d17b9/charts/grafana/dashboards/workspace-capacity.json
       argo-cd:
         url: https://raw.githubusercontent.com/argoproj/argo-cd/refs/heads/master/examples/dashboard.json
         datasource: Prometheus
@@ -66,7 +66,7 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
     # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "37c775e8f41513f1baf50602fc233a4018cb3af9a8bdfbb2c6659c0fdaf13e1c"
+    checksum/managed-dashboards: "07e2184f6ba5cecabf740ddd9f32a9cdad088710386fa6870faeecc031a845f5"
 
   grafana.ini:
 
@@ -75,6 +75,7 @@ grafana:
 
     server:
       root_url: "https://grafana.demo.rovr.dev/"
+
 
 
     # https://grafana.com/docs/grafana/latest/auth/github/

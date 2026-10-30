@@ -42,6 +42,26 @@
   "graphTooltip": 0,
   "links": [
     {
+      "title": "Cluster Overview",
+      "type": "link",
+      "url": "/d/cluster-overview",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
+      "title": "Service Status",
+      "type": "link",
+      "url": "/d/service-status",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": ""
+    },
+    {
       "title": "Workload monitoring",
       "type": "link",
       "url": "/d/kube-workload",
@@ -137,7 +157,8 @@
         }
       ],
       "title": "Nodes",
-      "type": "stat"
+      "type": "stat",
+      "description": "Nodes known to kube-state-metrics in the selected cluster and label group. EKS Auto Mode adds and removes nodes as pod requests change."
     },
     {
       "datasource": {
@@ -227,7 +248,8 @@
         }
       ],
       "title": "Pod Requests / Allocatable",
-      "type": "gauge"
+      "type": "gauge",
+      "description": "Scheduled pods / allocatable pod slots. Each node has a fixed pod limit that depends on instance type."
     },
     {
       "datasource": {
@@ -317,7 +339,8 @@
         }
       ],
       "title": "CPU Requests / Allocatable",
-      "type": "gauge"
+      "type": "gauge",
+      "description": "CPU requests of containers and running init/native sidecar containers / allocatable CPU. Scheduling reservation only; Auto Mode adds nodes when pods cannot be scheduled."
     },
     {
       "datasource": {
@@ -1259,7 +1282,7 @@
     {
       "id": 400,
       "type": "alertlist",
-      "title": "Active alerts \u2014 all clusters",
+      "title": "Active alerts — all clusters",
       "description": "Live alert state across this monitoring scope; independent of the resource selectors above. Includes pending, firing, collection errors and missing data.",
       "gridPos": {
         "x": 0,
@@ -1285,7 +1308,7 @@
     },
     {
       "id": 200,
-      "title": "Nodes needing attention \u2014 current values",
+      "title": "Nodes needing attention — current values",
       "type": "table",
       "datasource": {
         "type": "prometheus",
@@ -1633,7 +1656,7 @@
         "w": 8,
         "h": 8
       },
-      "description": "",
+      "description": "Percentage of host memory still available (MemAvailable / MemTotal) per node. The warning alert fires below 15% and the critical alert below 8%.",
       "targets": [
         {
           "refId": "A",
@@ -2084,7 +2107,7 @@
         "w": 8,
         "h": 7
       },
-      "description": "",
+      "description": "Failed liveness checks per kubelet over 5 minutes. Failures spread across several pods on one node point to the node; failures on one pod point to the application.",
       "targets": [
         {
           "refId": "A",
@@ -2258,7 +2281,7 @@
         "w": 12,
         "h": 7
       },
-      "description": "",
+      "description": "Container restarts per node over 10 minutes. The node alert fires when 3 or more different containers restart on one node within 10 minutes.",
       "targets": [
         {
           "refId": "A",
@@ -2347,7 +2370,7 @@
         "w": 12,
         "h": 7
       },
-      "description": "",
+      "description": "Kernel vmalloc as a share of physical RAM per node. The alert fires above 20% for 15 minutes.",
       "targets": [
         {
           "refId": "A",
@@ -2736,7 +2759,7 @@
         "w": 8,
         "h": 8
       },
-      "description": "",
+      "description": "Receive plus transmit errors and drops per second on physical interfaces. Sustained non-zero values point to the node network or ENA driver.",
       "targets": [
         {
           "refId": "A",
