@@ -12,7 +12,11 @@ grafana:
   # Use the committed dashboard revision; branch URLs can return stale JSON.
 
   dashboards:
-    addons:
+    managed:
+      cluster-overview:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/cluster-overview.json
+      service-status:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/service-status.json
       kube-cluster:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/b4ff717b621fc3446e4ca17f71fe902f0dcc6de9/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
@@ -26,6 +30,15 @@ grafana:
     workload-health.yaml:
       secret:
         apiVersion: 1
+        deleteRules:
+        - orgId: 1
+          uid: addons-cluster-cpu-requests-high
+        - orgId: 1
+          uid: addons-cluster-memory-requests-high
+        - orgId: 1
+          uid: addons-istio-success-rate-low
+        - orgId: 1
+          uid: addons-pod-exited-error
         groups:
         - folder: addons
           interval: 30s
@@ -35,12 +48,15 @@ grafana:
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '101'
-              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
-                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
-                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
-                }}'
-              summary: A Deployment, StatefulSet or DaemonSet with desired replicas has no
-                available replicas. Inspect readiness, Pod events and node health.
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{`{{
+                $labels.cluster }}`}}&var-namespace={{`{{ $labels.namespace }}`}}&var-workload_type={{`{{
+                $labels.workload_type }}`}}&var-workload={{`{{ $labels.workload }}`}}'
+              description: The service is down. Check Pod events, readiness probes, image
+                pulls and node health. Single-replica workloads with the Recreate strategy
+                are down for a short time during every rollout; 3 minutes covers a normal
+                restart.
+              summary: '{{`{{ $labels.namespace }}`}}/{{`{{ $labels.workload }}`}} ({{`{{
+                $labels.workload_type }}`}}) has no available replicas'
             condition: C
             data:
             - datasourceUid: prometheus
@@ -84,8 +100,8 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 1m
+            execErrState: KeepLast
+            for: 3m
             labels:
               scope: workload
               severity: critical
@@ -95,13 +111,14 @@ grafana:
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '101'
-              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
-                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
-                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
-                }}'
-              summary: A controller is partially available but below its desired replicas
-                for three minutes. Complete unavailability is reported by the separate critical
-                rule.
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{`{{
+                $labels.cluster }}`}}&var-namespace={{`{{ $labels.namespace }}`}}&var-workload_type={{`{{
+                $labels.workload_type }}`}}&var-workload={{`{{ $labels.workload }}`}}'
+              description: The service still runs with reduced capacity. A rollout or node
+                replacement that takes longer than 10 minutes is stuck; check Pending pods
+                and readiness. Complete unavailability is the critical rule.
+              summary: '{{`{{ $labels.namespace }}`}}/{{`{{ $labels.workload }}`}} is {{`{{
+                printf "%.0f" $values.A.Value }}`}} replica(s) short of desired for 10 minutes'
             condition: C
             data:
             - datasourceUid: prometheus
@@ -152,8 +169,8 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 3m
+            execErrState: KeepLast
+            for: 10m
             labels:
               scope: workload
               severity: warning
@@ -162,9 +179,13 @@ grafana:
             uid: addons-deployment-replicas-unavailable
           - annotations:
               __dashboardUid__: kube-workload
-              __panelId__: '104'
-              summary: A container restarted after OOMKilled in the last 10 minutes. Inspect
-                memory usage/limit and concurrent workload changes.
+              __panelId__: '62'
+              description: The container keeps exiting (crash loop, failing liveness probe
+                or OOM). Read the previous container log and the termination reason in the
+                workload dashboard.
+              summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace
+                }}`}}/{{`{{ $labels.pod }}`}} restarted {{`{{ printf "%.0f" $values.A.Value
+                }}`}} times in 15 minutes
             condition: C
             data:
             - datasourceUid: prometheus
@@ -173,15 +194,68 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: ((max by (cluster,namespace,pod,container)((increase(kube_pod_container_status_restarts_total[10m])
-                  or increase(kube_pod_init_container_status_restarts_total[10m]))) * on(cluster,namespace,pod,container)
-                  max by(cluster,namespace,pod,container)((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                expr: (max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total[15m])
+                  or increase(kube_pod_init_container_status_restarts_total[15m]))) * on (cluster,
+                  namespace, pod) group_left(workload, workload_type) max by (cluster, namespace,
+                  pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
+                  or on (cluster, namespace, pod, container) max by (cluster, namespace, pod,
+                  container) ((increase(kube_pod_container_status_restarts_total[15m]) or
+                  increase(kube_pod_init_container_status_restarts_total[15m])))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 1800
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 2.5
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 0s
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Container restarting repeatedly
+            uid: addons-pod-crash-looping
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '104'
+              description: The container exceeded its memory limit and restarted. Compare
+                memory with the limit in the workload dashboard; raise the limit or fix the
+                leak.
+              summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace
+                }}`}}/{{`{{ $labels.pod }}`}} was OOMKilled
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: ((max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total[10m])
+                  or increase(kube_pod_init_container_status_restarts_total[10m]))) * on (cluster,
+                  namespace, pod, container) max by (cluster, namespace, pod, container)((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
                   or kube_pod_init_container_status_last_terminated_reason{reason="OOMKilled"})
                   == 1)) * on (cluster, namespace, pod) group_left(workload, workload_type)
                   max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
-                  or on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)
-                  ((increase(kube_pod_container_status_restarts_total[10m]) or increase(kube_pod_init_container_status_restarts_total[10m]))
-                  * on(cluster,namespace,pod,container) group_left(reason) ((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
+                  or on (cluster, namespace, pod, container) (max by (cluster, namespace,
+                  pod, container) ((increase(kube_pod_container_status_restarts_total[10m])
+                  or increase(kube_pod_init_container_status_restarts_total[10m])) * on (cluster,
+                  namespace, pod, container) group_left(reason) ((kube_pod_container_status_last_terminated_reason{reason="OOMKilled"}
                   or kube_pod_init_container_status_last_terminated_reason{reason="OOMKilled"})
                   == 1)))
                 instant: true
@@ -189,7 +263,7 @@ grafana:
                 refId: A
               refId: A
               relativeTimeRange:
-                from: 600
+                from: 1200
                 to: 0
             - datasourceUid: __expr__
               model:
@@ -205,23 +279,25 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 0s
             labels:
               scope: workload
-              severity: critical
+              severity: warning
             noDataState: OK
             title: Workload container OOMKilled
             uid: addons-pod-oom-killed
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '110'
-              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
-                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
-                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
-                }}'
-              summary: A container cannot start because of an image, runtime or configuration
-                error. Inspect the reason label and Pod events.
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{`{{
+                $labels.cluster }}`}}&var-namespace={{`{{ $labels.namespace }}`}}&var-workload_type={{`{{
+                $labels.workload_type }}`}}&var-workload={{`{{ $labels.workload }}`}}'
+              description: Image pull or container configuration error (missing Secret/ConfigMap
+                key, bad image tag). Existing replicas keep serving during a rolling update;
+                the outage rule fires if none is left.
+              summary: 'Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace
+                }}`}}/{{`{{ $labels.pod }}`}} cannot start: {{`{{ $labels.reason }}`}}'
             condition: C
             data:
             - datasourceUid: prometheus
@@ -230,7 +306,7 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max by(cluster,namespace,pod,container,reason)((kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}
+                expr: max by (cluster, namespace, pod, container, reason) ((kube_pod_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}
                   or kube_pod_init_container_status_waiting_reason{reason=~"ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName"}))
                   * on (cluster, namespace, pod) group_left(workload, workload_type) max by
                   (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
@@ -255,23 +331,25 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 2m
+            execErrState: KeepLast
+            for: 5m
             labels:
               scope: workload
-              severity: critical
+              severity: warning
             noDataState: OK
             title: Workload container cannot start
             uid: addons-workload-start-failed
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '116'
-              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{
-                "{{ $labels.cluster }}" }}&var-namespace={{ "{{ $labels.namespace }}" }}&var-workload_type={{
-                "{{ $labels.workload_type }}" }}&var-workload={{ "{{ $labels.workload }}"
-                }}'
-              summary: A container, including sidecars, is approaching its memory limit. Containers
-                without a positive limit are excluded.
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{`{{
+                $labels.cluster }}`}}&var-namespace={{`{{ $labels.namespace }}`}}&var-workload_type={{`{{
+                $labels.workload_type }}`}}&var-workload={{`{{ $labels.workload }}`}}'
+              description: The container will be OOMKilled if usage keeps growing. Raise the
+                limit or reduce memory use. Containers without a limit are excluded.
+              summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace
+                }}`}}/{{`{{ $labels.pod }}`}} uses {{`{{ printf "%.0f" $values.A.Value }}`}}%
+                of its memory limit
             condition: C
             data:
             - datasourceUid: prometheus
@@ -280,12 +358,12 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: (100 * max by(cluster,namespace,pod,container)(container_memory_working_set_bytes{container!="",container!="POD"})
-                  / on(cluster,namespace,pod,container) (max by(cluster,namespace,pod,container)((kube_pod_container_resource_limits{resource="memory"}
-                  or (kube_pod_init_container_resource_limits{resource="memory"} and on(cluster,namespace,pod,container)
-                  (kube_pod_init_container_status_running == 1)))) > 0)) * on (cluster, namespace,
-                  pod) group_left(workload, workload_type) max by (cluster, namespace, pod,
-                  workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
+                expr: (100 * max by (cluster, namespace, pod, container) (container_memory_working_set_bytes{container!="",container!="POD"})
+                  / on (cluster, namespace, pod, container) (max by (cluster, namespace, pod,
+                  container) ((kube_pod_container_resource_limits{resource="memory"} or (kube_pod_init_container_resource_limits{resource="memory"}
+                  and on (cluster, namespace, pod, container) (kube_pod_init_container_status_running
+                  == 1)))) > 0)) * on (cluster, namespace, pod) group_left(workload, workload_type)
+                  max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel)
                 instant: true
                 range: false
                 refId: A
@@ -307,7 +385,7 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 5m
             labels:
               scope: workload
@@ -316,10 +394,16 @@ grafana:
             title: Workload container memory above 90% of limit
             uid: addons-workload-memory-limit
           - annotations:
-              __dashboardUid__: kube-workload
-              __panelId__: '56'
-              summary: More than 5% of instrumented requests fail with 5xx or transport code
-                0, with traffic above 0.1 requests/sec. No traffic is not a success signal.
+              __dashboardUid__: service-status
+              __panelId__: '11'
+              dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/service-status?var-cluster={{`{{
+                $labels.cluster }}`}}&var-namespace={{`{{ $labels.namespace }}`}}'
+              description: More than 5% of requests through the ingress gateway end in 5xx
+                or a transport failure (code 0) for 5 minutes, with traffic above 0.1 requests/s.
+                Client disconnects (response flag DC) are not counted. 503 with flag UH means
+                no healthy pod; check replicas and readiness first.
+              summary: Service {{`{{ $labels.destination_service_namespace }}`}}/{{`{{ $labels.destination_service_name
+                }}`}} fails {{`{{ printf "%.1f" $values.A.Value }}`}}% of requests
             condition: C
             data:
             - datasourceUid: prometheus
@@ -328,13 +412,15 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: label_replace(label_replace((100 * (sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source",response_code=~"0|5.."}[5m]))
-                  or (0 * sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source"}[5m]))))
-                  / sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source"}[5m])))
-                  and on(cluster,destination_workload_namespace,destination_workload,destination_service_name)
-                  (sum by(cluster,destination_workload_namespace,destination_workload,destination_service_name)(rate(istio_requests_total{reporter="source"}[5m]))
-                  > 0.1), "namespace", "$1", "destination_workload_namespace", "(.*)"), "workload",
-                  "$1", "destination_workload", "(.*)")
+                expr: label_replace((100 * (sum by (cluster, destination_service_namespace,
+                  destination_service_name) (rate(istio_requests_total{reporter="source",response_code=~"0|5..",response_flags!="DC"}[5m]))
+                  or 0 * sum by (cluster, destination_service_namespace, destination_service_name)
+                  (rate(istio_requests_total{reporter="source"}[5m]))) / sum by (cluster,
+                  destination_service_namespace, destination_service_name) (rate(istio_requests_total{reporter="source"}[5m])))
+                  and on (cluster, destination_service_namespace, destination_service_name)
+                  sum by (cluster, destination_service_namespace, destination_service_name)
+                  (rate(istio_requests_total{reporter="source"}[5m])) > 0.1, "namespace",
+                  "$1", "destination_service_namespace", "(.*)")
                 instant: true
                 range: false
                 refId: A
@@ -356,18 +442,24 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 2m
+            execErrState: KeepLast
+            for: 5m
             labels:
               scope: workload
               severity: critical
             noDataState: OK
-            title: Workload HTTP or transport errors above 5%
+            title: Service HTTP error rate above 5%
             uid: addons-workload-http-errors
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '110'
-              summary: A container keeps exiting and the kubelet is backing off its restarts.
+              description: A controller-managed or standalone pod failed (for example evicted)
+                within the last hour and was not cleaned up within 5 minutes. Job and Argo
+                Workflow pods and pods stopped by node shutdown are excluded. Check the pod
+                status reason and node pressure. The alert resolves one hour after the failure
+                even if the pod object remains.
+              summary: Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} entered the
+                Failed phase
             condition: C
             data:
             - datasourceUid: prometheus
@@ -376,8 +468,11 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max by (cluster, namespace, pod, container) ((kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}
-                  or kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}))
+                expr: (max by (cluster, namespace, pod) (kube_pod_status_phase{phase="Failed",namespace!="agent-forge-workspaces"})
+                  == 1) unless on (cluster, namespace, pod) kube_pod_owner{owner_kind=~"Job|Workflow"}
+                  unless on (cluster, namespace, pod) (kube_pod_status_reason{reason=~"Shutdown|NodeShutdown|Terminated"}
+                  == 1) unless on (cluster, namespace, pod) (kube_pod_status_phase{phase="Failed"}
+                  offset 1h == 1)
                 instant: true
                 range: false
                 refId: A
@@ -399,60 +494,21 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 2m
+            execErrState: KeepLast
+            for: 5m
             labels:
               scope: workload
               severity: warning
             noDataState: OK
-            title: Pod in CrashLoopBackOff
-            uid: addons-pod-crash-looping
-          - annotations:
-              __dashboardUid__: kube-workload
-              __panelId__: '110'
-              summary: Pods are sitting in the Failed phase and nothing is clearing them.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: sum by (cluster, namespace) (kube_pod_status_phase{phase="Failed"})
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 0
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 10m
-            labels:
-              scope: workload
-              severity: warning
-            noDataState: OK
-            title: Pods in Failed phase
+            title: Pod failed recently
             uid: addons-pods-failed
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '110'
-              summary: A job exhausted its backoffLimit without completing.
+              description: The Job exhausted its backoffLimit or deadline within the last
+                hour. Read the logs of its last pod. The alert resolves after one hour; the
+                failed Job object stays until it is deleted.
+              summary: Job {{`{{ $labels.namespace }}`}}/{{`{{ $labels.job_name }}`}} failed
             condition: C
             data:
             - datasourceUid: prometheus
@@ -462,6 +518,8 @@ grafana:
                   uid: prometheus
                 editorMode: code
                 expr: max by (cluster, namespace, job_name) (kube_job_failed{condition="true"})
+                  == 1 unless on (cluster, namespace, job_name) (kube_job_failed{condition="true"}
+                  offset 1h == 1)
                 instant: true
                 range: false
                 refId: A
@@ -483,8 +541,8 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 5m
+            execErrState: KeepLast
+            for: 0s
             labels:
               scope: workload
               severity: warning
@@ -492,9 +550,13 @@ grafana:
             title: Job failed
             uid: addons-job-failed
           - annotations:
-              __dashboardUid__: kube-workload
-              __panelId__: '119'
-              summary: A PersistentVolumeClaim is running out of space.
+              __dashboardUid__: cluster-overview
+              __panelId__: '21'
+              description: 'Auto Mode normally adds a node within a few minutes. Check the
+                pod events for the reason: node selector or affinity that no node pool satisfies,
+                volume zone, quota, or an instance limit.'
+              summary: Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} cannot be
+                scheduled for 10 minutes
             condition: C
             data:
             - datasourceUid: prometheus
@@ -503,8 +565,52 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: 100 * sum by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
-                  / sum by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
+                expr: max by (cluster, namespace, pod) (kube_pod_status_unschedulable)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 10m
+            labels:
+              scope: workload
+              severity: warning
+            noDataState: OK
+            title: Pod unschedulable
+            uid: addons-pod-unschedulable
+          - annotations:
+              __dashboardUid__: kube-workload
+              __panelId__: '119'
+              description: Expand the PVC or reclaim space before it reaches 95%.
+              summary: Volume {{`{{ $labels.namespace }}`}}/{{`{{ $labels.persistentvolumeclaim
+                }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% full
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: 100 * max by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
+                  / max by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
                 instant: true
                 range: false
                 refId: A
@@ -526,7 +632,7 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 15m
             labels:
               scope: workload
@@ -536,60 +642,11 @@ grafana:
             uid: addons-pvc-filling-up
           - annotations:
               __dashboardUid__: kube-workload
-              __panelId__: '62'
-              summary: A container exited with Error and restarted. Correlate the termination
-                table with failed probes and node pressure.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: 'max by (cluster, namespace, pod, container, reason) ((increase(kube_pod_container_status_restarts_total[10m])
-                  or increase(kube_pod_init_container_status_restarts_total[10m]))
-
-                  * on (cluster, namespace, pod, container) group_left(reason)
-
-                  ((kube_pod_container_status_last_terminated_reason{reason="Error"} or kube_pod_init_container_status_last_terminated_reason{reason="Error"})
-                  == 1))
-
-                  '
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 0
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 2m
-            labels:
-              scope: workload
-              severity: warning
-            noDataState: OK
-            title: Container restarted after Error
-            uid: addons-pod-exited-error
-          - annotations:
-              __dashboardUid__: kube-workload
               __panelId__: '119'
-              summary: Persistent volume is nearly full. Expand the PVC or reclaim space before
-                application writes fail.
+              description: Writes fail when the volume is full. Expand the PVC or reclaim
+                space now.
+              summary: Volume {{`{{ $labels.namespace }}`}}/{{`{{ $labels.persistentvolumeclaim
+                }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% full
             condition: C
             data:
             - datasourceUid: prometheus
@@ -598,8 +655,8 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: 100 * max by(cluster,namespace,persistentvolumeclaim)(kubelet_volume_stats_used_bytes)
-                  / max by(cluster,namespace,persistentvolumeclaim)(kubelet_volume_stats_capacity_bytes)
+                expr: 100 * max by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_used_bytes)
+                  / max by (cluster, namespace, persistentvolumeclaim) (kubelet_volume_stats_capacity_bytes)
                 instant: true
                 range: false
                 refId: A
@@ -621,7 +678,7 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 2m
             labels:
               scope: workload
@@ -643,9 +700,11 @@ grafana:
           rules:
           - annotations:
               __dashboardUid__: kube-cluster
-              __panelId__: '107'
-              summary: Host memory availability is below 15%. Inspect kernel vmalloc, PSI
-                and swap; pod working sets do not include all host memory.
+              __panelId__: '113'
+              description: Every Prometheus rule keeps its last state while queries fail,
+                so this is the only alert for the outage. Check the prometheus-prometheus-prometheus-0
+                pod in addon-prometheus (scheduling, PVC attach, OOM) and the Grafana datasource.
+              summary: Grafana cannot query Prometheus; metric-based alerts are blind
             condition: C
             data:
             - datasourceUid: prometheus
@@ -654,8 +713,191 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max by (cluster, instance) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"}
-                  / node_memory_MemTotal_bytes{job="node-exporter"}))
+                expr: vector(0)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 300
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: Alerting
+            for: 3m
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: Prometheus is not answering alert queries
+            uid: addons-prometheus-unreachable
+          - annotations:
+              __dashboardUid__: cluster-overview
+              __panelId__: '24'
+              description: The kubelet stopped reporting Ready. Pods there are not served
+                and are evicted after 5 minutes. Nodes that Auto Mode is draining are excluded.
+                Check EC2 status checks, kubelet and network; a node that stays NotReady is
+                not being replaced.
+              summary: Node {{`{{ $labels.node }}`}} is NotReady
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, node) (kube_node_status_condition{condition="Ready",status=~"false|unknown"})
+                  unless on (cluster, node) kube_node_spec_taint{key="karpenter.sh/disrupted"}
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 2m
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: Kubernetes node is not Ready
+            uid: addons-node-not-ready
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '206'
+              description: The kubelet is evicting pods or refusing new processes. Find the
+                largest consumers on the node and move or limit them.
+              summary: Node {{`{{ $labels.node }}`}} reports {{`{{ $labels.condition }}`}}
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, node, condition) (kube_node_status_condition{condition=~"MemoryPressure|PIDPressure",status="true"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 1m
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: Node under memory or PID pressure
+            uid: addons-node-pressure
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '205'
+              description: Image and ephemeral storage are nearly full. Check large emptyDir
+                volumes and container logs on the node.
+              summary: Node {{`{{ $labels.node }}`}} reports DiskPressure and is evicting
+                pods
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, node) (kube_node_status_condition{condition="DiskPressure",status="true"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 5m
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: Node under disk pressure
+            uid: addons-node-disk-pressure
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '7'
+              description: Free space before 95% (critical) and kubelet DiskPressure. Check
+                emptyDir usage and unused images.
+              summary: Filesystem {{`{{ $labels.mountpoint }}`}} on {{`{{ or $labels.node
+                $labels.instance }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% full
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance, node, mountpoint) (100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
+                  / node_filesystem_size_bytes{job="node-exporter",mountpoint=~"/|/local"})
+                  and on (cluster, instance, device, mountpoint) (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"}
+                  == 0))
                 instant: true
                 range: false
                 refId: A
@@ -677,505 +919,20 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
-            for: 5m
-            labels:
-              scope: cluster
-              severity: warning
-            noDataState: NoData
-            title: Host memory usage above 85%
-            uid: addons-node-memory-high
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '107'
-              summary: Host memory availability is below 8%. Add capacity and move workloads
-                before probe failures spread.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: max by (cluster, instance) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"}
-                  / node_memory_MemTotal_bytes{job="node-exporter"}))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 92
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 2m
-            labels:
-              scope: cluster
-              severity: critical
-            noDataState: NoData
-            title: Host memory usage above 92%
-            uid: addons-node-memory-critical
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '115'
-              summary: Large kernel allocations reduce workload headroom. Inspect BPF maps
-                and vmalloc growth; process or pod restarts may not reclaim them.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: max by (cluster, instance) (100 * node_memory_VmallocUsed_bytes{job="node-exporter"}
-                  / node_memory_MemTotal_bytes{job="node-exporter"})
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 20
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 15m
-            labels:
-              scope: cluster
-              severity: warning
-            noDataState: NoData
-            title: Kernel vmalloc above 20% of RAM
-            uid: addons-node-kernel-memory-high
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '108'
-              summary: Kernel vmalloc grew by more than 256 MiB compared with six hours ago.
-                Requires six hours of history; inspect BPF lifecycle cleanup before host memory
-                is exhausted.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: (max by (cluster, instance) (node_memory_VmallocUsed_bytes{job="node-exporter"})
-                  - max by (cluster, instance) (node_memory_VmallocUsed_bytes{job="node-exporter"}
-                  offset 6h)) / 1024 / 1024
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 256
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 15m
-            labels:
-              scope: cluster
-              severity: warning
-            noDataState: OK
-            title: Kernel vmalloc growing over 6 hours
-            uid: addons-node-kernel-memory-growth
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '109'
-              summary: Tasks spend more than 10% of wall time waiting on memory. Correlate
-                swap, vmalloc and load; PSI requires kernel support.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: max by (cluster, instance) (100 * rate(node_pressure_memory_waiting_seconds_total{job="node-exporter"}[2m]))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 10
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 2m
-            labels:
-              scope: cluster
-              severity: warning
-            noDataState: OK
-            title: Tasks stalled on memory above 10%
-            uid: addons-node-memory-stalls
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '113'
-              summary: A core target failed a scrape within the last two minutes. Short node
-                stalls can recover before a pending period elapses; inspect the scrape-health
-                panel.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: min by (cluster, job, instance, metrics_path) (min_over_time(up{job=~"node-exporter|kubelet|apiserver|kube-state-metrics"}[2m]))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 1
-                    type: lt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 0s
-            labels:
-              scope: cluster
-              severity: warning
-            noDataState: NoData
-            title: Core monitoring target scrape failed
-            uid: addons-core-target-down
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '114'
-              summary: More than two container restarts on the same node within 10 minutes.
-                Check node pressure and liveness failures even when exit reason is Completed.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total[10m])
-                  or increase(kube_pod_init_container_status_restarts_total[10m])) * on (cluster,
-                  namespace, pod) group_left(node) max by (cluster, namespace, pod, node)
-                  (kube_pod_info))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 2
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 0s
-            labels:
-              scope: cluster
-              severity: critical
-            noDataState: NoData
-            title: Multiple containers restarting on one node
-            uid: addons-node-restart-burst
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '112'
-              summary: More than two failed liveness checks within 5 minutes on one kubelet.
-                Check host pressure and networking before restarting applications.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: sum by (cluster, instance) (increase(prober_probe_total{probe_type="Liveness",result="failed"}[5m]))
-                  or on (cluster, instance) (0 * max by (cluster, instance) (up{job="kubelet",metrics_path="/metrics/probes"}
-                  == 1))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 2
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 0s
-            labels:
-              scope: cluster
-              severity: critical
-            noDataState: NoData
-            title: Repeated liveness probe failures
-            uid: addons-node-liveness-burst
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '113'
-              summary: A required EKS monitoring job disappeared from service discovery. Check
-                ServiceMonitor selection and target discovery; an empty result for this absent()
-                rule means all required jobs exist.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: absent(up{job="node-exporter"}) or absent(up{job="kubelet"}) or absent(up{job="apiserver"})
-                  or absent(up{job="kube-state-metrics"})
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 0
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 2m
-            labels:
-              scope: cluster
-              severity: critical
-            noDataState: OK
-            title: Core monitoring job has no targets
-            uid: addons-core-job-missing
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '106'
-              summary: A Kubernetes node is NotReady or Unknown. Inspect its lease, host pressure
-                and network before moving workloads.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: max by (cluster,node) (kube_node_status_condition{condition="Ready",status=~"false|unknown"})
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 0
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 1m
-            labels:
-              scope: cluster
-              severity: critical
-            noDataState: NoData
-            title: Kubernetes node is not Ready
-            uid: addons-node-not-ready
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '204'
-              summary: A node is CPU busy for ten minutes. Inspect workload CPU, throttling
-                and load before increasing capacity.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: 100 * (1 - avg by(cluster,instance)(rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[2m])))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 90
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 10m
             labels:
               scope: cluster
               severity: warning
-            noDataState: NoData
-            title: Node CPU busy above 90%
-            uid: addons-node-cpu-busy
-          - annotations:
-              __dashboardUid__: kube-cluster
-              __panelId__: '206'
-              summary: Node pressure can evict pods or prevent new processes. Inspect node
-                conditions and move workloads.
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: max by(cluster,node,condition)(kube_node_status_condition{condition=~"MemoryPressure|PIDPressure",status="true"})
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 21600
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 0
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: Alerting
-            for: 1m
-            labels:
-              scope: cluster
-              severity: critical
             noDataState: OK
-            title: Node under memory or PID pressure
-            uid: addons-node-pressure
+            title: Node filesystem above 85% used
+            uid: addons-node-disk-usage-high
           - annotations:
               __dashboardUid__: kube-cluster
               __panelId__: '205'
-              summary: Writable node disk is nearly full. Free space or add capacity before
-                pod eviction.
+              description: Pods will be evicted soon. Free space now or replace the node.
+              summary: Filesystem {{`{{ $labels.mountpoint }}`}} on {{`{{ or $labels.node
+                $labels.instance }}`}} is {{`{{ printf "%.0f" $values.A.Value }}`}}% full
             condition: C
             data:
             - datasourceUid: prometheus
@@ -1184,9 +941,9 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: max by(cluster,instance,mountpoint)(100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
+                expr: max by (cluster, instance, node, mountpoint) (100 * (1 - node_filesystem_avail_bytes{job="node-exporter",mountpoint=~"/|/local"}
                   / node_filesystem_size_bytes{job="node-exporter",mountpoint=~"/|/local"})
-                  and on(cluster,instance,device,mountpoint) (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"}
+                  and on (cluster, instance, device, mountpoint) (node_filesystem_readonly{job="node-exporter",mountpoint=~"/|/local"}
                   == 0))
                 instant: true
                 range: false
@@ -1209,14 +966,477 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 2m
             labels:
               scope: cluster
               severity: critical
             noDataState: OK
-            title: Writable node filesystem above 95% used
+            title: Node filesystem above 95% used
             uid: addons-node-disk-critical
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '107'
+              description: Less than 15% of host memory is available. Pod working sets do
+                not include kernel memory; check vmalloc, PSI and the largest pods.
+              summary: Host memory on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{
+                printf "%.0f" $values.A.Value }}`}}% used
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance, node) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"}
+                  / node_memory_MemTotal_bytes{job="node-exporter"}))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 85
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 5m
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Host memory usage above 85%
+            uid: addons-node-memory-high
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '107'
+              description: Less than 8% of host memory is available; OOM kills and probe failures
+                follow. Move or limit workloads now.
+              summary: Host memory on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{
+                printf "%.0f" $values.A.Value }}`}}% used
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance, node) (100 * (1 - node_memory_MemAvailable_bytes{job="node-exporter"}
+                  / node_memory_MemTotal_bytes{job="node-exporter"}))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 92
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 2m
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: Host memory usage above 92%
+            uid: addons-node-memory-critical
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '115'
+              description: Large kernel allocations reduce workload headroom. Inspect BPF
+                maps and vmalloc growth; pod restarts may not reclaim them.
+              summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} uses
+                {{`{{ printf "%.0f" $values.A.Value }}`}}% of RAM
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance, node) (100 * node_memory_VmallocUsed_bytes{job="node-exporter"}
+                  / node_memory_MemTotal_bytes{job="node-exporter"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 20
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 15m
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Kernel vmalloc above 20% of RAM
+            uid: addons-node-kernel-memory-high
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '108'
+              description: Growth above 256 MiB compared with six hours ago. Needs six hours
+                of history. Inspect BPF lifecycle cleanup before host memory runs out.
+              summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew
+                {{`{{ printf "%.0f" $values.A.Value }}`}} MiB in 6 hours
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: (max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"})
+                  - max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"}
+                  offset 6h)) / 1024 / 1024
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 256
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 15m
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Kernel vmalloc growing over 6 hours
+            uid: addons-node-kernel-memory-growth
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '109'
+              description: Memory pressure (PSI) slows every process on the node. Correlate
+                with swap, vmalloc and host memory.
+              summary: Tasks on {{`{{ or $labels.node $labels.instance }}`}} wait on memory
+                {{`{{ printf "%.0f" $values.A.Value }}`}}% of the time
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, instance, node) (100 * rate(node_pressure_memory_waiting_seconds_total{job="node-exporter"}[2m]))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 10
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 2m
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Tasks stalled on memory above 10%
+            uid: addons-node-memory-stalls
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '204'
+              description: Sustained CPU saturation causes throttling and latency. Find the
+                top CPU workloads on the node.
+              summary: CPU on {{`{{ or $labels.node $labels.instance }}`}} is {{`{{ printf
+                "%.0f" $values.A.Value }}`}}% busy
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: 100 * (1 - avg by (cluster, instance, node) (rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[2m])))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 90
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 10m
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Node CPU busy above 90%
+            uid: addons-node-cpu-busy
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '113'
+              description: Metrics from this target are missing, so alerts based on it cannot
+                fire. Targets of nodes that Auto Mode removes disappear within a few minutes
+                and do not reach this alert.
+              summary: '{{`{{ $labels.job }}`}} target {{`{{ $labels.instance }}`}} has failed
+                scrapes for 5 minutes'
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: min by (cluster, job, instance) (up{job=~"node-exporter|kubelet|apiserver|kube-state-metrics|addon-loki/loki"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 1
+                    type: lt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 5m
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Core monitoring target down
+            uid: addons-core-target-down
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '113'
+              description: A required monitoring job disappeared from service discovery; alerts
+                based on it are blind. Check the ServiceMonitor and the exporter pods.
+              summary: Scrape job {{`{{ $labels.job }}`}} has no targets
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: absent(up{job="node-exporter"}) or absent(up{job="kubelet"}) or absent(up{job="apiserver"})
+                  or absent(up{job="kube-state-metrics"}) or absent(up{job="addon-loki/loki"})
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 2m
+            labels:
+              scope: cluster
+              severity: critical
+            noDataState: OK
+            title: Core monitoring job has no targets
+            uid: addons-core-job-missing
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '114'
+              description: Restarts of unrelated containers on one node point to the node
+                (memory, PSI, network), not to one application. A single crash-looping container
+                is reported by the repeated-restart alert instead.
+              summary: '{{`{{ printf "%.0f" $values.A.Value }}`}} different containers restarted
+                on node {{`{{ $labels.node }}`}} in 10 minutes'
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: count by (cluster, node) ((max by (cluster, namespace, pod, container)
+                  (increase(kube_pod_container_status_restarts_total[10m]) or increase(kube_pod_init_container_status_restarts_total[10m]))
+                  >= 1) * on (cluster, namespace, pod) group_left(node) (max by (cluster,
+                  namespace, pod, node) (kube_pod_info) and on (cluster, namespace, pod) (count
+                  by (cluster, namespace, pod) (kube_pod_info) == 1)))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 2
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 0s
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Several containers restarting on one node
+            uid: addons-node-restart-burst
+          - annotations:
+              __dashboardUid__: kube-cluster
+              __panelId__: '112'
+              description: Several pods failing liveness on the same node at once point to
+                host pressure or networking. Check the node before restarting applications.
+              summary: '{{`{{ printf "%.0f" $values.A.Value }}`}} pods on kubelet {{`{{ $labels.instance
+                }}`}} failed liveness checks in 5 minutes'
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: count by (cluster, instance) (sum by (cluster, instance, namespace,
+                  pod) (increase(prober_probe_total{probe_type="Liveness",result="failed"}[5m]))
+                  >= 1)
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 21600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 1
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 0s
+            labels:
+              scope: cluster
+              severity: warning
+            noDataState: OK
+            title: Liveness probes failing for several pods on one node
+            uid: addons-node-liveness-burst
     cni-health.yaml:
       secret:
         apiVersion: 1
@@ -1227,8 +1447,12 @@ grafana:
           orgId: 1
           rules:
           - annotations:
-              summary: Egress BPF attach failed after ingress allocation. Check node kernel
+              __dashboardUid__: kube-cluster
+              __panelId__: '108'
+              description: Egress BPF attach failed after ingress allocation. Check node kernel
                 vmalloc and CNI cleanup before repeated short-lived Pods accumulate memory.
+              summary: AWS network policy agent failed to attach the egress BPF probe on node
+                {{`{{ $labels.node }}`}}
             condition: C
             data:
             - datasourceUid: loki
@@ -1259,7 +1483,7 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 0s
             labels:
               scope: cluster
@@ -1277,8 +1501,12 @@ grafana:
           orgId: 1
           rules:
           - annotations:
-              summary: A configured Forge, Knowledge or Studio observer alert is firing. Inspect
-                the workspace_alert label and Workspace Capacity dashboard.
+              __dashboardUid__: workspace-capacity
+              __panelId__: '1'
+              description: A Forge, Knowledge or Studio Prometheus rule (config/workspace-alerts.yaml)
+                is firing. Severity comes from that rule. Open the Workspace Capacity dashboard.
+              summary: Agent platform alert {{`{{ $labels.workspace_alert }}`}} is firing
+                for {{`{{ $labels.service }}`}}
             condition: C
             data:
             - datasourceUid: prometheus
@@ -1310,7 +1538,7 @@ grafana:
                 refId: C
                 type: threshold
               refId: C
-            execErrState: Alerting
+            execErrState: KeepLast
             for: 0s
             noDataState: OK
             title: Agent platform execution alert firing
@@ -1322,12 +1550,17 @@ grafana:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
     # Keep changes to the canonical dashboard files visible to the rollout.
-    checksum/managed-dashboards: "37c775e8f41513f1baf50602fc233a4018cb3af9a8bdfbb2c6659c0fdaf13e1c"
+    checksum/managed-dashboards: "07e2184f6ba5cecabf740ddd9f32a9cdad088710386fa6870faeecc031a845f5"
 
   grafana.ini:
 
     server:
       root_url: "https://grafana.demo.rovr.dev/"
+
+    # Users land on the overview; the file is written by the dashboard download.
+    dashboards:
+      default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
+
 
 
     # https://grafana.com/docs/grafana/latest/auth/github/

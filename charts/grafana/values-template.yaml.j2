@@ -22,7 +22,7 @@ grafana:
   # Use the committed dashboard revision; branch URLs can return stale JSON.
 {% if env == 'k3s' %}
   dashboards:
-    addons: null
+    managed: null
     alpha:
       kube-cluster:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
@@ -47,7 +47,11 @@ grafana:
             path: /var/lib/grafana/dashboards/alpha
 {% else %}
   dashboards:
-    addons:
+    managed:
+      cluster-overview:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/cluster-overview.json
+      service-status:
+        url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/service-status.json
       kube-cluster:
         url: https://raw.githubusercontent.com/opspresso/argocd-env-addons/{{grafana_dashboard_revision}}/charts/grafana/dashboards/kube-cluster.json
       kube-workload:
@@ -102,6 +106,11 @@ grafana:
 {% endif %}
     server:
       root_url: "https://{{grafana.hostname}}/"
+{% if env != 'k3s' %}
+    # Users land on the overview; the file is written by the dashboard download.
+    dashboards:
+      default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
+{% endif %}
 
 {% if grafana.auth.github.enabled %}
     # https://grafana.com/docs/grafana/latest/auth/github/

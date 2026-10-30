@@ -34,123 +34,152 @@ export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/graf
 export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-secret" --with-decryption | jq .Parameter.Value -r)
 ```
 
-## 클러스터 상태와 조기 경보
+## 대시보드
 
-`kube-cluster`의 상단 **Host health**는 실제 호스트 메모리와 커널 메모리,
-PSI(자원 대기 시간), swap, major page faults, 노드별 재시작과 probe 실패를 보여준다.
-`Memory Requests / Allocatable`은 스케줄링 예약량이다. Pod working set과 함께 보더라도
-커널의 BPF map 같은 호스트 할당량을 대신하지 못한다.
+Grafana 홈은 **Cluster Overview**다. 문제를 찾을 때는 아래 표의 위쪽 대시보드에서 아래쪽 대시보드로 내려간다.
 
-- `cluster`는 전체 화면에 적용한다. `Host instance`는 node-exporter 지표와 호스트 디스크에,
-  `label_group`은 capacity 패널에, `namespace`는 workload 집계에 적용한다.
-  핵심 수집 상태·노드별 재시작·probe 실패는 선택한 클러스터 전체를 보여준다.
-- 시계열의 빈 구간을 연결하지 않는다. `up=0`은 수집 실패이고 빈 구간은 데이터 없음이다.
-  수집 실패와 재시작은 최근 2~10분의 이력을 유지해 짧은 장애가 즉시 사라지지 않게 한다.
-- 커널 메모리 누적은 6시간에서 수일 범위로 확인한다. `VmallocUsed` 증가 자체가 특정
-  드라이버의 결함을 증명하지는 않는다. node-exporter의 `meminfo`와 `pressure` 지표를
-  `/proc/vmallocinfo`, CNI 로그와 대조해 할당 주체를 확인한다.
-
-EKS의 호스트 경보는 `config/node-health-alerts.yaml`, CNI 실패 경보는 `config/cni-health-alerts.yaml`에서 관리한다.
-CNI 경보는 Alloy가 수집한 Loki 로그를 사용하며 egress BPF attach 실패를 즉시 알린다.
-Prometheus의 Alertmanager는 비활성화되어 있으므로, 별도 PrometheusRule만 추가하면
-Slack으로 전달되지 않는다. 이 규칙은 Grafana가 평가하고 기존 notification policy와
-`slack` contact point를 사용한다. k3s/VictoriaMetrics에는 EKS 전용 job 이름의 규칙을
-프로비저닝하지 않는다.
-
-| 조건 | 유지 시간 | 의미 |
+| 대시보드 (uid) | 질문 | 주요 내용 |
 | --- | --- | --- |
-| 호스트 실제 메모리 사용률 >85% / >92% | 5분 / 2분 | 노드별 메모리 여유 감소 |
-| Vmalloc / 물리 메모리 >20% | 15분 | 커널 할당이 차지하는 비중 증가 |
-| Vmalloc이 최근 6시간에 256MiB 초과 증가 | 15분 | 지속적인 커널 할당 누적 후보 |
-| 메모리 PSI >10% | 2분 | 메모리 대기가 서비스 응답을 지연 |
-| 핵심 target에서 최근 2분 내 scrape 실패 | 즉시 | 짧은 노드 정지와 수집 공백 |
-| 필수 scrape job이 discovery에서 사라짐 | 2분 | 수집 대상 자체가 없는 상태 |
-| 한 노드에서 10분 내 restart 증가량 >2 | 즉시 | 종료 reason과 무관한 동시 장애 |
-| 한 kubelet에서 5분 내 liveness 실패 증가량 >2 | 즉시 | 재시작 이전의 응답 불능 |
+| Cluster Overview (`cluster-overview`) | 지금 무엇이 잘못됐고 여유는 얼마나 남았나 | 상태 타일, 문제 목록, 노드 표, ingress 서비스 표, 추이 |
+| Service Status (`service-status`) | 배포된 서비스가 각각 정상인가 | namespace별 workload 표, ingress 트래픽·오류·지연, 자원, 오류 로그 |
+| Kubernetes Cluster (`kube-cluster`) | 어느 노드가 왜 불안정한가 | 호스트 메모리·커널 vmalloc·PSI·swap, 수집 상태, 노드별 재시작 |
+| Kubernetes Workload (`kube-workload`) | 이 workload의 어느 Pod·컨테이너가 문제인가 | 복제본, 종료 사유, 컨테이너 자원, 서비스 트래픽, PVC, 로그 |
+| Workspace Capacity (`workspace-capacity`) | Agent workspace 용량이 남아 있나 | workspace quota, sandbox 자원, Forge·Knowledge 가용성 |
+| ArgoCD, Istio Mesh, Istio Control Plane | upstream 제공 대시보드 | Argo CD 동기화, mesh 요약, istiod |
 
-임계값은 운영 초기값이다. 정상 노드의 장기 기준선과 비교하여 조정한다. `increase`는 구간 경계 값을
-추정하므로 정수가 아닐 수 있다. 커널 증가 경보는 6시간 전 값과 직접 비교하며 새 노드의
-짧은 관측 구간을 6시간으로 외삽하지 않는다. 핵심 호스트 지표 전체가 사라지면 NoData,
-쿼리 실행 오류는 Alerting으로 처리한다. PSI 미지원, 6시간 전 이력이 없는 새 노드의
-커널 증가 경보와 정상 상태에서 결과가 비는 `absent` 경보는 예외이며, 별도의 scrape 상태·job 누락 경보로 수집 자체를 감시한다.
+### Cluster Overview
 
-node-exporter와 kubelet probes는 15초마다 수집한다. 기존에 수집한 과거 데이터에는
-새 node-exporter `node` 라벨이 없으므로, 호스트 패널은 `instance`로 과거와 현재를 비교한다.
+- 첫 줄의 문제 타일(firing 경보, NotReady 노드, degraded workload, 준비되지 않은 Pod, 재시작, OOM, 비정상 Argo CD 앱)은
+  정상일 때 0이고 초록색이다. `Ready nodes`와 `Nodes launched (24h)`는 정보용 파란색이다.
+- 둘째 줄은 ingress 요청량·오류율·p95 지연과 용량을 보여준다. `CPU requested`·`Memory requested`는 Pending·Running Pod의
+  requests만 합한다. EKS Auto Mode는 스케줄할 수 없는 Pod가 생기면 노드를 추가하므로 높은 예약률 자체는 문제가 아니다.
+  스케줄할 수 없는 Pod가 문제 신호다.
+- 문제 표(경보, degraded workload, 준비되지 않은 Pod, Argo CD 앱)는 문제가 없으면 빈 상태 문구를 보여준다.
+  workload를 누르면 `kube-workload`, namespace를 누르면 `service-status`가 열린다.
 
-### 반영과 검증
+### Service Status
 
-`charts/grafana/dashboards/*.json`이 원본이다. `scripts/build.sh`는 이 JSON을 환경별 values에
-포함하고 Grafana chart가 `grafana-dashboards-addons` ConfigMap으로 렌더한다. 두 대시보드는
-배포한 Git revision의 ConfigMap 파일을 읽으므로 GitHub raw URL 캐시나 최신 main 내용에
-영향받지 않는다. JSON 변경 checksum으로 Grafana가 갱신되며 `Recreate` 중 잠시 중단된다.
-JSON과 생성 values를 같은 변경에 포함하고, 동기화 후 실제 dashboard와 provisioned rules를
-확인한다. UI에서 provisioned dashboard를 수정해도 다음 프로비저닝으로 덮어써질 수 있다.
+- `Namespace` 변수는 여러 개를 고를 수 있고 기본값은 전체다.
+- Workloads 표는 Deployment·StatefulSet·DaemonSet마다 한 행이다. `Availability`는 available/desired이고
+  `CPU / request`는 사용량/requests 합계다. `Worst memory / limit`은 workload에서 limit 대비 사용률이 가장 높은 컨테이너다.
+  limit이 없으면 N/A다. 가용성이 낮은 행이 위로 정렬된다.
+- 트래픽 패널은 Istio ingress gateway가 보고한 값(`reporter="source"`)이다. 이 클러스터에서는 sidecar의 destination 보고가
+  거의 없어서 upstream Istio Service·Workload 대시보드는 비어 있었다. 그래서 두 대시보드를 제거하고 이 화면으로 대체했다.
+- 오류 로그는 Loki에서 `level=error|fatal|critical`, `ERROR`, `FATAL`, `CRITICAL`, `panic:`, `Exception`과 일치하는 줄이다.
+
+### 공통 규칙
+
+- 실패 요청은 5xx와 transport code `0`이다. 클라이언트가 먼저 연결을 끊은 요청(response flag `DC`)은 서버 실패가 아니므로 제외한다.
+  대시보드와 경보가 같은 정의를 쓴다.
+- 대시보드 임계값은 경보 임계값과 같다. 빨간 패널과 Slack 경보는 같은 상태를 뜻한다.
+- 시계열의 빈 구간을 연결하지 않는다. `up=0`은 수집 실패이고 빈 구간은 데이터 없음이다.
+- `kube-cluster`의 호스트 패널은 `instance`로 과거와 현재를 비교한다. 과거 node-exporter 지표에는 `node` 라벨이 없다.
+
+## 경보
+
+Prometheus의 Alertmanager는 비활성화되어 있다. Grafana가 `config/*.yaml`의 규칙을 평가하고 `slack` contact point로
+`#noti-eks-demo`에 보낸다. k3s에는 경보를 프로비저닝하지 않는다. Argo CD 앱의 degraded·sync 실패는
+Argo CD notifications가 보내므로 Grafana 규칙으로 중복하지 않는다.
+
+### 심각도와 알림 정책
+
+| severity | 의미 | 반복 |
+| --- | --- | --- |
+| `critical` | 서비스 중단이나 데이터 손실이 진행 중이다. 바로 대응한다. | 1시간 |
+| `warning` | 당일 안에 확인한다. 용량 감소·불안정 징후다. | 12시간 |
+
+경보는 `grafana_folder, alertname, cluster, namespace`로 묶는다. Slack 메시지는 `templates.yaml`의 `addons.slack.*` 템플릿으로
+만든다. 제목은 상태·경보 이름·namespace다. 본문은 경보마다 summary(대상과 측정값), description(영향과 첫 조치),
+대시보드·규칙·silence 링크다. resolved 메시지는 summary만 남긴다. 한 메시지에는 최대 10개 경보를 표시한다.
+
+### 오류와 데이터 없음 처리
+
+- Prometheus 쿼리가 실패하면 모든 규칙은 직전 상태를 유지한다(`execErrState: KeepLast`). 이전에는 오류 상태가
+  모든 규칙을 Alerting으로 바꿔서, Prometheus가 재시작할 때 NotReady·PVC 95%·메모리 92% 경보가 동시에 거짓으로 발생했다.
+- 쿼리 실패는 `Prometheus is not answering alert queries` 규칙 하나만 알린다. 이 규칙은 `vector(0)`을 평가하고
+  쿼리가 3분 동안 실패하면 critical을 보낸다.
+- 결과가 비면 정상이다(`noDataState: OK`). 수집 대상 자체가 사라지면 `Core monitoring job has no targets`가 알린다.
+- Grafana 자체가 멈추면 Grafana 경보도 평가·전송할 수 없다. 외부 감시로 Grafana 도달성과 알림 heartbeat를 확인해야
+  알림 경로 전체를 보장할 수 있다.
+
+### 노드·수집 (`config/node-health-alerts.yaml`)
+
+| 경보 | 조건 | 유지 | severity |
+| --- | --- | --- | --- |
+| Prometheus is not answering alert queries | Prometheus 쿼리 실패 | 3분 | critical |
+| Kubernetes node is not Ready | Ready가 false/unknown. Auto Mode가 drain 중인 노드(`karpenter.sh/disrupted`)는 제외 | 2분 | critical |
+| Node under memory or PID pressure | kubelet MemoryPressure/PIDPressure | 1분 | critical |
+| Node under disk pressure | kubelet DiskPressure | 5분 | critical |
+| Node filesystem above 85% / 95% used | 쓰기 가능한 `/`, `/local` | 10분 / 2분 | warning / critical |
+| Host memory usage above 85% / 92% | 1 - MemAvailable/MemTotal | 5분 / 2분 | warning / critical |
+| Kernel vmalloc above 20% of RAM | VmallocUsed / MemTotal | 15분 | warning |
+| Kernel vmalloc growing over 6 hours | 6시간 전보다 256MiB 초과 증가 | 15분 | warning |
+| Tasks stalled on memory above 10% | 메모리 PSI | 2분 | warning |
+| Node CPU busy above 90% | 비유휴 CPU | 10분 | warning |
+| Core monitoring target down | node-exporter·kubelet·apiserver·kube-state-metrics·Loki target의 `up=0` | 5분 | warning |
+| Core monitoring job has no targets | 위 job이 discovery에서 사라짐 | 2분 | critical |
+| Several containers restarting on one node | 한 노드에서 10분 안에 서로 다른 컨테이너 3개 이상 재시작 | 즉시 | warning |
+| Liveness probes failing for several pods on one node | 한 kubelet에서 5분 안에 Pod 2개 이상 liveness 실패 | 즉시 | warning |
+
+Auto Mode는 하루 10대 안팎의 노드를 교체한다. 교체되는 노드의 target은 몇 분 동안 실패한 뒤 discovery에서 사라진다.
+`Core monitoring target down`이 5분을 기다리는 이유다. 한 컨테이너의 반복 재시작은 노드 경보가 아니라
+workload 경보(`Container restarting repeatedly`)로 보고한다.
+
+### Workload (`config/workload-health-alerts.yaml`)
+
+| 경보 | 조건 | 유지 | severity |
+| --- | --- | --- | --- |
+| Workload has no available replicas | desired >0이고 available=0 | 3분 | critical |
+| Workload replicas below desired | 일부만 available | 10분 | warning |
+| Service HTTP error rate above 5% | ingress 요청 >0.1 req/s 중 5xx·code 0(`DC` 제외) >5% | 5분 | critical |
+| Container restarting repeatedly | 한 컨테이너가 15분 안에 3회 이상 재시작(init·sidecar 포함) | 즉시 | warning |
+| Workload container OOMKilled | 최근 10분 재시작의 마지막 종료 사유가 OOMKilled | 즉시 | warning |
+| Workload container cannot start | ImagePullBackOff·CreateContainerConfigError 등 | 5분 | warning |
+| Workload container memory above 90% of limit | 양수 memory limit 대비 working set | 5분 | warning |
+| Pod failed recently | 최근 1시간 안에 Failed가 된 Pod. Job·Workflow Pod, 노드 종료로 멈춘 Pod 제외 | 5분 | warning |
+| Job failed | 최근 1시간 안에 실패한 Job | 즉시 | warning |
+| Pod unschedulable | 스케줄할 수 없는 Pod | 10분 | warning |
+| PersistentVolume above 85% / 95% used | kubelet volume 통계 | 15분 / 2분 | warning / critical |
+
+- Recreate 전략의 단일 replica workload(Grafana, Prometheus, Loki)는 배포할 때마다 잠시 중단된다. 전체 중단 경보는
+  이 정상 재시작을 넘는 3분을 기다린다.
+- `Pod failed recently`와 `Job failed`는 실패 후 1시간이 지나면 해소된다. 실패한 객체가 남아 있어도 12시간마다
+  같은 경보를 반복하지 않게 하기 위해서다.
+- `CPU/Memory requests above 90%` 경보는 제거했다. Auto Mode에서는 높은 예약률이 정상 운영 상태이고,
+  실제 문제는 `Pod unschedulable`로 알린다. `Istio success rate below 99%`는 HTTP 오류율 경보와 같은 신호여서 합쳤다.
+  `Container restarted after Error`는 반복 재시작 경보로 대체했다. 제거한 규칙은 `deleteRules`로 Grafana에서 삭제한다.
+
+### 기타 규칙
+
+- `config/cni-health-alerts.yaml`: Alloy가 수집한 Loki 로그에서 AWS network policy agent의 egress BPF attach 실패를 즉시 알린다(critical).
+- `config/workspace-notifications.yaml`: `config/workspace-alerts.yaml`의 Prometheus 규칙(Forge·Knowledge·Studio)이 firing이면
+  해당 규칙의 severity로 전달한다.
+
+### 규칙 작성 규칙
+
+- chart는 alerting 항목을 Helm `tpl`로 렌더한다. Grafana 템플릿 문법은 raw string으로 감싼다.
+  예: ``summary: 'Node {{`{{ $labels.node }}`}} is NotReady'``
+- 모든 규칙에 `severity`, summary(대상과 값), description(영향과 첫 조치), `__dashboardUid__`·`__panelId__`를 둔다.
+  owner가 있는 workload 경보는 변수가 채워진 `dashboard_url`도 둔다.
+- UID를 바꾸거나 규칙을 지우면 `deleteRules`에 옛 UID를 추가한다. Grafana 파일 프로비저닝은 파일에서 사라진 규칙을 지우지 않는다.
+
+## 반영과 검증
+
+`charts/grafana/dashboards/*.json`이 대시보드 원본이다. `scripts/build.sh`는 dashboards 디렉터리를 마지막으로 바꾼
+Git revision의 GitHub raw URL을 환경별 values에 넣는다. Grafana의 init container가 시작할 때 그 revision의 JSON을
+`/var/lib/grafana/dashboards/managed/`에 내려받는다. JSON checksum이 Pod annotation에 들어가므로 JSON만 바뀌어도
+Grafana가 다시 배포되며, `Recreate` 중 잠시 중단된다. UI에서 provisioned dashboard를 수정해도 다음 프로비저닝에서 덮어써진다.
+
+대시보드를 목록에서 제거해도 내려받은 파일은 영구 볼륨에 남는다. 제거한 대시보드를 Grafana에서 지우려면 provider 이름을
+바꾼다. 현재 provider는 `managed`이고, 이전 `addons` 디렉터리의 파일은 더 이상 읽지 않는다.
 
 ```bash
 ./scripts/build.sh
 ./scripts/validate.py -r grafana
-./scripts/validate.py -r prometheus-stack
-python3 -m pytest -q tests/test_node_observability.py
+python3 -m pytest -q tests/test_node_observability.py tests/test_workload_dashboard.py tests/test_cni_observability.py
 ```
 
-경보 테스트는 Helm이 렌더한 Grafana query·threshold·유지 시간으로 Prometheus 규칙을 구성해
-실제 `promtool`로 건강한 노드, 메모리 누적, 짧은 scrape 실패, discovery 누락, 동시 재시작을
-평가한다. 로컬 `promtool` 또는 이미 내려받은
-`quay.io/prometheus/prometheus:v3.14.0-distroless` 이미지를 사용하며 임의로 설치하지 않는다.
-
-Grafana 자체가 멈추면 Grafana 경보도 평가·전송할 수 없다. 독립된 외부 감시에서
-Grafana·Prometheus 도달성과 알림 heartbeat를 확인해야 전체 알림 경로까지 보장할 수 있다.
-코드·PromQL 검증은 Slack 전달 성공을 대신하지 않는다.
-
-## 두 대시보드의 역할
-
-`kube-cluster`는 노드와 모니터링 기반 시설을 다룬다. 상단의 현재 위험 지표와 노드별 표에서
-문제 노드를 찾고, 아래에서 메모리·커널·PSI·swap·수집 상태·노드별 재시작을 확인한다.
-스케줄링 예약량은 별도 영역에 두며, 물리 NIC의 네트워크와 쓰기 가능한 root/data 디스크를
-집계한다. 변경 가능한 exporter 라벨은 시계열에서 제거해 배포 전후 동일 instance가
-서로 다른 선으로 표시되지 않게 한다. NotReady/Unknown이 1분 유지되면 critical,
-노드 CPU 사용률이 90%를 10분 초과하면 warning 알림을 보낸다.
-
-`kube-workload`는 namespace·종류·workload로 선택한 애플리케이션을 다룬다.
-Deployment·StatefulSet·DaemonSet의 복제본은 해당 종류의 메타데이터로 계산하므로,
-Pod가 하나도 없어도 전체 중단을 감지하며 같은 이름의 다른 종류로 대체하지 않는다.
-Pod·컨테이너 조인은 cluster와 namespace를 포함한다. CronJob·Job에는 복제본 목표 대신
-Pod phase와 실패 사유를 사용하며 replica 패널은 `No replica metrics`로 표시한다.
-
-상단은 수집 상태, 부족한 복제본, NotReady Pod, 최근 재시작·OOM, 서비스 오류와
-최악 컨테이너의 memory/limit을 보여준다. 아래에는 현재 Pod 문제, 복제본 추이,
-종료 사유와 시간, sidecar를 포함한 컨테이너별 자원, 서비스·PVC·로그가 이어진다.
-요청량은 실사용량과 구별하며, limit이 없거나 HTTP 트래픽이 없으면 정상 0%로 표시하지 않는다.
-로그 Pod 목록도 이름 접두사 대신 owner recording rule에서 구한다.
-
-서비스 패널은 Istio의 destination workload·namespace·service를 사용한다. HTTP 5xx와
-transport code `0`을 실패로 계산한다. 메시에 관측되지 않는 요청은 표시할 수 없으며,
-HTTP 수치가 없어도 replica·Pod 상태는 별도로 확인해야 한다. kube-state-metrics 수집 실패 시
-상단 수집 상태와 클러스터 경보를 먼저 확인한다.
-
-워크로드 경보는 `config/workload-health-alerts.yaml`이 단일 원천이다. 기존 workload 규칙도
-같은 파일에서 관리하며 UID를 유지해 파일 간 중복 선언을 피한다. 기존 Slack 정책을 사용한다.
-
-| 이슈 | 경보 조건 |
-| --- | --- |
-| 전체 복제본 중단 | desired >0이고 available=0인 상태 1분, critical |
-| 일부 복제본 부족 | available >0인 부분 가용 상태에서 부족이 3분 지속, warning |
-| OOM | 최근 10분 restart 증가와 마지막 OOMKilled 사유 확인 즉시, critical |
-| 이미지·설정·runtime 오류 | container waiting reason이 2분 유지, critical |
-| CrashLoopBackOff | 2분 유지, warning |
-| 컨테이너 메모리 여유 부족 | 양수 limit 대비 working set >90%가 5분 유지, warning |
-| HTTP·transport 오류 | 0.1 req/s 초과 트래픽에서 오류율 >5%가 2분 유지, critical |
-
-경보 링크는 해당 대시보드·패널을 가리킨다. owner가 확인되는 경보에는 namespace·종류·workload를
-선택한 `dashboard_url`도 포함한다. 이 링크의 Grafana label template은 Helm `tpl`을 통과하도록
-명시적으로 escape한다. 신규 규칙 검사는 전체 중단·scale-to-zero·다른 종류/클러스터의 같은 이름,
-100% HTTP 실패·트래픽 없음·limit 없음·OOM을 실제 PromQL 평가기로 구분한다.
-
-Scheduling capacity의 컨테이너 자원 합계에는 일반 컨테이너와 현재 Running인 init/native sidecar를 포함하고,
-완료된 init 컨테이너는 제외한다. scheduler의 init 단계별 최대치나 Pod overhead를 재구성한 값은 아니다.
-메모리·재시작·OOM·waiting 사유는 init-container 지표도 확인하여 native sidecar의 문제를 놓치지 않는다.
-
-비율에 기준값이 있는 항목은 게이지로 표시한다. 워크로드 상단은 가용 복제본 비율과
-CPU·메모리 사용/requests·limits 비율을 보여주고, 실제 requests/limits 수치는 컨테이너 표에서 확인한다.
-requests는 상한이 아니므로 100% 초과와 장애를 동일시하지 않는다. 일부 컨테이너에 분모나 사용량이
-없으면 합계 게이지를 정상 비율로 표시하지 않고 회색으로 표시한다. 재시작·실패 건수는 숫자, 추이는 시계열로 유지한다.
+경보 테스트는 Helm이 렌더한 query·threshold·유지 시간으로 Prometheus 규칙을 만들고 `promtool`로 평가한다.
+노드 교체, 짧은 스케줄 대기, 클라이언트 연결 끊김, 단일 컨테이너 재시작처럼 알리지 않아야 할 경우도 검사한다.
+로컬 `promtool` 또는 이미 내려받은 `quay.io/prometheus/prometheus:v3.14.0-distroless` 이미지를 사용하며
+없으면 테스트를 건너뛴다. 코드·PromQL 검증은 Slack 전달 성공을 대신하지 않는다.
