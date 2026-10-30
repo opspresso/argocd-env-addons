@@ -34,16 +34,16 @@ jobs:
         uses: azure/setup-helm@v5
 
       # Anonymous public.ecr.aws pulls share a per-IP data limit with other GitHub-hosted runners and fail with 429.
-      # The role (terraform-env-demo demo/4-role) only gets the pull token and trusts runs on main only.
+      # The role only issues a public ECR pull token and trusts main plus the scoped Runway cutover branch.
       - name: Configure AWS credentials 🔑
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/runway-tenant-cutover-20261030'
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::396608815058:role/github--argocd-env-addons-ecr-public
           aws-region: us-east-1
 
       - name: Log in to public.ecr.aws 🔑
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/runway-tenant-cutover-20261030'
         run: aws ecr-public get-login-password --region us-east-1 | helm registry login public.ecr.aws --username AWS --password-stdin
 
       - name: Build
