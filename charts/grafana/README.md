@@ -174,7 +174,8 @@ workload 경보(`Container restarting repeatedly`)로 보고한다.
 
 - `managed` 대시보드를 바꾸면 ConfigMap이 갱신되고 Grafana가 mount된 파일 변경을 읽는다. Pod를 재시작하지 않는다.
   JSON 파일을 지우면 Grafana에서도 사라진다.
-- ConfigMap이 256 KiB를 넘으므로 EKS ApplicationSet은 `ServerSideApply=true`로 동기화한다.
+- ConfigMap이 256 KiB를 넘으므로 이 ConfigMap만 `argocd.argoproj.io/sync-options: ServerSideApply=true`로 동기화한다.
+  앱 전체에 server-side apply를 켜면 bound PVC의 immutable spec 변경으로 동기화가 실패한다.
 - `upstream` 대시보드는 Pod가 시작될 때마다 최신 버전을 받는다. 목록에서 지운 대시보드의 파일은 영구 볼륨에 남으므로,
   Grafana에서 지우려면 provider 이름을 바꾼다.
 - UI에서 provisioned dashboard를 수정해도 다음 프로비저닝에서 덮어써진다.

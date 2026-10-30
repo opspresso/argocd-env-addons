@@ -5,6 +5,11 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: grafana-dashboards
+  annotations:
+    # The JSON exceeds the 256 KiB last-applied annotation that client-side
+    # apply writes. Only this object uses server-side apply; the bound PVC
+    # rejects it.
+    argocd.argoproj.io/sync-options: ServerSideApply=true
   labels:
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: {{ .Release.Name }}

@@ -39,9 +39,6 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-          # The bundled dashboards ConfigMap exceeds the 256 KiB
-          # last-applied annotation that client-side apply writes.
-          - ServerSideApply=true
         # Retry transient failures, such as a CR applied before its CRD exists.
         retry:
           limit: 5
