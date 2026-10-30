@@ -55,7 +55,7 @@ app_delivery:
   enabled: true
   domain: apps.rovr.dev
   # The ordered environment profile. Keep it equal to Agent Runway's DELIVERY_ENVIRONMENTS (argocd-env-apps
-  # agent-delivery). An environment missing here gets no Application. Removing an environment deletes the Applications
+  # agent-runway). An environment missing here gets no Application. Removing an environment deletes the Applications
   # of that environment, and their resources finalizer deletes every app and RdsPostgres in it: RDS keeps only its
   # final snapshot. Before adding an environment, check that no Project slug ends with -<environment>
   # (ls argocd-env-projects/projects | grep -- '-<environment>$'), or two hosts collide.
