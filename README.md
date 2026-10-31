@@ -415,10 +415,10 @@ helm repo update
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy | ✅ | 1.14.4 | 1.14.4 (v1.21.3) |
+| alloy |  | 1.14.4 | 1.15.0 (v1.21.3) |
 | argo-cd | ✅ | 10.11.6 | 10.11.6 (v3.5.6) |
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
-| argo-workflows | ✅ | 2.0.14 | 2.0.14 (v4.1.6) |
+| argo-workflows |  | 2.0.14 | 2.0.15 (v4.1.6) |
 | atlantis | ✅ | 6.16.2 | 6.16.2 (v0.48.2) |
 | cert-manager | ✅ | v1.21.3 | v1.21.3 (v1.21.3) |
 | aws-controllers | 🔒 | 1.13.4 | 1.11.1 (1.11.1) |
@@ -433,7 +433,7 @@ helm repo update
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
 | prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
-| prometheus-stack |  | 92.14.1 | 92.16.0 (v0.94.2) |
+| prometheus-stack |  | 92.14.1 | 92.16.1 (v0.94.2) |
 | aws-controllers |  | 1.13.4 | 1.14.1 (1.14.1) |
 | aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
 | victoria-metrics | ✅ | 0.97.0 | 0.97.0 (v1.155.0) |
