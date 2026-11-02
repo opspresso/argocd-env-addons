@@ -27,20 +27,13 @@ class AppDeliveryProfileTests(unittest.TestCase):
             if context.get("app_delivery", {}).get("enabled"):
                 yield context
 
-    def test_tenant_apps_may_create_only_the_app_kinds_and_platform_resources(self):
+    def test_the_tree_shows_every_namespaced_kind_and_only_namespaces_at_cluster_scope(self):
         for context in self.contexts():
             values = rendered_values(context["cluster"])
             project = resource(values, "AppProject", "projects")
             with self.subTest(cluster=context["cluster"]):
-                kinds = {(k["group"], k["kind"]) for k in project["spec"]["namespaceResourceWhitelist"]}
-                for kind in ("RdsPostgres", "S3Bucket", "DynamoTable"):
-                    self.assertIn(("kro.run", kind), kinds)
-                self.assertIn(("apps", "StatefulSet"), kinds)
-                for kind in (("", "Pod"), ("apps", "ReplicaSet"), ("apps", "ControllerRevision"), ("discovery.k8s.io", "EndpointSlice"), ("", "PersistentVolumeClaim")):
-                    self.assertIn(kind, kinds)
+                self.assertEqual(project["spec"]["namespaceResourceWhitelist"], [{"group": "*", "kind": "*"}])
                 self.assertIn("https://opspresso.github.io/helm-charts", project["spec"]["sourceRepos"])
-                self.assertNotIn(("", "Secret"), kinds)
-                self.assertNotIn(("kro.run", "ResourceGraphDefinition"), kinds)
                 self.assertEqual(project["spec"]["clusterResourceWhitelist"], [{"group": "", "kind": "Namespace"}])
 
     def test_this_chart_declares_no_runway_application(self):

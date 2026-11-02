@@ -184,8 +184,8 @@ raw:
 
     # Apps that Agent Runway deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
     # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml and
-    # resources/<name>.yaml; these Applications may only create the kinds the app, postgres and valkey charts render and
-    # the platform kro instances, in app-* namespaces other than app-delivery.
+    # resources/<name>.yaml; only that step writes them, so the project limits where these Applications deploy (app-* namespaces other than
+    # app-delivery), not which namespaced kinds they hold.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
@@ -204,28 +204,9 @@ raw:
           - group: ""
             kind: Namespace
         namespaceResourceWhitelist:
-          - {group: "", kind: ServiceAccount}
-          - {group: "", kind: Service}
-          - {group: "", kind: ResourceQuota}
-          - {group: apps, kind: Deployment}
-          - {group: apps, kind: StatefulSet}
-          # Created by the workloads above, not by a chart. Argo CD hides a child kind its project does not list, so
-          # these keep Pods and their relatives visible in the resource tree.
-          - {group: "", kind: Pod}
-          - {group: "", kind: PersistentVolumeClaim}
-          - {group: apps, kind: ReplicaSet}
-          - {group: apps, kind: ControllerRevision}
-          - {group: discovery.k8s.io, kind: EndpointSlice}
-          - {group: autoscaling, kind: HorizontalPodAutoscaler}
-          - {group: policy, kind: PodDisruptionBudget}
-          - {group: networking.k8s.io, kind: NetworkPolicy}
-          - {group: gateway.networking.k8s.io, kind: HTTPRoute}
-          - {group: external-secrets.io, kind: SecretStore}
-          - {group: external-secrets.io, kind: ExternalSecret}
-          # Instances of the platform ResourceGraphDefinitions (charts/kro); resource-sync writes only these kinds.
-          - {group: kro.run, kind: RdsPostgres}
-          - {group: kro.run, kind: S3Bucket}
-          - {group: kro.run, kind: DynamoTable}
+          # Every kind: Argo CD hides a child kind its project does not list, and the tree must show all resources.
+          - {group: "*", kind: "*"}
+
 
     # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Runway's submit
     # permission.
