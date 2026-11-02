@@ -251,8 +251,8 @@ raw:
           apiVersion: v1alpha1
           kind: DynamoTable
           spec:
-            partitionKey: string | required=true description="Name of the string partition key"
-            sortKey: string | default="" description="Name of the string sort key. Empty means the table has no sort key"
+            partitionKey: string | required=true immutable=true description="Name of the string partition key"
+            sortKey: string | default="" immutable=true description="Name of the string sort key. Empty means the table has no sort key"
           status:
             tableName: ${table.spec.tableName}
             region: ${table.status.?ackResourceMetadata.?region.orValue("")}
