@@ -245,19 +245,22 @@ k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는
    - Studio → 서비스 API/MCP, 서비스 → Studio 정책 callback
 3. Studio·Memory·Knowledge에 Sandbox 관리 권한이 없는지 확인한다.
 
-### Agent Runway namespace 리소스 (kro·ACK)
+### Agent Runway 전용 리소스 (kro·ACK·chart)
 
 `addons/eks/kro.yaml`은 kro와 플랫폼 ResourceGraphDefinition을, `addons/eks/aws-controllers.yaml`은 ACK(AWS Controllers for
-Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Agent Runway는 `app-<slug>-<env>` namespace에 `RdsPostgres`·`ValkeyCache`·`S3Bucket`(`kro.run/v1alpha1`) 인스턴스를 GitOps로 만들고
-그 status를 읽는다([agent-platform DELIVERY_V2](https://github.com/opspresso/agent-platform/blob/main/docs/DELIVERY_V2.md) D3·D4).
+Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Agent Runway는 `app-<slug>-<env>` namespace에 `RdsPostgres`·`S3Bucket`·`DynamoTable`(`kro.run/v1alpha1`) 인스턴스를 GitOps로 만들고
+그 status를 읽는다([agent-platform 리소스 계약](https://github.com/opspresso/agent-platform/blob/main/docs/DELIVERY_RESOURCES.md)).
+
+ApplicationSet `project-resources`는 `argocd-env-projects`의 `projects/<slug>/<env>/resources/<name>.yaml`마다 Application `res-<리소스 ID>`를 만든다.
+Application은 그 파일이 고정한 `postgres`·`valkey` chart(opspresso/helm-charts)를 환경 namespace에 설치한다. 파일을 지우면 workload와 볼륨이 함께 삭제된다.
 
 - kro는 `rbac.mode: aggregation`으로 실행한다. RGD가 만드는 종류의 권한은
   `rbac.kro.run/aggregate-to-controller: "true"` label의 ClusterRole로 추가한다.
-- `charts/aws-controllers`는 ACK 서비스별 chart를 alias dependency로 두고 `<service>.enabled`로 켠다. 지금은 `rds`·`s3`·`elasticache`가 켜져 있다.
+- `charts/aws-controllers`는 ACK 서비스별 chart를 alias dependency로 두고 `<service>.enabled`로 켠다. 지금은 `rds`·`s3`·`dynamodb`가 켜져 있다.
   controller마다 ServiceAccount `ack-<service>-controller`, IAM 역할 `pod-role--ack-<service>`, Pod Identity association이 따로 있다.
   권한을 한 역할에 합치지 않는다.
-- ACK RDS는 `DBInstance`만, ACK S3는 `Bucket`만, ACK ElastiCache는 `ServerlessCache`·`User`·`UserGroup`만 reconcile한다.
-  IAM 역할 `pod-role--ack-rds`·`pod-role--ack-s3`·`pod-role--ack-elasticache`는 `terraform-env-demo`의 `4-role`이 만들고,
+- ACK RDS는 `DBInstance`만, ACK S3는 `Bucket`만, ACK DynamoDB는 `Table`만 reconcile한다.
+  IAM 역할 `pod-role--ack-rds`·`pod-role--ack-s3`·`pod-role--ack-dynamodb`는 `terraform-env-demo`의 `4-role`이 만들고,
   Pod Identity association(`addon-aws-controllers`/`ack-<service>-controller`)은 `5-eks`가 만든다.
 - `RdsPostgres` 인스턴스는 parameter group `delivery_resources.rds.parameter_group`(`rds.force_ssl=1`)으로 TLS 없는 연결을 거부한다.
   앱 연결 정보는 `sslmode=require`를 쓴다. 다른 namespace의 접근은 네트워크가 아니라 인스턴스별 자격 증명과 TLS로 거부된다
@@ -266,12 +269,9 @@ Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Age
   `<DB 식별자>-final-<인스턴스 UID>`를 남기고 RDS를 지운다. snapshot은 직접 지울 때까지 남고 비용이 든다.
 - `rds-postgres` RGD는 `env/<cluster>.yaml`의 `delivery_resources.rds.security_group_id`가 있을 때만 렌더한다.
   `terraform-env-demo/demo/8-app-delivery`를 적용한 뒤 그 output `rds_security_group_id`를 넣고 `./scripts/build.sh`를 실행한다.
-- `ValkeyCache` 인스턴스는 ElastiCache Serverless Valkey cache 하나와 전용 user·user group을 만든다. 비밀번호는 인스턴스 namespace의
-  Secret(기본 `app-env`)에서 읽고, serverless cache는 TLS 연결만 받는다. cache는 RDS와 같은 intra subnet에 있고 security group
-  `app-delivery-valkey`는 cluster primary SG에서 6379만 받는다. 인스턴스 NetworkPolicy가 그 namespace에만 intra 대역 6379를 연다.
-  다른 namespace의 접근은 RDS와 같이 네트워크가 아니라 인스턴스별 자격 증명으로 거부된다. 지우면 snapshot 없이 데이터가 사라진다.
-- `valkey-cache` RGD는 `delivery_resources.valkey.security_group_id`가 있을 때만 렌더한다. `8-app-delivery`의 output
-  `valkey_security_group_id`·`intra_subnet_ids`를 넣고 `./scripts/build.sh`를 실행한다.
+- `DynamoTable` 인스턴스는 on-demand DynamoDB table `app-<SHA-256 앞 32 hex>`를 만든다. 앱은 공유 Pod Identity 역할
+  `agent-runway-tenant-objects`로 접근하며, IAM은 table tag `kubernetes-namespace`가 Pod의 namespace와 같을 때만 허용한다.
+  지우면 backup 없이 데이터가 사라진다.
 - `S3Bucket` 인스턴스는 전용 S3 bucket `<cluster>-<SHA-256 앞 32 hex>`를 만든다. public access 차단, SSE-S3, `BucketOwnerEnforced`,
   ABAC를 켜고 tag `eks-cluster-name`·`kubernetes-namespace`·`agent-runway-resource`를 붙인다. 앱은 공유 Pod Identity 역할
   `agent-runway-tenant-objects`로 접근하며, IAM은 bucket tag `kubernetes-namespace`가 Pod의 namespace와 같을 때만 허용한다.
@@ -281,7 +281,7 @@ Kubernetes) controller를 namespace `addon-aws-controllers`에 설치한다. Age
   `status.message`(`BucketNotEmpty`)와 함께 남는다. 데이터를 지우지 않는다. 앱이나 운영자가 모든 객체(버전 포함)를 지우면 삭제가 끝난다.
   환경 Application 삭제로 인한 cascade도 같다. `s3-bucket` RGD는 네트워크 리소스가 필요 없어 항상 렌더한다.
 - 확인: `kubectl get rgd`의 state가 `Active`이고, 인스턴스의 `Ready` condition이 `True`이며
-  `status.address`·`status.port`(RdsPostgres), `status.endpointAddress`·`status.endpointPort`(ValkeyCache), `status.bucketName`(S3Bucket)가 채워진다. 실패는 `status.terminal`·`status.message`로 확인한다.
+  `status.address`·`status.port`(RdsPostgres), `status.bucketName`(S3Bucket), `status.tableName`(DynamoTable)가 채워진다. 실패는 `status.terminal`·`status.message`로 확인한다.
 
 #### ACK 컨트롤러 추가
 

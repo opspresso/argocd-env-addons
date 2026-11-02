@@ -200,17 +200,18 @@ raw:
 {%- if app_delivery is defined and app_delivery.enabled %}
 
     # Apps that Agent Runway deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
-    # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml; these Applications
-    # may only create the kinds the app chart renders and the platform kro instances, in app-* namespaces other than
-    # app-delivery.
+    # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml and
+    # resources/<name>.yaml; these Applications may only create the kinds the app, postgres and valkey charts render and
+    # the platform kro instances, in app-* namespaces other than app-delivery.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
         name: projects
       spec:
-        description: One Application per Agent Runway Project environment
+        description: One Application per Agent Runway Project environment and dedicated chart resource
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-projects.git"
+          - "https://opspresso.github.io/helm-charts"
         destinations:
           - name: "{{cluster}}"
             namespace: "app-*"
@@ -224,6 +225,7 @@ raw:
           - {group: "", kind: Service}
           - {group: "", kind: ResourceQuota}
           - {group: apps, kind: Deployment}
+          - {group: apps, kind: StatefulSet}
           - {group: autoscaling, kind: HorizontalPodAutoscaler}
           - {group: policy, kind: PodDisruptionBudget}
           - {group: networking.k8s.io, kind: NetworkPolicy}
@@ -233,7 +235,7 @@ raw:
           # Instances of the platform ResourceGraphDefinitions (charts/kro); resource-sync writes only these kinds.
           - {group: kro.run, kind: RdsPostgres}
           - {group: kro.run, kind: S3Bucket}
-          - {group: kro.run, kind: ValkeyCache}
+          - {group: kro.run, kind: DynamoTable}
 
     # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Runway's submit
     # permission.
@@ -377,6 +379,68 @@ raw:
                   opspresso.com/delivery-tenant: "true"
                   opspresso.com/delivery-project: '{% raw %}{{ index .path.segments 1 }}{% endraw %}'
                   opspresso.com/delivery-env: '{% raw %}{{ .path.basename }}{% endraw %}'
+
+    # One Application per dedicated chart resource: the postgres or valkey chart of opspresso/helm-charts at the version
+    # in projects/<slug>/<env>/resources/<name>.yaml, with that file as its values. Project, environment and namespace come
+    # from the path. resource-sync writes the file and checks the chart, version and value names. The Application of the
+    # environment creates the namespace, so a first sync may fail and retries. The finalizer removes the workload and,
+    # through the StatefulSet retention policy, its volumes when the file goes.
+    - apiVersion: argoproj.io/v1alpha1
+      kind: ApplicationSet
+      metadata:
+        name: project-resources
+      spec:
+        goTemplate: true
+        goTemplateOptions: ["missingkey=error"]
+        generators:
+          - git:
+              repoURL: https://github.com/opspresso/argocd-env-projects.git
+              revision: HEAD
+              requeueAfterSeconds: 30
+              files:
+{%- for environment in app_delivery.environments %}
+                - path: "projects/*/{{environment}}/resources/*.yaml"
+{%- endfor %}
+        template:
+          metadata:
+            name: '{% raw %}res-{{ .resourceId }}{% endraw %}'
+            labels:
+              opspresso.com/cluster: "{{cluster}}"
+              opspresso.com/group: "projects"
+              opspresso.com/delivery-project: '{% raw %}{{ index .path.segments 1 }}{% endraw %}'
+              opspresso.com/delivery-env: '{% raw %}{{ index .path.segments 2 }}{% endraw %}'
+            finalizers:
+              - resources-finalizer.argocd.argoproj.io
+          spec:
+            project: projects
+            destination:
+              name: "{{cluster}}"
+              namespace: '{% raw %}app-{{ index .path.segments 1 }}-{{ index .path.segments 2 }}{% endraw %}'
+            sources:
+              - repoURL: https://opspresso.github.io/helm-charts
+                chart: '{% raw %}{{ .chart }}{% endraw %}'
+                targetRevision: '{% raw %}{{ .chartVersion }}{% endraw %}'
+                helm:
+                  releaseName: '{% raw %}{{ .resourceName }}{% endraw %}'
+                  valueFiles:
+                    - '{% raw %}$values/{{ .path.path }}/{{ .path.filename }}{% endraw %}'
+                  parameters:
+                    # Reclaim policy Delete: deleting a resource does not leave a billed volume behind.
+                    - name: persistence.storageClass
+                      value: gp3-ephemeral
+              - repoURL: https://github.com/opspresso/argocd-env-projects.git
+                targetRevision: HEAD
+                ref: values
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+              retry:
+                limit: 10
+                backoff:
+                  duration: 30s
+                  factor: 2
+                  maxDuration: 5m
 {%- endif %}
 
     - apiVersion: external-secrets.io/v1
