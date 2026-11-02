@@ -36,14 +36,14 @@
       "current": "v1.21.3",
       "version": "v1.21.3"
     },
-    "elasticache-chart": {
-      "app_version": "1.11.1",
+    "dynamodb-chart": {
+      "app_version": "1.14.0",
       "chart": "public.ecr.aws/aws-controllers-k8s",
-      "current": "1.13.4",
+      "current": "1.14.0",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.11.1"
+      "version": "1.14.0"
     },
     "external-dns": {
       "app_version": "0.23.0",

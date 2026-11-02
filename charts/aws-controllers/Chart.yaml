@@ -19,8 +19,8 @@ dependencies:
   repository: oci://public.ecr.aws/aws-controllers-k8s
   version: "1.15.0" # helm chart s3-chart version
 
-- name: elasticache-chart
-  alias: elasticache
-  condition: elasticache.enabled
+- name: dynamodb-chart
+  alias: dynamodb
+  condition: dynamodb.enabled
   repository: oci://public.ecr.aws/aws-controllers-k8s
-  version: "1.11.1" # helm chart elasticache-chart version
+  version: "1.14.0" # helm chart dynamodb-chart version

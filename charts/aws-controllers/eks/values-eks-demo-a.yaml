@@ -4,6 +4,6 @@ rds:
 s3:
   aws:
     region: "ap-northeast-2"
-elasticache:
+dynamodb:
   aws:
     region: "ap-northeast-2"

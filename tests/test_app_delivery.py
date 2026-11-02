@@ -67,11 +67,28 @@ class AppDeliveryProfileTests(unittest.TestCase):
             project = resource(values, "AppProject", "projects")
             with self.subTest(cluster=context["cluster"]):
                 kinds = {(k["group"], k["kind"]) for k in project["spec"]["namespaceResourceWhitelist"]}
-                for kind in ("RdsPostgres", "S3Bucket", "ValkeyCache"):
+                for kind in ("RdsPostgres", "S3Bucket", "DynamoTable"):
                     self.assertIn(("kro.run", kind), kinds)
+                self.assertIn(("apps", "StatefulSet"), kinds)
+                self.assertIn("https://opspresso.github.io/helm-charts", project["spec"]["sourceRepos"])
                 self.assertNotIn(("", "Secret"), kinds)
                 self.assertNotIn(("kro.run", "ResourceGraphDefinition"), kinds)
                 self.assertEqual(project["spec"]["clusterResourceWhitelist"], [{"group": "", "kind": "Namespace"}])
+
+    def test_each_chart_resource_is_an_application_at_its_pinned_version(self):
+        for context in self.contexts():
+            values = rendered_values(context["cluster"])
+            appset = resource(values, "ApplicationSet", "project-resources")
+            with self.subTest(cluster=context["cluster"]):
+                paths = [item["path"] for item in appset["spec"]["generators"][0]["git"]["files"]]
+                self.assertEqual(paths, [f"projects/*/{name}/resources/*.yaml" for name in context["app_delivery"]["environments"]])
+                template = appset["spec"]["template"]
+                self.assertEqual(template["metadata"]["finalizers"], ["resources-finalizer.argocd.argoproj.io"])
+                chart, repository = template["spec"]["sources"]
+                self.assertEqual((chart["chart"], chart["targetRevision"]), ("{{ .chart }}", "{{ .chartVersion }}"))
+                self.assertEqual(chart["helm"]["releaseName"], "{{ .resourceName }}")
+                self.assertEqual(repository["ref"], "values")
+                self.assertEqual(template["spec"]["destination"]["namespace"], "app-{{ index .path.segments 1 }}-{{ index .path.segments 2 }}")
 
 
 if __name__ == "__main__":

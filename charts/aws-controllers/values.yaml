@@ -67,30 +67,25 @@ s3:
       cpu: 200m
       memory: 256Mi
 
-elasticache:
-  # kro ValkeyCache instances (charts/kro) create ServerlessCache, User and UserGroup objects.
+dynamodb:
+  # kro DynamoTable instances (charts/kro) create Table objects.
   enabled: true
-  fullnameOverride: ack-elasticache-controller
+  fullnameOverride: ack-dynamodb-controller
 
-  # EKS Pod Identity binds the IAM role pod-role--ack-elasticache to this ServiceAccount (terraform-env-demo demo/5-eks).
+  # EKS Pod Identity binds the IAM role pod-role--ack-dynamodb to this ServiceAccount (terraform-env-demo demo/5-eks).
   serviceAccount:
     create: true
-    name: ack-elasticache-controller
+    name: ack-dynamodb-controller
 
-  # The IAM policy allows these kinds only.
+  # The IAM policy allows this kind only.
   reconcile:
     resources:
-      - ServerlessCache
-      - User
-      - UserGroup
+      - Table
 
-  # installScope stays cluster for the same reason as rds: the upstream ClusterRole reads Secrets in every
-  # namespace (User passwords). Only kro creates User objects, and the ValkeyCache template pins the password
-  # Secret to the instance namespace.
   installScope: cluster
   enableCARM: false
 
-  # Deleting a ServerlessCache deletes the cache and its data without a final snapshot.
+  # Deleting a Table deletes the DynamoDB table and its data.
   deletionPolicy: delete
 
   resources:
