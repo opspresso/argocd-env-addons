@@ -34,7 +34,7 @@ class RdsPostgresTemplateTests(unittest.TestCase):
         self.assertTrue(db["storageEncrypted"])
         self.assertEqual(db["vpcSecurityGroupIDs"], ["sg-0123456789abcdef0"])
         self.assertEqual(db["dbSubnetGroupName"], "app-delivery-rds")
-        # TLS only: the parameter group sets rds.force_ssl=1 (terraform-env-demo demo/8-app-delivery).
+        # TLS only: the parameter group sets rds.force_ssl=1 (terraform-env-apps demo/8-app-delivery).
         self.assertEqual(db["dbParameterGroupName"], "app-delivery-postgres18")
         # ACK skips the final snapshot by default; deletion must keep one with a name unique to the instance.
         annotations = resources["dbInstance"]["metadata"]["annotations"]

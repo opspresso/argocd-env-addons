@@ -268,7 +268,7 @@ Application은 그 파일이 고정한 `postgres`·`valkey` chart(opspresso/helm
 - 인스턴스를 지우면(리소스 삭제, 또는 환경의 Application 삭제로 인한 cascade) ACK가 final snapshot
   `<DB 식별자>-final-<인스턴스 UID>`를 남기고 RDS를 지운다. snapshot은 직접 지울 때까지 남고 비용이 든다.
 - `rds-postgres` RGD는 `env/<cluster>.yaml`의 `delivery_resources.rds.security_group_id`가 있을 때만 렌더한다.
-  `terraform-env-demo/demo/8-app-delivery`를 적용한 뒤 그 output `rds_security_group_id`를 넣고 `./scripts/build.sh`를 실행한다.
+  `terraform-env-apps/demo/8-app-delivery`를 적용한 뒤 그 output `rds_security_group_id`를 넣고 `./scripts/build.sh`를 실행한다.
 - `DynamoTable` 인스턴스는 on-demand DynamoDB table `app-<SHA-256 앞 32 hex>`를 만든다. 앱은 공유 Pod Identity 역할
   `agent-runway-tenant-objects`로 접근하며, IAM은 table tag `kubernetes-namespace`가 Pod의 namespace와 같을 때만 허용한다.
   지우면 backup 없이 데이터가 사라진다.
