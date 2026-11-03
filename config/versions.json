@@ -22,13 +22,13 @@
       "app_version": "v4.1.6",
       "chart": "argo/argo-workflows",
       "current": "2.0.14",
-      "version": "2.0.15"
+      "version": "2.0.16"
     },
     "atlantis": {
-      "app_version": "v0.48.2",
+      "app_version": "v0.49.0",
       "chart": "atlantis/atlantis",
       "current": "6.16.2",
-      "version": "6.16.2"
+      "version": "7.0.0"
     },
     "cert-manager": {
       "app_version": "v1.21.3",
@@ -37,13 +37,13 @@
       "version": "v1.21.3"
     },
     "dynamodb-chart": {
-      "app_version": "1.14.0",
+      "app_version": "1.14.1",
       "chart": "public.ecr.aws/aws-controllers-k8s",
-      "current": "1.14.0",
+      "current": "1.13.4",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.14.0"
+      "version": "1.14.1"
     },
     "external-dns": {
       "app_version": "0.23.0",
@@ -118,15 +118,15 @@
       "app_version": "v0.94.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "92.17.0"
+      "version": "92.17.1"
     },
     "rds-chart": {
-      "app_version": "1.14.1",
+      "app_version": "1.14.2",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.14.1"
+      "version": "1.14.2"
     },
     "s3-chart": {
       "app_version": "1.15.0",
@@ -141,7 +141,7 @@
       "app_version": "v1.155.0",
       "chart": "victoria-metrics/victoria-metrics-k8s-stack",
       "current": "0.97.0",
-      "version": "0.97.0"
+      "version": "0.97.1"
     },
     "vllm-stack": {
       "app_version": "",
