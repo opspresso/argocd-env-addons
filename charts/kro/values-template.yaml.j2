@@ -5,7 +5,7 @@ kro:
 {% set rds = delivery_resources.rds %}
 # Platform templates that Agent Runway instantiates in app-<slug>-<env> namespaces
 # (agent-platform docs/DELIVERY_V2.md D3, D4). A template that needs network objects from
-# terraform-env-demo demo/8-app-delivery renders only once its security group is set.
+# terraform-env-apps demo/8-app-delivery renders only once its security group is set.
 raw:
   resources:
 {% if rds.security_group_id %}
@@ -29,7 +29,7 @@ raw:
           verbs: ["*"]
 
     # One single-AZ RDS for PostgreSQL instance per RdsPostgres, in the shared subnet group and
-    # security group from terraform-env-demo demo/8-app-delivery, plus the egress NetworkPolicy
+    # security group from terraform-env-apps demo/8-app-delivery, plus the egress NetworkPolicy
     # that lets the instance namespace reach the DB subnets.
     - apiVersion: kro.run/v1alpha1
       kind: ResourceGraphDefinition
@@ -143,7 +143,7 @@ raw:
           verbs: ["*"]
 
     # One private S3 bucket per S3Bucket. Apps in the instance namespace reach it with the shared Pod Identity role
-    # agent-runway-tenant-objects (terraform-env-demo demo/8-agent-runway), which matches the bucket tag
+    # agent-runway-tenant-objects (terraform-env-apps demo/8-agent-runway), which matches the bucket tag
     # kubernetes-namespace against the Pod's session tag. ABAC must be on for S3 to evaluate bucket tags.
     - apiVersion: kro.run/v1alpha1
       kind: ResourceGraphDefinition

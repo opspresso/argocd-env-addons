@@ -123,7 +123,7 @@ alloy_network_policy:
   api_server_cidrs:
     - 172.20.0.1/32
 
-# Network objects for the kro RdsPostgres template (charts/kro). terraform-env-demo demo/8-app-delivery
+# Network objects for the kro RdsPostgres template (charts/kro). terraform-env-apps demo/8-app-delivery
 # creates the DB subnet group and the security group; the template renders only when security_group_id is set.
 # subnet_cidrs are the intra subnets of that subnet group (demo/2-vpc). They hold only these RDS instances, so the
 # RdsPostgres NetworkPolicy that opens TCP 5432 to them reaches no other PostgreSQL in the cluster.
