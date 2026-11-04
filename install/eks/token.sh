@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Argo CD 의 서명 키와 mcp 계정의 API 토큰을 SSM 에 고정합니다. 실행 순서대로:
+# Argo CD 의 서명 키와 API 계정(mcp, keep)의 토큰을 SSM 에 고정합니다. 실행 순서대로:
 #
 #   1. /k8s/common/argocd-server-secret        서명 키. 없을 때만 만듭니다
-#   2. /k8s/common/argocd-mcp-tokens           mcp 계정의 토큰 목록
-#      /k8s/common/mcp-argocd/argocd-api-token 그 토큰. mcp-argocd 가 씁니다
+#   2. /k8s/common/argocd-<계정>-tokens         계정의 토큰 목록
+#      그 토큰                                  mcp: /k8s/common/mcp-argocd/argocd-api-token (mcp-argocd)
+#                                               keep: /k8s/common/keep/argocd-api-token (Keep argocd provider)
 #
 # 1 은 Argo CD 가 API 토큰과 로그인 세션을 서명하는 키(argocd-secret 의
 # server.secretkey)입니다. **이미 있으면 절대 건드리지 않습니다** — 바꾸면 발급된
@@ -28,8 +29,9 @@
 # 인자 없이 실행하면 이미 고정된 토큰을 검증만 하고 유효하면 아무것도 하지
 # 않습니다. install.sh 가 매번 호출해도 안전합니다.
 #
-#   ./token.sh            # 없거나 무효일 때만 발급
-#   ./token.sh --rotate   # 토큰만 새로 발급 (이전 토큰은 즉시 무효)
+#   ./token.sh                  # mcp 계정. 없거나 무효일 때만 발급
+#   ./token.sh --account keep   # keep 계정
+#   ./token.sh --rotate         # 토큰만 새로 발급 (이전 토큰은 즉시 무효)
 #
 # --rotate 도 서명 키는 바꾸지 않습니다. 키까지 갈아야 한다면 파라미터를 직접 지운
 # 뒤 실행하고, 그때는 다른 로그인 세션도 함께 끊긴다는 것을 감안하세요.
@@ -40,10 +42,34 @@ SSM_ERROR_FILE=$(mktemp)
 trap 'rm -f "$SSM_ERROR_FILE"' EXIT
 
 ACCOUNT="mcp"
+ROTATE="false"
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --rotate) ROTATE="true" ;;
+  --account)
+    ACCOUNT="${2:-}"
+    shift
+    ;;
+  *)
+    echo "알 수 없는 인자: $1" >&2
+    exit 2
+    ;;
+  esac
+  shift
+done
 
 SECRET_KEY_PARAM="/k8s/common/argocd-server-secret"
-TOKENS_PARAM="/k8s/common/argocd-mcp-tokens"
-TOKEN_PARAM="/k8s/common/mcp-argocd/argocd-api-token"
+TOKENS_PARAM="/k8s/common/argocd-${ACCOUNT}-tokens"
+# Each account's token lives where its consumer reads it. charts/argo-cd lists
+# the same accounts in argocd-cm (accounts.<name>: apiKey) and argocd-secret.
+case "$ACCOUNT" in
+mcp) TOKEN_PARAM="/k8s/common/mcp-argocd/argocd-api-token" ;;
+keep) TOKEN_PARAM="/k8s/common/keep/argocd-api-token" ;;
+*)
+  echo "지원하지 않는 계정: ${ACCOUNT} (mcp, keep)" >&2
+  exit 2
+  ;;
+esac
 
 # 실행 로그 색상 (파이프/리다이렉트 시에는 비활성화)
 if [ -t 1 ]; then
@@ -121,11 +147,6 @@ verify() {
   jti="$(b64d "$body" | jq -r '.jti')"
   printf '%s' "$tokens" | jq -e --arg id "$jti" 'any(.[]; .id == $id)' >/dev/null
 }
-
-ROTATE="false"
-if [ "${1:-}" = "--rotate" ]; then
-  ROTATE="true"
-fi
 
 step "SSM 파라미터 조회"
 

@@ -66,9 +66,13 @@ aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-secret --value "${
 > 보통은 따로 실행할 일이 없습니다.
 
 ```bash
-./token.sh            # 없거나 무효일 때만 발급 (여러 번 실행해도 안전)
-./token.sh --rotate   # 토큰만 새로 발급. 이전 토큰은 즉시 무효
+./token.sh                  # 없거나 무효일 때만 발급 (여러 번 실행해도 안전)
+./token.sh --account keep   # Keep argocd provider 의 keep 계정
+./token.sh --rotate         # 토큰만 새로 발급. 이전 토큰은 즉시 무효
 ```
+
+`--account keep` 은 `/k8s/common/argocd-keep-tokens` 와 `/k8s/common/keep/argocd-api-token` 을 만듭니다.
+`charts/argo-cd` 의 ExternalSecret 은 두 계정의 토큰 목록을 모두 읽으므로 `install.sh` 가 둘 다 실행합니다.
 
 `token.sh` 가 만드는 파라미터는 세 개 입니다.
 

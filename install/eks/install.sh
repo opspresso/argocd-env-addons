@@ -60,12 +60,14 @@ run helm repo update argo
 step "SSM 접속 정보 조회"
 ARGOCD_HOSTNAME=$(ssm /k8s/common/argocd-hostname)
 
-# Argo CD 의 서명 키(server.secretkey)와 mcp 계정의 API 토큰을 SSM 에 고정합니다.
+# Argo CD 의 서명 키(server.secretkey)와 mcp·keep 계정의 API 토큰을 SSM 에 고정합니다.
 # 키는 없을 때만 만들고, 토큰은 없거나 무효일 때만 발급하므로 매번 실행해도
 # 됩니다. 클러스터를 다시 만들어도 같은 토큰이 그대로 통하므로 재설치에 별도
-# 절차가 붙지 않습니다.
-step "서명 키·mcp 토큰 확인"
+# 절차가 붙지 않습니다. charts/argo-cd 의 ExternalSecret 은 두 토큰 목록을 모두
+# 읽으므로 하나라도 없으면 argocd-secret 이 만들어지지 않습니다.
+step "서명 키·mcp·keep 토큰 확인"
 run ./token.sh
+run ./token.sh --account keep
 
 # values.yaml 로 values.output.yaml 을 새로 만듭니다.
 # 이전 실행의 산출물을 그대로 쓰면 values.yaml 의 변경이 반영되지 않습니다.
