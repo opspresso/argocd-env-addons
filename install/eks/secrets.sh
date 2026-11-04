@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# addons 가 읽는 무작위 값(비밀번호, OIDC client secret, 암호화 키, 내부 TLS)을 SSM 에 만듭니다.
+# addons 가 읽는 무작위 값(비밀번호, OIDC client secret, 암호화 키)을 SSM 에 만듭니다.
 # 없는 파라미터만 만들고 **있는 값은 절대 바꾸지 않습니다**. 바꾸면 DB 비밀번호·암호화된
 # 데이터·발급된 세션이 맞지 않게 됩니다. install.sh 가 매번 호출해도 안전합니다.
 #
@@ -12,8 +12,6 @@
 
 set -euo pipefail
 
-SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-CLUSTER="${CLUSTER:-eks-demo}"
 CHECK="false"
 case "${1:-}" in
 "") ;;
@@ -103,47 +101,6 @@ create /k8s/common/keep/nextauth-secret "$(openssl rand -hex 32)"
 for name in grafana argocd alertmanager; do
   create "/k8s/common/keep/${name}-api-key" "$(openssl rand -hex 32)"
 done
-
-# kanidmd 는 HTTPS 만 받습니다. gateway 가 이 CA 로 서버 인증서를 검증합니다.
-# CA 인증서는 charts/kanidm/values-template.yaml.j2 에도 있으므로, CA 를 새로 만들면
-# 출력된 인증서로 그 값을 바꿔야 합니다.
-step "Kanidm 내부 TLS"
-if exists /k8s/common/kanidm/tls-chain; then
-  echo "  keep /k8s/common/kanidm/tls-chain, tls-key, ca-crt, ca-key"
-elif [ "$CHECK" = "true" ]; then
-  echo -e "${C_CMD}  miss /k8s/common/kanidm/tls-chain${C_OFF}"
-  MISSING+=(/k8s/common/kanidm/tls-chain)
-else
-  service="kanidm.addon-kanidm.svc.cluster.local"
-  hostname=$(python3 - "${SHELL_DIR}/../../env/${CLUSTER}.yaml" <<'EOF'
-import sys
-import yaml
-
-with open(sys.argv[1]) as stream:
-    print(yaml.safe_load(stream)["kanidm"]["hostname"])
-EOF
-)
-  (
-    cd "$WORK_DIR"
-    umask 077
-    openssl ecparam -name prime256v1 -genkey -noout -out ca.key
-    openssl req -x509 -new -key ca.key -sha256 -days 3650 -subj "/CN=kanidm internal CA/O=opspresso" \
-      -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" -out ca.crt
-    openssl ecparam -name prime256v1 -genkey -noout -out tls.key
-    openssl req -new -key tls.key -subj "/CN=${service}" -out tls.csr
-    printf 'basicConstraints=CA:FALSE\nkeyUsage=critical,digitalSignature\nextendedKeyUsage=serverAuth\nsubjectAltName=DNS:%s,DNS:kanidm.addon-kanidm.svc,DNS:kanidm,DNS:%s\n' \
-      "$service" "$hostname" >ext.cnf
-    openssl x509 -req -in tls.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days 3650 -sha256 -extfile ext.cnf -out tls.crt 2>/dev/null
-    openssl verify -CAfile ca.crt tls.crt >/dev/null
-    cat tls.crt ca.crt >chain.crt
-  )
-  create /k8s/common/kanidm/ca-key "file://${WORK_DIR}/ca.key"
-  create /k8s/common/kanidm/ca-crt "file://${WORK_DIR}/ca.crt"
-  create /k8s/common/kanidm/tls-key "file://${WORK_DIR}/tls.key"
-  create /k8s/common/kanidm/tls-chain "file://${WORK_DIR}/chain.crt"
-  echo "  새 CA 를 만들었습니다. charts/kanidm/values-template.yaml.j2 의 ca.crt 를 다음 인증서로 바꾸세요."
-  cat "${WORK_DIR}/ca.crt"
-fi
 
 if [ "$CHECK" = "true" ] && [ "${#MISSING[@]}" -gt 0 ]; then
   echo "없는 파라미터 ${#MISSING[@]}개" >&2

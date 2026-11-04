@@ -1499,7 +1499,7 @@ grafana:
       disable_login_form: true
 
 
-      # A user keeps one account across sign-in sources (GitHub, Kanidm): Grafana
+      # A user keeps one account across sign-in sources: Grafana
       # finds it by email. Dex accepts only the sso groups.
       oauth_allow_insecure_email_lookup: true
     # Sign-in through Argo CD Dex (client grafana-sso), like the other addons.
@@ -1520,7 +1520,7 @@ grafana:
       login_attribute_path: preferred_username
       groups_attribute_path: groups
       # sso.admin_groups are Admin, other users Viewer. The role syncs on every login.
-      role_attribute_path: "(contains(groups[*], 'sre') || contains(groups[*], 'opspresso:sre')) && 'Admin' || 'Viewer'"
+      role_attribute_path: "(contains(groups[*], 'opspresso:sre')) && 'Admin' || 'Viewer'"
 
 
 

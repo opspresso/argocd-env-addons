@@ -71,7 +71,7 @@ raw:
               key: /k8s/common/harbor/secret-key
 
     # Sign-in through Argo CD Dex (client harbor-sso). Harbor takes one admin
-    # group: the first of sso.admin_groups (the Kanidm group). Core applies this
+    # group: the first of sso.admin_groups. Core applies this
     # JSON at every start.
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
