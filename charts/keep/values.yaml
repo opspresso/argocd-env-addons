@@ -1,0 +1,125 @@
+keep:
+  # Services become keep-backend, keep-frontend and keep-database. The chart
+  # hardcodes these names in its defaults, so the prefix must stay `keep`.
+  fullnameOverride: keep
+
+  # Routing is the HTTPRoute in values-template.yaml.j2. The chart's ingress
+  # templates need nginx snippet annotations.
+  global:
+    ingress:
+      enabled: false
+
+  backend:
+    image:
+      # The chart pins 0.54.3. AUTH_TYPE=OIDC (Dex) exists from 0.55.0.
+      tag: "0.55.0"
+      pullPolicy: IfNotPresent
+
+    # This init container has no resources field. Kubernetes restarts the
+    # backend until keep-database accepts connections.
+    waitForDatabase:
+      enabled: false
+
+    # `env` is in values-template.yaml.j2: Helm replaces lists, and the list
+    # holds cluster values. It replaces the chart list, which has plain-text
+    # Pusher secrets and a MySQL URL.
+    envFromSecrets:
+      - name: addon-keep-backend
+
+    podAnnotations:
+      "prometheus.io/scrape": "false"
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 768Mi
+      limits:
+        memory: 2Gi
+
+  frontend:
+    image:
+      tag: "0.55.0"
+      pullPolicy: IfNotPresent
+
+    # `env` is in values-template.yaml.j2.
+    envFromSecrets:
+      - name: addon-keep-frontend
+
+    healthCheck:
+      enabled: true
+      probes:
+        readinessProbe:
+          httpGet:
+            path: /api/healthcheck
+            port: http
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /api/healthcheck
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          failureThreshold: 5
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 768Mi
+
+  websocket:
+    enabled: false
+
+  database:
+    enabled: true
+    type: postgres
+    # The chart default is a hostPath PersistentVolume.
+    pv:
+      enabled: false
+    pvc:
+      enabled: true
+      size: 10Gi
+      storageClass: gp3
+    postgres:
+      image:
+        repository: postgres
+        tag: "18"
+      # postgres 18 keeps PGDATA in a versioned directory under this mount,
+      # so the volume's lost+found does not block initdb.
+      dataDir: /var/lib/postgresql
+      env:
+        - name: POSTGRES_DB
+          value: keep
+        - name: POSTGRES_PASSWORD_FILE
+          value: /etc/keep-database/password
+      config:
+        maxConnections: 100
+        sharedBuffers: 128MB
+    extraVolumes:
+      - name: database-secret
+        secret:
+          secretName: addon-keep-database
+    extraVolumeMounts:
+      - name: database-secret
+        mountPath: /etc/keep-database
+        readOnly: true
+    healthCheck:
+      enabled: true
+      probes:
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "postgres", "-d", "keep"]
+          periodSeconds: 10
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+
+  # Pre-delete hook: removes the provider Secrets (keep-*) Keep writes.
+  # Secrets that this chart owns are named addon-keep-* so the hook skips them.
+  deleteSecretJob:
+    image:
+      pullPolicy: IfNotPresent

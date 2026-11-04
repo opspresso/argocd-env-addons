@@ -1,0 +1,186 @@
+
+keep:
+  backend:
+    env:
+      - name: SECRET_MANAGER_TYPE
+        value: k8s
+      - name: PORT
+        value: "8080"
+      - name: PROMETHEUS_MULTIPROC_DIR
+        value: /tmp/prometheus
+      # Grafana and Argo CD send alerts to this in-cluster address. Keep also
+      # prints it in the webhook instructions of the providers page.
+      - name: KEEP_API_URL
+        value: http://keep-backend.addon-keep.svc.cluster.local:8080
+      # No websocket server: Soketi takes its app secret only as a plain value.
+      # The UI refreshes by polling.
+      - name: PUSHER_DISABLED
+        value: "true"
+      - name: POSTHOG_DISABLED
+        value: "true"
+      # No OTLP collector in this cluster.
+      - name: KEEP_OTEL_ENABLED
+        value: "false"
+      - name: AUTH_TYPE
+        value: OIDC
+      - name: KEEP_OIDC_ISSUER
+        value: "https://argocd.demo.rovr.dev/api/dex"
+      - name: KEEP_OIDC_CLIENT_ID
+        value: keep-sso
+      # Dex reports GitHub teams as "<org>:<team>". A user in no listed group gets 403.
+      - name: KEEP_OIDC_ADMIN_ROLES
+        value: "opspresso:dev"
+
+    # KEEP_PROVIDERS. Keep reconciles these at startup and removes provisioned
+    # providers that are not listed. "$(NAME)" is replaced with the env var NAME.
+    # install_webhook stays false: Grafana alerting and Argo CD notifications are
+    # provisioned from this repository, and Keep would rewrite them.
+    provision:
+      providers:
+        prometheus:
+          type: prometheus
+          install_webhook: false
+          authentication:
+
+            url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
+
+
+        loki:
+          type: grafana_loki
+          install_webhook: false
+          authentication:
+            host_url: http://loki.addon-loki.svc.cluster.local:3100
+            authentication_type: NoAuth
+
+        argocd:
+          type: argocd
+          install_webhook: false
+          authentication:
+            deployment_url: http://argocd-server.argocd.svc.cluster.local
+            argocd_access_token: "$(ARGOCD_ACCESS_TOKEN)"
+
+  frontend:
+    env:
+      - name: NEXTAUTH_URL
+        value: "https://keep.demo.rovr.dev"
+      - name: VERCEL
+        value: "1"
+      - name: ENV
+        value: production
+      - name: NODE_ENV
+        value: production
+      - name: HOSTNAME
+        value: 0.0.0.0
+      - name: FRIGADE_DISABLED
+        value: "true"
+      - name: PUSHER_DISABLED
+        value: "true"
+      - name: AUTH_TYPE
+        value: OIDC
+      - name: KEEP_OIDC_ISSUER
+        value: "https://argocd.demo.rovr.dev/api/dex"
+      - name: KEEP_OIDC_CLIENT_ID
+        value: keep-sso
+      - name: KEEP_OIDC_ADMIN_ROLES
+        value: "opspresso:dev"
+
+    podAnnotations:
+      link.argocd.argoproj.io/external-link: "https://keep.demo.rovr.dev"
+
+raw:
+  resources:
+    # The UI calls the API through its own /backend rewrite, so one route serves both.
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: keep
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://keep.demo.rovr.dev"
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+
+            name: istio-ingressgateway
+            namespace: istio-system
+
+        hostnames:
+          - "keep.demo.rovr.dev"
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              - name: keep-frontend
+                port: 3000
+
+    # Names start with addon-keep-, not keep-: the chart's pre-delete hook
+    # deletes every Secret whose name starts with keep-.
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: addon-keep-database
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: addon-keep-database
+        data:
+          - secretKey: password
+            remoteRef:
+              key: /k8s/common/keep/database-password
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: addon-keep-backend
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: addon-keep-backend
+          template:
+            engineVersion: v2
+            data:
+              DATABASE_CONNECTION_STRING: "postgresql+psycopg2://postgres:{{ .database_password }}@keep-database:5432/keep"
+              # name:role:secret. Keep creates each key once at startup and never
+              # changes an existing one; see README.md to rotate.
+              KEEP_DEFAULT_API_KEYS: "grafana:webhook:{{ .grafana_api_key }},argocd:webhook:{{ .argocd_api_key }}"
+              ARGOCD_ACCESS_TOKEN: "{{ .argocd_access_token }}"
+        data:
+          - secretKey: database_password
+            remoteRef:
+              key: /k8s/common/keep/database-password
+          - secretKey: grafana_api_key
+            remoteRef:
+              key: /k8s/common/keep/grafana-api-key
+          - secretKey: argocd_api_key
+            remoteRef:
+              key: /k8s/common/keep/argocd-api-key
+          - secretKey: argocd_access_token
+            remoteRef:
+              key: /k8s/common/keep/argocd-api-token
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: addon-keep-frontend
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: addon-keep-frontend
+        data:
+          - secretKey: NEXTAUTH_SECRET
+            remoteRef:
+              key: /k8s/common/keep/nextauth-secret
+          - secretKey: KEEP_OIDC_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/keep/oidc-client-secret

@@ -76,6 +76,12 @@
       "path": "istio",
       "version": "1.31.3"
     },
+    "keep": {
+      "app_version": "0.54.3",
+      "chart": "keephq/keep",
+      "current": "0.1.97",
+      "version": "0.1.97"
+    },
     "kite": {
       "app_version": "v0.16.0",
       "chart": "kite/kite",
