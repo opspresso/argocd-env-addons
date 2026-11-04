@@ -49,6 +49,11 @@ grafana:
       secretKeyRef:
         name: grafana-secret
         key: slack-webhook
+    # Basic auth password of the keep contact point: a Keep API key with the webhook role.
+    KEEP_API_KEY:
+      secretKeyRef:
+        name: grafana-secret
+        key: keep-api-key
 
   grafana.ini:
     # server:
@@ -186,6 +191,19 @@ grafana:
                   recipient: "#noti-eks-demo"
                   title: '{{`{{ template "addons.slack.title" . }}`}}'
                   text: '{{`{{ template "addons.slack.text" . }}`}}'
+          # Keep (charts/keep) correlates these alerts with Prometheus, Loki and
+          # Argo CD. It reads the Grafana webhook payload at /alerts/event/grafana
+          # and takes the API key as the basic auth password.
+          - orgId: 1
+            name: keep
+            receivers:
+              - uid: keep-webhook
+                type: webhook
+                settings:
+                  url: http://keep-backend.addon-keep.svc.cluster.local:8080/alerts/event/grafana
+                  httpMethod: POST
+                  username: grafana
+                  password: $KEEP_API_KEY
 
     # One line per alert: state, severity, the rule summary with the affected
     # object and value, the first-step hint, and links. Resolved messages keep
@@ -226,6 +244,9 @@ grafana:
             group_interval: 5m
             repeat_interval: 12h
             routes:
+              # Every alert also goes to Keep. continue lets the slack routes below match.
+              - receiver: keep
+                continue: true
               - receiver: slack
                 object_matchers:
                   - [severity, '=~', critical]
