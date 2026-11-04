@@ -82,7 +82,7 @@ raw:
 
     # Nexus Community Edition has no group mapping. This CronJob applies the
     # shared sign-in rule: users in nexus.admins (the GitHub logins of
-    # opspresso/sre) get nx-admin, other signed-in users read
+    # sso.admin_groups) get nx-admin, other signed-in users read
     # anonymously. It also sets the admin password, the EULA, the Remote User
     # Token header, the realms and anonymous read access.
     - apiVersion: v1

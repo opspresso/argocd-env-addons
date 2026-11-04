@@ -63,11 +63,10 @@ grafana:
       disable_login_form: true
 {% endif %}
 {% if grafana.auth.dex.enabled %}
-      # Users created by the former GitHub OAuth login keep their account: the
-      # Dex login finds them by email. Dex returns only verified GitHub emails of
-      # {{argocd.github.org}} members.
+      # A user keeps one account across sign-in sources (GitHub, Kanidm): Grafana
+      # finds it by email. Dex accepts only the sso groups.
       oauth_allow_insecure_email_lookup: true
-    # GitHub sign-in through Argo CD Dex (client grafana-sso), like Keep and GitLab.
+    # Sign-in through Argo CD Dex (client grafana-sso), like the other addons.
     # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/
     auth.generic_oauth:
       enabled: true
@@ -84,8 +83,8 @@ grafana:
       use_pkce: true
       login_attribute_path: preferred_username
       groups_attribute_path: groups
-      # Dex reports GitHub teams as "<org>:<team>". The role syncs on every login.
-      role_attribute_path: "contains(groups[*], '{{argocd.github.org}}:{{argocd.github.team}}') && 'Admin' || 'Viewer'"
+      # sso.admin_groups are Admin, other users Viewer. The role syncs on every login.
+      role_attribute_path: "({% for g in sso.admin_groups %}contains(groups[*], '{{g}}'){% if not loop.last %} || {% endif %}{% endfor %}) && 'Admin' || 'Viewer'"
 {% endif %}
 
 {% if grafana.auth.google.enabled %}

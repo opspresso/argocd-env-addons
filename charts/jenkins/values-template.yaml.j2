@@ -7,8 +7,7 @@ jenkins:
 
     JCasC:
       # Sign-in through Argo CD Dex (client jenkins-sso). There is no local user
-      # and no password form. Dex accepts only members of {{argocd.github.org}};
-      # members of {{argocd.github.org}}:{{argocd.github.team}} administer, the others read.
+      # and no password form. sso.admin_groups administer; other users read.
       securityRealm: |-
         oic:
           serverConfiguration:
@@ -24,10 +23,12 @@ jenkins:
       authorizationStrategy: |-
         globalMatrix:
           entries:
+{% for group in sso.admin_groups %}
             - group:
-                name: "{{argocd.github.org}}:{{argocd.github.team}}"
+                name: "{{group}}"
                 permissions:
                   - "Overall/Administer"
+{% endfor %}
             - group:
                 name: "authenticated"
                 permissions:

@@ -14,9 +14,9 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 
 ## 로그인
 
-모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `argocd.github`).
+모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
-- UI와 API(`/repository/` 밖)는 oauth2-proxy(Dex)로 GitHub 로그인한 `opspresso` 조직 구성원만 연다.
+- UI와 API(`/repository/` 밖)는 oauth2-proxy(Dex)로 로그인한 사용자만 연다.
   gateway가 `X-Auth-Request-Preferred-Username`(GitHub login)을 붙이고, Nexus는 Remote User Token realm으로 그 사용자를 로그인시킨다.
 - `nexus.admins`(`sre` 팀의 GitHub login)는 `nx-admin`이다. Community Edition은 group을 역할에 연결할 수 없어 목록을 코드에 둔다.
   `sre` 팀 구성원이 바뀌면 이 목록도 고친다. 목록에 없는 사용자는 익명 읽기 권한만 갖는다.

@@ -6,9 +6,9 @@ gitlab:
       gitlab:
         name: "gitlab.demo.opsp.dev"
     appConfig:
-      # Sign-in with GitHub through Argo CD Dex (client gitlab-sso). Dex accepts
-      # only members of the opspresso organization, so the first
-      # sign-in creates an active user without admin approval.
+      # Sign-in through Argo CD Dex (client gitlab-sso). Dex accepts only the
+      # sso groups, so the first sign-in creates an active user without admin
+      # approval.
       # The sign-in page goes straight to Dex. The password form also stays off:
       # Admin > Settings > Sign-in restrictions (see README.md).
       omniauth:
@@ -129,7 +129,7 @@ raw:
               key: /k8s/common/gitlab/oidc-client-secret
     # GitLab CE cannot map OIDC groups to administrators (Premium only). This
     # CronJob makes the users in gitlab.admins (the GitHub logins of the
-    # opspresso/sre team) administrators and the other SSO users not.
+    # sso.admin_groups) administrators and the other SSO users not.
     # It also keeps sign-up and the web password form off. root is not changed.
     - apiVersion: v1
       kind: ServiceAccount

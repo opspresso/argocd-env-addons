@@ -17,11 +17,10 @@
 
 ## 로그인
 
-Argo CD의 Dex(`https://argocd.demo.opsp.dev/api/dex`)로 GitHub 로그인한다. Dex client는 `charts/argo-cd`의 `keep-sso`다.
+Argo CD의 Dex(`https://argocd.demo.opsp.dev/api/dex`)로 로그인한다. Dex client는 `charts/argo-cd`의 `keep-sso`다.
 
-- `opspresso:sre` 팀(`argocd.github.team`)은 `admin` 역할을 받는다.
-- `argocd.github.viewer_teams`(`opspresso:dev`) 팀은 읽기 전용 `noc` 역할을 받는다.
-- 어느 팀에도 없는 조직 구성원은 403을 받는다. Dex는 팀만 group으로 보내고 Keep OIDC에는 기본 역할이 없다.
+- `sso.admin_groups`는 `admin`, `sso.member_groups`는 읽기 전용 `noc` 역할을 받는다.
+- 두 목록 어디에도 없는 사용자는 403을 받는다. Keep OIDC에는 기본 역할이 없다.
 
 ## 연동
 

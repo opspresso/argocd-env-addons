@@ -13,10 +13,10 @@
 
 ## 로그인
 
-모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `argocd.github`).
+모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
-- Argo CD Dex의 client `harbor-sso`로 GitHub 로그인한다. 첫 로그인에서 사용자가 만들어진다(`oidc_auto_onboard`).
-- `opspresso:sre` 팀은 Harbor 관리자(`oidc_admin_group`), 그 밖의 사용자는 일반 사용자다.
+- Argo CD Dex의 client `harbor-sso`로 로그인한다. 첫 로그인에서 사용자가 만들어진다(`oidc_auto_onboard`).
+- `sso.admin_groups`의 첫 그룹(`sre`)은 Harbor 관리자(`oidc_admin_group`), 그 밖의 사용자는 일반 사용자다. Harbor는 관리자 그룹을 하나만 받는다.
 - OIDC 설정은 ExternalSecret `harbor-oidc`의 `CONFIG_OVERWRITE_JSON`이며 core가 시작할 때마다 적용한다.
 - 로그인 화면은 바로 Dex로 이동한다(`primary_auth_mode`). 로컬 `admin`(`/k8s/common/harbor/admin-password`)은 API에서만 쓴다.
 - docker CLI는 비밀번호 대신 사용자 프로필의 **CLI secret**으로 로그인한다.
