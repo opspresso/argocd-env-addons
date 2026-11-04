@@ -88,23 +88,16 @@ argo-cd:
   notifications:
     enabled: {{argocd.notifications.enabled}}
     argocdUrl: {{argocd.scheme | default('https')}}://{{argocd.hostname}}
-    # Report failures only. Every GitOps commit syncs many apps, so any
-    # running, succeeded or deployed trigger floods the channel.
-    subscriptions:
-      - recipients:
-          - slack:noti-{{cluster}}
-        triggers:
-          - on-health-degraded
-          - on-sync-failed
-          - on-sync-status-unknown
 {% if keep is defined %}
-      # Keep (charts/keep) receives each problem and its recovery, so an alert
-      # there resolves itself.
+    # Keep (charts/keep) receives each problem and its recovery, so an alert
+    # there resolves itself. Keep sends the Slack message.
+    subscriptions:
       - recipients:
           - keep
         triggers:
           - on-keep-health
           - on-keep-sync
+          - on-keep-sync-status
 {% endif %}
 {% if resources is defined and not resources.enabled %}
     resources: null
@@ -274,6 +267,7 @@ raw:
 
 {%- endif %}
 
+{% if keep is defined %}
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
@@ -286,10 +280,6 @@ raw:
         target:
           name: argocd-notifications-secret
         data:
-          - secretKey: slack-token
-            remoteRef:
-              key: /k8s/common/argocd-noti-token
-{% if keep is defined %}
           # X-API-KEY of service.webhook.keep: a Keep API key with the webhook role.
           - secretKey: keep-api-key
             remoteRef:

@@ -89,15 +89,6 @@ argo-cd:
   notifications:
     enabled: False
     argocdUrl: https://argocd.demo.rovr.dev
-    # Report failures only. Every GitOps commit syncs many apps, so any
-    # running, succeeded or deployed trigger floods the channel.
-    subscriptions:
-      - recipients:
-          - slack:noti-k3s-demo
-        triggers:
-          - on-health-degraded
-          - on-sync-failed
-          - on-sync-status-unknown
 
 
     resources: null
@@ -210,21 +201,6 @@ raw:
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
 
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
-      metadata:
-        name: argocd-notifications-secret
-      spec:
-        refreshInterval: 1h
-        secretStoreRef:
-          kind: ClusterSecretStore
-          name: parameter-store
-        target:
-          name: argocd-notifications-secret
-        data:
-          - secretKey: slack-token
-            remoteRef:
-              key: /k8s/common/argocd-noti-token
 
 
     - apiVersion: external-secrets.io/v1
