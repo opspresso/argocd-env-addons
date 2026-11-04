@@ -13,15 +13,6 @@ grafana:
     workload-health.yaml:
       secret:
         apiVersion: 1
-        deleteRules:
-        - orgId: 1
-          uid: addons-cluster-cpu-requests-high
-        - orgId: 1
-          uid: addons-cluster-memory-requests-high
-        - orgId: 1
-          uid: addons-istio-success-rate-low
-        - orgId: 1
-          uid: addons-pod-exited-error
         groups:
         - folder: addons
           interval: 30s
@@ -1473,12 +1464,6 @@ grafana:
             noDataState: OK
             title: AWS CNI egress BPF attach failed
             uid: addons-cni-partial-attach-failed
-    workspace-notifications.yaml:
-      secret:
-        apiVersion: 1
-        deleteRules:
-        - orgId: 1
-          uid: addons-workspace-prometheus-alerts
 
 
 

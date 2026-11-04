@@ -34,14 +34,6 @@ kube-prometheus-stack:
         resources:
           requests: {cpu: 10m, memory: 32Mi}
           limits: {memory: 128Mi}
-    # tolerations:
-    #   - key: group
-    #     operator: Equal
-    #     value: monitoring
-    #     effect: NoSchedule
-    # nodeSelector:
-    #   group: monitoring
-
     resources:
       requests:
         cpu: 10m
@@ -85,14 +77,6 @@ kube-prometheus-stack:
           memory: 1536Mi
         limits:
           memory: 3Gi
-
-      # tolerations:
-      #   - key: group
-      #     operator: Equal
-      #     value: monitoring
-      #     effect: NoSchedule
-      # nodeSelector:
-      #   group: monitoring
 
   alertmanager:
     enabled: false
@@ -148,15 +132,6 @@ kube-prometheus-stack:
         limits:
           memory: 128Mi
 
-      # tolerations:
-      #   - key: group
-      #     operator: Equal
-      #     value: monitoring
-      #     effect: NoSchedule
-      # nodeSelector:
-      #   group: monitoring
-      #   # topology.kubernetes.io/zone: {{aws_region}}c
-
   kube-state-metrics:
     fullnameOverride: kube-state-metrics
 
@@ -171,14 +146,6 @@ kube-prometheus-stack:
     extraArgs:
       - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*],daemonsets=[*]
 
-    # tolerations:
-    #   - key: group
-    #     operator: Equal
-    #     value: monitoring
-    #     effect: NoSchedule
-    # nodeSelector:
-    #   group: monitoring
-
   prometheus-node-exporter:
     fullnameOverride: prometheus-node-exporter
 
@@ -192,9 +159,6 @@ kube-prometheus-stack:
           - action: replace
             sourceLabels: [__meta_kubernetes_pod_node_name]
             targetLabel: node
-
-    # image:
-    #   repository: {{prometheus.node-exporter.image.registry}}/{{prometheus.node-exporter.image.repository}}
 
     # Same reasoning as alloy: a node agent that loses the last slot on a full
     # node leaves that node unmonitored, which is when you most want the data.

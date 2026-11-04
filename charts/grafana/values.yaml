@@ -52,9 +52,6 @@ grafana:
         key: keep-api-key
 
   grafana.ini:
-    # server:
-    #   root_url: "https://{{grafana.hostname}}/"
-
     users:
       allow_sign_up: false
       auto_assign_org: true
@@ -67,32 +64,6 @@ grafana:
 
   ingress:
     enabled: false
-
-  # datasources:
-  #   datasources.yaml:
-  #     apiVersion: 1
-  #     datasources:
-  #     - name: Prometheus
-  #       type: prometheus
-  #       url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
-  #       access: proxy
-  #       isDefault: true
-  #     - name: demo
-  #       type: prometheus
-  #       url: {{grafana.datasource.demo}}
-  #       access: proxy
-  #     - name: demo-a
-  #       type: prometheus
-  #       url: {{grafana.datasource.demo-a}}
-  #       access: proxy
-  #     - name: demo-b
-  #       type: prometheus
-  #       url: {{grafana.datasource.demo-b}}
-  #       access: proxy
-  #     - name: Loki
-  #       type: loki
-  #       url: {{grafana.datasource.loki}}
-  #       access: proxy
 
   dashboardProviders:
     dashboardproviders.yaml:
@@ -168,17 +139,6 @@ grafana:
                   username: grafana
                   password: $KEEP_API_KEY
                   title: '{{`{{ .CommonLabels.alertname }}`}}'
-        # File provisioning does not remove what a file no longer lists.
-        deleteContactPoints:
-          - orgId: 1
-            uid: slack-noti-eks-demo
-
-    templates.yaml:
-      secret:
-        apiVersion: 1
-        deleteTemplates:
-          - orgId: 1
-            name: addons-slack
 
     # group_by '...' makes every alert its own notification. Keep reads the
     # status of the whole notification, so a group that mixed firing and resolved
@@ -201,8 +161,3 @@ grafana:
       - ReadWriteOnce
     size: 5Gi
     storageClassName: gp3 # aws-ebs-sc
-
-  # serviceMonitor:
-  #   enabled: true
-  #   labels:
-  #     release: prometheus-{{cluster}}

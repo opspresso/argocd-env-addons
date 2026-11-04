@@ -86,8 +86,9 @@ raw:
     # Nexus Community Edition has no group mapping. This CronJob applies the
     # shared sign-in rule: users in nexus.admins (the GitHub logins of
     # sso.admin_groups) get nx-admin, other signed-in users read
-    # anonymously. It also sets the admin password, the EULA, the Remote User
-    # Token header, the realms and anonymous read access.
+    # anonymously. It also sets the admin password, the EULA, the realms and
+    # anonymous read access. The Remote User Token capability is created once in
+    # the UI (README.md): the REST API cannot create it.
     - apiVersion: v1
       kind: ServiceAccount
       metadata:
@@ -145,13 +146,6 @@ raw:
             echo "EULA accepted"
           fi
 
-          # Remote User Token capability. The REST API has no capability endpoint,
-          # so a Groovy script creates or updates it.
-          api -X DELETE "$B/v1/script/rut-auth" -o /dev/null 2>/dev/null || true
-          jq -n --rawfile c /scripts/rut-auth.groovy '{name: "rut-auth", type: "groovy", content: $c}' \
-            | api -X POST "$B/v1/script" -d @-
-          api -X POST -H 'Content-Type: text/plain' "$B/v1/script/rut-auth/run" -d "X-Auth-Request-Preferred-Username" | jq -r .result
-
           api -X PUT "$B/v1/security/realms/active" -d '["rutauth-realm","NexusAuthenticatingRealm"]'
           api -X PUT "$B/v1/security/anonymous" \
             -d '{"enabled":true,"userId":"anonymous","realmName":"NexusAuthorizingRealm"}' -o /dev/null
@@ -173,20 +167,6 @@ raw:
               echo "${id} roles=${roles}"
             fi
           done
-        rut-auth.groovy: |
-          import org.sonatype.nexus.capability.CapabilityRegistry
-          import org.sonatype.nexus.capability.CapabilityType
-
-          def registry = container.lookup(CapabilityRegistry.class.getName())
-          def type = CapabilityType.capabilityType('rutauth')
-          def props = ['httpHeader': args]
-          def existing = registry.all.find { it.context().type() == type }
-          if (existing) {
-            registry.update(existing.context().id(), true, existing.context().notes(), props)
-            return 'rutauth updated'
-          }
-          registry.add(type, true, 'oauth2-proxy', props)
-          return 'rutauth created'
 
     - apiVersion: batch/v1
       kind: CronJob

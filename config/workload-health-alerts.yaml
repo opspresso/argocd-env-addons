@@ -601,12 +601,3 @@ groups:
             type: gt
             params:
             - 95
-deleteRules:
-- orgId: 1
-  uid: addons-cluster-cpu-requests-high
-- orgId: 1
-  uid: addons-cluster-memory-requests-high
-- orgId: 1
-  uid: addons-istio-success-rate-low
-- orgId: 1
-  uid: addons-pod-exited-error
