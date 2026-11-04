@@ -118,6 +118,11 @@ argo-cd:
           secretKeyRef:
             name: argocd-secret
             key: gitlab-client-secret
+      - name: GRAFANA_SSO_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: argocd-secret
+            key: grafana-client-secret
 
     metrics:
       enabled: true

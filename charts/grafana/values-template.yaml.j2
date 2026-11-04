@@ -56,28 +56,36 @@ grafana:
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
 
-{% if grafana.auth.github.enabled or grafana.auth.google.enabled %}
+{% if grafana.auth.dex.enabled or grafana.auth.google.enabled %}
     # Sign-in only through the OAuth provider: the username/password form is hidden.
     # The local admin account (grafana-secret) still works for the HTTP API.
     auth:
       disable_login_form: true
 {% endif %}
-{% if grafana.auth.github.enabled %}
-    # https://grafana.com/docs/grafana/latest/auth/github/
-    auth.github:
-      enabled: {{grafana.auth.github.enabled}}
+{% if grafana.auth.dex.enabled %}
+      # Users created by the former GitHub OAuth login keep their account: the
+      # Dex login finds them by email. Dex returns only verified GitHub emails of
+      # {{argocd.github.org}} members.
+      oauth_allow_insecure_email_lookup: true
+    # GitHub sign-in through Argo CD Dex (client grafana-sso), like Keep and GitLab.
+    # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/
+    auth.generic_oauth:
+      enabled: true
+      name: GitHub
+      icon: github
       allow_sign_up: true
-      client_id: $__file{/etc/secrets/grafana-secret/github-id}
-      client_secret: $__file{/etc/secrets/grafana-secret/github-secret}
-      scopes: user:email,read:org
-      auth_url: https://github.com/login/oauth/authorize
-      token_url: https://github.com/login/oauth/access_token
-      api_url: https://api.github.com/user
-      allowed_organizations: {{grafana.auth.github.org}}
-{% if grafana.auth.github.team is defined %}
-      # GitHub reports team membership as groups "@<org>/<team>". The role syncs on every login.
-      role_attribute_path: "contains(groups[*], '@{{grafana.auth.github.org}}/{{grafana.auth.github.team}}') && 'Admin' || 'Viewer'"
-{% endif %}
+      auto_login: true
+      client_id: grafana-sso
+      client_secret: $__file{/etc/secrets/grafana-secret/oidc-client-secret}
+      scopes: openid profile email groups
+      auth_url: https://{{argocd.hostname}}/api/dex/auth
+      token_url: https://{{argocd.hostname}}/api/dex/token
+      api_url: https://{{argocd.hostname}}/api/dex/userinfo
+      use_pkce: true
+      login_attribute_path: preferred_username
+      groups_attribute_path: groups
+      # Dex reports GitHub teams as "<org>:<team>". The role syncs on every login.
+      role_attribute_path: "contains(groups[*], '{{argocd.github.org}}:{{argocd.github.team}}') && 'Admin' || 'Viewer'"
 {% endif %}
 
 {% if grafana.auth.google.enabled %}
@@ -199,13 +207,11 @@ raw:
           - secretKey: keep-api-key
             remoteRef:
               key: /k8s/common/keep/grafana-api-key
-{% if grafana.auth.github.enabled %}
-          - secretKey: github-id
+{% if grafana.auth.dex.enabled %}
+          # Shared with the grafana-sso client of Argo CD Dex (charts/argo-cd).
+          - secretKey: oidc-client-secret
             remoteRef:
-              key: /k8s/{{grafana.auth.github.org}}/grafana-github-id
-          - secretKey: github-secret
-            remoteRef:
-              key: /k8s/{{grafana.auth.github.org}}/grafana-github-secret
+              key: /k8s/common/grafana/oidc-client-secret
 {%- endif %}
 {%- if grafana.auth.google.enabled %}
           - secretKey: google-id

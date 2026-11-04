@@ -86,11 +86,10 @@ target_group:
 grafana:
   hostname: grafana.demo.opsp.dev
   auth:
-    github:
+    # Argo CD Dex (client grafana-sso). Members of argocd.github.team become
+    # Grafana Admin; other organization members are Viewer.
+    dex:
       enabled: true
-      org: opspresso # github org
-      # Members of this team become Grafana Admin; other org members are Viewer.
-      team: dev
     google:
       enabled: false
       allowed_domains: nalbam.com opspresso.com
