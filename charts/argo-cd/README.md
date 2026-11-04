@@ -1,25 +1,26 @@
 # argo-cd
 
-## Slack 알림
+## Keep 알림
 
-EKS 알림은 `values.yaml`의 공통 구독이 `noti-eks-demo` 채널로 전달한다.
-배포·상태 저하·동기화 실패·진행·상태 불명·성공 알림을 포함한다.
-EKS ApplicationSet에는 별도의 Slack 구독 annotation을 추가하지 않는다.
+Argo CD notifications는 Slack으로 직접 보내지 않는다. `service.webhook.keep`으로 Keep에만 보내고,
+Slack 메시지는 Keep이 만든다(`charts/keep/README.md`).
 
-`/k8s/common/argocd-noti-token`에는 Slack 앱의 **Bot User OAuth Token** (`xoxb-…`)을
-저장한다. 앱에 `chat:write` 권한을 부여하고 `noti-eks-demo`에 봇을 초대한다.
-현재 `service.slack`은 OAuth 토큰을 사용하므로 Incoming Webhook URL을 넣지 않는다.
-[Argo CD Slack 설정](https://argo-cd.readthedocs.io/en/stable/operator-manual/notifications/services/slack/)을 따른다.
+| trigger | firing | resolved |
+| --- | --- | --- |
+| `on-keep-health` | health가 `Degraded` | health가 `Healthy` |
+| `on-keep-sync` | sync 작업이 `Error`·`Failed` | sync 작업이 `Succeeded` |
+| `on-keep-sync-status` | sync status가 `Unknown` | sync status가 `Synced`·`OutOfSync` |
 
-토큰 변경 후 ExternalSecret을 즉시 갱신하려면 다음 명령을 실행한다.
+- 구독은 `values-template.yaml.j2`의 `subscriptions`에 있으며 `env/<cluster>.yaml`에 `keep`이 있을 때만 만든다.
+- `X-API-KEY`는 `argocd-notifications-secret`의 `keep-api-key`(`/k8s/common/keep/argocd-api-key`)다.
+- 템플릿은 앱별 fingerprint로 문제와 회복을 보내므로, 회복하면 Keep에서 같은 경보가 resolved가 된다.
+
+키를 바꾼 뒤 ExternalSecret을 즉시 갱신하려면 다음 명령을 실행한다.
 
 ```bash
 kubectl --context eks-demo -n argocd annotate externalsecret argocd-notifications-secret \
   force-sync="$(date +%s)" --overwrite
 ```
-
-`ExternalSecret`의 `Ready=True`와 `status.refreshTime`을 확인한다. `invalid_auth`는
-토큰 인증, `channel_not_found`는 채널 이름과 봇의 접근 권한을 확인한다.
 
 ## mcp account
 
