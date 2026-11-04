@@ -10,7 +10,7 @@ import yaml
 
 
 INSTALL_DIR = Path(__file__).resolve().parents[1]
-SECRET = 'fixture/secret & @ \\ " \'\nARGOCD_HOSTNAME ARGOCD_WEBHOOK'
+SECRET = 'fixture/secret & @ \\ " \'\nARGOCD_HOSTNAME GITHUB_ORG'
 
 AWS = r'''
 import json
@@ -45,11 +45,15 @@ def run_build(tmp_path, scenario="ready"):
     output.chmod(0o644)
     values = {
         "argocd-hostname": "argocd.example.test",
+        "github-org": "fixture-org",
+        "github-team": "fixture-team",
         "argocd-password": SECRET,
         "argocd-mtime": "2026-01-01T00:00:00Z",
         "argocd-server-secret": SECRET,
         "argocd-webhook": SECRET,
         "argocd-mcp-tokens": '[{"id":"fixture", "iat":123}]',
+        "argocd-github-id": "123",
+        "argocd-github-secret": SECRET,
     }
     values_path = tmp_path / "ssm.json"
     values_path.write_text(json.dumps(values))
@@ -81,14 +85,12 @@ def test_build_preserves_secret_characters_and_writes_private_yaml(tmp_path):
     assert secret["argocdServerAdminPassword"] == SECRET
     assert secret["githubSecret"] == SECRET
     assert secret["extra"]["server.secretkey"] == SECRET
-    assert not any(key.startswith("dex.") for key in secret["extra"])
+    assert secret["extra"]["dex.github.clientSecret"] == SECRET
     assert secret["extra"]["accounts.mcp.tokens"] == values["argocd-mcp-tokens"]
     assert rendered["configs"]["cm"]["url"] == "https://argocd.example.test"
     # The bootstrap exposes nothing publicly; the argo-cd addon's HTTPRoute serves the UI.
     assert "ingress" not in rendered["server"]
-    # No SSO before the argo-cd addon takes over: no Dex connector, no group grant.
-    assert "dex.config" not in rendered["configs"]["cm"]
-    assert "g, " not in rendered["configs"]["rbac"]["policy.csv"].replace("g, mcp, role:mcp", "")
+    assert "g, fixture-org:fixture-team, role:admin" in rendered["configs"]["rbac"]["policy.csv"]
     assert output.stat().st_mode & 0o777 == 0o600
     assert list(output.parent.glob(".values.output-*.tmp")) == []
 

@@ -102,6 +102,7 @@ argo-cd:
       # sso.admin_groups (env/<cluster>.yaml) administer; everyone else reads (policy.default).
       policy.csv: |
         g, sre, role:admin
+        g, opspresso:sre, role:admin
 
         p, role:mcp, applications, get, */*, allow
         p, role:mcp, applications, create, */*, allow
@@ -134,6 +135,15 @@ argo-cd:
 
       dex.config: |
         connectors:
+        - type: github
+          id: github
+          name: github
+          config:
+            clientID: $dex.github.clientId
+            clientSecret: $dex.github.clientSecret
+            teamNameField: slug
+            orgs:
+              - name: opspresso
 
         # Kanidm (charts/kanidm) keeps the people and groups. Only members of the
         # groups in its OAuth2 client dex can sign in. The claim groups holds the
@@ -329,6 +339,12 @@ raw:
           - secretKey: admin.passwordMtime
             remoteRef:
               key: /k8s/common/argocd-mtime
+          - secretKey: dex.github.clientId
+            remoteRef:
+              key: /k8s/opspresso/argocd-github-id
+          - secretKey: dex.github.clientSecret
+            remoteRef:
+              key: /k8s/opspresso/argocd-github-secret
           - secretKey: webhook.github.secret
             remoteRef:
               key: /k8s/common/argocd-webhook
