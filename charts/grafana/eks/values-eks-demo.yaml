@@ -9,7 +9,6 @@ grafana:
 
 
 
-
   alerting:
     workload-health.yaml:
       secret:
@@ -672,7 +671,6 @@ grafana:
             uid: addons-pvc-critical
 
   # These target names and host collectors belong to the EKS Prometheus stack.
-  # Keep k3s/VictoriaMetrics from alerting on exporters it does not run.
     node-health.yaml:
       secret:
         apiVersion: 1
@@ -1484,19 +1482,15 @@ grafana:
 
 
 
-
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
 
   grafana.ini:
-
     server:
       root_url: "https://grafana.demo.rovr.dev/"
-
     # Users land on the overview, mounted from the bundled dashboards ConfigMap.
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
-
 
 
     # https://grafana.com/docs/grafana/latest/auth/github/
@@ -1560,9 +1554,7 @@ grafana:
       - name: Prometheus
         type: prometheus
         uid: prometheus
-
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
-
         access: proxy
         isDefault: true
 
@@ -1575,13 +1567,9 @@ grafana:
 
 
   serviceMonitor:
-
     enabled: True
-
     labels:
-
       release: prometheus-eks-demo
-
 
 raw:
   resources:
@@ -1603,13 +1591,11 @@ raw:
           - secretKey: admin-password
             remoteRef:
               key: /k8s/common/admin-password
-
           # Read through the KEEP_API_KEY env var, not a file mount: the
           # alerting provisioning files interpolate $VAR but cannot read files.
           - secretKey: keep-api-key
             remoteRef:
               key: /k8s/common/keep/grafana-api-key
-
 
           - secretKey: github-id
             remoteRef:

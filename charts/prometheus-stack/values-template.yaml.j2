@@ -31,21 +31,6 @@ kube-prometheus-stack:
 {% if resources is defined and not resources.enabled %}
       resources: null
 {% endif %}
-{% if env == 'k3s' %}
-      retention: {{prometheus.retention}}
-      retentionSize: {{prometheus.retention_size}}
-      enableRemoteWriteReceiver: true
-      scrapeInterval: 30s
-      evaluationInterval: 30s
-      storageSpec:
-        volumeClaimTemplate:
-          spec:
-            storageClassName: local-path
-            accessModes: [ReadWriteOnce]
-            resources:
-              requests:
-                storage: {{prometheus.storage_size}}
-{% endif %}
       # Nothing scraped here carries a cluster label, so every dashboard's
       # cluster dropdown is empty and its cluster=~"^$cluster$" filters match
       # only because an empty regex matches a missing label. The default scrape
@@ -84,13 +69,6 @@ kube-prometheus-stack:
     resources: null
   prometheus-node-exporter:
     resources: null
-{% endif %}
-{% if env == 'k3s' %}
-  # k3s exposes CoreDNS on its bundled service; it has no Helm release label.
-  coreDns:
-    service:
-      selector:
-        k8s-app: kube-dns
 {% endif %}
 
 {%- if env == 'eks' %}

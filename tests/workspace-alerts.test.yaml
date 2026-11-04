@@ -27,35 +27,35 @@ tests:
 - name: component owner identity
   interval: 1m
   input_series:
-  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+  - series: kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-forge",deployment="agent-forge"}
     values: 0+0x5
-  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+  - series: kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-forge",deployment="agent-forge"}
     values: 1+0x5
-  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
+  - series: kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 0+0x5
-  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
+  - series: kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 1+0x5
   promql_expr_test:
   - expr: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing"}
     eval_time: 3m
     exp_samples:
-    - labels: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge",service="agent-forge",severity="critical"}
+    - labels: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",cluster="eks-demo",namespace="agent-forge",deployment="agent-forge",service="agent-forge",severity="critical"}
       value: 1
   - expr: ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing"}
     eval_time: 3m
     exp_samples:
-    - labels: ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing",cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker",service="agent-knowledge",severity="critical"}
+    - labels: ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing",cluster="eks-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker",service="agent-knowledge",severity="critical"}
       value: 1
 - name: maintenance suppresses component alerts
   interval: 1m
   input_series:
-  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+  - series: kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-forge",deployment="agent-forge"}
     values: 0+0x5
-  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-forge",deployment="agent-forge"}
+  - series: kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-forge",deployment="agent-forge"}
     values: 0+0x5
-  - series: kube_deployment_status_replicas_available{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
+  - series: kube_deployment_status_replicas_available{cluster="eks-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 0+0x5
-  - series: kube_deployment_spec_replicas{cluster="k3s-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
+  - series: kube_deployment_spec_replicas{cluster="eks-demo",namespace="agent-knowledge",deployment="agent-knowledge-worker"}
     values: 0+0x5
   promql_expr_test:
   - expr: ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing"}

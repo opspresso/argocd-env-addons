@@ -11,7 +11,7 @@ cd "${SHELL_DIR}/.."
 # find charts
 for CHART_DIR in charts/*/; do
   CHART=$(basename "${CHART_DIR}")
-  for PLATFORM in eks k3s local; do
+  for PLATFORM in eks local; do
     if [ -f "${CHART_DIR}/values-template.yaml.j2" ] && [ -d "${CHART_DIR}/${PLATFORM}" ]; then
       echo
       echo "Processing.. ${CHART}/${PLATFORM}"

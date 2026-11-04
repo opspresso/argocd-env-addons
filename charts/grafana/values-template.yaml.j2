@@ -19,18 +19,12 @@ grafana:
 {% endif %}
 
 {% if grafana is defined %}
-{% if env == 'k3s' %}
-  # Alpha is for resource inspection; production owns alert delivery.
-  alerting: null
-  envValueFrom: null
-{% else %}
   alerting:
     workload-health.yaml:
       secret:
 {{ workload_health_alerting | to_yaml | indent(8, first=true) }}
 {% if env == 'eks' %}
   # These target names and host collectors belong to the EKS Prometheus stack.
-  # Keep k3s/VictoriaMetrics from alerting on exporters it does not run.
     node-health.yaml:
       secret:
 {{ node_health_alerting | to_yaml | indent(8, first=true) }}
@@ -40,7 +34,6 @@ grafana:
     workspace-notifications.yaml:
       secret:
 {{ workspace_notifications | to_yaml | indent(8, first=true) }}
-{% endif %}
 {% endif %}
 {% if grafana.persistence is defined %}
   persistence:
@@ -57,17 +50,11 @@ grafana:
     link.argocd.argoproj.io/external-link: "https://{{grafana.hostname}}"
 
   grafana.ini:
-{% if env == 'k3s' %}
-    unified_alerting:
-      enabled: false
-{% endif %}
     server:
       root_url: "https://{{grafana.hostname}}/"
-{% if env != 'k3s' %}
     # Users land on the overview, mounted from the bundled dashboards ConfigMap.
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
-{% endif %}
 
 {% if grafana.auth.github.enabled %}
     # https://grafana.com/docs/grafana/latest/auth/github/
@@ -145,11 +132,7 @@ grafana:
       - name: Prometheus
         type: prometheus
         uid: prometheus
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-        url: http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
-{% else %}
         url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
-{% endif %}
         access: proxy
         isDefault: true
 {% if loki is defined %}
@@ -181,17 +164,9 @@ grafana:
 {% endif %}
 
   serviceMonitor:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-    enabled: false
-{% else %}
     enabled: {{prometheus.serviceMonitor.enabled}}
-{% endif %}
     labels:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-      release: victoria-metrics-{{cluster}}
-{% else %}
       release: prometheus-{{cluster}}
-{% endif %}
 
 raw:
   resources:
@@ -213,13 +188,11 @@ raw:
           - secretKey: admin-password
             remoteRef:
               key: /k8s/common/admin-password
-{% if env != 'k3s' %}
           # Read through the KEEP_API_KEY env var, not a file mount: the
           # alerting provisioning files interpolate $VAR but cannot read files.
           - secretKey: keep-api-key
             remoteRef:
               key: /k8s/common/keep/grafana-api-key
-{% endif %}
 {% if grafana.auth.github.enabled %}
           - secretKey: github-id
             remoteRef:

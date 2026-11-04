@@ -76,7 +76,7 @@ Grafana 홈은 **Cluster Overview**다. 문제를 찾을 때는 아래 표의 �
 
 Grafana는 `config/*.yaml`의 규칙을 평가하고 모든 경보를 `keep` contact point(Keep webhook)로만 보낸다.
 Slack 메시지는 Keep이 보낸다(`charts/keep/README.md`). API key는 `/k8s/common/keep/grafana-api-key`다.
-k3s에는 경보를 프로비저닝하지 않는다. Argo CD 앱의 degraded·sync 실패는 Argo CD notifications가 Keep으로 보내므로
+Argo CD 앱의 degraded·sync 실패는 Argo CD notifications가 Keep으로 보내므로
 Grafana 규칙으로 중복하지 않는다.
 
 ### 심각도와 알림 정책

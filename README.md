@@ -11,49 +11,42 @@ Argo CD로 클러스터 addon을 배포하는 GitOps 저장소다. 애플리케�
 | 플랫폼 | 상태 | 우선순위 | App of Apps | 설치 문서 |
 | --- | --- | --- | --- | --- |
 | EKS | 운영 중. `eks-demo`(Auto Mode, Kubernetes 1.37, phase `prod`) | 서비스 안정성 | `addons-eks.yaml` → `addons/eks/` | [install/eks](install/eks/README.md) |
-| k3s | 배포하지 않음. 선언만 유지 | 리소스 사용량 | `addons-k3s.yaml` → `addons/k3s/` | [install/k3s](install/k3s/README.md) |
 
 운영 클러스터 `eks-demo`의 Argo CD(`argocd.demo.rovr.dev`)가 `addons-eks.yaml`을 동기화한다.
 addon 공개 주소는 `*.demo.rovr.dev`, 내부 주소는 `*.demo-in.rovr.dev`를 사용하며 ACM 인증서 `demo.rovr.dev`는
 `terraform-env-demo`의 `3-alb`가 발급한다. `env/eks-demo-a.yaml`·`env/eks-demo-b.yaml`은 향후 서비스 클러스터
 선언이다.
-k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/`, `install/k3s/`)은 저장소에 남아 있지만
-어느 클러스터에도 배포하지 않는다.
 `local`은 공통 템플릿과 정책 검사에서만 지원하며, 로컬 클러스터용 env·Application·설치
 스크립트는 제공하지 않는다.
 
 ## 저장소 구조
 
 ```text
-addons-*.yaml     # 플랫폼별 App of Apps 설치 진입점
-addons/<platform>/ # 배포 대상 Argo CD Application/ApplicationSet
+addons-eks.yaml   # EKS App of Apps 설치 진입점
+addons/eks/       # 배포 대상 Argo CD Application/ApplicationSet
 backup/           # 배포하지 않는 addon 보관본
-charts/<addon>/   # 공용 wrapper Helm chart와 플랫폼별 렌더 결과
+charts/<addon>/   # 공용 wrapper Helm chart와 EKS 렌더 결과
 env/              # 클러스터별 설정
 config/           # Helm 저장소 목록과 chart 버전 감시 목록
 scripts/          # 생성·검증·갱신 스크립트
-install/          # 플랫폼별 Argo CD 최초 부트스트랩
+install/eks/      # EKS Argo CD 최초 부트스트랩
 docs/             # 운영 기준 문서
 requirements/     # Python 실행(runtime.txt)·테스트(dev.txt) 의존성
 tests/            # 자동화 테스트
 ```
 
-배포 여부는 `addons/<platform>/`에 Application/ApplicationSet이 있는지로 판단한다.
+배포 여부는 `addons/eks/`에 Application/ApplicationSet이 있는지로 판단한다.
 `charts/`에만 있는 chart와 `backup/`의 addon은 배포되지 않는다.
 
 ## 설치
 
-Argo CD 설치부터 addon 등록까지는 플랫폼별 설치 문서를 따른다.
-
-- k3s(미배포 선언): `install/k3s/install.sh`가 Argo CD 설치 후 `addons`·`apps` AppProject를 만들고
-  `addons-k3s.yaml`을 등록한다. [install/k3s](install/k3s/README.md)를 참고한다.
-- EKS: [install/eks](install/eks/README.md)의 절차로 Argo CD를 설치한 뒤 App of Apps를 등록한다.
+[install/eks](install/eks/README.md)의 절차로 Argo CD를 설치한 뒤 App of Apps를 등록한다.
 
 ```bash
 kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argocd-env-addons/main/addons-eks.yaml
 ```
 
-App of Apps는 `addons/<platform>/` 아래 파일을 재귀로 동기화한다. 각 ApplicationSet은
+App of Apps는 `addons/eks/` 아래 파일을 재귀로 동기화한다. 각 ApplicationSet은
 git files generator로 `env/*.yaml`을 읽어 클러스터마다 Application을 만든다.
 
 ## 작업 절차
@@ -124,7 +117,7 @@ addon을 동기화한다.
 `env/<cluster>.yaml`은 git files generator 입력이자 Jinja2 렌더 입력이다.
 
 - 파일 이름은 클러스터 이름이며 `cluster` 필드와 같아야 한다. 다르면 생성에 실패한다.
-- `env` 필드는 플랫폼(`eks`, `k3s`, `local`)이며 렌더 출력 디렉터리가 된다.
+- `env` 필드는 플랫폼(`eks`, `local`)이며 렌더 출력 디렉터리가 된다.
   `env`를 바꾸면 옛 디렉터리에 남은 파일은 손으로 지운다.
 - 클러스터별 SSM 경로는 템플릿의 `{{cluster}}`로 만든다. 공통 `values.yaml`에 특정 클러스터의
   경로를 기본값으로 두지 않는다.
@@ -134,7 +127,7 @@ addon을 동기화한다.
 - namespace는 `addon-<name>`이다. upstream 관례가 강한 것만 예외로 한다(`istio-system`, `argocd`).
 - label `opspresso.com/group: addons`, `opspresso.com/cluster: {{cluster}}`를 유지한다.
 - 관리 클러스터 전용 addon은 `env/eks-demo.yaml`만 나열하고 `name`에 `# only management cluster` 주석을 단다.
-- `syncPolicy.automated`는 대부분 켜져 있다. EKS와 k3s의 `argo-cd`도 자동 sync다.
+- `syncPolicy.automated`는 대부분 켜져 있다. EKS의 `argo-cd`도 자동 sync다.
   켜져 있는 자동 sync를 끄거나 꺼져 있는 것을 켜지 않는다.
 
 ### chart 구조
@@ -145,7 +138,6 @@ charts/<addon>/
   values.yaml                  # 모든 클러스터 공통 값
   values-template.yaml.j2      # 클러스터별 값의 Jinja2 템플릿
   eks/values-<cluster>.yaml    # EKS 렌더 결과
-  k3s/values-<cluster>.yaml    # k3s 렌더 결과
   README.md                    # (선택) SSM 파라미터 등록 등 addon별 절차
 ```
 
@@ -169,7 +161,6 @@ charts/<addon>/
 
 raw로 관리하는 예는 다음과 같다. 모두 전용 chart가 지원하지 않는 API다.
 
-- k3s Traefik: k3s가 기본 설치한 chart를 소유하므로 별도 controller를 설치하지 않고 `HelmChartConfig`로 설정한다.
 - EKS Auto Mode의 `TargetGroupBinding`
 - Alloy의 `ApplicationNetworkPolicy`
 
@@ -192,21 +183,13 @@ Service·경보 그룹은 환경 설정에서 관리한다.
 일반·init·테스트 컨테이너에는 양수 CPU/memory requests와 memory limit이 필요하다. CPU limit은
 필수가 아니다. 구성별 예산과 확장 기준은 [Production addon 용량](docs/production-capacity.md)을 따른다.
 
-### k3s·local
+### local
 
 - env에 전역 `resources.enabled: false`, `autoscaling.enabled: false`를 선언하고 모든 chart가
   이 값을 따른다. Argo CD를 포함해 chart별로 같은 스위치를 두지 않는다.
 - 컨테이너·초기화 컨테이너·Job·operator가 만드는 Pod에 CPU·메모리 requests/limits를 만들지 않는다.
-  VictoriaMetrics의 `useDefaultResources`와 k3s Traefik의 `HelmChartConfig`도 같은 규칙을 적용해
-  upstream 기본값이 리소스를 다시 넣지 않게 한다.
 - HPA·VPA·KEDA autoscaler를 만들지 않는다.
 - PVC의 storage 요청은 유지한다.
-
-k3s 기본 CoreDNS·metrics-server는 k3s가 설치·업그레이드를 관리한다. `k3s-system-policy`는
-Kubernetes 1.36 이상의 네이티브 `MutatingAdmissionPolicy`로 두 Deployment의 CPU·메모리
-requests/limits만 제거하며, 별도 controller를 실행하지 않는다. 기존 설치에 처음 적용하면 두
-Deployment를 갱신해야 새 Pod에 반영된다. `install/k3s/install.sh`는 정책 등록을 기다린 뒤 이 갱신과
-준비 상태 확인을 수행한다.
 
 `scripts/validate.py`는 실제 렌더 결과로 이 규칙을 검사한다. 새 chart와 upstream 갱신에도 같은
 검사가 적용된다.
@@ -218,14 +201,9 @@ Deployment를 갱신해야 새 Pod에 반영된다. `install/k3s/install.sh`는 
 - Grafana는 `https://grafana.demo.rovr.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
   경보 평가와 Slack 알림을 사용한다. 홈 대시보드는 Cluster Overview다. 대시보드와 경보 목록은
   [grafana README](charts/grafana/README.md)에 있다.
-- Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor(`metrics.backend: prometheus`)를 수집한다.
+- Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor를 수집한다.
 - Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.rovr.dev`다.
 - 저장소 크기와 보존 기간은 [Production addon 용량](docs/production-capacity.md)을 따른다.
-
-### k3s 선언의 모니터링
-
-배포하지 않는 k3s 선언은 Alloy가 앱·호스트 메트릭을 Grafana Cloud로 전송하고, Grafana 경보 평가·Slack 알림을
-끄며, `local-path` 저장소를 사용한다. 세부 값은 `env/k3s-demo.yaml`과 각 chart의 `k3s/` 렌더 결과를 따른다.
 
 ### EKS Auto Mode NetworkPolicy
 
@@ -233,7 +211,6 @@ Deployment를 갱신해야 새 Pod에 반영된다. `install/k3s/install.sh`는 
 Policy Controller를 활성화한다. NodeClass의 `networkPolicy: DefaultAllow`만으로는 NetworkPolicy가
 적용되지 않는다. [AWS 설정 계약](https://docs.aws.amazon.com/eks/latest/userguide/auto-net-pol.html)을
 따르며, AWS가 controller와 node agent를 관리하므로 별도 CNI·DaemonSet을 설치하지 않는다.
-k3s의 정책 처리는 k3s가 소유하므로 이 설정을 배포하지 않는다.
 
 활성화하면 클러스터에 이미 선언된 모든 NetworkPolicy가 적용된다. 동기화 후 다음을 확인한다.
 
@@ -420,7 +397,6 @@ helm repo update
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
 | argo-workflows |  | 2.0.14 | 2.0.16 (v4.1.6) |
 | atlantis |  | 6.16.2 | 7.0.0 (v0.49.0) |
-| cert-manager | ✅ | v1.21.3 | v1.21.3 (v1.21.3) |
 | aws-controllers | 🔒 | 1.13.4 | 1.14.1 (1.14.1) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
@@ -437,7 +413,5 @@ helm repo update
 | prometheus-stack |  | 92.14.1 | 92.17.1 (v0.94.2) |
 | aws-controllers |  | 1.13.4 | 1.14.2 (1.14.2) |
 | aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
-| victoria-metrics |  | 0.97.0 | 0.97.1 (v1.155.0) |
 | vllm-stack |  |  | 0.1.13 |
-| workspace-metrics |  | 8.7.1 | 8.8.0 (2.20.0) |
 <!--- END_VERSION --->

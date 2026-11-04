@@ -8,14 +8,14 @@ import validate
 
 
 def test_load_targets_includes_direct_applications(tmp_path):
-    addons = tmp_path / "addons" / "k3s"
+    addons = tmp_path / "addons" / "eks"
     addons.mkdir(parents=True)
     (addons / "external-secrets.yaml").write_text(
         """\
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: external-secrets-k3s
+  name: external-secrets-eks
 spec:
   source:
     path: charts/external-secrets
@@ -37,15 +37,15 @@ spec:
     assert targets[0]["release_name"] == "external-secrets"
 
 
-@pytest.mark.parametrize("release_name", [None, "cert-manager"])
+@pytest.mark.parametrize("release_name", [None, "external-secrets"])
 def test_render_uses_the_configured_helm_release_name(tmp_path, monkeypatch, release_name):
-    source = {"path": "charts/cert-manager"}
+    source = {"path": "charts/external-secrets"}
     if release_name is not None:
         source["helm"] = {"releaseName": release_name}
     (tmp_path / "app.yaml").write_text(yaml.safe_dump({
         "kind": "Application",
-        "metadata": {"name": "cert-manager-k3s"},
-        "spec": {"source": source, "destination": {"namespace": "cert-manager"}},
+        "metadata": {"name": "external-secrets-eks"},
+        "spec": {"source": source, "destination": {"namespace": "addon-external-secrets"}},
     }))
     calls = []
 
@@ -57,8 +57,8 @@ def test_render_uses_the_configured_helm_release_name(tmp_path, monkeypatch, rel
     target, = validate.load_targets([str(tmp_path)])
 
     assert validate.render(target, None) is None
-    assert calls[0][:4] == ["helm", "template", release_name or "cert-manager-k3s",
-                           "charts/cert-manager"]
+    assert calls[0][:4] == ["helm", "template", release_name or "external-secrets-eks",
+                           "charts/external-secrets"]
 
 
 @pytest.mark.parametrize("directory_exists", [False, True])

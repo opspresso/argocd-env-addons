@@ -88,11 +88,6 @@ def test_host_collection_renders_node_labels_and_short_scrapes():
     assert any(arg.startswith("--collector.filesystem.fs-types-exclude=") for arg in args)
 
 
-def test_eks_job_alerts_are_not_provisioned_on_k3s():
-    values = yaml.safe_load((ROOT / "charts/grafana/k3s/values-k3s-demo.yaml").read_text())
-    assert "node-health.yaml" not in (values["grafana"].get("alerting") or {})
-
-
 def test_dashboards_ship_inside_the_chart(rendered_grafana):
     dashboards = sorted(path.name for path in (ROOT / "charts/grafana/dashboards").glob("*.json"))
     configs = {doc["metadata"]["name"]: doc for doc in rendered_grafana if doc["kind"] == "ConfigMap"}
