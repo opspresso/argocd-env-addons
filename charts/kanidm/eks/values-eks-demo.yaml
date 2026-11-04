@@ -1,0 +1,199 @@
+
+kanidm:
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://idm.demo.opsp.dev"
+
+raw:
+  resources:
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: kanidm-config
+      data:
+        # https://kanidm.github.io/kanidm/stable/server_configuration.html
+        # domain is part of every credential: changing it needs `kanidmd domain rename`.
+        server.toml: |
+          version = "2"
+          bindaddress = "0.0.0.0:8443"
+          db_path = "/data/kanidm.db"
+          tls_chain = "/tls/tls.crt"
+          tls_key = "/tls/tls.key"
+          domain = "idm.demo.opsp.dev"
+          origin = "https://idm.demo.opsp.dev"
+
+          # The gateway Pods send the client address in X-Forwarded-For.
+          [http_client_address_info]
+          x-forward-for = ["10.10.0.0/16"]
+
+          # 03:00 KST. Seven daily copies on the same volume (README.md: Backup).
+          [online_backup]
+          path = "/data/backups/"
+          schedule = "00 18 * * *"
+          versions = 7
+
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: kanidm
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://idm.demo.opsp.dev"
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+
+            name: istio-ingressgateway
+            namespace: istio-system
+
+        hostnames:
+          - "idm.demo.opsp.dev"
+        rules:
+          - backendRefs:
+              - name: kanidm
+                port: 8443
+
+    # Server certificate of kanidmd, issued by the internal CA (README.md: TLS).
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: kanidm-tls
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: kanidm-tls
+        data:
+          - secretKey: tls.crt
+            remoteRef:
+              key: /k8s/common/kanidm/tls-chain
+          - secretKey: tls.key
+            remoteRef:
+              key: /k8s/common/kanidm/tls-key
+
+    # The gateway re-encrypts to kanidmd and verifies its certificate with the
+    # internal CA. Istio reads the CA from a Secret in the gateway namespace.
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: kanidm-ca
+        namespace: istio-system
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: kanidm-ca
+        data:
+          - secretKey: ca.crt
+            remoteRef:
+              key: /k8s/common/kanidm/ca-crt
+
+    - apiVersion: networking.istio.io/v1
+      kind: DestinationRule
+      metadata:
+        name: kanidm
+        namespace: istio-system
+      spec:
+        host: kanidm.addon-kanidm.svc.cluster.local
+        trafficPolicy:
+          tls:
+            mode: SIMPLE
+            credentialName: kanidm-ca
+            sni: kanidm.addon-kanidm.svc.cluster.local
+            subjectAltNames:
+              - kanidm.addon-kanidm.svc.cluster.local
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: kanidm-idm-admin
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: kanidm-idm-admin
+        data:
+          # README.md: Bootstrap sets this from `kanidmd recover-account idm_admin`.
+          - secretKey: KANIDM_PASSWORD
+            remoteRef:
+              key: /k8s/common/kanidm/idm-admin-password
+
+    # After every sync: declares the groups of the sign-in rule and the OAuth2
+    # client of Dex. People and group members are managed in Kanidm, not here.
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: kanidm-provision
+      data:
+        provision.sh: |
+          set -eu
+          kanidm login </dev/null >/dev/null
+          # `get` also exits 0 when nothing matches, so look for the name.
+          exists() { kanidm "$@" -o json 2>/dev/null | grep -q '"name"'; }
+          for group in ${SSO_GROUPS}; do
+            if ! exists group get "${group}"; then
+              kanidm group create "${group}"
+            fi
+          done
+          if ! exists system oauth2 get dex; then
+            kanidm system oauth2 create dex "Dex" "${DEX_ORIGIN}/"
+          fi
+          kanidm system oauth2 add-redirect-url dex "${DEX_ORIGIN}/api/dex/callback"
+          kanidm system oauth2 enable-strict-redirect-url dex
+          # Only members of these groups can sign in. groups_name sends the group
+          # names (sre, dev) in the claim `groups`.
+          for group in ${SSO_GROUPS}; do
+            kanidm system oauth2 update-scope-map dex "${group}" openid profile email groups_name
+          done
+          kanidm system oauth2 prefer-short-username dex
+          kanidm system oauth2 disable-consent-prompt dex
+          echo "groups: ${SSO_GROUPS}; client dex: ${DEX_ORIGIN}/api/dex/callback"
+
+    - apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: kanidm-provision
+        annotations:
+          argocd.argoproj.io/hook: PostSync
+          argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+      spec:
+        backoffLimit: 3
+        activeDeadlineSeconds: 300
+        template:
+          spec:
+            restartPolicy: Never
+            automountServiceAccountToken: false
+            containers:
+              - name: provision
+                image: kanidm/tools:1.12.0
+                command: [/bin/sh, /scripts/provision.sh]
+                env:
+                  - name: KANIDM_URL
+                    value: "https://idm.demo.opsp.dev"
+                  - name: KANIDM_NAME
+                    value: idm_admin
+                  - name: SSO_GROUPS
+                    value: "sre dev"
+                  - name: DEX_ORIGIN
+                    value: "https://argocd.demo.opsp.dev"
+                envFrom:
+                  - secretRef:
+                      name: kanidm-idm-admin
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    memory: 128Mi
+                volumeMounts:
+                  - name: scripts
+                    mountPath: /scripts
+            volumes:
+              - name: scripts
+                configMap:
+                  name: kanidm-provision
