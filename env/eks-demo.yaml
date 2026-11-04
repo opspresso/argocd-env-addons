@@ -22,7 +22,7 @@ autoscaling:
   enabled: false
 
 argocd:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/7ee515dd-b28a-4c71-b134-9b6b6fa55064
   hostname: argocd.demo.opsp.dev
   replicas:
     server: 2
@@ -55,7 +55,7 @@ app_delivery:
   enabled: true
 
 atlantis:
-  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
+  acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/7ee515dd-b28a-4c71-b134-9b6b6fa55064
   allowlist: github.com/opspresso/terraform-*
   github:
     org: opspresso # github org
