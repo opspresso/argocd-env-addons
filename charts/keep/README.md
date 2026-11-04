@@ -91,7 +91,6 @@ bot 권한:
 | `channels:history`, `groups:history` | 채널·스레드 메시지를 읽는다 |
 | `users:read` | 사용자 정보를 조회한다 |
 | `files:write` | 파일을 올린다 |
-| `incoming-webhook` | 이전 전송 방식. bot token 전환 후 제거한다 |
 
 설정을 바꾸면 Slack의 App Manifest → Copy to Clipboard 결과로 `slack-app-manifest.json`을 갱신한다.
 앱을 다시 만들 때는 api.slack.com/apps → Create New App → From a manifest에 이 파일을 넣고,

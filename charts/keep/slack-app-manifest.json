@@ -23,8 +23,7 @@
         "groups:read",
         "groups:history",
         "users:read",
-        "files:write",
-        "incoming-webhook"
+        "files:write"
       ]
     },
     "pkce_enabled": false
