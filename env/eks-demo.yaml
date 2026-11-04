@@ -106,6 +106,9 @@ kite:
 keep:
   hostname: keep.demo.rovr.dev
   slack:
+    # #noti-eks-demo in the nalbam workspace. The bot token needs the channel id
+    # to edit its messages.
+    channel: C0BPEEU2B8S
     # Slack user of the kube-sre agent (Agent Studio) in the nalbam workspace.
     # Keep mentions it on every problem so it starts investigating.
     responder: U0C3UAFR7SM

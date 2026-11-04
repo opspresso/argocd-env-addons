@@ -1,0 +1,39 @@
+{
+  "display_information": {
+    "name": "Keep",
+    "description": "Keep alert notifications from eks-demo",
+    "background_color": "#A8550A"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "Keep",
+      "always_online": false
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "chat:write",
+        "chat:write.public",
+        "chat:write.customize",
+        "reactions:write",
+        "reactions:read",
+        "channels:read",
+        "channels:history",
+        "groups:read",
+        "groups:history",
+        "users:read",
+        "files:write",
+        "incoming-webhook"
+      ]
+    },
+    "pkce_enabled": false
+  },
+  "settings": {
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": false,
+    "is_mcp_enabled": false,
+    "token_rotation_enabled": false,
+    "app_level_token_rotation_enabled": false
+  }
+}
