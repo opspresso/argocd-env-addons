@@ -3,7 +3,6 @@ loki:
 
 
 
-
   # The chart labels its own metrics cluster=<release>, which lands as
   # cluster="loki" and puts this one job outside every cluster filter.
   clusterLabelOverride: eks-demo-b
@@ -12,9 +11,7 @@ loki:
     serviceMonitor:
       enabled: True
       labels:
-
         release: prometheus-eks-demo-b
-
 raw:
   resources:
     - apiVersion: gateway.networking.k8s.io/v1

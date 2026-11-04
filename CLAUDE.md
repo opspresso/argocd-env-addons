@@ -9,17 +9,13 @@ EKS 클러스터의 **addon** 을 Argo CD 로 배포하는 GitOps 저장소.
 
 ```
 addons-eks.yaml        # EKS App of Apps. `addons/eks/` 를 sync
-addons-k3s.yaml        # k3s App of Apps. `addons/k3s/` 를 sync
 addons/eks/<addon>.yaml # EKS addon 별 ApplicationSet
-addons/k3s/<addon>.yaml # k3s addon 별 ApplicationSet
 backup/<addon>.yaml    # 배포하지 않는 addon 의 ApplicationSet 보관소
 charts/<addon>/        # 공용 wrapper Helm chart
 charts/<addon>/eks/    # EKS 렌더 결과
-charts/<addon>/k3s/    # k3s 렌더 결과
 env/<cluster>.yaml     # 클러스터별 변수. git files generator 입력이자 Jinja2 렌더 입력
 install/eks/           # EKS Argo CD 최초 부트스트랩
-install/k3s/           # k3s Argo CD 최초 부트스트랩
-scripts/gen_chart.py       # addons/<platform>/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
+scripts/gen_chart.py       # addons/eks/<addon>.yaml → charts/<addon>/Chart.yaml 초안 생성
 scripts/gen_values.py      # 공용 템플릿 × env/*.yaml → charts/<addon>/<env>/...
 scripts/validate.py        # ApplicationSet 과 같은 조합으로 helm template 검증
 scripts/workload_policy.py # 플랫폼별 workload 정책 검사
@@ -36,9 +32,7 @@ tests/                    # 자동화 테스트
 배포 여부는 `addons/`의 Application/ApplicationSet으로 판단한다. `charts/`에만 있는
 chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소다.
 운영 클러스터는 EKS `eks-demo`이며 같은 클러스터의 Argo CD가 `addons-eks.yaml`을 동기화한다.
-k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/`, `install/k3s/`)은 남아 있지만
-어느 클러스터에도 배포하지 않으며 삭제하지 않는다. `local` 템플릿·정책 지원은 남아 있지만
-로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
+`local` 템플릿·정책 지원은 남아 있지만 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
 `argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
 `keep` 은 같은 Dex 의 `keep-sso` 클라이언트로 로그인한다. Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는
@@ -57,7 +51,6 @@ charts/<addon>/
   values.yaml                   # 모든 클러스터 공통 값
   values-template.yaml.j2       # Jinja2 템플릿 (렌더 소스)
   eks/values-<cluster>.yaml     # EKS 렌더 결과
-  k3s/values-<cluster>.yaml     # k3s 렌더 결과
   README.md                     # (선택) 해당 addon 이 요구하는 SSM 파라미터 등록 절차
 ```
 
@@ -105,7 +98,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 
 - 파일 이름이 클러스터 이름이고, 안의 `cluster` 필드와 일치해야 한다 (`{{cluster}}` 로 치환됨).
 - 클러스터별 SSM 경로는 템플릿의 `{{cluster}}`에서 만든다. 공통 `values.yaml`에 특정 클러스터의 경로를 기본값으로 두지 않는다.
-- `env` 는 플랫폼(`eks`, `k3s`, `local`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
+- `env` 는 플랫폼(`eks`, `local`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
 - `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 손으로 넣지 말고
   `./scripts/update_env.sh` 로 갱신한다. 이미 값이 들어 있는 키만 교체하므로, 새 키는 먼저 추가해야 한다.
 - `env` 를 바꾸면 렌더 출력 디렉토리도 함께 바뀐다. 옛 디렉토리에 남은 파일은 손으로 지운다.
@@ -115,13 +108,13 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - 공통 `values.yaml`은 EKS 기본값이다. EKS의 명시적 env 설정과 기존 autoscaling 동작을 유지한다.
 - EKS 렌더는 일반·init·테스트 컨테이너의 양수 CPU/memory requests와 memory limit을 요구한다.
   CPU limit은 필수가 아니다. Prometheus·Alertmanager operator 리소스의 예산도 검증한다.
-- `k3s`, `local`는 전역 `resources.enabled: false`, `autoscaling.enabled: false`를 사용한다.
+- `local`은 전역 `resources.enabled: false`, `autoscaling.enabled: false`를 사용한다.
   Argo CD를 포함해 chart별로 같은 스위치를 중복 선언하지 않는다.
 - 컨테이너·초기화 컨테이너·Job·operator가 만드는 Pod의 requests/limits를 제거한다.
   HPA·VPA·KEDA를 만들지 않으며 PVC의 storage 요청은 유지한다.
 - 새 chart와 upstream 갱신도 `scripts/validate.py`의 렌더 결과 검사로 이 규칙을 확인한다.
 
-## addons/<platform>/<addon>.yaml
+## addons/eks/<addon>.yaml
 
 - `kind: ApplicationSet` + git files generator 로 `env/*.yaml` 을 읽어 클러스터별로 fan-out 한다.
 - mgmt 클러스터 전용 addon 은 `env/eks-demo.yaml` 하나만 나열하고 `name` 에
@@ -129,7 +122,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - namespace 는 `addon-<name>`. upstream 관례가 강한 것만 예외(`istio-system`, `argocd`).
 - label `opspresso.com/group: addons`, `opspresso.com/cluster: {{cluster}}` 를 유지한다.
 - 배포를 멈출 때는 파일을 지우지 말고 `backup/` 으로 옮긴다. 되살릴 때는 반대로 옮긴다.
-- `syncPolicy.automated` 는 대부분 켜져 있다. EKS·k3s의 `argo-cd`도 자동 sync(prune·selfHeal)다.
+- `syncPolicy.automated` 는 대부분 켜져 있다. EKS의 `argo-cd`도 자동 sync(prune·selfHeal)다.
   Argo CD 자체의 변경은 merge하면 바로 반영되고 복구 경로에 영향을 준다. 켜져 있는 addon 을 임의로 끄거나
   꺼져 있는 addon 을 임의로 켜지 않는다.
 
@@ -137,7 +130,6 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 
 ```bash
 ./scripts/gen_values.py -p eks -r grafana   # EKS chart 렌더
-./scripts/gen_values.py -p k3s -r argo-cd   # k3s chart 렌더
 ./scripts/build.sh                   # 전체 chart 렌더
 ./scripts/validate.py                # helm template 로 전체 검증
 ./scripts/validate.py -r grafana     # 한 chart 만

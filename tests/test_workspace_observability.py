@@ -1,9 +1,7 @@
 from pathlib import Path
 import json
-import re
 import subprocess
 
-import pytest
 import yaml
 from test_node_observability import rendered_grafana, run_promtool
 
@@ -16,68 +14,6 @@ def test_grafana_no_longer_forwards_workspace_prometheus_alerts(rendered_grafana
     document = yaml.safe_load(secret["stringData"]["workspace-notifications.yaml"])
     assert "groups" not in document
     assert document["deleteRules"] == [{"orgId": 1, "uid": "addons-workspace-prometheus-alerts"}]
-
-def test_k3s_exporter_exposes_only_required_read_only_state():
-    chart = ROOT / "charts/workspace-metrics"
-    output = subprocess.run(["helm", "template", "workspace-metrics", str(chart),
-                             "-f", str(chart / "values.yaml"), "-f", str(chart / "k3s/values-k3s-demo.yaml")],
-                            capture_output=True, text=True)
-    assert output.returncode == 0, output.stderr
-    output = output.stdout
-    docs = [doc for doc in yaml.safe_load_all(output) if doc]
-    role = next(doc for doc in docs if doc["kind"] == "ClusterRole")
-    assert {resource for rule in role["rules"] for resource in rule["resources"]} == {"pods", "nodes", "resourcequotas", "deployments"}
-    assert all(set(rule["verbs"]) == {"list", "watch"} for rule in role["rules"])
-    container = next(doc for doc in docs if doc["kind"] == "Deployment")["spec"]["template"]["spec"]["containers"][0]
-    assert "--namespaces=agent-studio,agent-knowledge,agent-forge,agent-forge-workspaces" in container["args"]
-    assert not container.get("resources")
-
-
-def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting_arbitrary_series():
-    values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
-    config = values["alloy"]["alloy"]["configMap"]["content"]
-    pattern = re.search(r'prometheus.relabel "retained_metrics"\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
-    for series in ["workspace-state;up", "workspace-state;kube_pod_status_phase", "workspace-state;kube_resourcequota",
-                   "workspace-state;kube_node_status_condition", "integrations/cadvisor;container_fs_usage_bytes",
-                   "integrations/cadvisor;container_fs_limit_bytes", "kubelet;up",
-                   "kubelet;kubelet_volume_stats_available_bytes", "agent-studio;agent_studio_build_info",
-                   "agent-knowledge;agent_knowledge_build_info", "agent-forge;agent_forge_active_model_requests"]:
-        assert re.fullmatch(pattern, series), series
-    for series in ["workspace-state;unbounded_arbitrary_series", "kubelet;apiserver_request_duration_seconds_bucket",
-                   "integrations/cadvisor;container_tasks_state"]:
-        assert not re.fullmatch(pattern, series), series
-    # Every source must cross the same filter before remote_write allocates WAL series.
-    assert config.count("prometheus.remote_write.grafana_cloud.receiver") == 1
-    replay_pattern = re.search(r'prometheus.remote_write "grafana_cloud"\s*\{.*?write_relabel_config\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
-    assert replay_pattern == pattern
-    assert config.count("prometheus.relabel.retained_metrics.receiver") == 4
-
-
-@pytest.mark.parametrize("namespace,pod,expected", [
-    ("agent-forge-workspaces", "forge-ws-51e2938a2963c2657e94d57f731adcc6b12a7b9a-w2lmz", True),
-    ("agent-forge-workspaces", "forge-ws-" + "f" * 40 + "-9x66c", True),
-    ("other", "forge-ws-" + "a1" * 20 + "-jrg8w", False),
-    ("", "forge-ws-" + "a1" * 20 + "-jrg8w", False),
-    ("agent-forge-workspaces", "forge-ws-" + "a1" * 20, False),
-    ("agent-forge-workspaces", "forge-ws-" + "a" * 39 + "-jrg8w", False),
-    ("agent-forge-workspaces", "forge-ws-" + "g" * 40 + "-jrg8w", False),
-    ("agent-forge-workspaces", "forge-ws-" + "A" * 40 + "-jrg8w", False),
-    ("agent-forge-workspaces", "forge-ws-" + "a" * 40 + "-jrg8wx", False),
-    ("agent-forge-workspaces", "forge-ws-" + "a" * 40 + "-jrg8w-extra", False),
-    ("agent-forge-workspaces", "agent-forge-worker-abc12-def34", False),
-])
-def test_cadvisor_classifies_only_forge_controller_pods(namespace, pod, expected):
-    values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
-    config = values["alloy"]["alloy"]["configMap"]["content"]
-    cadvisor = re.search(r'prometheus.relabel "cadvisor" \{(.*?)^\}', config, re.S | re.M).group(1)
-    rules = re.findall(r'^  rule \{(.*?)^  \}', cadvisor, re.S | re.M)
-    rule = next(rule for rule in rules if 'replacement   = "agent-forge-sandbox"' in rule)
-    sources = json.loads(re.search(r'source_labels\s*=\s*(\[[^\]]+\])', rule).group(1))
-    separator = re.search(r'separator\s*=\s*"([^"]+)"', rule)
-    separator = separator.group(1) if separator else ";"
-    pattern = re.search(r'regex\s*=\s*"([^"]+)"', rule).group(1)
-    labels = {"namespace": namespace, "pod": pod}
-    assert bool(re.fullmatch(pattern, separator.join(labels[name] for name in sources))) is expected
 
 
 def test_prometheus_rules_use_the_shared_policy_with_existing_node_labels():
@@ -107,17 +43,6 @@ def test_platform_alerts_evaluate_owner_failure_maintenance_and_cluster_boundari
     fixture["rule_files"] = ["rules.yaml"]
     (tmp_path / "tests.yaml").write_text(yaml.safe_dump(fixture))
     run_promtool(tmp_path)
-
-
-def test_grafana_cloud_collector_has_no_agent_application_scrapes():
-    values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
-    config = values["alloy"]["alloy"]["configMap"]["content"]
-    assert not re.search(r'prometheus.scrape "agent_', config)
-    assert "METRICS_BEARER_TOKEN" not in config
-    secret = next(resource for resource in values["raw"]["resources"]
-                  if resource["kind"] == "ExternalSecret" and resource["metadata"]["name"] == "alloy-grafana-cloud")
-    paths = {entry["secretKey"]: entry["remoteRef"]["key"] for entry in secret["spec"]["data"]}
-    assert paths == {"GCLOUD_RW_API_KEY": "/k8s/common/grafana-cloud/remote-write-api-key"}
 
 
 def test_capacity_dashboard_separates_control_plane_and_execution_load(tmp_path):

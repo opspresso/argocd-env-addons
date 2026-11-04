@@ -763,9 +763,7 @@ raw:
       metadata:
         labels:
           app: istio-ingressgateway
-
           release: prometheus-eks-demo
-
         name: istio-ingressgateway-metrics
       spec:
         endpoints:
@@ -786,9 +784,7 @@ raw:
       metadata:
         labels:
           app: istio-components
-
           release: prometheus-eks-demo
-
         name: istio-components-metrics
       spec:
         endpoints:
@@ -824,9 +820,7 @@ raw:
       metadata:
         labels:
           app: istio-sidecars
-
           release: prometheus-eks-demo
-
         name: istio-sidecars
       spec:
         jobLabel: istio-sidecars

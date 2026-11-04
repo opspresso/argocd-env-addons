@@ -17,8 +17,8 @@ class ExternalSecretsAWSTests(unittest.TestCase):
         environment.filters["to_yaml"] = to_yaml
         template = environment.get_template("values-template.yaml.j2")
         contexts = [yaml.safe_load(path.read_text()) for path in (ROOT / "env").glob("*.yaml")]
-        local_context = yaml.safe_load((ROOT / "env/k3s-demo.yaml").read_text())
-        local_context.update(env="local", cluster="local-fixture", aws_local={
+        local_context = yaml.safe_load((ROOT / "env/eks-demo.yaml").read_text())
+        local_context.update(env="local", cluster="local-fixture", resources={"enabled": False}, aws_local={
             "profile": "fixture", "config_file": "/fixture/config", "credentials_file": "/fixture/credentials",
         })
         contexts.append(local_context)

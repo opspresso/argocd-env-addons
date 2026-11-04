@@ -11,7 +11,7 @@ Also enforces that every <env>/values-<cluster>.yaml has a values-template.yaml.
 to come from - a hand-written one is indistinguishable from a render and drifts
 without anyone noticing.
 
-    ./scripts/validate.py                 # every Application or ApplicationSet in addons/{eks,k3s}/
+    ./scripts/validate.py                 # every Application or ApplicationSet in addons/eks/
     ./scripts/validate.py -r grafana      # one chart
     ./scripts/validate.py -d addons -d backup
 
@@ -141,7 +141,7 @@ def check_templates(only=None):
         if only and name != only:
             continue
 
-        for platform in ("eks", "k3s", "local"):
+        for platform in ("eks", "local"):
             chart = os.path.join(chart_root, platform)
             if not os.path.isdir(chart):
                 continue

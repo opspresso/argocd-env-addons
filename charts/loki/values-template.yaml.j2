@@ -3,25 +3,10 @@ loki:
   fullnameOverride: loki
 
 {% if resources is defined and not resources.enabled %}
-{% if env != 'k3s' %}
   singleBinary:
     resources: null
-{% endif %}
   sidecar:
     resources: null
-{% endif %}
-{% if env == 'k3s' %}
-  singleBinary:
-    persistence:
-      storageClass: local-path
-      size: {{loki.storage_size}}
-    resources: null
-  loki:
-    limits_config:
-      retention_period: {{loki.retention}}
-      max_query_parallelism: 2
-    querier:
-      max_concurrent: 2
 {% endif %}
 {% if loki is defined %}
   # The chart labels its own metrics cluster=<release>, which lands as
@@ -32,11 +17,7 @@ loki:
     serviceMonitor:
       enabled: {{prometheus.serviceMonitor.enabled}}
       labels:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-        release: victoria-metrics-{{cluster}}
-{% else %}
         release: prometheus-{{cluster}}
-{% endif %}
 
 {%- if env == 'eks' %}
 raw:

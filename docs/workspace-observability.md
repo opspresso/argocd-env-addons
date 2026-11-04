@@ -4,11 +4,6 @@
 실행 노드 DiskPressure/Ready, Forge·Knowledge worker·Studio 관찰 worker 가용성 경보의 정본이다.
 EKS는 이를 `prometheus-agent-platform-workloads` PrometheusRule로 렌더한다.
 
-배포하지 않는 k3s 선언의 전송 경로는 Alloy → Grafana Cloud다. `workspace-metrics`는
-Pod·Node·ResourceQuota·Deployment만 list/watch하며, namespace 리소스는
-`agent-studio`, `agent-knowledge`, `agent-forge`, `agent-forge-workspaces`에서 조회한다.
-Forge 실행 Pod의 cAdvisor `service`는 `agent-forge-sandbox`다. VictoriaMetrics는 배포하지 않는다.
-
 | 책임 | 지표·대상 |
 | --- | --- |
 | Studio 실행 정책·대화 | `agent_studio_active_execution_requests`: Studio Agent 실행만 집계 |
@@ -20,13 +15,8 @@ Forge 실행 Pod의 cAdvisor `service`는 `agent-forge-sandbox`다. VictoriaMetr
 Studio 관찰 worker, Forge API/worker, Knowledge worker를 구분한다. 유지보수로 desired replicas를
 0으로 둔 Deployment는 worker 장애로 알리지 않는다. 경보의 service·severity를 알림까지 보존한다.
 
-Grafana Cloud ruler에는 배포 절차에서 같은 `config/workspace-alerts.yaml`의 groups를 등록한다.
-GitOps 렌더와 PR은 Cloud 규칙을 게시하지 않는다. Cloud 반영 여부와 실제 수신 지표를 따로 확인한다.
-서비스 실행은 외부 모니터링 연결 상태에 의존하지 않는다.
-
 ## 배포 전환과 운영 확인
 
-- 신규 metrics token을 SSM과 receiver 앱에 먼저 연결한다. [Alloy 인증](../charts/alloy/README.md#인증)을 따른다.
 - 기존 `agent-studio-workspaces`의 작업·Pod를 종료하고 소유권 이전을 확인한 뒤 기존 리소스를 정리한다.
   addons 변경으로 기존 namespace나 PVC를 삭제하지 않는다. 새 Sandbox RBAC·격리 정책은 앱 chart가 소유한다.
 - `agent-forge-workspaces`의 Pod phase/reason, OOM, Pod quota 사용량과 신규 서비스의 `up=1`을 확인한다.

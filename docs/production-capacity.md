@@ -1,7 +1,7 @@
 # Production addon 용량
 
 운영 클러스터는 EKS `eks-demo`(Auto Mode)다. 기준 NodePool은 Graviton arm64 `m7g.xlarge` 2대이고,
-동적 NodePool `general`과 `workspaces`가 추가 용량을 만든다. k3s 선언은 배포하지 않는다.
+동적 NodePool `general`과 `workspaces`가 추가 용량을 만든다.
 addon 자원은 이 저장소, 앱·DB·Forge 실행 quota는
 `argocd-env-apps`, Auto Mode NodePool은 `terraform-env-demo/demo/6-eks-node`가 관리한다.
 
@@ -9,7 +9,7 @@ addon 자원은 이 저장소, 앱·DB·Forge 실행 quota는
 
 EKS의 컨테이너·초기화 작업·Helm 테스트에는 CPU와 메모리 request, 메모리 limit을 둔다.
 CPU limit은 격리나 명확한 실행 예산이 필요한 곳에만 둔다. `scripts/validate.py`가 실제 렌더를
-검사하므로 upstream chart가 추가한 작업에도 같은 정책이 적용된다. k3s/local의 예약 제거 규칙은 별도다.
+검사하므로 upstream chart가 추가한 작업에도 같은 정책이 적용된다. local의 예약 제거 규칙은 별도다.
 CI는 미배포 `backup/`도 검사한다. 보관 chart의 예산은 활성화 전 실제 부하로 다시 검증한다.
 Atlantis의 upstream 테스트는 자원 옵션이 없어, 제한을 선언한 HTTP UI 테스트로 대체한다.
 
@@ -44,12 +44,6 @@ peak(48 동시 요청에서 Studio 1.1Gi, Memory 530Mi, Models 400Mi)보다 크�
 
 Prometheus는 API latency·SLO histogram을 유지하고 사용하지 않는 상세 요청 크기·watch bucket을
 스크레이프에서 제외한다. 새 대시보드나 규칙이 이 지표를 요구하면 필터도 함께 검토한다.
-
-k3s 선언은 Alloy가 필요한 지표만 Grafana Cloud로 전송한다. 공통 `retained_metrics` 필터는
-`remote_write` 앞에 둔다. 전송 직전 필터만 사용하면 버릴 시계열도 WAL과 메모리 캐시에 들어간다.
-필터 변경 시 Workspace 상태·디스크·앱 지표가 유지되고 remote write의 실패·대기 샘플이 늘지 않는지 확인한다.
-k3s 선언의 `metrics.backend`는 `grafana-cloud`이며 로컬 metrics DB와 ServiceMonitor를 배포하지 않는다.
-Alloy가 node·kubelet·Workspace 상태와 Studio·Memory·Knowledge·Forge의 metrics endpoint를 직접 수집한다.
 
 ## 확장 확인
 

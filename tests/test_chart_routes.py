@@ -11,7 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.mark.parametrize("chart,platform,cluster,release,namespace,route_names", [
     ("grafana", "eks", "eks-demo", "grafana", "addon-grafana", {"grafana"}),
-    ("grafana", "k3s", "k3s-demo", "grafana", "addon-grafana", {"grafana"}),
     ("prometheus-stack", "eks", "eks-demo", "prometheus-eks-demo", "addon-prometheus", {"prometheus-prometheus"}),
     ("argo-rollouts", "eks", "eks-demo", "argo-rollouts", "addon-argo-rollouts", {"argo-rollouts-dashboard"}),
     ("argo-workflows", "eks", "eks-demo", "argo-workflows", "addon-argo-workflows", {"argo-workflows-server"}),

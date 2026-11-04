@@ -17,7 +17,7 @@ PLATFORM = "eks"
 def parse_args():
     p = argparse.ArgumentParser(description="Helm chart gen")
     p.add_argument("-r", "--reponame", default=REPONAME, help="reponame")
-    p.add_argument("-p", "--platform", choices=["eks", "k3s", "local"], default=PLATFORM)
+    p.add_argument("-p", "--platform", choices=["eks", "local"], default=PLATFORM)
     return p.parse_args()
 
 
@@ -79,8 +79,8 @@ def gen_values(t, reponame, platform):
 
             if not isinstance(v, dict):
                 raise ValueError("{} must contain a YAML mapping".format(env_path))
-            if v.get("env") not in ("eks", "k3s", "local"):
-                raise ValueError("{}: 'env' must be eks, k3s, or local".format(env_path))
+            if v.get("env") not in ("eks", "local"):
+                raise ValueError("{}: 'env' must be eks or local".format(env_path))
             if v.get("cluster") != env_file[:-5]:
                 raise ValueError("{}: 'cluster' must match the filename ({})".format(env_path, env_file[:-5]))
 
