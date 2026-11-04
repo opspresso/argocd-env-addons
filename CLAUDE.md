@@ -37,6 +37,8 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 `argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
 `keep`·`grafana` 는 같은 Dex 의 `keep-sso`·`grafana-sso` 클라이언트로 로그인한다. Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는
 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와 kube-sre 호출을 만든다 (`charts/keep/README.md`).
+Dex client 는 모두 같은 규칙을 따른다: `argocd.github.org` 구성원은 로그인, `argocd.github.team` 은 관리자, 나머지는 읽기 전용.
+GitLab CE 는 group 으로 관리자를 지정할 수 없어 CronJob `gitlab-admin-sync` 가 맞춘다.
 `gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙이고, 같은 Dex 의 `gitlab-sso` 클라이언트로 로그인한다 (`charts/gitlab/README.md`).
 
 istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해

@@ -5,7 +5,7 @@
 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)로 GitHub 로그인한다. Keep·GitLab과 같은 Dex이며 client는 `charts/argo-cd`의 `grafana-sso`다.
 
 - 로그인 화면은 바로 Dex로 이동한다(`auto_login`). 아이디·비밀번호 폼은 숨긴다(`disable_login_form`).
-- `opspresso:dev` 팀은 Grafana `Admin`, 그 밖의 `opspresso` 조직 구성원은 `Viewer`를 받는다. 로그인할 때마다 다시 맞춘다.
+- `opspresso:sre` 팀(`argocd.github.team`)은 Grafana `Admin`, 그 밖의 `opspresso` 조직 구성원은 `Viewer`를 받는다. 로그인할 때마다 다시 맞춘다.
 - 이전 GitHub OAuth 로그인으로 만든 사용자는 같은 이메일로 연결된다(`oauth_allow_insecure_email_lookup`).
 - 로컬 관리자(`/k8s/common/admin-user`, `admin-password`)는 HTTP API에서만 쓴다.
 
