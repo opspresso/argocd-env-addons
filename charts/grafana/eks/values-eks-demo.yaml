@@ -1655,6 +1655,9 @@ raw:
           - secretKey: slack-webhook
             remoteRef:
               key: /k8s/common/slack-webhook/grafana
+          - secretKey: keep-api-key
+            remoteRef:
+              key: /k8s/common/keep/grafana-api-key
 
 
           - secretKey: github-id

@@ -103,6 +103,9 @@ grafana:
 kite:
   hostname: kite.demo.rovr.dev
 
+keep:
+  hostname: keep.demo.rovr.dev
+
 prometheus:
   serviceMonitor:
     enabled: true

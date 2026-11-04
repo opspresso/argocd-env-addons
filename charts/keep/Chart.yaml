@@ -1,0 +1,14 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: keep
+type: application
+version: "0.1.97" # helm chart keep version
+
+dependencies:
+- name: keep
+  repository: https://keephq.github.io/helm-charts
+  version: "0.1.97" # helm chart keep version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

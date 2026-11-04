@@ -108,6 +108,11 @@ argo-cd:
           secretKeyRef:
             name: argocd-secret
             key: oauth2-proxy-client-secret
+      - name: KEEP_SSO_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: argocd-secret
+            key: keep-client-secret
 
     metrics:
       enabled: true
@@ -141,6 +146,14 @@ argo-cd:
     notifiers:
       service.slack: |
         token: $slack-token
+      # Keep's generic alert endpoint (POST /alerts/event) reads the keep-* templates.
+      service.webhook.keep: |
+        url: http://keep-backend.addon-keep.svc.cluster.local:8080
+        headers:
+          - name: Content-Type
+            value: application/json
+          - name: X-API-KEY
+            value: $keep-api-key
 
     templates:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/templates/
@@ -375,6 +388,55 @@ argo-cd:
               ]
             }]
 
+      # Keep alerts. One fingerprint per application and signal: the problem
+      # sends status firing, the recovery sends resolved to the same alert.
+      # toJson quotes values that can hold quotes or newlines.
+      template.keep-app-health: |
+        webhook:
+          keep:
+            method: POST
+            path: /alerts/event
+            body: |
+              {
+                "name": {{printf "Argo CD application %s is %s" .app.metadata.name .app.status.health.status | toJson}},
+                "status": "{{if eq .app.status.health.status "Healthy"}}resolved{{else}}firing{{end}}",
+                "severity": "high",
+                "source": ["argocd"],
+                "service": {{.app.metadata.name | toJson}},
+                "fingerprint": {{printf "argocd-health-%s" .app.metadata.name | toJson}},
+                "lastReceived": "{{(call .time.Now).UTC.Format "2006-01-02T15:04:05Z"}}",
+                "description": {{.app.status.health.message | default (printf "Health status is %s." .app.status.health.status) | toJson}},
+                "url": "{{.context.argocdUrl}}/applications/{{.app.metadata.namespace}}/{{.app.metadata.name}}",
+                "labels": {
+                  "application": {{.app.metadata.name | toJson}},
+                  "project": {{.app.spec.project | toJson}},
+                  "health": {{.app.status.health.status | toJson}},
+                  "sync": {{.app.status.sync.status | toJson}}
+                }
+              }
+      template.keep-app-sync: |
+        webhook:
+          keep:
+            method: POST
+            path: /alerts/event
+            body: |
+              {
+                "name": {{printf "Argo CD application %s sync %s" .app.metadata.name .app.status.operationState.phase | toJson}},
+                "status": "{{if eq .app.status.operationState.phase "Succeeded"}}resolved{{else}}firing{{end}}",
+                "severity": "high",
+                "source": ["argocd"],
+                "service": {{.app.metadata.name | toJson}},
+                "fingerprint": {{printf "argocd-sync-%s" .app.metadata.name | toJson}},
+                "lastReceived": "{{(call .time.Now).UTC.Format "2006-01-02T15:04:05Z"}}",
+                "description": {{.app.status.operationState.message | toJson}},
+                "url": "{{.context.argocdUrl}}/applications/{{.app.metadata.namespace}}/{{.app.metadata.name}}",
+                "labels": {
+                  "application": {{.app.metadata.name | toJson}},
+                  "project": {{.app.spec.project | toJson}},
+                  "revision": {{.app.status.operationState.syncResult.revision | toJson}}
+                }
+              }
+
     triggers:
       # For more information: https://argocd-notifications.readthedocs.io/en/stable/triggers/
 
@@ -404,6 +466,25 @@ argo-cd:
           send:
           - app-sync-status-unknown
           when: app.status.sync.status == 'Unknown'
+      # For Keep only. Each pair fires on the problem and on its recovery.
+      trigger.on-keep-health: |
+        - description: Application has degraded
+          send:
+          - keep-app-health
+          when: app.status.health.status == 'Degraded'
+        - description: Application is healthy
+          send:
+          - keep-app-health
+          when: app.status.health.status == 'Healthy'
+      trigger.on-keep-sync: |
+        - description: Application syncing has failed
+          send:
+          - keep-app-sync
+          when: app.status.operationState != nil and app.status.operationState.phase in ['Error', 'Failed']
+        - description: Application syncing has succeeded
+          send:
+          - keep-app-sync
+          when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded']
       trigger.on-sync-succeeded: |
         - description: Application syncing has succeeded
           send:

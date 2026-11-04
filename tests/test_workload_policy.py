@@ -119,6 +119,19 @@ class WorkloadPolicyTests(unittest.TestCase):
         schema = {"versions": [{"schema": {"default": {"resources": {"requests": {"cpu": "100m"}}}}}]}
         self.assertEqual(policy_errors(manifest("CustomResourceDefinition", schema), "k3s"), [])
 
+    def test_eks_exempts_only_the_named_pre_delete_hook(self):
+        def hook_job(name, hook):
+            annotations = {"helm.sh/hook": hook} if hook else {}
+            return json.dumps({
+                "kind": "Job",
+                "metadata": {"name": name, "annotations": annotations},
+                "spec": {"template": {"spec": {"containers": [{"name": "kubectl"}]}}},
+            })
+        self.assertEqual(policy_errors(hook_job("delete-keep-secrets", "pre-delete"), "eks"), [])
+        for name, hook in (("delete-keep-secrets", None), ("delete-keep-secrets", "pre-install"), ("other", "pre-delete")):
+            with self.subTest(name=name, hook=hook):
+                self.assertEqual(len(policy_errors(hook_job(name, hook), "eks")), 3)
+
 
 if __name__ == "__main__":
     unittest.main()

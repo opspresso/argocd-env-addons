@@ -10,6 +10,9 @@ PLATFORMS = {"eks", "k3s", "local"}
 UNRESERVED_PLATFORMS = {"k3s", "local"}
 AUTOSCALERS = {"HorizontalPodAutoscaler", "VerticalPodAutoscaler", "ScaledObject", "ScaledJob"}
 VM_WORKLOADS = {"VMAgent", "VMAlert", "VMAlertmanager", "VMAuth", "VMCluster", "VMSingle"}
+# Upstream pre-delete hooks whose chart has no resources value. They run only
+# when Argo CD deletes the Application, so no running workload goes unbudgeted.
+UNBUDGETED_PRE_DELETE_HOOKS = {("Job", "delete-keep-secrets")}
 
 
 def target_platform(target, env):
@@ -136,7 +139,11 @@ def production_resource_errors(manifests):
         if not document or document.get("kind") == "CustomResourceDefinition":
             continue
         kind = document.get("kind")
-        owner = f"{kind}/{document.get('metadata', {}).get('name', '?')}"
+        metadata = document.get("metadata") or {}
+        owner = f"{kind}/{metadata.get('name', '?')}"
+        hook = (metadata.get("annotations") or {}).get("helm.sh/hook")
+        if (kind, metadata.get("name")) in UNBUDGETED_PRE_DELETE_HOOKS and hook == "pre-delete":
+            continue
         if kind in {"Prometheus", "Alertmanager", "ThanosRuler"}:
             budget(at(document, "spec", "resources"), owner, "spec.resources")
             pod(document.get("spec"), owner, "spec")

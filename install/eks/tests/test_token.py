@@ -167,3 +167,26 @@ def test_concurrent_key_creation_is_not_overwritten(tmp_path):
     assert [call for call in calls if call[0] == "put-parameter"] == [
         ["put-parameter", SECRET_PARAM, False],
     ]
+
+
+def test_keep_account_signs_its_own_token_and_reuses_the_signing_key(tmp_path):
+    before = valid_state()
+    result, after, calls = run_token(tmp_path, before, "--account", "keep")
+    assert result.returncode == 0, result.stderr
+    for parameter in (SECRET_PARAM, TOKEN_PARAM, TOKENS_PARAM):
+        assert after[parameter] == before[parameter]
+    head, claims, signature = after["/k8s/common/keep/argocd-api-token"].split(".")
+    assert signature == b64(hmac.new(SECRET.encode(), f"{head}.{claims}".encode(), hashlib.sha256).digest())
+    payload = json.loads(base64.urlsafe_b64decode(claims + "=" * (-len(claims) % 4)))
+    assert payload["sub"] == "keep:apiKey"
+    assert json.loads(after["/k8s/common/argocd-keep-tokens"]) == [{"id": payload["jti"], "iat": payload["iat"]}]
+    assert [call[1] for call in calls if call[0] == "put-parameter"] == [
+        "/k8s/common/argocd-keep-tokens", "/k8s/common/keep/argocd-api-token",
+    ]
+
+
+def test_unknown_account_is_rejected_before_ssm(tmp_path):
+    (tmp_path / "calls.jsonl").write_text("")
+    result, after, calls = run_token(tmp_path, {}, "--account", "admin")
+    assert result.returncode == 2
+    assert after == {} and calls == []

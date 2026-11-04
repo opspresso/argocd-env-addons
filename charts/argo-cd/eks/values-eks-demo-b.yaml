@@ -51,6 +51,7 @@ raw:
             remoteRef:
               key: /k8s/common/argocd-noti-token
 
+
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:

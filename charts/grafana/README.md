@@ -78,7 +78,8 @@ Grafana 홈은 **Cluster Overview**다. 문제를 찾을 때는 아래 표의 �
 ## 경보
 
 Prometheus의 Alertmanager는 비활성화되어 있다. Grafana가 `config/*.yaml`의 규칙을 평가하고 `slack` contact point로
-`#noti-eks-demo`에 보낸다. k3s에는 경보를 프로비저닝하지 않는다. Argo CD 앱의 degraded·sync 실패는
+`#noti-eks-demo`에 보낸다. 알림 정책의 첫 route는 모든 경보를 `keep` contact point(Keep webhook)에도 보내고
+`continue`로 아래 Slack route를 계속 평가한다. API key는 `/k8s/common/keep/grafana-api-key`다 (`charts/keep/README.md`). k3s에는 경보를 프로비저닝하지 않는다. Argo CD 앱의 degraded·sync 실패는
 Argo CD notifications가 보내므로 Grafana 규칙으로 중복하지 않는다.
 
 ### 심각도와 알림 정책
