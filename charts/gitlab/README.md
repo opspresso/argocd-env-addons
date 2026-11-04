@@ -61,8 +61,20 @@ done
 - **root**: `/k8s/common/gitlab/root-password`로 로그인한다. GitLab CE는 OIDC group으로 관리자를 지정할 수 없으므로,
   관리자 권한은 root가 Admin 영역에서 준다.
 
-설치 직후 root로 **Admin > Settings > General > Sign-up restrictions**에서 **Sign-up enabled**를 끈다.
-이 설정은 DB에 저장되며 chart 값으로 바꿀 수 없다.
+로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider: openid_connect`). 아이디·비밀번호 폼과 가입은 DB 설정으로 끈다.
+이 설정은 chart 값으로 바꿀 수 없다. 끄기 전에 GitHub로 로그인한 관리자 계정이 있어야 한다. 관리자 지정과 설정은 toolbox에서 실행한다.
+
+```bash
+TOOLBOX="kubectl -n addon-gitlab exec deploy/gitlab-toolbox -c toolbox --"
+# 1. GitHub로 한 번 로그인한 사용자를 관리자로 지정한다.
+$TOOLBOX gitlab-rails runner 'u = User.find_by!(username: "<github-login>"); u.update!(admin: true)'
+# 2. 가입과 웹 비밀번호 로그인을 끈다. root는 API·rails console로만 쓴다.
+$TOOLBOX gitlab-rails runner 'ApplicationSetting.current.update!(signup_enabled: false, password_authentication_enabled_for_web: false)'
+```
+
+Dex는 시작할 때만 client secret을 읽는다. `/k8s/common/gitlab/oidc-client-secret`을 바꾸면 `argocd-secret`이 갱신된 뒤
+`kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다. 재시작하지 않으면 GitLab 로그인이
+`Invalid client credentials`로 실패한다.
 
 ## 백업
 

@@ -56,6 +56,12 @@ grafana:
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
 
+{% if grafana.auth.github.enabled or grafana.auth.google.enabled %}
+    # Sign-in only through the OAuth provider: the username/password form is hidden.
+    # The local admin account (grafana-secret) still works for the HTTP API.
+    auth:
+      disable_login_form: true
+{% endif %}
 {% if grafana.auth.github.enabled %}
     # https://grafana.com/docs/grafana/latest/auth/github/
     auth.github:

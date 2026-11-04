@@ -9,8 +9,11 @@ gitlab:
       # Sign-in with GitHub through Argo CD Dex (client gitlab-sso). Dex accepts
       # only members of the opspresso organization, so the first
       # sign-in creates an active user without admin approval.
+      # The sign-in page goes straight to Dex. The password form also stays off:
+      # Admin > Settings > Sign-in restrictions (see README.md).
       omniauth:
         enabled: true
+        autoSignInWithProvider: openid_connect
         allowSingleSignOn: [openid_connect]
         blockAutoCreatedUsers: false
         autoLinkUser: [openid_connect]
