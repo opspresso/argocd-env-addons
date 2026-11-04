@@ -85,14 +85,24 @@ def test_backend_keeps_the_trace_id_middleware():
     assert "OTEL_EXPORTER_OTLP_ENDPOINT" not in env
 
 
-def test_workflows_use_the_provisioned_slack_provider():
+def test_slack_workflows_ask_kube_sre_only_about_problems():
+    env = yaml.safe_load((ROOT / "env" / "eks-demo.yaml").read_text())["keep"]["slack"]
+    ask = f"<@{env['responder']}>"
     docs = render()
     config = next(doc for doc in docs if doc["kind"] == "ConfigMap" and doc["metadata"]["name"] == "keep-workflows")
-    workflows = [yaml.safe_load(body) for body in config["data"].values()]
-    assert {workflow["id"] for workflow in workflows} == {"prometheus-critical-to-slack", "incident-created-to-slack"}
-    for workflow in workflows:
-        for action in workflow["actions"]:
-            assert action["provider"] == {**action["provider"], "type": "slack", "config": "{{ providers.slack }}"}
+    workflows = {wf["id"]: wf for wf in (yaml.safe_load(body) for body in config["data"].values())}
+    assert set(workflows) == {"grafana-alert-to-slack", "prometheus-alert-to-slack", "argocd-alert-to-slack",
+                              "alert-resolved-to-slack", "incident-to-slack"}
+    for workflow_id, workflow in workflows.items():
+        action = workflow["actions"][0]
+        assert action["provider"]["type"] == "slack" and action["provider"]["config"] == "{{ providers.slack }}"
+        message = action["provider"]["with"]["message"]
+        # Agent Studio runs an app message only when the text holds the agent's keyword.
+        problem = workflow_id != "alert-resolved-to-slack"
+        assert (ask in message and env["keyword"] in message) is problem, workflow_id
+        for trigger in workflow["triggers"]:
+            if trigger["type"] == "alert":
+                assert trigger["only_on_change"] == ["status"], workflow_id
+    assert "firingCounter > 1" in workflows["alert-resolved-to-slack"]["triggers"][0]["cel"]
     backend = next(doc for doc in docs if doc["kind"] == "Deployment" and doc["metadata"]["name"] == "keep-backend")
-    volumes = backend["spec"]["template"]["spec"]["volumes"]
-    assert {"name": "workflows", "configMap": {"name": "keep-workflows"}} in volumes
+    assert {"name": "workflows", "configMap": {"name": "keep-workflows"}} in backend["spec"]["template"]["spec"]["volumes"]

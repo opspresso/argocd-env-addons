@@ -24,18 +24,45 @@ Argo CD의 Dex(`https://argocd.demo.rovr.dev/api/dex`)로 GitHub 로그인한다
 
 ## 연동
 
+Keep은 Slack 경보의 유일한 발신처다. Grafana·Alertmanager·Argo CD는 경보를 Keep으로만 보낸다.
+
 | 대상 | 방향 | 방식 | 결과 |
 | --- | --- | --- | --- |
-| Grafana | Grafana → Keep | contact point `keep`(webhook, `/alerts/event/grafana`). 알림 정책의 첫 route가 모든 경보를 Keep에 보내고 `continue`로 Slack route를 계속 평가한다 | Grafana 경보가 firing·resolved로 들어온다 |
-| Argo CD | Argo CD → Keep | notifications `service.webhook.keep`(`/alerts/event`), trigger `on-keep-health`·`on-keep-sync` | 앱별 health·sync 경보. 문제와 회복을 같은 fingerprint로 보내므로 회복하면 resolved가 된다 |
+| Grafana | Grafana → Keep | contact point `keep`(webhook, `/alerts/event/grafana`). 경보마다 따로 보낸다(`group_by: ['...']`) | Grafana 규칙 경보가 firing·resolved로 들어온다 |
+| Prometheus | Prometheus → Keep | Alertmanager webhook(`/alerts/event/prometheus`, `send_resolved`). `env/<cluster>.yaml`에 `keep`이 있는 클러스터에서만 Alertmanager를 켠다. `Watchdog`은 보내지 않는다 | PrometheusRule 경보가 firing·resolved로 들어온다 |
+| Argo CD | Argo CD → Keep | notifications `service.webhook.keep`(`/alerts/event`), trigger `on-keep-health`·`on-keep-sync`·`on-keep-sync-status` | 앱별 health·sync·sync status 경보. 문제와 회복을 같은 fingerprint로 보내므로 회복하면 resolved가 된다 |
 | Argo CD | Keep → Argo CD | provider `argocd`(계정 `keep`, 읽기 전용) | Application·리소스 트리로 topology를 만든다 |
-| Prometheus | Prometheus → Keep | Alertmanager webhook(`/alerts/event/prometheus`, `send_resolved`). `env/<cluster>.yaml`에 `keep`이 있는 클러스터에서만 Alertmanager를 켠다. `Watchdog`은 보내지 않는다 | Prometheus 규칙 경보가 firing·resolved로 들어온다. pull provider는 쓰지 않는다: firing 경보만 보이므로 해소를 알 수 없고 fingerprint도 달라 경보가 중복된다 |
-| Loki | Keep → Loki | provider `loki`(`grafana_loki`) | workflow에서 로그를 조회한다. Loki는 경보를 보내지 않는다 |
-| Slack | Keep → Slack | provider `slack`(nalbam workspace의 Slack 앱 `Keep`, incoming webhook → `#noti-eks-demo`), workflow `prometheus-critical-to-slack`·`incident-created-to-slack` | Prometheus critical 경보와 새 incident만 보낸다. Grafana·Argo CD 경보는 각자 Slack으로 보내므로 중복하지 않는다 |
+| Loki | Keep → Loki | provider `loki`(`grafana_loki`) | workflow에서 로그를 조회한다. Loki 로그 경보는 Grafana 규칙(`config/cni-health-alerts.yaml`)으로 들어온다 |
+| Slack | Keep → Slack | provider `slack`: nalbam workspace의 Slack 앱 `Keep`(App ID `A0CEH0R5CBV`)의 incoming webhook → `#noti-eks-demo` | 아래 workflow가 보낸다 |
 
 - provider는 `KEEP_PROVIDERS`로 provisioning한다. backend가 시작할 때마다 목록과 맞추며, 목록에 없는 provisioned provider는 삭제한다. UI에서 바꾼 provider 설정은 다음 시작 때 덮어써진다.
 - 모든 provider는 `install_webhook: false`다. Keep이 Grafana 알림 정책이나 Argo CD 설정을 직접 고치지 않게 하기 위해서다.
-- Argo CD trigger는 조건이 거짓에서 참으로 바뀔 때마다 보낸다. 그래서 처음 배포할 때와 앱이 Progressing에서 Healthy로 돌아올 때마다 resolved 이벤트가 같은 경보에 기록된다.
+- Prometheus pull provider는 쓰지 않는다. `/api/v1/alerts`는 firing 경보만 보이므로 해소를 알 수 없고, fingerprint가 webhook 경보와 달라 경보가 중복된다.
+
+## Slack 메시지
+
+workflow는 `values-template.yaml.j2`에 있다. 소스마다 workflow를 따로 둔다. Keep은 action이 참조한 필드가 경보에 없으면 그 action을 실패시키기 때문이다.
+
+| workflow | 보내는 경보 | 내용 |
+| --- | --- | --- |
+| `grafana-alert-to-slack` | Grafana 경보 전부 | 규칙 이름, summary(대상과 측정값), description(영향과 첫 조치), 심각도·시작 시각, 대시보드·규칙·알림 끄기·Keep 링크 |
+| `prometheus-alert-to-slack` | `critical`이거나 `service`가 `agent-studio`·`agent-forge`·`agent-knowledge`인 경보 | 경보 이름, description, 심각도·시작 시각, Keep 링크 |
+| `argocd-alert-to-slack` | Argo CD 경보 전부 | 앱 상태, 설명, 프로젝트·시작 시각, Argo CD·Keep 링크 |
+| `alert-resolved-to-slack` | 위에서 Slack으로 보낸 경보의 해소 | 한 줄 해소 알림과 해소 시각 |
+| `incident-to-slack` | Keep이 만든 incident | incident 이름, 경보 수, 심각도, Keep 링크 |
+
+- status가 바뀔 때만 보낸다(`only_on_change: [status]`). 같은 상태의 반복 전송은 Slack에 보내지 않는다.
+- 해소 메시지는 `firingCounter > 1`인 경보만 보낸다. 처음 들어온 이벤트가 resolved인 경보(예: 새 Argo CD 앱의 Healthy)는 보내지 않는다.
+- 시각은 Slack date token이라 보는 사람의 시간대로 표시된다.
+
+### kube-sre 호출
+
+문제 메시지(firing, incident)는 끝에 kube-sre agent(Agent Studio)를 멘션하고 원인 조사를 요청한다. 해소 메시지에는 멘션과 키워드가 없다.
+
+- 멘션 대상과 키워드는 `env/eks-demo.yaml`의 `keep.slack.responder`(`U0C3UAFR7SM`), `keep.slack.keyword`(`원인 조사 요청`)다.
+- Agent Studio는 다른 앱의 메시지를 그 Agent의 채널 키워드가 있을 때만 실행한다. 멘션만으로는 실행하지 않는다.
+  그래서 kube-sre의 연동 → Slack 봇 → **채널 키워드**에 `keep.slack.keyword`와 같은 값을 저장해야 한다.
+  키워드로 시작한 실행은 그 설정을 저장한 Studio 계정의 권한과 예산을 쓴다.
 
 ## SSM 파라미터
 

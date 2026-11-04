@@ -58,6 +58,156 @@ keep:
           authentication:
             webhook_url: "$(SLACK_WEBHOOK_URL)"
 
+
+
+    # Slack messages. Keep is the only sender: Grafana, Alertmanager and Argo CD
+    # send their alerts to Keep. Each workflow reads only fields its source always
+    # sets, because Keep fails the action on a missing field.
+    # only_on_change sends a message when the status changes, not on repeats.
+    # A resolved message needs firingCounter > 1: the alert fired before.
+    # Times are Slack date tokens, so each reader sees their own time zone.
+    # lastReceived is the time of the status change that triggered the message.
+    # Problem messages mention the kube-sre agent with its channel keyword; Agent
+    # Studio runs app messages only when they contain that keyword. Resolved
+    # messages carry neither, so the agent does not start on them.
+    # Keep renders the mustache tags inside the Jinja2 raw blocks.
+      workflows:
+        - id: grafana-alert-to-slack
+          name: Grafana alert to Slack
+          description: Sends each Grafana alert that starts firing to Slack and asks kube-sre to investigate.
+          triggers:
+            - type: alert
+              cel: '"grafana" in source && status == "firing"'
+              only_on_change: [status]
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: '🔴 {{ alert.name }} — {{ alert.annotations.summary }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요.'
+                  blocks:
+                    - type: header
+                      text: {type: plain_text, emoji: true, text: "🔴 {{ alert.name }}"}
+                    - type: section
+                      text:
+                        type: mrkdwn
+                        text: |-
+                          *{{ alert.annotations.summary }}*
+                          {{ alert.description }}
+                    - type: context
+                      elements:
+                        - type: mrkdwn
+                          text: "심각도 `{{ alert.severity }}` · Grafana · 시작 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"
+                    - type: section
+                      text:
+                        type: mrkdwn
+                        text: "<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"
+                    - type: section
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+
+        - id: prometheus-alert-to-slack
+          name: Prometheus alert to Slack
+          description: Sends critical and Agent platform Prometheus alerts that start firing to Slack and asks kube-sre to investigate.
+          triggers:
+            - type: alert
+              cel: '"prometheus" in source && status == "firing" && (severity == "critical" || (type(service) == string && service.matches("^agent-(studio|forge|knowledge)$")))'
+              only_on_change: [status]
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: '🔴 {{ alert.name }} — {{ alert.description }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요.'
+                  blocks:
+                    - type: header
+                      text: {type: plain_text, emoji: true, text: "🔴 {{ alert.name }}"}
+                    - type: section
+                      text: {type: mrkdwn, text: "{{ alert.description }}"}
+                    - type: context
+                      elements:
+                        - type: mrkdwn
+                          text: "심각도 `{{ alert.severity }}` · Prometheus · 시작 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"
+                    - type: section
+                      text: {type: mrkdwn, text: "<https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                    - type: section
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+
+        - id: argocd-alert-to-slack
+          name: Argo CD alert to Slack
+          description: Sends each Argo CD application problem to Slack and asks kube-sre to investigate.
+          triggers:
+            - type: alert
+              cel: '"argocd" in source && status == "firing"'
+              only_on_change: [status]
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: '🔴 {{ alert.name }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요.'
+                  blocks:
+                    - type: header
+                      text: {type: plain_text, emoji: true, text: "🔴 {{ alert.name }}"}
+                    - type: section
+                      text: {type: mrkdwn, text: "{{ alert.description }}"}
+                    - type: context
+                      elements:
+                        - type: mrkdwn
+                          text: "심각도 `{{ alert.severity }}` · Argo CD · 프로젝트 `{{ alert.labels.project }}` · 시작 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"
+                    - type: section
+                      text: {type: mrkdwn, text: "<{{ alert.url }}|Argo CD> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                    - type: section
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+
+        - id: alert-resolved-to-slack
+          name: Resolved alert to Slack
+          description: Tells Slack that an alert which was sent there has resolved.
+          triggers:
+            - type: alert
+              # The same sources and filters as the firing workflows above.
+              cel: 'status == "resolved" && firingCounter > 1 && ("grafana" in source || "argocd" in source || ("prometheus" in source && (severity == "critical" || (type(service) == string && service.matches("^agent-(studio|forge|knowledge)$")))))'
+              only_on_change: [status]
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: "✅ 해소: {{ alert.name }}"
+                  blocks:
+                    - type: section
+                      text: {type: mrkdwn, text: "✅ *해소* {{ alert.name }}"}
+                    - type: context
+                      elements:
+                        - type: mrkdwn
+                          text: "심각도 `{{ alert.severity }}` · 해소 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"
+
+        - id: incident-to-slack
+          name: New incident to Slack
+          description: Sends each incident Keep creates to Slack and asks kube-sre to investigate.
+          triggers:
+            - type: incident
+              events: [created]
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: '🧩 새 incident: {{ incident.name }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요.'
+                  blocks:
+                    - type: header
+                      text: {type: plain_text, emoji: true, text: "🧩 새 incident: {{ incident.name }}"}
+                    - type: section
+                      text: {type: mrkdwn, text: "경보 {{ incident.alerts_count }}개를 하나의 incident로 묶었습니다. 심각도 `{{ incident.severity }}`"}
+                    - type: section
+                      text: {type: mrkdwn, text: "<https://keep.demo.rovr.dev/incidents/{{ incident.id }}|Keep에서 보기>"}
+                    - type: section
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+
   frontend:
     env:
       - name: NEXTAUTH_URL
