@@ -28,6 +28,30 @@ oauth2-proxy:
 
 raw:
   resources:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: oauth2-proxy-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: oauth2-proxy-secret
+          template:
+            engineVersion: v2
+            mergePolicy: Merge
+            data:
+              client-id: oauth2-proxy-sso
+        data:
+          - secretKey: client-secret
+            remoteRef:
+              key: /k8s/common/oauth2-proxy-client-secret
+          - secretKey: cookie-secret
+            remoteRef:
+              key: /k8s/common/cookie-secret
+
     # The OAuth callback. The protected hosts redirect here and back.
     - apiVersion: gateway.networking.k8s.io/v1
       kind: HTTPRoute
