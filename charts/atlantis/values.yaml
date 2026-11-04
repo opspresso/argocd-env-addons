@@ -32,6 +32,10 @@ atlantis:
   #                 --path $INFRACOST_OUTPUT --github-token $GITHUB_TOKEN --behavior new
   #               rm -rf /tmp/$BASE_REPO_OWNER-$BASE_REPO_NAME-$PULL_NUM
 
+  # The image has no Terraform since Atlantis 0.40. Atlantis downloads this
+  # version, and the version a project's required_version asks for.
+  defaultTFVersion: "1.17.1"
+
   resources:
     requests:
       memory: 2Gi
