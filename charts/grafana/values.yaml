@@ -63,29 +63,7 @@ grafana:
     auth:
       disable_login_form: false
 
-    # # https://grafana.com/docs/grafana/latest/auth/github/
-    # auth.github:
-    #   enabled: {{grafana.auth.github.enabled}}
-    #   allow_sign_up: true
-    #   client_id: $__file{/etc/secrets/grafana-secret/github-id}
-    #   client_secret: $__file{/etc/secrets/grafana-secret/github-secret}
-    #   scopes: user:email,read:org
-    #   auth_url: https://github.com/login/oauth/authorize
-    #   token_url: https://github.com/login/oauth/access_token
-    #   api_url: https://api.github.com/user
-    #   allowed_organizations: {{grafana.auth.github.org}}
-    #   # team_ids: {{grafana.auth.github.team_ids}}
-
-    # # https://grafana.com/docs/grafana/latest/auth/google/
-    # auth.google:
-    #   enabled: {{grafana.auth.google.enabled}}
-    #   allow_sign_up: true
-    #   client_id: $__file{/etc/secrets/grafana-secret/google-id}
-    #   client_secret: $__file{/etc/secrets/grafana-secret/google-secret}
-    #   scopes: https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email
-    #   auth_url: https://accounts.google.com/o/oauth2/auth
-    #   token_url: https://accounts.google.com/o/oauth2/token
-    #   allowed_domains: {{grafana.auth.google.allowed_domains}}
+    # OAuth sign-in (Argo CD Dex) is in values-template.yaml.j2.
 
   ingress:
     enabled: false

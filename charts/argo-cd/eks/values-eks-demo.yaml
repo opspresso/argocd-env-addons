@@ -163,6 +163,11 @@ argo-cd:
           redirectURIs:
             - https://gitlab.demo.opsp.dev/users/auth/openid_connect/callback
           secretEnv: GITLAB_SSO_CLIENT_SECRET
+        - id: grafana-sso
+          name: Grafana
+          redirectURIs:
+            - https://grafana.demo.opsp.dev/login/generic_oauth
+          secretEnv: GRAFANA_SSO_CLIENT_SECRET
 
 
 
@@ -349,3 +354,6 @@ raw:
           - secretKey: gitlab-client-secret
             remoteRef:
               key: /k8s/common/gitlab/oidc-client-secret
+          - secretKey: grafana-client-secret
+            remoteRef:
+              key: /k8s/common/grafana/oidc-client-secret

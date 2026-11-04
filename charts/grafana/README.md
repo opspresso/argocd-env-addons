@@ -1,35 +1,29 @@
 # grafana
 
-## variables
+## 로그인
+
+Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)로 GitHub 로그인한다. Keep·GitLab과 같은 Dex이며 client는 `charts/argo-cd`의 `grafana-sso`다.
+
+- 로그인 화면은 바로 Dex로 이동한다(`auto_login`). 아이디·비밀번호 폼은 숨긴다(`disable_login_form`).
+- `opspresso:dev` 팀은 Grafana `Admin`, 그 밖의 `opspresso` 조직 구성원은 `Viewer`를 받는다. 로그인할 때마다 다시 맞춘다.
+- 이전 GitHub OAuth 로그인으로 만든 사용자는 같은 이메일로 연결된다(`oauth_allow_insecure_email_lookup`).
+- 로컬 관리자(`/k8s/common/admin-user`, `admin-password`)는 HTTP API에서만 쓴다.
+
+## SSM 파라미터
 
 ```bash
-# variables
-export GITHUB_ORG="opspresso"
+aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite
+aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite
 
-export ADMIN_USERNAME="admin"
-export ADMIN_PASSWORD="REPLACE_ME"
-
-export GRAFANA_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
-export GRAFANA_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
-
-
-# put aws ssm parameter store
-aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite | jq .
-aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite | jq .
-
-# The keep contact point reads /k8s/common/keep/grafana-api-key. charts/keep/README.md creates it.
-
-aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-id --value "${GRAFANA_GITHUB_ID}" --type SecureString --overwrite | jq .
-aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-secret --value "${GRAFANA_GITHUB_SECRET}" --type SecureString --overwrite | jq .
-
-# get aws ssm parameter store
-export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
-export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
-
-
-export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-id" --with-decryption | jq .Parameter.Value -r)
-export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-secret" --with-decryption | jq .Parameter.Value -r)
+# Dex client grafana-sso의 secret. Argo CD argocd-secret도 읽으므로 merge 전에 만든다.
+aws ssm put-parameter --name /k8s/common/grafana/oidc-client-secret --type SecureString \
+  --value "$(openssl rand -base64 33 | tr -d '/+=' | cut -c1-32)"
 ```
+
+`/k8s/common/keep/grafana-api-key`는 Keep contact point가 읽는다. `charts/keep/README.md`가 만든다.
+
+Dex는 시작할 때만 client secret을 읽는다. secret을 바꾸면 `argocd-secret`이 갱신된 뒤
+`kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다.
 
 ## 대시보드
 
