@@ -12,14 +12,12 @@ export ADMIN_PASSWORD="REPLACE_ME"
 export GRAFANA_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
 export GRAFANA_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
 
-export SLACK_WEBHOOK="REPLACE_ME" # slack incoming webhook bound to #noti-eks-demo
 
 # put aws ssm parameter store
 aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite | jq .
 
-# The alerting contact point reads this one.
-aws ssm put-parameter --name /k8s/common/slack-webhook/grafana --value "${SLACK_WEBHOOK}" --type SecureString --overwrite | jq .
+# The keep contact point reads /k8s/common/keep/grafana-api-key. charts/keep/README.md creates it.
 
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-id --value "${GRAFANA_GITHUB_ID}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-secret --value "${GRAFANA_GITHUB_SECRET}" --type SecureString --overwrite | jq .
@@ -28,7 +26,6 @@ aws ssm put-parameter --name /k8s/${GITHUB_ORG}/grafana-github-secret --value "$
 export ADMIN_USERNAME=$(aws ssm get-parameter --name /k8s/common/admin-user --with-decryption | jq .Parameter.Value -r)
 export ADMIN_PASSWORD=$(aws ssm get-parameter --name /k8s/common/admin-password --with-decryption | jq .Parameter.Value -r)
 
-export SLACK_WEBHOOK=$(aws ssm get-parameter --name /k8s/common/slack-webhook/grafana --with-decryption | jq .Parameter.Value -r)
 
 export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-id" --with-decryption | jq .Parameter.Value -r)
 export GRAFANA_GITHUB_ID=$(aws ssm get-parameter --name "/k8s/${GITHUB_ORG}/grafana-github-secret" --with-decryption | jq .Parameter.Value -r)
@@ -71,27 +68,29 @@ Grafana 홈은 **Cluster Overview**다. 문제를 찾을 때는 아래 표의 �
 
 - 실패 요청은 5xx와 transport code `0`이다. 클라이언트가 먼저 연결을 끊은 요청(response flag `DC`)은 서버 실패가 아니므로 제외한다.
   대시보드와 경보가 같은 정의를 쓴다.
-- 대시보드 임계값은 경보 임계값과 같다. 빨간 패널과 Slack 경보는 같은 상태를 뜻한다.
+- 대시보드 임계값은 경보 임계값과 같다. 빨간 패널과 경보는 같은 상태를 뜻한다.
 - 시계열의 빈 구간을 연결하지 않는다. `up=0`은 수집 실패이고 빈 구간은 데이터 없음이다.
 - `kube-cluster`의 호스트 패널은 `instance`로 과거와 현재를 비교한다. 과거 node-exporter 지표에는 `node` 라벨이 없다.
 
 ## 경보
 
-Prometheus의 Alertmanager는 비활성화되어 있다. Grafana가 `config/*.yaml`의 규칙을 평가하고 `slack` contact point로
-`#noti-eks-demo`에 보낸다. 알림 정책의 첫 route는 모든 경보를 `keep` contact point(Keep webhook)에도 보내고
-`continue`로 아래 Slack route를 계속 평가한다. API key는 `/k8s/common/keep/grafana-api-key`다 (`charts/keep/README.md`). k3s에는 경보를 프로비저닝하지 않는다. Argo CD 앱의 degraded·sync 실패는
-Argo CD notifications가 보내므로 Grafana 규칙으로 중복하지 않는다.
+Grafana는 `config/*.yaml`의 규칙을 평가하고 모든 경보를 `keep` contact point(Keep webhook)로만 보낸다.
+Slack 메시지는 Keep이 보낸다(`charts/keep/README.md`). API key는 `/k8s/common/keep/grafana-api-key`다.
+k3s에는 경보를 프로비저닝하지 않는다. Argo CD 앱의 degraded·sync 실패는 Argo CD notifications가 Keep으로 보내므로
+Grafana 규칙으로 중복하지 않는다.
 
 ### 심각도와 알림 정책
 
-| severity | 의미 | 반복 |
-| --- | --- | --- |
-| `critical` | 서비스 중단이나 데이터 손실이 진행 중이다. 바로 대응한다. | 1시간 |
-| `warning` | 당일 안에 확인한다. 용량 감소·불안정 징후다. | 12시간 |
+| severity | 의미 |
+| --- | --- |
+| `critical` | 서비스 중단이나 데이터 손실이 진행 중이다. 바로 대응한다. |
+| `warning` | 당일 안에 확인한다. 용량 감소·불안정 징후다. |
 
-경보는 `grafana_folder, alertname, cluster, namespace`로 묶는다. Slack 메시지는 `templates.yaml`의 `addons.slack.*` 템플릿으로
-만든다. 제목은 상태·경보 이름·namespace다. 본문은 경보마다 summary(대상과 측정값), description(영향과 첫 조치),
-대시보드·규칙·silence 링크다. resolved 메시지는 summary만 남긴다. 한 메시지에는 최대 10개 경보를 표시한다.
+- 알림 정책은 `group_by: ['...']`로 경보마다 따로 보낸다. Keep은 알림 전체의 status를 각 경보에 적용하므로,
+  firing과 resolved가 섞인 그룹은 resolved 경보도 firing으로 기록된다.
+- contact point의 `title`은 규칙 이름(`alertname`)이다. Keep은 이 값을 경보 이름으로 쓴다.
+- 반복 전송(4시간)은 Keep의 경보 상태만 갱신한다. Keep은 status가 바뀔 때만 Slack에 보낸다.
+- 예전 `slack` contact point와 `addons-slack` 템플릿은 `deleteContactPoints`·`deleteTemplates`로 지운다.
 
 ### 오류와 데이터 없음 처리
 
@@ -153,8 +152,8 @@ workload 경보(`Container restarting repeatedly`)로 보고한다.
 ### 기타 규칙
 
 - `config/cni-health-alerts.yaml`: Alloy가 수집한 Loki 로그에서 AWS network policy agent의 egress BPF attach 실패를 즉시 알린다(critical).
-- `config/workspace-notifications.yaml`: `config/workspace-alerts.yaml`의 Prometheus 규칙(Forge·Knowledge·Studio)이 firing이면
-  해당 규칙의 severity로 전달한다.
+- `config/workspace-notifications.yaml`: 예전에 `config/workspace-alerts.yaml`의 Prometheus 규칙을 전달하던 Grafana 규칙을 지운다.
+  이 규칙들은 이제 Alertmanager가 Keep으로 직접 보낸다.
 
 ### 규칙 작성 규칙
 
@@ -190,4 +189,4 @@ python3 -m pytest -q tests/test_node_observability.py tests/test_workload_dashbo
 경보 테스트는 Helm이 렌더한 query·threshold·유지 시간으로 Prometheus 규칙을 만들고 `promtool`로 평가한다.
 노드 교체, 짧은 스케줄 대기, 클라이언트 연결 끊김, 단일 컨테이너 재시작처럼 알리지 않아야 할 경우도 검사한다.
 로컬 `promtool` 또는 이미 내려받은 `quay.io/prometheus/prometheus:v3.14.0-distroless` 이미지를 사용하며
-없으면 테스트를 건너뛴다. 코드·PromQL 검증은 Slack 전달 성공을 대신하지 않는다.
+없으면 테스트를 건너뛴다. 코드·PromQL 검증은 Keep·Slack 전달 성공을 대신하지 않는다.

@@ -10,26 +10,12 @@ from test_node_observability import rendered_grafana, run_promtool
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_workspace_firing_alerts_reach_grafana_with_identity_and_severity(rendered_grafana, tmp_path):
+def test_grafana_no_longer_forwards_workspace_prometheus_alerts(rendered_grafana):
+    # Alertmanager sends these rules to Keep with their own summary; a Grafana copy would duplicate them.
     secret = next(doc for doc in rendered_grafana if "workspace-notifications.yaml" in (doc.get("stringData") or {}))
-    rule = yaml.safe_load(secret["stringData"]["workspace-notifications.yaml"])["groups"][0]["rules"][0]
-    expr = rule["data"][0]["model"]["expr"]
-    fixture = {"evaluation_interval": "1m", "tests": [{"interval": "1m", "input_series": [
-        {"series": 'ALERTS{alertname="ForgeSandboxQuota",alertstate="firing",service="agent-forge",severity="warning",cluster="demo"}', "values": "1x5"},
-        {"series": 'ALERTS{alertname="ForgeSandboxPending",alertstate="pending",service="agent-forge",severity="warning",cluster="demo"}', "values": "1x5"},
-        {"series": 'ALERTS{alertname="KnowledgeWorkerUnavailable",alertstate="firing",service="agent-knowledge",severity="critical",cluster="demo"}', "values": "1x5"},
-        {"series": 'ALERTS{alertname="ForgeServiceUnavailable",alertstate="firing",service="agent-forge",severity="critical",cluster="demo"}', "values": "1x5"},
-        {"series": 'ALERTS{alertname="Unrelated",alertstate="firing",service="other",severity="critical",cluster="demo"}', "values": "1x5"},
-    ], "promql_expr_test": [{"expr": expr, "eval_time": "5m", "exp_samples": [{
-        "labels": '{cluster="demo",service="agent-forge",severity="warning",workspace_alert="ForgeSandboxQuota"}', "value": 1,
-    }, {
-        "labels": '{cluster="demo",service="agent-knowledge",severity="critical",workspace_alert="KnowledgeWorkerUnavailable"}', "value": 1,
-    }, {
-        "labels": '{cluster="demo",service="agent-forge",severity="critical",workspace_alert="ForgeServiceUnavailable"}', "value": 1,
-    }]}]}]}
-    (tmp_path / "tests.yaml").write_text(yaml.safe_dump(fixture))
-    run_promtool(tmp_path)
-
+    document = yaml.safe_load(secret["stringData"]["workspace-notifications.yaml"])
+    assert "groups" not in document
+    assert document["deleteRules"] == [{"orgId": 1, "uid": "addons-workspace-prometheus-alerts"}]
 
 def test_k3s_exporter_exposes_only_required_read_only_state():
     chart = ROOT / "charts/workspace-metrics"

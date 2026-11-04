@@ -41,7 +41,8 @@ k3s 선언(`addons-k3s.yaml`, `addons/k3s/`, `env/k3s-demo.yaml`, `charts/*/k3s/
 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
 `argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
-`keep` 은 같은 Dex 의 `keep-sso` 클라이언트로 로그인하고, Grafana·Argo CD 경보를 webhook 으로 받는다 (`charts/keep/README.md`).
+`keep` 은 같은 Dex 의 `keep-sso` 클라이언트로 로그인한다. Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는
+Keep 으로만 보내고, Keep workflow 가 Slack 메시지와 kube-sre 호출을 만든다 (`charts/keep/README.md`).
 
 istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해
 `charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`). 템플릿이 이 파일을 include 하므로

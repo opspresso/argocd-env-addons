@@ -68,7 +68,7 @@ def test_provisioned_providers_read_cluster_services_without_webhooks():
     secret = next(doc for doc in docs if doc["kind"] == "Secret" and doc["metadata"]["name"] == "keep-providers")
     providers = json.loads(secret["stringData"]["KEEP_PROVIDERS"])
     assert {name: provider["type"] for name, provider in providers.items()} == {
-        "prometheus": "prometheus", "loki": "grafana_loki", "argocd": "argocd",
+        "loki": "grafana_loki", "argocd": "argocd", "slack": "slack",
     }
     assert all(provider["install_webhook"] is False for provider in providers.values())
     assert providers["argocd"]["authentication"]["argocd_access_token"] == "$(ARGOCD_ACCESS_TOKEN)"
@@ -83,3 +83,26 @@ def test_backend_keeps_the_trace_id_middleware():
     env = {item["name"]: item.get("value") for item in backend["spec"]["template"]["spec"]["containers"][0]["env"]}
     assert env.get("KEEP_OTEL_ENABLED", "true") == "true"
     assert "OTEL_EXPORTER_OTLP_ENDPOINT" not in env
+
+
+def test_slack_workflows_ask_kube_sre_only_about_problems():
+    env = yaml.safe_load((ROOT / "env" / "eks-demo.yaml").read_text())["keep"]["slack"]
+    ask = f"<@{env['responder']}>"
+    docs = render()
+    config = next(doc for doc in docs if doc["kind"] == "ConfigMap" and doc["metadata"]["name"] == "keep-workflows")
+    workflows = {wf["id"]: wf for wf in (yaml.safe_load(body) for body in config["data"].values())}
+    assert set(workflows) == {"grafana-alert-to-slack", "prometheus-alert-to-slack", "argocd-alert-to-slack",
+                              "alert-resolved-to-slack", "incident-to-slack"}
+    for workflow_id, workflow in workflows.items():
+        action = workflow["actions"][0]
+        assert action["provider"]["type"] == "slack" and action["provider"]["config"] == "{{ providers.slack }}"
+        message = action["provider"]["with"]["message"]
+        # Agent Studio runs an app message only when the text holds the agent's keyword.
+        problem = workflow_id != "alert-resolved-to-slack"
+        assert (ask in message and env["keyword"] in message) is problem, workflow_id
+        for trigger in workflow["triggers"]:
+            if trigger["type"] == "alert":
+                assert trigger["only_on_change"] == ["status"], workflow_id
+    assert "firingCounter > 1" in workflows["alert-resolved-to-slack"]["triggers"][0]["cel"]
+    backend = next(doc for doc in docs if doc["kind"] == "Deployment" and doc["metadata"]["name"] == "keep-backend")
+    assert {"name": "workflows", "configMap": {"name": "keep-workflows"}} in backend["spec"]["template"]["spec"]["volumes"]

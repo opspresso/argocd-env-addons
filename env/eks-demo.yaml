@@ -105,6 +105,13 @@ kite:
 
 keep:
   hostname: keep.demo.rovr.dev
+  slack:
+    # Slack user of the kube-sre agent (Agent Studio) in the nalbam workspace.
+    # Keep mentions it on every problem so it starts investigating.
+    responder: U0C3UAFR7SM
+    # Agent Studio runs an app's message only when it contains one of the
+    # agent's channel keywords. Save the same text in the kube-sre Slack settings.
+    keyword: 원인 조사 요청
 
 prometheus:
   serviceMonitor:

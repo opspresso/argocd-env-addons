@@ -26,6 +26,8 @@ keep:
     envFromSecrets:
       - name: addon-keep-backend
 
+    # provision.workflows is in values-template.yaml.j2: it holds cluster values.
+
     podAnnotations:
       "prometheus.io/scrape": "false"
 

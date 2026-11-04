@@ -214,11 +214,8 @@ raw:
             remoteRef:
               key: /k8s/common/admin-password
 {% if env != 'k3s' %}
-          # Read through the SLACK_WEBHOOK_URL env var, not a file mount: the
+          # Read through the KEEP_API_KEY env var, not a file mount: the
           # alerting provisioning files interpolate $VAR but cannot read files.
-          - secretKey: slack-webhook
-            remoteRef:
-              key: /k8s/common/slack-webhook/grafana
           - secretKey: keep-api-key
             remoteRef:
               key: /k8s/common/keep/grafana-api-key

@@ -41,15 +41,11 @@ grafana:
       readOnly: true
       subPath: ""
 
-  # The slack contact point below reads the webhook from this variable. The auth
-  # secrets above are mounted as files because grafana.ini resolves $__file{},
-  # but provisioning files only interpolate environment variables.
+  # The keep contact point below reads its basic auth password (a Keep API key
+  # with the webhook role) from this variable. The auth secrets above are mounted
+  # as files because grafana.ini resolves $__file{}, but provisioning files only
+  # interpolate environment variables.
   envValueFrom:
-    SLACK_WEBHOOK_URL:
-      secretKeyRef:
-        name: grafana-secret
-        key: slack-webhook
-    # Basic auth password of the keep contact point: a Keep API key with the webhook role.
     KEEP_API_KEY:
       secretKeyRef:
         name: grafana-secret
@@ -168,32 +164,21 @@ grafana:
         gnetId: 7645 # Istio Control Plane Dashboard
         revision: latest
 
-  # Alertmanager is disabled in prometheus-stack, so the bundled PrometheusRules
-  # are evaluated but go nowhere. Grafana evaluates the rules in config/*.yaml
-  # against the same Prometheus and notifies slack itself.
+  # Grafana evaluates the rules in config/*.yaml against Prometheus and sends
+  # them to Keep. Alertmanager sends the PrometheusRules to Keep separately.
   #
   # The chart runs every entry through helm's tpl. Grafana template text must be
   # wrapped in a raw string ({{` ... `}}) so tpl prints it unchanged.
   alerting:
+    # Keep (charts/keep) is the only receiver. It merges these alerts with
+    # Prometheus (Alertmanager) and Argo CD alerts and sends Slack messages.
     contactpoints.yaml:
       secret:
         apiVersion: 1
         contactPoints:
-          - orgId: 1
-            name: slack
-            receivers:
-              - uid: slack-noti-eks-demo
-                type: slack
-                settings:
-                  # The webhook is bound to its channel at creation; recipient
-                  # only travels in the payload, matching what alertmanager sent.
-                  url: $SLACK_WEBHOOK_URL
-                  recipient: "#noti-eks-demo"
-                  title: '{{`{{ template "addons.slack.title" . }}`}}'
-                  text: '{{`{{ template "addons.slack.text" . }}`}}'
-          # Keep (charts/keep) correlates these alerts with Prometheus, Loki and
-          # Argo CD. It reads the Grafana webhook payload at /alerts/event/grafana
-          # and takes the API key as the basic auth password.
+          # Keep reads the Grafana webhook at /alerts/event/grafana and takes the
+          # API key as the basic auth password. Keep names the alert after the
+          # payload title, so the title is the rule name, not the group summary.
           - orgId: 1
             name: keep
             receivers:
@@ -204,55 +189,33 @@ grafana:
                   httpMethod: POST
                   username: grafana
                   password: $KEEP_API_KEY
+                  title: '{{`{{ .CommonLabels.alertname }}`}}'
+        # File provisioning does not remove what a file no longer lists.
+        deleteContactPoints:
+          - orgId: 1
+            uid: slack-noti-eks-demo
 
-    # One line per alert: state, severity, the rule summary with the affected
-    # object and value, the first-step hint, and links. Resolved messages keep
-    # only the summary so they close the incident without repeating the hint.
     templates.yaml:
       secret:
         apiVersion: 1
-        templates:
+        deleteTemplates:
           - orgId: 1
             name: addons-slack
-            template: |
-              {{`{{ define "addons.slack.title" -}}
-              {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}:rotating_light:{{ else }}:warning:{{ end }} FIRING{{ else }}:white_check_mark: RESOLVED{{ end }} {{ .CommonLabels.alertname }}{{ with .CommonLabels.namespace }} · {{ . }}{{ end }}{{ if gt (len .Alerts) 1 }} ({{ len .Alerts.Firing }} firing, {{ len .Alerts.Resolved }} resolved){{ end }}
-              {{- end }}
 
-              {{ define "addons.slack.alert" -}}
-              {{ if eq .Status "firing" }}{{ if eq .Labels.severity "critical" }}:red_circle:{{ else }}:large_orange_circle:{{ end }}{{ else }}:large_green_circle:{{ end }} {{ with .Annotations.summary }}{{ . }}{{ else }}{{ .Labels.alertname }}{{ end }}
-              {{- if eq .Status "firing" }}{{ with .Annotations.description }}
-              > {{ . }}{{ end }}{{ end }}
-              {{ with .Annotations.dashboard_url }}<{{ . }}|Dashboard>{{ else }}{{ with .PanelURL }}<{{ . }}|Panel>{{ else }}{{ with .DashboardURL }}<{{ . }}|Dashboard>{{ end }}{{ end }}{{ end }} · <{{ .GeneratorURL }}|Rule>{{ if eq .Status "firing" }} · <{{ .SilenceURL }}|Silence>{{ end }}
-              {{- end }}
-
-              {{ define "addons.slack.text" -}}
-              {{ range $i, $alert := .Alerts }}{{ if lt $i 10 }}{{ template "addons.slack.alert" $alert }}
-              {{ end }}{{ end }}{{ if gt (len .Alerts) 10 }}… and {{ len .Alerts | printf "%d" }} alerts in total; open Alerting in Grafana for the rest.{{ end }}
-              {{- end }}`}}
-
-    # Critical alerts are page-worthy and repeat hourly while firing; warnings
-    # need attention the same day and repeat twice a day.
+    # group_by '...' makes every alert its own notification. Keep reads the
+    # status of the whole notification, so a group that mixed firing and resolved
+    # alerts would report all of them as firing.
+    # Keep sends Slack only when the status changes, so repeats only refresh Keep.
     policies.yaml:
       secret:
         apiVersion: 1
         policies:
           - orgId: 1
-            receiver: slack
-            group_by: [grafana_folder, alertname, cluster, namespace]
-            group_wait: 30s
-            group_interval: 5m
-            repeat_interval: 12h
-            routes:
-              # Every alert also goes to Keep. continue lets the slack routes below match.
-              - receiver: keep
-                continue: true
-              - receiver: slack
-                object_matchers:
-                  - [severity, '=~', critical]
-                group_wait: 10s
-                group_interval: 1m
-                repeat_interval: 1h
+            receiver: keep
+            group_by: ['...']
+            group_wait: 10s
+            group_interval: 1m
+            repeat_interval: 4h
 
   persistence:
     enabled: true

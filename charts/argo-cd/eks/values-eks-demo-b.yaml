@@ -35,21 +35,6 @@ raw:
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
 
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
-      metadata:
-        name: argocd-notifications-secret
-      spec:
-        refreshInterval: 1h
-        secretStoreRef:
-          kind: ClusterSecretStore
-          name: parameter-store
-        target:
-          name: argocd-notifications-secret
-        data:
-          - secretKey: slack-token
-            remoteRef:
-              key: /k8s/common/argocd-noti-token
 
 
     - apiVersion: external-secrets.io/v1

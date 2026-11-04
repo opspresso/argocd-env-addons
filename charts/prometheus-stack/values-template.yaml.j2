@@ -7,6 +7,15 @@ kube-prometheus-stack:
       groups:
 {{ workspace_alert_groups | to_yaml | indent(8, first=true) }}
 
+{% if keep is defined and env == 'eks' %}
+  # Keep runs in this cluster: Alertmanager forwards every Prometheus alert to it.
+  alertmanager:
+    enabled: true
+  defaultRules:
+    disabled:
+      PrometheusNotConnectedToAlertmanagers: false
+
+{% endif %}
   prometheus:
     route:
       main:
@@ -88,8 +97,8 @@ kube-prometheus-stack:
 raw:
   resources:
     # alertmanagerSpec.secrets mounts this at
-    # /etc/alertmanager/secrets/prometheus-alertmanager-secret, where the slack
-    # receiver reads the webhook through api_url_file.
+    # /etc/alertmanager/secrets/prometheus-alertmanager-secret, where the keep
+    # receiver reads its API key through password_file.
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
@@ -102,9 +111,9 @@ raw:
         target:
           name: prometheus-alertmanager-secret
         data:
-          - secretKey: slack-hooks
+          - secretKey: keep-api-key
             remoteRef:
-              key: /k8s/common/slack-webhook/alertmanager
+              key: /k8s/common/keep/alertmanager-api-key
 
 {%- endif -%}
 
