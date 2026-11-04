@@ -72,3 +72,14 @@ def test_provisioned_providers_read_cluster_services_without_webhooks():
     }
     assert all(provider["install_webhook"] is False for provider in providers.values())
     assert providers["argocd"]["authentication"]["argocd_access_token"] == "$(ARGOCD_ACCESS_TOKEN)"
+
+
+def test_backend_keeps_the_trace_id_middleware():
+    # KEEP_OTEL_ENABLED=false skips keep.api.observability.setup, which sets
+    # request.state.trace_id; POST /alerts/event then fails with 500. Without an
+    # OTLP endpoint the setup installs no exporter.
+    docs = render()
+    backend = next(doc for doc in docs if doc["kind"] == "Deployment" and doc["metadata"]["name"] == "keep-backend")
+    env = {item["name"]: item.get("value") for item in backend["spec"]["template"]["spec"]["containers"][0]["env"]}
+    assert env.get("KEEP_OTEL_ENABLED", "true") == "true"
+    assert "OTEL_EXPORTER_OTLP_ENDPOINT" not in env
