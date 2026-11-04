@@ -37,9 +37,14 @@ argocd:
     parent_refs:
       - name: istio-ingressgateway
         namespace: istio-system
+  # Sign-in rule of every Dex client (Argo CD, Argo Workflows, Grafana, Keep, GitLab):
+  # members of the org sign in, members of `team` are administrators, the others read only.
   github:
     org: opspresso # github org
-    team: dev
+    team: sre
+    # Teams whose members get the read-only role where the app needs a group (Keep).
+    viewer_teams:
+      - dev
   google:
     enabled: false
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
@@ -47,7 +52,7 @@ argocd:
 argo_workflows:
   github:
     org: opspresso # github org
-    team: dev
+    team: sre
 
 # Agent Runway apps: this repository declares only their AppProjects. Their Applications and the environment profile
 # are in argocd-env-apps charts/agent-runway.
@@ -104,6 +109,11 @@ kite:
 
 gitlab:
   hostname: gitlab.demo.opsp.dev
+  # GitHub logins of the argocd.github.team team. GitLab CE cannot read the team
+  # from Dex, so keep this list equal to the team (charts/gitlab README.md).
+  admins:
+    - nalbam
+    - nalbam-bot
 
 keep:
   hostname: keep.demo.opsp.dev

@@ -1521,7 +1521,7 @@ grafana:
       login_attribute_path: preferred_username
       groups_attribute_path: groups
       # Dex reports GitHub teams as "<org>:<team>". The role syncs on every login.
-      role_attribute_path: "contains(groups[*], 'opspresso:dev') && 'Admin' || 'Viewer'"
+      role_attribute_path: "contains(groups[*], 'opspresso:sre') && 'Admin' || 'Viewer'"
 
 
 

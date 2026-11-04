@@ -26,6 +26,10 @@ keep:
         value: keep-sso
       # Dex reports GitHub teams as "<org>:<team>". A user in no listed group gets 403.
       - name: KEEP_OIDC_ADMIN_ROLES
+        value: "opspresso:sre"
+      # Other teams get the read-only noc role. Dex sends only team groups, so an
+      # organization member in no team still gets 403.
+      - name: KEEP_OIDC_NOC_ROLES
         value: "opspresso:dev"
 
     # KEEP_PROVIDERS. Keep reconciles these at startup and removes provisioned
@@ -364,6 +368,10 @@ keep:
       - name: KEEP_OIDC_CLIENT_ID
         value: keep-sso
       - name: KEEP_OIDC_ADMIN_ROLES
+        value: "opspresso:sre"
+      # Other teams get the read-only noc role. Dex sends only team groups, so an
+      # organization member in no team still gets 403.
+      - name: KEEP_OIDC_NOC_ROLES
         value: "opspresso:dev"
 
     podAnnotations:

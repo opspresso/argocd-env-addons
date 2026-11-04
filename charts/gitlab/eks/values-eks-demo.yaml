@@ -127,3 +127,100 @@ raw:
           - secretKey: client_secret
             remoteRef:
               key: /k8s/common/gitlab/oidc-client-secret
+    # GitLab CE cannot map OIDC groups to administrators (Premium only). This
+    # CronJob makes the users in gitlab.admins (the GitHub logins of the
+    # opspresso/sre team) administrators and the other SSO users not.
+    # It also keeps sign-up and the web password form off. root is not changed.
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: gitlab-admin-sync
+
+    # Runs gitlab-rails in the toolbox Pod, which has the full Rails configuration.
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: gitlab-admin-sync
+      rules:
+        - apiGroups: [""]
+          resources: [pods]
+          verbs: [get, list]
+        - apiGroups: [""]
+          resources: [pods/exec]
+          verbs: [create]
+
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: gitlab-admin-sync
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: gitlab-admin-sync
+      subjects:
+        - kind: ServiceAccount
+          name: gitlab-admin-sync
+
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: gitlab-admin-sync
+      data:
+        sync.sh: |
+          set -eu
+          # An empty list would remove every administrator: stop instead.
+          [ -n "${ADMINS}" ] || { echo "gitlab.admins is empty"; exit 1; }
+          pod=$(kubectl get pod -l app=toolbox --field-selector=status.phase=Running -o name | head -1)
+          [ -n "${pod}" ] || { echo "no running toolbox Pod"; exit 1; }
+          kubectl exec "${pod}" -c toolbox -- env ADMINS="${ADMINS}" gitlab-rails runner "$(cat /scripts/sync.rb)"
+        sync.rb: |
+          admins = ENV.fetch("ADMINS").split(",").map(&:downcase)
+          User.joins(:identities).where(identities: { provider: "openid_connect" }).find_each do |user|
+            admin = admins.include?(user.username.downcase)
+            next if user.admin? == admin
+            user.update!(admin: admin)
+            puts "#{user.username} admin=#{admin}"
+          end
+          settings = ApplicationSetting.current
+          unless !settings.signup_enabled && !settings.password_authentication_enabled_for_web
+            settings.update!(signup_enabled: false, password_authentication_enabled_for_web: false)
+            puts "sign-up and web password sign-in turned off"
+          end
+
+    - apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: gitlab-admin-sync
+      spec:
+        schedule: "*/10 * * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistoryLimit: 1
+        failedJobsHistoryLimit: 3
+        jobTemplate:
+          spec:
+            backoffLimit: 1
+            activeDeadlineSeconds: 600
+            template:
+              spec:
+                serviceAccountName: gitlab-admin-sync
+                restartPolicy: Never
+                containers:
+                  - name: sync
+                    image: alpine/k8s:1.37.1
+                    command: [sh, /scripts/sync.sh]
+                    env:
+                      - name: ADMINS
+                        value: "nalbam,nalbam-bot"
+                    resources:
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+                      limits:
+                        memory: 256Mi
+                    volumeMounts:
+                      - name: scripts
+                        mountPath: /scripts
+                volumes:
+                  - name: scripts
+                    configMap:
+                      name: gitlab-admin-sync

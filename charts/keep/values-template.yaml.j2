@@ -27,6 +27,10 @@ keep:
       # Dex reports GitHub teams as "<org>:<team>". A user in no listed group gets 403.
       - name: KEEP_OIDC_ADMIN_ROLES
         value: "{{argocd.github.org}}:{{argocd.github.team}}"
+      # Other teams get the read-only noc role. Dex sends only team groups, so an
+      # organization member in no team still gets 403.
+      - name: KEEP_OIDC_NOC_ROLES
+        value: "{% for t in argocd.github.viewer_teams | default([]) %}{{argocd.github.org}}:{{t}}{% if not loop.last %},{% endif %}{% endfor %}"
 
     # KEEP_PROVIDERS. Keep reconciles these at startup and removes provisioned
     # providers that are not listed. "$(NAME)" is replaced with the env var NAME.
@@ -223,6 +227,10 @@ keep:
         value: keep-sso
       - name: KEEP_OIDC_ADMIN_ROLES
         value: "{{argocd.github.org}}:{{argocd.github.team}}"
+      # Other teams get the read-only noc role. Dex sends only team groups, so an
+      # organization member in no team still gets 403.
+      - name: KEEP_OIDC_NOC_ROLES
+        value: "{% for t in argocd.github.viewer_teams | default([]) %}{{argocd.github.org}}:{{t}}{% if not loop.last %},{% endif %}{% endfor %}"
 
     podAnnotations:
       link.argocd.argoproj.io/external-link: "https://{{keep.hostname}}"

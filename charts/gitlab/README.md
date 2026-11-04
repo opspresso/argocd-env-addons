@@ -55,21 +55,26 @@ done
 
 ## 로그인
 
-- **GitHub**: Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거친다. Dex는 `opspresso` 조직 구성원만 받으므로,
-  첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. 같은 이메일의 기존 사용자에게는 연결된다.
-  provider 설정은 ExternalSecret `gitlab-oidc-provider`가 만든다.
-- **root**: `/k8s/common/gitlab/root-password`로 로그인한다. GitLab CE는 OIDC group으로 관리자를 지정할 수 없으므로,
-  관리자 권한은 root가 Admin 영역에서 준다.
+모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `argocd.github`).
 
-로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider: openid_connect`). 아이디·비밀번호 폼과 가입은 DB 설정으로 끈다.
-이 설정은 chart 값으로 바꿀 수 없다. 끄기 전에 GitHub로 로그인한 관리자 계정이 있어야 한다. 관리자 지정과 설정은 toolbox에서 실행한다.
+- `opspresso` 조직 구성원은 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거쳐 GitHub로 로그인한다.
+  첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. provider 설정은 ExternalSecret `gitlab-oidc-provider`가 만든다.
+- `opspresso/sre` 팀(`argocd.github.team`) 구성원은 관리자, 다른 사용자는 일반 사용자다.
+- 로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider`). 가입과 웹 비밀번호 로그인은 꺼져 있다.
+- `root`(`/k8s/common/gitlab/root-password`)는 API·rails console에서만 쓴다.
+
+GitLab CE는 OIDC group으로 관리자를 지정할 수 없다(Premium 이상). 그래서 관리자 GitHub login 목록을
+`env/<cluster>.yaml`의 `gitlab.admins`에 둔다. `sre` 팀 구성원이 바뀌면 이 목록도 함께 고친다.
+CronJob `gitlab-admin-sync`가 10분마다 toolbox Pod에서 `gitlab-rails runner`를 실행한다.
+
+- SSO 사용자 중 목록에 있는 사용자는 관리자로, 그 밖의 사용자는 일반 사용자로 맞춘다. `root`는 바꾸지 않는다.
+- 가입과 웹 비밀번호 로그인이 켜져 있으면 끈다. 이 두 설정은 DB에 저장되며 chart 값으로 바꿀 수 없다.
+- 목록이 비어 있으면 아무것도 바꾸지 않고 실패한다.
+- 처음 로그인한 사용자는 다음 실행 때 관리자가 된다. 바로 적용하려면 Job을 만든다.
 
 ```bash
-TOOLBOX="kubectl -n addon-gitlab exec deploy/gitlab-toolbox -c toolbox --"
-# 1. GitHub로 한 번 로그인한 사용자를 관리자로 지정한다.
-$TOOLBOX gitlab-rails runner 'u = User.find_by!(username: "<github-login>"); u.update!(admin: true)'
-# 2. 가입과 웹 비밀번호 로그인을 끈다. root는 API·rails console로만 쓴다.
-$TOOLBOX gitlab-rails runner 'ApplicationSetting.current.update!(signup_enabled: false, password_authentication_enabled_for_web: false)'
+kubectl -n addon-gitlab create job --from=cronjob/gitlab-admin-sync gitlab-admin-sync-manual
+kubectl -n addon-gitlab logs -f job/gitlab-admin-sync-manual
 ```
 
 Dex는 시작할 때만 client secret을 읽는다. `/k8s/common/gitlab/oidc-client-secret`을 바꾸면 `argocd-secret`이 갱신된 뒤
