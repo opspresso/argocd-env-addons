@@ -39,7 +39,7 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와 kube-sre 호출을 만든다 (`charts/keep/README.md`).
 Dex client 는 모두 같은 규칙을 따른다: `argocd.github.org` 구성원은 로그인, `argocd.github.team` 은 관리자, 나머지는 읽기 전용.
 GitLab CE 는 group 으로 관리자를 지정할 수 없어 CronJob `gitlab-admin-sync` 가 맞춘다.
-`jenkins`(`jenkins-sso`)·`harbor`(`harbor-sso`)도 같은 Dex 를 쓴다. 자체 로그인이 없는 `atlantis` 는 `oauth2-proxy`(`oauth2-proxy-sso`)가 막는다.
+`jenkins`(`jenkins-sso`)·`harbor`(`harbor-sso`)도 같은 Dex 를 쓴다. 자체 로그인이 없는 `atlantis`·`nexus` 는 `oauth2-proxy`(`oauth2-proxy-sso`)가 막는다.
 `gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙이고, 같은 Dex 의 `gitlab-sso` 클라이언트로 로그인한다 (`charts/gitlab/README.md`).
 
 istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해

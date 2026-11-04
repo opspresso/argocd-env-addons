@@ -1,0 +1,82 @@
+nexus:
+  fullnameOverride: nexus
+
+  image:
+    repository: sonatype/nexus3
+    tag: "3.98.0"
+
+  containerName: nexus
+
+  # One Pod owns the ReadWriteOnce volume.
+  controller:
+    strategy:
+      type: Recreate
+
+  service:
+    name: http
+    port: 8081
+    targetPort: 8081
+
+  env:
+    # Heap and direct memory stay inside the 3Gi limit.
+    - name: INSTALL4J_ADD_VM_PARAMS
+      value: >-
+        -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
+        -Djava.util.prefs.userRoot=/nexus-data/javaprefs
+        -Dnexus.scripts.allowCreation=true
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 2Gi
+    limits:
+      memory: 3Gi
+
+  podSecurityContext:
+    runAsUser: 200
+    runAsGroup: 200
+    fsGroup: 200
+
+  startupProbe:
+    httpGet:
+      path: /service/rest/v1/status
+      port: http
+    periodSeconds: 10
+    failureThreshold: 60
+  readinessProbe:
+    httpGet:
+      path: /service/rest/v1/status
+      port: http
+    periodSeconds: 10
+  livenessProbe:
+    httpGet:
+      path: /service/rest/v1/status
+      port: http
+    periodSeconds: 30
+    failureThreshold: 6
+
+  terminationGracePeriodSeconds: 120
+
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    accessModes:
+      - ReadWriteOnce
+    size: 50Gi
+    mountPath: /nexus-data
+
+  # Nexus trusts the user header that the gateway sets after oauth2-proxy
+  # (Remote User Token). Only the gateway and this namespace reach the Pod, so
+  # no other Pod can send the header.
+  networkPolicy:
+    enabled: true
+    policyTypes: [Ingress]
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: istio-system
+          - podSelector: {}
+        ports:
+          - protocol: TCP
+            port: 8081
