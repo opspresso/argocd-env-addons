@@ -1,6 +1,5 @@
+{% if argocd is defined %}
 oauth2-proxy:
-  fullnameOverride: oauth2-proxy
-
   config:
     # Sign-in through Argo CD Dex (client oauth2-proxy-sso). Dex accepts only
     # members of the {{argocd.github.org}} organization. Istio sends the hosts of
@@ -51,3 +50,6 @@ raw:
           - backendRefs:
               - name: oauth2-proxy
                 port: 80
+{% else %}
+# no cluster-specific overrides
+{% endif %}

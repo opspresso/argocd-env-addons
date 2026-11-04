@@ -1,26 +1,49 @@
+
 oauth2-proxy:
-  fullnameOverride: oauth2-proxy
-
   config:
+    # Sign-in through Argo CD Dex (client oauth2-proxy-sso). Dex accepts only
+    # members of the opspresso organization. Istio sends the hosts of
+    # the AuthorizationPolicies with provider oauth2-proxy here (charts/istio).
     configFile: |-
-      # upstreams = [ "file:///dev/null" ]
+      provider = "oidc"
+      provider_display_name = "GitHub"
+      oidc_issuer_url = "https://argocd.demo.opsp.dev/api/dex"
+      client_id = "oauth2-proxy-sso"
+      scope = "openid profile email groups"
+      code_challenge_method = "S256"
+      redirect_url = "https://auth.demo.opsp.dev/oauth2/callback"
+      skip_provider_button = true
+
       upstreams = [ "static://200" ]
-
-      cookie_domains = ".demo.opsp.dev"
-      email_domains = ["nalbam.com","opspresso.com"]
-      whitelist_domains = [".demo.opsp.dev"]
-
-      pass_access_token = true
-      pass_authorization_header = true
-      pass_host_header = true
-      set_authorization_header = true
-      set_xauthrequest = true
-
-      auth_logging = true
-      request_logging = true
-      silence_ping_logging = true
-      standard_logging = true
+      email_domains = [ "*" ]
+      cookie_domains = [ ".demo.opsp.dev" ]
+      whitelist_domains = [ ".demo.opsp.dev" ]
+      cookie_secure = true
 
       reverse_proxy = true
+      set_xauthrequest = true
+      pass_access_token = true
 
-      oidc_issuer_url = "https://accounts.google.com"
+      silence_ping_logging = true
+
+raw:
+  resources:
+    # The OAuth callback. The protected hosts redirect here and back.
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: oauth2-proxy
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+
+            name: istio-ingressgateway
+            namespace: istio-system
+
+        hostnames:
+          - "auth.demo.opsp.dev"
+        rules:
+          - backendRefs:
+              - name: oauth2-proxy
+                port: 80
