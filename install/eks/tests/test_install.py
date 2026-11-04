@@ -48,7 +48,7 @@ class InstallTest(unittest.TestCase):
             bin_dir = Path(directory) / "bin"
             bin_dir.mkdir()
             shutil.copy2(INSTALLER, root / "install.sh")
-            for name in ("aws", "jq", "helm", "kubectl", "openssl", "uuidgen", "python3", "token.sh", "build.sh"):
+            for name in ("aws", "jq", "helm", "kubectl", "openssl", "uuidgen", "python3", "token.sh", "secrets.sh", "build.sh"):
                 path = root / name if name.endswith(".sh") else bin_dir / name
                 path.write_text(f"#!{sys.executable}\n{COMMAND}")
                 path.chmod(0o755)
@@ -79,13 +79,23 @@ class InstallTest(unittest.TestCase):
         self.assertTrue(all(commands.index(c) > install for c in applied))
         self.assertIn("https://argocd.example.test", result.stdout)
 
+    def test_creates_addon_secrets_before_values_and_installation(self):
+        result, commands = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        names = [command[0] for command in commands]
+        # argocd-secret reads the OIDC client secrets that secrets.sh creates.
+        self.assertLess(names.index("token.sh"), names.index("secrets.sh"))
+        self.assertLess(names.index("secrets.sh"), names.index("build.sh"))
+        install = next(i for i, c in enumerate(commands) if c[:2] == ["helm", "upgrade"])
+        self.assertLess(names.index("secrets.sh"), install)
+
     def test_ssm_error_or_missing_value_stops_before_installation(self):
         for scenario in ("ssm_failure", "ssm_empty"):
             with self.subTest(scenario=scenario):
                 result, commands = self.run_installer(scenario)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("SSM 접속 정보 조회 단계 실패", result.stderr)
-                self.assertFalse(any(command[0] in ("token.sh", "build.sh", "kubectl") for command in commands))
+                self.assertFalse(any(command[0] in ("token.sh", "secrets.sh", "build.sh", "kubectl") for command in commands))
                 self.assertFalse(any(command[:2] == ["helm", "upgrade"] for command in commands))
 
     def test_helm_error_stops_before_registration(self):

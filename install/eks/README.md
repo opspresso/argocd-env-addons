@@ -111,10 +111,11 @@ python3 -m pip install -r ../../requirements/runtime.txt
 `./install.sh`는 다음을 차례로 실행한다. 한 단계라도 실패하면 그 단계 이름과 종료 코드를 출력하고 멈춘다.
 
 1. `token.sh`: Argo CD 서명 키와 mcp 계정 토큰을 SSM에서 확인하거나 만든다.
-2. `build.sh`: SSM 값으로 `values.output.yaml`(0600)을 만든다. 값 조회가 하나라도 실패하면 기존 파일을 유지한다.
-3. `helm upgrade --install argocd`: Argo CD를 설치하고 준비될 때까지 기다린다(`HELM_TIMEOUT`, 기본 10m).
-4. `bootstrap.yaml`: 이 클러스터를 이름 `eks-demo`로 등록하는 cluster Secret과 `addons`·`apps` AppProject를 적용한다.
-5. `addons-eks.yaml`과 `argocd-env-apps`의 `apps-eks.yaml`을 등록한다.
+2. `secrets.sh`: addon이 읽는 무작위 값을 없을 때만 SSM에 만든다(아래 'Addon secrets').
+3. `build.sh`: SSM 값으로 `values.output.yaml`(0600)을 만든다. 값 조회가 하나라도 실패하면 기존 파일을 유지한다.
+4. `helm upgrade --install argocd`: Argo CD를 설치하고 준비될 때까지 기다린다(`HELM_TIMEOUT`, 기본 10m).
+5. `bootstrap.yaml`: 이 클러스터를 이름 `eks-demo`로 등록하는 cluster Secret과 `addons`·`apps` AppProject를 적용한다.
+6. `addons-eks.yaml`과 `argocd-env-apps`의 `apps-eks.yaml`을 등록한다.
 
 설치는 공개 DNS·로그인·`argocd` CLI를 사용하지 않는다. 부트스트랩 values는 Ingress를 만들지 않는다.
 Argo CD UI(`https://<argocd-hostname>`)는 `istio`와 `argo-cd` addon이 동기화된 뒤 공용 ALB와
@@ -124,6 +125,41 @@ istio HTTPRoute로 응답한다. 도메인은 `terraform-env-demo`의 `3-alb`(`*
 ```bash
 ./install.sh
 ```
+
+addons가 동기화되어 `kanidm` Pod가 준비되면 `kanidm.sh`를 한 번 실행한다(아래 'Kanidm').
+
+## Addon secrets
+
+`./secrets.sh`는 addon이 읽는 무작위 값(OIDC client secret, DB·관리자 비밀번호, 암호화 키, Kanidm 내부 TLS)을
+SSM에 만든다. **없는 파라미터만 만들고 있는 값은 바꾸지 않는다.** DB 비밀번호나 암호화 키를 바꾸면 기존 데이터를 읽을 수 없기 때문이다.
+`install.sh`가 Argo CD 설치 전에 실행한다. `argocd-secret`이 OIDC client secret을 읽으므로 하나라도 없으면 Argo CD가 시작하지 않는다.
+
+```bash
+./secrets.sh           # 없는 값만 만든다
+./secrets.sh --check   # 만들지 않고 없는 값만 출력한다. 하나라도 없으면 종료 코드 1
+```
+
+- 값은 출력하지 않는다. `ParameterNotFound`만 미생성으로 처리하고, 권한·통신 오류는 쓰기 전에 중단한다.
+- Kanidm 내부 CA를 새로 만들면 CA 인증서를 출력한다. `charts/kanidm/values-template.yaml.j2`의 `ca.crt`를 그 값으로 바꾼다.
+- 사람이 정하는 값(GitHub OAuth App, Slack bot token 등)은 'Set variables'와 각 chart README를 따른다.
+
+## Kanidm
+
+Kanidm(`charts/kanidm`)은 관리자 비밀번호와 OAuth2 client secret을 직접 만든다. 정해 둔 값을 넣는 방법이 없다.
+`./kanidm.sh`는 SSM 값이 Kanidm에서 통하는지 확인하고, 없거나 통하지 않을 때만 Kanidm이 만든 값으로 SSM을 바꾼다.
+
+| 파라미터 | 확인 | 다를 때 |
+| --- | --- | --- |
+| `/k8s/common/kanidm/idm-admin-password` | 이 값으로 `idm_admin` 로그인 | `kanidmd recover-account idm_admin`의 새 비밀번호를 저장하고 `kanidm-idm-admin` Secret을 갱신 |
+| `/k8s/common/kanidm/dex-client-secret` | `kanidm system oauth2 show-basic-secret dex`와 비교 | 저장하고 `argocd-secret`을 갱신한 뒤 Dex를 재시작 |
+
+```bash
+./kanidm.sh                                # 현재 kubectl context
+KUBE_CONTEXT=eks-demo ./kanidm.sh          # context 지정
+```
+
+- 비밀번호는 Pod spec이 아니라 표준 입력으로 일회용 `kanidm/tools` Pod에 넘긴다. 값은 출력하지 않는다.
+- OAuth2 client `dex`가 없으면 멈춘다. Argo CD에서 `kanidm`을 sync해 provisioning Job을 먼저 실행한다.
 
 ## Delete
 
