@@ -55,11 +55,11 @@ done
 
 ## 로그인
 
-모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `argocd.github`).
+모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
-- `opspresso` 조직 구성원은 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거쳐 GitHub로 로그인한다.
+- `sso` 그룹 구성원은 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거쳐 로그인한다.
   첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. provider 설정은 ExternalSecret `gitlab-oidc-provider`가 만든다.
-- `opspresso/sre` 팀(`argocd.github.team`) 구성원은 관리자, 다른 사용자는 일반 사용자다.
+- `gitlab.admins`(`sso.admin_groups` 구성원의 login 이름)는 관리자, 다른 사용자는 일반 사용자다.
 - 로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider`). 가입과 웹 비밀번호 로그인은 꺼져 있다.
 - `root`(`/k8s/common/gitlab/root-password`)는 API·rails console에서만 쓴다.
 

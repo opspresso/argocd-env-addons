@@ -1,8 +1,8 @@
 
 oauth2-proxy:
   config:
-    # Sign-in through Argo CD Dex (client oauth2-proxy-sso). Dex accepts only
-    # members of the opspresso organization. Istio sends the hosts of
+    # Sign-in through Argo CD Dex (client oauth2-proxy-sso). Dex accepts only the
+    # sso groups. Istio sends the hosts of
     # the AuthorizationPolicies with provider oauth2-proxy here (charts/istio).
     configFile: |-
       provider = "oidc"

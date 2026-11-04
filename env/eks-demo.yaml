@@ -37,22 +37,13 @@ argocd:
     parent_refs:
       - name: istio-ingressgateway
         namespace: istio-system
-  # Sign-in rule of every Dex client (Argo CD, Argo Workflows, Grafana, Keep, GitLab):
-  # members of the org sign in, members of `team` are administrators, the others read only.
+  # GitHub sign-in through Dex while Kanidm takes over (sso below).
   github:
     org: opspresso # github org
-    team: sre
-    # Teams whose members get the read-only role where the app needs a group (Keep).
-    viewer_teams:
-      - dev
   google:
     enabled: false
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
 
-argo_workflows:
-  github:
-    org: opspresso # github org
-    team: sre
 
 # Agent Runway apps: this repository declares only their AppProjects. Their Applications and the environment profile
 # are in argocd-env-apps charts/agent-runway.
@@ -91,8 +82,7 @@ target_group:
 grafana:
   hostname: grafana.demo.opsp.dev
   auth:
-    # Argo CD Dex (client grafana-sso). Members of argocd.github.team become
-    # Grafana Admin; other organization members are Viewer.
+    # Argo CD Dex (client grafana-sso). sso.admin_groups are Admin, other users Viewer.
     dex:
       enabled: true
     google:
@@ -109,10 +99,22 @@ kite:
 
 gitlab:
   hostname: gitlab.demo.opsp.dev
-  # GitHub logins of the argocd.github.team team. GitLab CE cannot read the team
-  # from Dex, so keep this list equal to the team (charts/gitlab README.md).
+  # Login names of the sso.admin_groups members. GitLab CE cannot map groups to
+  # administrators, so keep this list equal to the group (charts/gitlab README.md).
   admins:
     - nalbam
+
+# Sign-in rule of every addon that uses Argo CD Dex. Members of admin_groups are
+# administrators; members of member_groups sign in as users or readers. Kanidm
+# sends the group names (sre, dev). GitHub teams ("<org>:<team>") stay listed
+# until the github connector is removed.
+sso:
+  admin_groups:
+    - sre
+    - opspresso:sre
+  member_groups:
+    - dev
+    - opspresso:dev
 
 # Identity provider (charts/kanidm). Kanidm keeps the people and the groups;
 # Argo CD Dex signs them in to every addon.
@@ -134,7 +136,7 @@ harbor:
 
 nexus:
   hostname: nexus.demo.opsp.dev
-  # GitHub logins of the argocd.github.team team. Nexus Community Edition has no
+  # Login names of the sso.admin_groups members. Nexus Community Edition has no
   # group mapping, so these users get nx-admin (charts/nexus README.md).
   admins:
     - nalbam

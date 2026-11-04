@@ -63,7 +63,7 @@ raw:
       metadata:
         name: sso-team
         annotations:
-          workflows.argoproj.io/rbac-rule: "'{{argo_workflows.github.org}}:{{argo_workflows.github.team}}' in groups"
+          workflows.argoproj.io/rbac-rule: "{% for g in sso.admin_groups %}'{{g}}' in groups{% if not loop.last %} || {% endif %}{% endfor %}"
           workflows.argoproj.io/rbac-rule-precedence: "1"
     - apiVersion: v1
       kind: Secret

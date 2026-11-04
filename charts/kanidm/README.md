@@ -56,6 +56,17 @@ kanidmd는 HTTPS만 받는다. ALB가 브라우저 TLS를 종료하고, gateway�
 
 두 값이 이미 맞으면 `kanidm.sh`는 아무것도 바꾸지 않는다. Kanidm 데이터를 잃어 다시 설치했을 때도 같은 순서를 따른다.
 
+## GitHub 로그인에서 전환
+
+Dex에는 connector `kanidm`과 `github`가 함께 있다. 로그인 화면에서 둘 중 하나를 고른다.
+`sso.admin_groups`·`sso.member_groups`에는 Kanidm 그룹(`sre`, `dev`)과 GitHub 팀(`opspresso:sre`, `opspresso:dev`)이 함께 있다.
+
+모든 관리자가 Kanidm으로 로그인할 수 있게 되면 다음을 지운다.
+
+1. `charts/argo-cd`의 Dex connector `github`와 `argocd-secret`의 `dex.github.*`
+2. `env/<cluster>.yaml`의 `sso` 목록에서 `opspresso:*`와 `argocd.github`
+3. GitHub OAuth App `argocd-demo`와 SSM `/k8s/opspresso/argocd-github-id`, `argocd-github-secret`
+
 ## 팀원 관리
 
 `idm_admin`으로 CLI(`kanidm`, 이미지 `kanidm/tools`)에 로그인해 관리한다.
