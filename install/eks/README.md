@@ -14,15 +14,11 @@ terraform apply
 ## Set variables
 
 > argocd admin password 를 잊어버리지 않기 위해, aws ssm 에 저장 합니다.
-> github 계정으로 인증하기 위해 client id 와 client secret 을 저장 합니다.
-> github org (opspresso) 에 team (sre) 을 만들고 권한을 부여 합니다.
+> 사람의 로그인은 Kanidm(`charts/kanidm`)이 맡습니다. 여기서는 GitHub 계정·팀을 설정하지 않습니다.
 
 ```bash
 # variables
 export ARGOCD_HOSTNAME="argocd.demo.opsp.dev"
-
-export GITHUB_ORG="opspresso"
-export GITHUB_TEAM="sre"
 
 export ADMIN_USERNAME="admin"
 export ADMIN_PASSWORD="REPLACE_ME"
@@ -32,15 +28,9 @@ export ARGOCD_MTIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 export ARGOCD_SERVER_SECRET="REPLACE_ME" # random string. 아래 'Set server secret and mcp token' 참고
 export ARGOCD_WEBHOOK="REPLACE_ME" # random string
 
-export ARGOCD_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
-export ARGOCD_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
-
 
 # put aws ssm parameter store
 aws ssm put-parameter --name /k8s/common/argocd-hostname --value "${ARGOCD_HOSTNAME}" --type SecureString --overwrite | jq .
-
-aws ssm put-parameter --name /k8s/common/github-org --value "${GITHUB_ORG}" --type SecureString --overwrite | jq .
-aws ssm put-parameter --name /k8s/common/github-team --value "${GITHUB_TEAM}" --type SecureString --overwrite | jq .
 
 aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite | jq .
@@ -54,8 +44,6 @@ aws ssm put-parameter --name /k8s/common/argo-workflows-client-secret --value "$
 aws ssm put-parameter --name /k8s/common/oauth2-proxy-client-secret --value "${ARGOCD_SERVER_SECRET}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/cookie-secret --value "${ARGOCD_SERVER_SECRET}" --type SecureString --overwrite | jq .
 
-aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-id --value "${ARGOCD_GITHUB_ID}" --type SecureString --overwrite | jq .
-aws ssm put-parameter --name /k8s/${GITHUB_ORG}/argocd-github-secret --value "${ARGOCD_GITHUB_SECRET}" --type SecureString --overwrite | jq .
 ```
 
 ## Set server secret and mcp token

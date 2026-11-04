@@ -27,9 +27,9 @@ keep:
       # sso.admin_groups get admin, sso.member_groups the read-only noc role.
       # A user in no listed group gets 403: Keep has no default role.
       - name: KEEP_OIDC_ADMIN_ROLES
-        value: "sre,opspresso:sre"
+        value: "sre"
       - name: KEEP_OIDC_NOC_ROLES
-        value: "dev,opspresso:dev"
+        value: "dev"
 
     # KEEP_PROVIDERS. Keep reconciles these at startup and removes provisioned
     # providers that are not listed. "$(NAME)" is replaced with the env var NAME.
@@ -367,9 +367,9 @@ keep:
       - name: KEEP_OIDC_CLIENT_ID
         value: keep-sso
       - name: KEEP_OIDC_ADMIN_ROLES
-        value: "sre,opspresso:sre"
+        value: "sre"
       - name: KEEP_OIDC_NOC_ROLES
-        value: "dev,opspresso:dev"
+        value: "dev"
 
     podAnnotations:
       link.argocd.argoproj.io/external-link: "https://keep.demo.opsp.dev"

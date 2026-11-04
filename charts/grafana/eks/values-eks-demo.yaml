@@ -1506,8 +1506,8 @@ grafana:
     # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/
     auth.generic_oauth:
       enabled: true
-      name: GitHub
-      icon: github
+      name: Kanidm
+      icon: signin
       allow_sign_up: true
       auto_login: true
       client_id: grafana-sso
@@ -1520,7 +1520,7 @@ grafana:
       login_attribute_path: preferred_username
       groups_attribute_path: groups
       # sso.admin_groups are Admin, other users Viewer. The role syncs on every login.
-      role_attribute_path: "(contains(groups[*], 'sre') || contains(groups[*], 'opspresso:sre')) && 'Admin' || 'Viewer'"
+      role_attribute_path: "(contains(groups[*], 'sre')) && 'Admin' || 'Viewer'"
 
 
 

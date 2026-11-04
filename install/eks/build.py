@@ -60,8 +60,6 @@ def build():
         key: ssm(f"/k8s/common/{name}")
         for key, name in (
             ("ARGOCD_HOSTNAME", "argocd-hostname"),
-            ("GITHUB_ORG", "github-org"),
-            ("GITHUB_TEAM", "github-team"),
             ("ARGOCD_PASSWORD", "argocd-password"),
             ("ARGOCD_MTIME", "argocd-mtime"),
             ("ARGOCD_SERVER_SECRET", "argocd-server-secret"),
@@ -69,11 +67,6 @@ def build():
             ("ARGOCD_MCP_TOKENS", "argocd-mcp-tokens"),
         )
     }
-    for key, name in (
-        ("ARGOCD_GITHUB_ID", "argocd-github-id"),
-        ("ARGOCD_GITHUB_SECRET", "argocd-github-secret"),
-    ):
-        replacements[key] = ssm(f"/k8s/{replacements['GITHUB_ORG']}/{name}")
 
     template = yaml.safe_load((SCRIPT_DIR / "values.yaml").read_text())
     values = replace_values(template, replacements)

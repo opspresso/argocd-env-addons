@@ -6,7 +6,7 @@ oauth2-proxy:
     # the AuthorizationPolicies with provider oauth2-proxy here (charts/istio).
     configFile: |-
       provider = "oidc"
-      provider_display_name = "GitHub"
+      provider_display_name = "Kanidm"
       oidc_issuer_url = "https://{{argocd.hostname}}/api/dex"
       client_id = "oauth2-proxy-sso"
       scope = "openid profile email groups"

@@ -110,8 +110,7 @@ raw:
             data:
               provider: |
                 name: openid_connect
-                label: GitHub
-                icon: https://github.githubassets.com/favicons/favicon.svg
+                label: Kanidm
                 args:
                   name: openid_connect
                   scope: [openid, profile, email]

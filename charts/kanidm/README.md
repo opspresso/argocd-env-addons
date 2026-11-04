@@ -25,7 +25,7 @@ Kanidm은 Helm chart를 내지 않는다. 이 chart는 공식 이미지 `kanidm/
 
 - 로그인할 수 있는 사람은 `env/<cluster>.yaml`의 `kanidm.groups`(`sre`, `dev`) 구성원이다. 다른 사람은 Kanidm이 거부한다.
 - Kanidm은 claim `groups`에 그룹 이름(`sre`, `dev`)을 보낸다(scope `groups_name`).
-- 각 addon의 권한은 `sso.admin_groups`(관리자)와 `sso.member_groups`(일반·읽기)로 정한다.
+- 각 addon의 권한은 `sso.admin_groups`(관리자)와 `sso.member_groups`(일반·읽기)로 정한다. Dex connector는 `kanidm` 하나다.
 
 ## TLS
 
@@ -55,17 +55,6 @@ kanidmd는 HTTPS만 받는다. ALB가 브라우저 TLS를 종료하고, gateway�
 5. `install/eks/kanidm.sh`를 다시 실행한다. client `dex`의 secret을 SSM에 넣고 Dex를 재시작한다.
 
 두 값이 이미 맞으면 `kanidm.sh`는 아무것도 바꾸지 않는다. Kanidm 데이터를 잃어 다시 설치했을 때도 같은 순서를 따른다.
-
-## GitHub 로그인에서 전환
-
-Dex에는 connector `kanidm`과 `github`가 함께 있다. 로그인 화면에서 둘 중 하나를 고른다.
-`sso.admin_groups`·`sso.member_groups`에는 Kanidm 그룹(`sre`, `dev`)과 GitHub 팀(`opspresso:sre`, `opspresso:dev`)이 함께 있다.
-
-모든 관리자가 Kanidm으로 로그인할 수 있게 되면 다음을 지운다.
-
-1. `charts/argo-cd`의 Dex connector `github`와 `argocd-secret`의 `dex.github.*`
-2. `env/<cluster>.yaml`의 `sso` 목록에서 `opspresso:*`와 `argocd.github`
-3. GitHub OAuth App `argocd-demo`와 SSM `/k8s/opspresso/argocd-github-id`, `argocd-github-secret`
 
 ## 팀원 관리
 
