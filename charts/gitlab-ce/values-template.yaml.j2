@@ -1,0 +1,81 @@
+{% if gitlab_ce is defined %}
+gitlab-ce:
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://{{gitlab_ce.hostname}}"
+
+  # Omnibus reads this Ruby at every start (gitlab-ctl reconfigure), so a change
+  # here takes effect after the Pod restarts.
+  env:
+    - name: TZ
+      value: Asia/Seoul
+    - name: GITLAB_OMNIBUS_CONFIG
+      value: |
+        external_url 'https://{{gitlab_ce.hostname}}'
+        gitlab_rails['time_zone'] = 'Asia/Seoul'
+
+        # The gateway terminates TLS and forwards plain HTTP. It routes no SSH,
+        # so Git uses HTTPS.
+        letsencrypt['enable'] = false
+        nginx['listen_port'] = 80
+        nginx['listen_https'] = false
+        nginx['proxy_set_headers'] = {
+          'X-Forwarded-Proto' => 'https',
+          'X-Forwarded-Ssl' => 'on'
+        }
+
+        # The kubelet probes /-/readiness and /-/liveness from the node address.
+        gitlab_rails['monitoring_whitelist'] = ['127.0.0.0/8', '10.0.0.0/8']
+
+        # The cluster Prometheus already monitors the Pod. The bundled one and
+        # its exporters only use memory.
+        prometheus_monitoring['enable'] = false
+        gitlab_rails['usage_ping_enabled'] = false
+        puma['worker_processes'] = 2
+        sidekiq['concurrency'] = 10
+
+        # Sign-in with GitHub through Argo CD Dex (client gitlab-sso). Dex accepts
+        # only members of the {{argocd.github.org}} organization, so the first
+        # sign-in creates an active user without admin approval.
+        gitlab_rails['omniauth_enabled'] = true
+        gitlab_rails['omniauth_allow_single_sign_on'] = ['openid_connect']
+        gitlab_rails['omniauth_block_auto_created_users'] = false
+        gitlab_rails['omniauth_auto_link_user'] = ['openid_connect']
+        gitlab_rails['omniauth_providers'] = [
+          {
+            name: 'openid_connect',
+            label: 'GitHub',
+            icon: 'https://github.githubassets.com/favicons/favicon.svg',
+            args: {
+              name: 'openid_connect',
+              scope: ['openid', 'profile', 'email'],
+              response_type: 'code',
+              issuer: 'https://{{argocd.hostname}}/api/dex',
+              discovery: true,
+              pkce: true,
+              client_options: {
+                identifier: 'gitlab-sso',
+                secret: ENV['GITLAB_OIDC_CLIENT_SECRET'],
+                redirect_uri: 'https://{{gitlab_ce.hostname}}/users/auth/openid_connect/callback'
+              }
+            }
+          }
+        ]
+
+  routing:
+    hosts:
+      - "{{gitlab_ce.hostname}}"
+    httpRoute:
+      enabled: true
+      annotations:
+        link.argocd.argoproj.io/external-link: "https://{{gitlab_ce.hostname}}"
+      parentRefs:
+{% if gateway is defined %}
+        - name: "{{gateway.name}}"
+          namespace: "{{gateway.namespace}}"
+{% else %}
+        - name: istio-ingressgateway
+          namespace: istio-system
+{% endif %}
+{% else %}
+# no cluster-specific overrides
+{% endif %}

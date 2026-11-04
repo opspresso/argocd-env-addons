@@ -174,6 +174,11 @@ argo-cd:
           redirectURIs:
             - https://keep.{{hostname.public}}/api/auth/callback/oidc
           secretEnv: KEEP_SSO_CLIENT_SECRET
+        - id: gitlab-sso
+          name: GitLab
+          redirectURIs:
+            - https://gitlab.{{hostname.public}}/users/auth/openid_connect/callback
+          secretEnv: GITLAB_SSO_CLIENT_SECRET
 
 {% endif %}
 
@@ -368,5 +373,8 @@ raw:
               key: /k8s/common/oauth2-proxy-client-secret
           - secretKey: keep-client-secret
             remoteRef:
-              key: /k8s/common/keep/oidc-client-secret{% endif %}
+              key: /k8s/common/keep/oidc-client-secret
+          - secretKey: gitlab-client-secret
+            remoteRef:
+              key: /k8s/common/gitlab-ce/oidc-client-secret{% endif %}
 {%- endif %}
