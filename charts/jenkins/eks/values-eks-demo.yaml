@@ -30,11 +30,6 @@ jenkins:
                   - "Overall/Administer"
 
             - group:
-                name: "opspresso:sre"
-                permissions:
-                  - "Overall/Administer"
-
-            - group:
                 name: "authenticated"
                 permissions:
                   - "Overall/Read"

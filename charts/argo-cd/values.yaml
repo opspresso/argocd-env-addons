@@ -279,7 +279,7 @@ argo-cd:
     # rbac:
     #   policy.default: "role:readonly"
     #   policy.csv: |
-    #     g, {{argocd.github.org}}:{{argocd.github.team}}, role:admin
+    #     g, sre, role:admin
 
     params:
       server.insecure: true
@@ -376,15 +376,9 @@ argo-cd:
 
       # dex.config: |
       #   connectors:
-      #   - type: github
-      #     id: github
-      #     name: github
-      #     config:
-      #       clientID: $dex.github.clientId
-      #       clientSecret: $dex.github.clientSecret
-      #       teamNameField: slug
-      #       orgs:
-      #         - name: {{argocd.github.org}}
+      #   - type: oidc
+      #     id: kanidm
+      #     name: Kanidm
       #   staticClients:
       #   - id: argo-workflows-sso
       #     name: Argo Workflow

@@ -151,15 +151,6 @@ argo-cd:
 
       dex.config: |
         connectors:
-        - type: github
-          id: github
-          name: github
-          config:
-            clientID: $dex.github.clientId
-            clientSecret: $dex.github.clientSecret
-            teamNameField: slug
-            orgs:
-              - name: {{argocd.github.org}}
 {% if kanidm is defined %}
         # Kanidm (charts/kanidm) keeps the people and groups. Only members of the
         # groups in its OAuth2 client dex can sign in. The claim groups holds the
@@ -360,12 +351,6 @@ raw:
           - secretKey: admin.passwordMtime
             remoteRef:
               key: /k8s/common/argocd-mtime
-          - secretKey: dex.github.clientId
-            remoteRef:
-              key: /k8s/{{argocd.github.org}}/argocd-github-id
-          - secretKey: dex.github.clientSecret
-            remoteRef:
-              key: /k8s/{{argocd.github.org}}/argocd-github-secret
           - secretKey: webhook.github.secret
             remoteRef:
               key: /k8s/common/argocd-webhook
