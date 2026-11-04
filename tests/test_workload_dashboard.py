@@ -94,11 +94,17 @@ def test_rules_are_actionable_and_query_errors_do_not_page(rendered_grafana):
     assert {r["uid"] for r in retired}.isdisjoint(provisioned)
 
 
-def test_slack_messages_use_the_provisioned_template(rendered_grafana):
-    secret = next(doc for doc in rendered_grafana if "templates.yaml" in (doc.get("stringData") or {}))
-    template = yaml.safe_load(secret["stringData"]["templates.yaml"])["templates"][0]["template"]
-    settings = yaml.safe_load(secret["stringData"]["contactpoints.yaml"])["contactPoints"][0]["receivers"][0]["settings"]
-    for name in ("title", "text"):
-        assert settings[name] == '{{ template "addons.slack.%s" . }}' % name
-        assert '{{ define "addons.slack.%s" -}}' % name in template
-    assert settings["url"] == "$SLACK_WEBHOOK_URL"
+def test_alerts_go_only_to_keep_one_alert_per_notification(rendered_grafana):
+    secret = next(doc for doc in rendered_grafana if "policies.yaml" in (doc.get("stringData") or {}))
+    data = secret["stringData"]
+    contact = yaml.safe_load(data["contactpoints.yaml"])
+    assert [c["name"] for c in contact["contactPoints"]] == ["keep"]
+    settings = contact["contactPoints"][0]["receivers"][0]["settings"]
+    assert settings["url"].endswith("/alerts/event/grafana")
+    assert settings["password"] == "$KEEP_API_KEY"
+    # Keep names the alert after the title and reads one status per notification.
+    assert settings["title"] == "{{ .CommonLabels.alertname }}"
+    policy = yaml.safe_load(data["policies.yaml"])["policies"][0]
+    assert policy["receiver"] == "keep" and policy["group_by"] == ["..."] and "routes" not in policy
+    assert yaml.safe_load(data["contactpoints.yaml"])["deleteContactPoints"] == [{"orgId": 1, "uid": "slack-noti-eks-demo"}]
+    assert yaml.safe_load(data["templates.yaml"]) == {"apiVersion": 1, "deleteTemplates": [{"orgId": 1, "name": "addons-slack"}]}

@@ -1478,55 +1478,9 @@ grafana:
     workspace-notifications.yaml:
       secret:
         apiVersion: 1
-        groups:
-        - folder: addons
-          interval: 30s
-          name: workspace-notifications
-          orgId: 1
-          rules:
-          - annotations:
-              __dashboardUid__: workspace-capacity
-              __panelId__: '1'
-              description: A Forge, Knowledge or Studio Prometheus rule (config/workspace-alerts.yaml)
-                is firing. Severity comes from that rule. Open the Workspace Capacity dashboard.
-              summary: Agent platform alert {{`{{ $labels.workspace_alert }}`}} is firing
-                for {{`{{ $labels.service }}`}}
-            condition: C
-            data:
-            - datasourceUid: prometheus
-              model:
-                datasource:
-                  type: prometheus
-                  uid: prometheus
-                editorMode: code
-                expr: max without (alertname, alertstate) (label_replace(ALERTS{alertstate="firing",service=~"agent-(studio|forge|knowledge)",alertname=~"(Forge.*|StudioWorkspace.*|KnowledgeWorkerUnavailable)"},
-                  "workspace_alert", "$1", "alertname", "(.*)"))
-                instant: true
-                range: false
-                refId: A
-              refId: A
-              relativeTimeRange:
-                from: 300
-                to: 0
-            - datasourceUid: __expr__
-              model:
-                conditions:
-                - evaluator:
-                    params:
-                    - 0
-                    type: gt
-                datasource:
-                  type: __expr__
-                  uid: __expr__
-                expression: A
-                refId: C
-                type: threshold
-              refId: C
-            execErrState: KeepLast
-            for: 0s
-            noDataState: OK
-            title: Agent platform execution alert firing
-            uid: addons-workspace-prometheus-alerts
+        deleteRules:
+        - orgId: 1
+          uid: addons-workspace-prometheus-alerts
 
 
 
@@ -1650,11 +1604,8 @@ raw:
             remoteRef:
               key: /k8s/common/admin-password
 
-          # Read through the SLACK_WEBHOOK_URL env var, not a file mount: the
+          # Read through the KEEP_API_KEY env var, not a file mount: the
           # alerting provisioning files interpolate $VAR but cannot read files.
-          - secretKey: slack-webhook
-            remoteRef:
-              key: /k8s/common/slack-webhook/grafana
           - secretKey: keep-api-key
             remoteRef:
               key: /k8s/common/keep/grafana-api-key
