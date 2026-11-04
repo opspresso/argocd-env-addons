@@ -71,6 +71,33 @@ workflow는 `values-template.yaml.j2`에 있다. 소스마다 workflow를 따로
   그래서 kube-sre의 연동 → Slack 봇 → **채널 키워드**에 `keep.slack.keyword`와 같은 값을 저장해야 한다.
   키워드로 시작한 실행은 그 설정을 저장한 Studio 계정의 권한과 예산을 쓴다.
 
+## Slack 앱
+
+nalbam workspace의 Slack 앱 `Keep`(App ID `A0CEH0R5CBV`)의 설정을 이 디렉터리에 백업한다.
+
+| 파일 | 내용 |
+| --- | --- |
+| `slack-app-manifest.json` | App Manifest. 이름·설명·배경색·bot 사용자·권한(scope) |
+| `slack-app-icon.png` | 앱 아이콘. Keep 저장소의 `assets/keep.png`를 1024px 정사각형으로 맞춘 것 |
+
+bot 권한:
+
+| scope | 용도 |
+| --- | --- |
+| `chat:write`, `chat:write.public` | 메시지 작성·수정, 스레드 답글. 봇이 참여하지 않은 공개 채널에도 쓴다 |
+| `chat:write.customize` | 메시지마다 표시 이름·아이콘을 바꾼다 |
+| `reactions:write`, `reactions:read` | 메시지에 이모지를 달고 읽는다 |
+| `channels:read`, `groups:read` | 채널 정보를 조회한다 |
+| `channels:history`, `groups:history` | 채널·스레드 메시지를 읽는다 |
+| `users:read` | 사용자 정보를 조회한다 |
+| `files:write` | 파일을 올린다 |
+| `incoming-webhook` | 이전 전송 방식. bot token 전환 후 제거한다 |
+
+설정을 바꾸면 Slack의 App Manifest → Copy to Clipboard 결과로 `slack-app-manifest.json`을 갱신한다.
+앱을 다시 만들 때는 api.slack.com/apps → Create New App → From a manifest에 이 파일을 넣고,
+Basic Information에서 `slack-app-icon.png`를 올린 뒤 workspace에 설치한다.
+권한을 바꾸면 Install App → Reinstall to nalbam으로 다시 설치해야 적용된다.
+
 ## SSM 파라미터
 
 ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들지 않는다. 처음 배포하기 전에 아래를 모두 등록한다.
