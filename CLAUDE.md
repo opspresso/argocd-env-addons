@@ -129,8 +129,8 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - namespace 는 `addon-<name>`. upstream 관례가 강한 것만 예외(`istio-system`, `argocd`).
 - label `opspresso.com/group: addons`, `opspresso.com/cluster: {{cluster}}` 를 유지한다.
 - 배포를 멈출 때는 파일을 지우지 말고 `backup/` 으로 옮긴다. 되살릴 때는 반대로 옮긴다.
-- `syncPolicy.automated` 는 대부분 켜져 있다. EKS의 `argo-cd`는 수동 sync이고 k3s는 자동 sync다.
-  Argo CD 자체의 변경은 복구 경로에 영향을 준다. 켜져 있는 addon 을 임의로 끄거나
+- `syncPolicy.automated` 는 대부분 켜져 있다. EKS·k3s의 `argo-cd`도 자동 sync(prune·selfHeal)다.
+  Argo CD 자체의 변경은 merge하면 바로 반영되고 복구 경로에 영향을 준다. 켜져 있는 addon 을 임의로 끄거나
   꺼져 있는 addon 을 임의로 켜지 않는다.
 
 ## 재생성 · 검증

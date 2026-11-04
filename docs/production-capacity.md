@@ -75,5 +75,5 @@ Grafana·Loki·Prometheus의 저장소는 현재 단일 인스턴스다. Node �
 다중 인스턴스가 필요해지면 Grafana 외부 DB, Loki object storage, Prometheus HA/remote storage를
 각각 설계한다. RWO 저장소를 공유한 채 replica 수만 올리지 않는다.
 
-Argo CD 자체는 EKS에서 수동 sync다. addon PR 반영 후 Argo CD chart도 해당 revision으로 sync하고
+Argo CD 자체도 EKS에서 자동 sync다. addon PR을 merge하면 Argo CD chart가 해당 revision으로 sync되는지 확인하고
 controller·server·repo-server·알림 로그를 확인한다. Slack 전송 시험을 위해 장애를 인위적으로 만들지 않는다.

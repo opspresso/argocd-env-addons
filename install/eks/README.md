@@ -121,7 +121,7 @@ python3 -m pip install -r ../../requirements/runtime.txt
 설치는 공개 DNS·로그인·`argocd` CLI를 사용하지 않는다. 부트스트랩 values는 Ingress를 만들지 않는다.
 Argo CD UI(`https://<argocd-hostname>`)는 `istio`와 `argo-cd` addon이 동기화된 뒤 공용 ALB와
 istio HTTPRoute로 응답한다. 도메인은 `terraform-env-demo`의 `3-alb`(`*.demo.rovr.dev`)가 소유한다.
-`argo-cd` addon은 수동 sync다. 처음 한 번 UI나 `kubectl`로 sync한다.
+`argo-cd` addon은 자동 sync다. `addons-eks.yaml`이 동기화되면 Argo CD가 자기 chart를 따로 sync한다.
 
 ```bash
 ./install.sh
