@@ -68,7 +68,7 @@ def test_provisioned_providers_read_cluster_services_without_webhooks():
     secret = next(doc for doc in docs if doc["kind"] == "Secret" and doc["metadata"]["name"] == "keep-providers")
     providers = json.loads(secret["stringData"]["KEEP_PROVIDERS"])
     assert {name: provider["type"] for name, provider in providers.items()} == {
-        "prometheus": "prometheus", "loki": "grafana_loki", "argocd": "argocd",
+        "prometheus": "prometheus", "loki": "grafana_loki", "argocd": "argocd", "slack": "slack",
     }
     assert all(provider["install_webhook"] is False for provider in providers.values())
     assert providers["argocd"]["authentication"]["argocd_access_token"] == "$(ARGOCD_ACCESS_TOKEN)"
@@ -83,3 +83,16 @@ def test_backend_keeps_the_trace_id_middleware():
     env = {item["name"]: item.get("value") for item in backend["spec"]["template"]["spec"]["containers"][0]["env"]}
     assert env.get("KEEP_OTEL_ENABLED", "true") == "true"
     assert "OTEL_EXPORTER_OTLP_ENDPOINT" not in env
+
+
+def test_workflows_use_the_provisioned_slack_provider():
+    docs = render()
+    config = next(doc for doc in docs if doc["kind"] == "ConfigMap" and doc["metadata"]["name"] == "keep-workflows")
+    workflows = [yaml.safe_load(body) for body in config["data"].values()]
+    assert {workflow["id"] for workflow in workflows} == {"prometheus-critical-to-slack", "incident-created-to-slack"}
+    for workflow in workflows:
+        for action in workflow["actions"]:
+            assert action["provider"] == {**action["provider"], "type": "slack", "config": "{{ providers.slack }}"}
+    backend = next(doc for doc in docs if doc["kind"] == "Deployment" and doc["metadata"]["name"] == "keep-backend")
+    volumes = backend["spec"]["template"]["spec"]["volumes"]
+    assert {"name": "workflows", "configMap": {"name": "keep-workflows"}} in volumes

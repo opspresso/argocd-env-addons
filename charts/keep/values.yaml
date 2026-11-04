@@ -26,6 +26,49 @@ keep:
     envFromSecrets:
       - name: addon-keep-backend
 
+    # Mounted at /workflows (KEEP_WORKFLOWS_DIRECTORY). Keep renders {{ }} with
+    # its own templating; the chart does not run tpl on these.
+    # Grafana and Argo CD already notify Slack themselves, so Keep sends only
+    # what has no other Slack route: critical Prometheus alerts and new incidents.
+    provision:
+      workflows:
+        - id: prometheus-critical-to-slack
+          name: Prometheus critical alerts to Slack
+          description: Sends critical Prometheus alerts and their resolution to Slack.
+          triggers:
+            - type: alert
+              filters:
+                - key: source
+                  value: prometheus
+                - key: severity
+                  value: critical
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: |
+                    *[{{ alert.status }}] {{ alert.name }}* ({{ alert.severity }}, Prometheus)
+                    {{ alert.description }}
+                    https://keep.demo.rovr.dev/alerts/feed
+        - id: incident-created-to-slack
+          name: New Keep incidents to Slack
+          description: Sends each new incident that Keep correlates to Slack.
+          triggers:
+            - type: incident
+              events:
+                - created
+          actions:
+            - name: slack
+              provider:
+                type: slack
+                config: "{{ providers.slack }}"
+                with:
+                  message: |
+                    *[incident] {{ incident.name }}* ({{ incident.severity }}, {{ incident.alerts_count }} alerts)
+                    https://keep.demo.rovr.dev/incidents/{{ incident.id }}
+
     podAnnotations:
       "prometheus.io/scrape": "false"
 

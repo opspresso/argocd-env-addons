@@ -31,6 +31,7 @@ Argo CD의 Dex(`https://argocd.demo.rovr.dev/api/dex`)로 GitHub 로그인한다
 | Argo CD | Keep → Argo CD | provider `argocd`(계정 `keep`, 읽기 전용) | Application·리소스 트리로 topology를 만든다 |
 | Prometheus | Keep → Prometheus | provider `prometheus`(`/api/v1/alerts` pull) | Prometheus 규칙의 firing 경보가 들어온다. Alertmanager는 꺼져 있으므로 이 경로가 유일하다 |
 | Loki | Keep → Loki | provider `loki`(`grafana_loki`) | workflow에서 로그를 조회한다. Loki는 경보를 보내지 않는다 |
+| Slack | Keep → Slack | provider `slack`(nalbam workspace의 Slack 앱 `Keep`, incoming webhook → `#noti-eks-demo`), workflow `prometheus-critical-to-slack`·`incident-created-to-slack` | Prometheus critical 경보와 새 incident만 보낸다. Grafana·Argo CD 경보는 각자 Slack으로 보내므로 중복하지 않는다 |
 
 - provider는 `KEEP_PROVIDERS`로 provisioning한다. backend가 시작할 때마다 목록과 맞추며, 목록에 없는 provisioned provider는 삭제한다. UI에서 바꾼 provider 설정은 다음 시작 때 덮어써진다.
 - 모든 provider는 `install_webhook: false`다. Keep이 Grafana 알림 정책이나 Argo CD 설정을 직접 고치지 않게 하기 위해서다.
@@ -48,6 +49,7 @@ ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들
 | `/k8s/common/keep/grafana-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `grafana`), `grafana-secret` |
 | `/k8s/common/keep/argocd-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `argocd`), `argocd-notifications-secret` |
 | `/k8s/common/keep/argocd-api-token` | `addon-keep-backend`(provider `argocd`). `install/eks/token.sh --account keep`이 만든다 |
+| `/k8s/common/keep/slack-webhook` | `addon-keep-backend`(provider `slack`). Slack 앱 `Keep`(api.slack.com/apps, nalbam workspace)의 Incoming Webhooks에서 복사한다 |
 | `/k8s/common/argocd-keep-tokens` | `argocd-secret`의 `accounts.keep.tokens`. 위와 같은 스크립트가 만든다 |
 
 ```bash

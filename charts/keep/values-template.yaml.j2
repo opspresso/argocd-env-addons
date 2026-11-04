@@ -57,6 +57,13 @@ keep:
           authentication:
             deployment_url: http://argocd-server.argocd.svc.cluster.local
             argocd_access_token: "$(ARGOCD_ACCESS_TOKEN)"
+        # Incoming webhook of the Slack app "Keep" in the nalbam workspace. The
+        # webhook is bound to its channel (#noti-eks-demo) when it is created.
+        slack:
+          type: slack
+          install_webhook: false
+          authentication:
+            webhook_url: "$(SLACK_WEBHOOK_URL)"
 
   frontend:
     env:
@@ -154,6 +161,7 @@ raw:
               # changes an existing one; see README.md to rotate.
               KEEP_DEFAULT_API_KEYS: "grafana:webhook:{{ '{{ .grafana_api_key }}' }},argocd:webhook:{{ '{{ .argocd_api_key }}' }}"
               ARGOCD_ACCESS_TOKEN: "{{ '{{ .argocd_access_token }}' }}"
+              SLACK_WEBHOOK_URL: "{{ '{{ .slack_webhook }}' }}"
         data:
           - secretKey: database_password
             remoteRef:
@@ -167,6 +175,9 @@ raw:
           - secretKey: argocd_access_token
             remoteRef:
               key: /k8s/common/keep/argocd-api-token
+          - secretKey: slack_webhook
+            remoteRef:
+              key: /k8s/common/keep/slack-webhook
 
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
