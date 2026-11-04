@@ -18,9 +18,6 @@ keep:
         value: "true"
       - name: POSTHOG_DISABLED
         value: "true"
-      # No OTLP collector in this cluster.
-      - name: KEEP_OTEL_ENABLED
-        value: "false"
       - name: AUTH_TYPE
         value: OIDC
       - name: KEEP_OIDC_ISSUER
