@@ -97,6 +97,15 @@ argo-cd:
           - on-health-degraded
           - on-sync-failed
           - on-sync-status-unknown
+{% if keep is defined %}
+      # Keep (charts/keep) receives each problem and its recovery, so an alert
+      # there resolves itself.
+      - recipients:
+          - keep
+        triggers:
+          - on-keep-health
+          - on-keep-sync
+{% endif %}
 {% if resources is defined and not resources.enabled %}
     resources: null
 {% endif %}
@@ -127,6 +136,9 @@ argo-cd:
         p, role:mcp, clusters, get, *, allow
         g, mcp, role:mcp
 
+        # keep has no grants here: policy.default gives it read-only access,
+        # which is all the Keep argocd provider uses (applications, resource trees).
+
     cm:
       url: {{argocd.scheme | default('https')}}://{{argocd.hostname}}
 
@@ -139,6 +151,8 @@ argo-cd:
       # tokens but cannot sign in, so there is no password on it to guess and it
       # never turns into a UI session.
       accounts.mcp: apiKey
+      # Local account for the Keep argocd provider. install/eks/token.sh signs its token.
+      accounts.keep: apiKey
 
       dex.config: |
         connectors:
@@ -162,6 +176,11 @@ argo-cd:
           redirectURIs:
             - https://auth.{{hostname.public}}/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
+        - id: keep-sso
+          name: Keep
+          redirectURIs:
+            - https://keep.{{hostname.public}}/api/auth/callback/oidc
+          secretEnv: KEEP_SSO_CLIENT_SECRET
 
 {% endif %}
 
@@ -270,6 +289,12 @@ raw:
           - secretKey: slack-token
             remoteRef:
               key: /k8s/common/argocd-noti-token
+{% if keep is defined %}
+          # X-API-KEY of service.webhook.keep: a Keep API key with the webhook role.
+          - secretKey: keep-api-key
+            remoteRef:
+              key: /k8s/common/keep/argocd-api-key
+{% endif %}
 
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
@@ -333,6 +358,10 @@ raw:
           - secretKey: accounts.mcp.tokens
             remoteRef:
               key: /k8s/common/argocd-mcp-tokens
+          # The keep account's token list. install/eks/token.sh --account keep writes it.
+          - secretKey: accounts.keep.tokens
+            remoteRef:
+              key: /k8s/common/argocd-keep-tokens
 {% if argocd.google.enabled %}
           - secretKey: dex.google.clientId
             remoteRef:
@@ -346,5 +375,8 @@ raw:
               key: /k8s/common/argo-workflows-client-secret
           - secretKey: oauth2-proxy-client-secret
             remoteRef:
-              key: /k8s/common/oauth2-proxy-client-secret{% endif %}
+              key: /k8s/common/oauth2-proxy-client-secret
+          - secretKey: keep-client-secret
+            remoteRef:
+              key: /k8s/common/keep/oidc-client-secret{% endif %}
 {%- endif %}
