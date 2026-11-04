@@ -416,7 +416,7 @@ helm repo update
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy |  | 1.14.4 | 1.15.0 (v1.21.3) |
-| argo-cd | ✅ | 10.11.6 | 10.11.6 (v3.5.6) |
+| argo-cd |  | 10.11.6 | 10.11.7 (v3.5.7) |
 | argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
 | argo-workflows |  | 2.0.14 | 2.0.16 (v4.1.6) |
 | atlantis |  | 6.16.2 | 7.0.0 (v0.49.0) |
@@ -427,12 +427,13 @@ helm repo update
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio | ✅ | 1.31.3 | 1.31.3 (1.31.3) |
+| keep | ✅ | 0.1.97 | 0.1.97 (0.54.3) |
 | kite | ✅ | 0.16.0 | 0.16.0 (v0.16.0) |
 | kro | 🔒 | 0.9.4 | v0.9.4 (v0.9.4) |
 | loki | ✅ | 7.5.0 | 7.5.0 (3.6.16) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
-| prometheus-adapter | ✅ | 5.3.0 | 5.3.0 (v0.12.0) |
+| prometheus-adapter |  | 5.3.0 | 5.4.0 (v0.12.0) |
 | prometheus-stack |  | 92.14.1 | 92.17.1 (v0.94.2) |
 | aws-controllers |  | 1.13.4 | 1.14.2 (1.14.2) |
 | aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
