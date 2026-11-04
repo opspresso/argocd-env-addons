@@ -48,25 +48,13 @@ kanidmd는 HTTPS만 받는다. ALB가 브라우저 TLS를 종료하고, gateway�
 
 ## 처음 설치 (bootstrap)
 
-1. ApplicationSet이 Kanidm을 띄운다. `idm-admin-password`가 아직 없으므로 첫 `kanidm-provision`은 실패한다.
-2. `idm_admin` 비밀번호를 만들어 SSM에 넣는다. 값은 화면에 출력하지 않는다.
+1. `install/eks/secrets.sh`(install.sh가 실행)가 내부 TLS를 SSM에 만든다.
+2. ApplicationSet이 Kanidm을 띄운다. `idm-admin-password`가 아직 없으므로 첫 `kanidm-provision`은 실패한다.
+3. `install/eks/kanidm.sh`를 실행한다. `idm_admin` 비밀번호를 만들어 SSM에 넣는다.
+4. Argo CD에서 `kanidm`을 다시 sync한다. `kanidm-provision`이 그룹 `sre`·`dev`와 client `dex`를 만든다.
+5. `install/eks/kanidm.sh`를 다시 실행한다. client `dex`의 secret을 SSM에 넣고 Dex를 재시작한다.
 
-   ```bash
-   kubectl -n addon-kanidm exec deploy/kanidm -- /sbin/kanidmd recover-account idm_admin -c /config/server.toml 2>&1 \
-     | grep -o 'new_password: "[^"]*"' | cut -d'"' -f2 \
-     | aws ssm put-parameter --name /k8s/common/kanidm/idm-admin-password --type SecureString --overwrite --value file:///dev/stdin
-   ```
-
-3. Argo CD에서 `kanidm`을 다시 sync한다. `kanidm-provision`이 그룹 `sre`·`dev`와 client `dex`를 만든다.
-4. client `dex`의 secret을 SSM에 넣는다.
-
-   ```bash
-   kanidm system oauth2 show-basic-secret dex \
-     | aws ssm put-parameter --name /k8s/common/kanidm/dex-client-secret --type SecureString --overwrite --value file:///dev/stdin
-   ```
-
-5. Argo CD Dex에 connector `kanidm`을 켠다(`charts/argo-cd`). Dex는 시작할 때만 secret을 읽으므로, secret을 바꾸면
-   `kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다.
+두 값이 이미 맞으면 `kanidm.sh`는 아무것도 바꾸지 않는다. Kanidm 데이터를 잃어 다시 설치했을 때도 같은 순서를 따른다.
 
 ## 팀원 관리
 
