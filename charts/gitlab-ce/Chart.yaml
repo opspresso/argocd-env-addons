@@ -1,0 +1,14 @@
+apiVersion: v2
+description: GitLab CE (Omnibus image) for Kubernetes
+name: gitlab-ce
+type: application
+version: "v2.2.0" # helm chart app version
+
+# The official GitLab chart needs an external PostgreSQL, Redis and object
+# storage. The Omnibus image runs all of them in one container, so this chart
+# deploys that image with the opspresso app chart.
+dependencies:
+- name: app
+  alias: gitlab-ce
+  repository: https://opspresso.github.io/helm-charts/
+  version: "v2.2.0" # helm chart app version

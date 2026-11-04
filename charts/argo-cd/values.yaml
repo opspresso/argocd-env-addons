@@ -113,6 +113,11 @@ argo-cd:
           secretKeyRef:
             name: argocd-secret
             key: keep-client-secret
+      - name: GITLAB_SSO_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: argocd-secret
+            key: gitlab-client-secret
 
     metrics:
       enabled: true

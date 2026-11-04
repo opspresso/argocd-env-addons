@@ -103,6 +103,9 @@ grafana:
 kite:
   hostname: kite.demo.opsp.dev
 
+gitlab_ce:
+  hostname: gitlab.demo.opsp.dev
+
 keep:
   hostname: keep.demo.opsp.dev
   slack:
