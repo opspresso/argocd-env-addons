@@ -68,7 +68,7 @@ def test_provisioned_providers_read_cluster_services_without_webhooks():
     secret = next(doc for doc in docs if doc["kind"] == "Secret" and doc["metadata"]["name"] == "keep-providers")
     providers = json.loads(secret["stringData"]["KEEP_PROVIDERS"])
     assert {name: provider["type"] for name, provider in providers.items()} == {
-        "prometheus": "prometheus", "loki": "grafana_loki", "argocd": "argocd", "slack": "slack",
+        "loki": "grafana_loki", "argocd": "argocd", "slack": "slack",
     }
     assert all(provider["install_webhook"] is False for provider in providers.values())
     assert providers["argocd"]["authentication"]["argocd_access_token"] == "$(ARGOCD_ACCESS_TOKEN)"

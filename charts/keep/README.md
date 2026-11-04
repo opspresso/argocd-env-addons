@@ -29,7 +29,7 @@ Argo CD의 Dex(`https://argocd.demo.rovr.dev/api/dex`)로 GitHub 로그인한다
 | Grafana | Grafana → Keep | contact point `keep`(webhook, `/alerts/event/grafana`). 알림 정책의 첫 route가 모든 경보를 Keep에 보내고 `continue`로 Slack route를 계속 평가한다 | Grafana 경보가 firing·resolved로 들어온다 |
 | Argo CD | Argo CD → Keep | notifications `service.webhook.keep`(`/alerts/event`), trigger `on-keep-health`·`on-keep-sync` | 앱별 health·sync 경보. 문제와 회복을 같은 fingerprint로 보내므로 회복하면 resolved가 된다 |
 | Argo CD | Keep → Argo CD | provider `argocd`(계정 `keep`, 읽기 전용) | Application·리소스 트리로 topology를 만든다 |
-| Prometheus | Keep → Prometheus | provider `prometheus`(`/api/v1/alerts` pull) | Prometheus 규칙의 firing 경보가 들어온다. Alertmanager는 꺼져 있으므로 이 경로가 유일하다 |
+| Prometheus | Prometheus → Keep | Alertmanager webhook(`/alerts/event/prometheus`, `send_resolved`). `env/<cluster>.yaml`에 `keep`이 있는 클러스터에서만 Alertmanager를 켠다. `Watchdog`은 보내지 않는다 | Prometheus 규칙 경보가 firing·resolved로 들어온다. pull provider는 쓰지 않는다: firing 경보만 보이므로 해소를 알 수 없고 fingerprint도 달라 경보가 중복된다 |
 | Loki | Keep → Loki | provider `loki`(`grafana_loki`) | workflow에서 로그를 조회한다. Loki는 경보를 보내지 않는다 |
 | Slack | Keep → Slack | provider `slack`(nalbam workspace의 Slack 앱 `Keep`, incoming webhook → `#noti-eks-demo`), workflow `prometheus-critical-to-slack`·`incident-created-to-slack` | Prometheus critical 경보와 새 incident만 보낸다. Grafana·Argo CD 경보는 각자 Slack으로 보내므로 중복하지 않는다 |
 
@@ -47,6 +47,7 @@ ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들
 | `/k8s/common/keep/nextauth-secret` | `addon-keep-frontend` |
 | `/k8s/common/keep/oidc-client-secret` | `addon-keep-frontend`, `argocd-secret`(Dex `keep-sso`) |
 | `/k8s/common/keep/grafana-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `grafana`), `grafana-secret` |
+| `/k8s/common/keep/alertmanager-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `alertmanager`), `prometheus-alertmanager-secret` |
 | `/k8s/common/keep/argocd-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `argocd`), `argocd-notifications-secret` |
 | `/k8s/common/keep/argocd-api-token` | `addon-keep-backend`(provider `argocd`). `install/eks/token.sh --account keep`이 만든다 |
 | `/k8s/common/keep/slack-webhook` | `addon-keep-backend`(provider `slack`). Slack 앱 `Keep`(api.slack.com/apps, nalbam workspace)의 Incoming Webhooks에서 복사한다 |
@@ -54,7 +55,7 @@ ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들
 
 ```bash
 # URL에 들어가므로 hex 값을 쓴다. 이미 있으면 덮어쓰지 않는다.
-for name in database-password nextauth-secret oidc-client-secret grafana-api-key argocd-api-key; do
+for name in database-password nextauth-secret oidc-client-secret grafana-api-key argocd-api-key alertmanager-api-key; do
   aws ssm put-parameter --name "/k8s/common/keep/${name}" --value "$(openssl rand -hex 32)" --type SecureString | jq .Version
 done
 
@@ -65,7 +66,7 @@ done
 ### 값 교체
 
 - `database-password`: PostgreSQL은 처음 초기화할 때만 비밀번호를 읽는다. 바꾸려면 DB에서 `ALTER USER postgres PASSWORD ...`를 먼저 실행한 뒤 파라미터를 바꾼다.
-- `grafana-api-key`, `argocd-api-key`: Keep은 같은 이름의 API key가 있으면 새 값으로 바꾸지 않는다. Keep UI(Settings → API Keys)에서 기존 key를 삭제한 뒤 파라미터를 바꾸고 `keep-backend`를 재시작한다.
+- `grafana-api-key`, `argocd-api-key`, `alertmanager-api-key`: Keep은 같은 이름의 API key가 있으면 새 값으로 바꾸지 않는다. Keep UI(Settings → API Keys)에서 기존 key를 삭제한 뒤 파라미터를 바꾸고 `keep-backend`를 재시작한다.
 - `oidc-client-secret`: 바꾼 뒤 `argocd-dex-server`와 `keep-frontend`를 재시작한다.
 
 ## 검증

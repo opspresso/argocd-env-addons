@@ -34,15 +34,8 @@ keep:
     # provisioned from this repository, and Keep would rewrite them.
     provision:
       providers:
-        prometheus:
-          type: prometheus
-          install_webhook: false
-          authentication:
-{% if metrics is defined and metrics.backend == 'victoria-metrics' %}
-            url: http://vmsingle-victoria-metrics.addon-victoria-metrics.svc.cluster.local:8428
-{% else %}
-            url: http://prometheus-prometheus.addon-prometheus.svc.cluster.local:9090
-{% endif %}
+        # No prometheus provider: Alertmanager pushes alerts with send_resolved.
+        # Pulled alerts get a different fingerprint and never resolve.
 {% if loki is defined %}
         loki:
           type: grafana_loki
@@ -159,7 +152,7 @@ raw:
               DATABASE_CONNECTION_STRING: "postgresql+psycopg2://postgres:{{ '{{ .database_password }}' }}@keep-database:5432/keep"
               # name:role:secret. Keep creates each key once at startup and never
               # changes an existing one; see README.md to rotate.
-              KEEP_DEFAULT_API_KEYS: "grafana:webhook:{{ '{{ .grafana_api_key }}' }},argocd:webhook:{{ '{{ .argocd_api_key }}' }}"
+              KEEP_DEFAULT_API_KEYS: "grafana:webhook:{{ '{{ .grafana_api_key }}' }},argocd:webhook:{{ '{{ .argocd_api_key }}' }},alertmanager:webhook:{{ '{{ .alertmanager_api_key }}' }}"
               ARGOCD_ACCESS_TOKEN: "{{ '{{ .argocd_access_token }}' }}"
               SLACK_WEBHOOK_URL: "{{ '{{ .slack_webhook }}' }}"
         data:
@@ -172,6 +165,9 @@ raw:
           - secretKey: argocd_api_key
             remoteRef:
               key: /k8s/common/keep/argocd-api-key
+          - secretKey: alertmanager_api_key
+            remoteRef:
+              key: /k8s/common/keep/alertmanager-api-key
           - secretKey: argocd_access_token
             remoteRef:
               key: /k8s/common/keep/argocd-api-token
