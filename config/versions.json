@@ -57,6 +57,12 @@
       "current": "1.6.3",
       "version": "1.6.3"
     },
+    "gitlab": {
+      "app_version": "v19.5.3",
+      "chart": "gitlab/gitlab",
+      "current": "10.5.4",
+      "version": "10.5.4"
+    },
     "grafana": {
       "app_version": "12.3.1",
       "chart": "grafana/grafana",

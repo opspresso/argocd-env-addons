@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: gitlab-ce
+  name: gitlab
 spec:
   generators:
     - git:
@@ -12,9 +12,9 @@ spec:
 
   template:
     metadata:
-      name: "gitlab-ce" # only management cluster
+      name: "gitlab" # only management cluster
       annotations:
-        argocd.argoproj.io/manifest-generate-paths: /charts/gitlab-ce
+        argocd.argoproj.io/manifest-generate-paths: /charts/gitlab
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         opspresso.com/cluster: "{{cluster}}"
@@ -23,11 +23,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-gitlab-ce
+        namespace: addon-gitlab
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/gitlab-ce
+        path: charts/gitlab
         helm:
           valueFiles:
             - values.yaml

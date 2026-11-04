@@ -1,0 +1,23 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: gitlab
+type: application
+version: "10.5.4" # helm chart gitlab version
+
+dependencies:
+- name: gitlab
+  repository: https://charts.gitlab.io/
+  version: "10.5.4" # helm chart gitlab version
+
+# GitLab 19 needs an external PostgreSQL and Redis: the chart no longer bundles them.
+- name: postgres
+  repository: https://opspresso.github.io/helm-charts/
+  version: "1.2.0" # helm chart postgres version
+
+- name: valkey
+  repository: https://opspresso.github.io/helm-charts/
+  version: "1.2.0" # helm chart valkey version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

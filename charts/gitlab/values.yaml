@@ -1,0 +1,252 @@
+# A subchart condition reads the top-level global, not gitlab.global.
+global:
+  gatewayApi:
+    installEnvoy: false
+
+gitlab:
+  global:
+    edition: ce
+
+    hosts:
+      https: true
+
+    # The gateway terminates TLS. The HTTPRoute is in values-template.yaml.j2
+    # because the chart route cannot attach to the shared istio gateway.
+    ingress:
+      enabled: false
+      configureCertmanager: false
+      # No self-signed wildcard certificate (shared-secrets selfsign Job).
+      tls:
+        enabled: false
+    gatewayApi:
+      enabled: false
+      configureEnvoy: false
+      configureCertmanager: false
+
+    # Root password of the first start. GitLab ignores later changes.
+    initialRootPassword:
+      secret: gitlab-secret
+      key: root-password
+
+    # PostgreSQL and Valkey of this chart (dependencies postgres and valkey).
+    psql:
+      host: gitlab-postgres
+      port: 5432
+      database: gitlab
+      username: gitlab
+      password:
+        secret: gitlab-secret
+        key: postgres-password
+    redis:
+      host: gitlab-valkey
+      port: 6379
+      auth:
+        enabled: true
+        secret: gitlab-secret
+        key: valkey-password
+
+    # Every Pod runs as ServiceAccount gitlab (created in raw). EKS Pod Identity
+    # binds it to the IAM role pod-role--gitlab (terraform-env-demo demo/4-role,
+    # demo/5-eks).
+    serviceAccount:
+      enabled: true
+      create: false
+      name: gitlab
+
+    # Git over HTTPS only: the gateway routes no SSH (gitlab-shell is off).
+    kas:
+      enabled: false
+    registry:
+      enabled: false
+    pages:
+      enabled: false
+    monitoring:
+      enabled: false
+
+    appConfig:
+      enableUsagePing: false
+      enableSeatLink: false
+      # One connection for every object type. The buckets are in
+      # terraform-env-apps demo/8-gitlab. GitLab needs one bucket per type.
+      object_store:
+        enabled: true
+        proxy_download: true
+        connection:
+          secret: gitlab-object-storage
+          key: connection
+      artifacts:
+        bucket: opspresso-gitlab-artifacts
+      lfs:
+        bucket: opspresso-gitlab-lfs
+      uploads:
+        bucket: opspresso-gitlab-uploads
+      packages:
+        bucket: opspresso-gitlab-packages
+      backups:
+        bucket: opspresso-gitlab-backups
+        tmpBucket: opspresso-gitlab-tmp
+
+  registry:
+    enabled: false
+
+  upgradeCheck:
+    enabled: false
+  shared-secrets:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+  installCertmanager: false
+  certmanager-issuer:
+    install: false
+  nginx-ingress:
+    enabled: false
+  prometheus:
+    install: false
+  gitlab-runner:
+    install: false
+  traefik:
+    install: false
+  haproxy:
+    install: false
+
+  gitlab:
+    gitlab-shell:
+      enabled: false
+    gitlab-exporter:
+      enabled: false
+
+    webservice:
+      helmTests:
+        enabled: false
+      init:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      minReplicas: 1
+      maxReplicas: 1
+      workerProcesses: 2
+      resources:
+        requests:
+          cpu: 300m
+          memory: 2Gi
+        limits:
+          memory: 3Gi
+      workhorse:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 100Mi
+          limits:
+            memory: 512Mi
+
+    sidekiq:
+      init:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      minReplicas: 1
+      maxReplicas: 1
+      concurrency: 10
+      resources:
+        requests:
+          cpu: 300m
+          memory: 1500Mi
+        limits:
+          memory: 2560Mi
+
+    gitaly:
+      init:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      persistence:
+        storageClass: gp3
+        size: 50Gi
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          memory: 1Gi
+
+    toolbox:
+      init:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      resources:
+        requests:
+          cpu: 50m
+          memory: 350Mi
+        limits:
+          memory: 1Gi
+      # backup-utility reads the IAM role through awscli; no s3cmd keys.
+      backups:
+        objectStorage:
+          backend: s3
+
+    migrations:
+      init:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+      resources:
+        requests:
+          cpu: 250m
+          memory: 1Gi
+        limits:
+          memory: 2Gi
+
+postgres:
+  fullnameOverride: gitlab-postgres
+  database: gitlab
+  username: gitlab
+  passwordSecret:
+    name: gitlab-secret
+    key: postgres-password
+  persistence:
+    storageGiB: 20
+    storageClass: gp3
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+
+valkey:
+  fullnameOverride: gitlab-valkey
+  passwordSecret:
+    name: gitlab-secret
+    key: valkey-password
+  # Sidekiq queues live here. The server refuses writes when full (noeviction)
+  # instead of dropping jobs.
+  maxMemoryMiB: 512
+  persistence:
+    storageGiB: 2
+    storageClass: gp3
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 768Mi
+

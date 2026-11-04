@@ -103,7 +103,7 @@ grafana:
 kite:
   hostname: kite.demo.opsp.dev
 
-gitlab_ce:
+gitlab:
   hostname: gitlab.demo.opsp.dev
 
 keep:

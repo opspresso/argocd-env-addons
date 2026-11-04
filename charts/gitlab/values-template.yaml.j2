@@ -1,0 +1,132 @@
+{% if gitlab is defined %}
+gitlab:
+  global:
+    hosts:
+      domain: "{{hostname.public}}"
+      gitlab:
+        name: "{{gitlab.hostname}}"
+    appConfig:
+      # Sign-in with GitHub through Argo CD Dex (client gitlab-sso). Dex accepts
+      # only members of the {{argocd.github.org}} organization, so the first
+      # sign-in creates an active user without admin approval.
+      omniauth:
+        enabled: true
+        allowSingleSignOn: [openid_connect]
+        blockAutoCreatedUsers: false
+        autoLinkUser: [openid_connect]
+        providers:
+          - secret: gitlab-oidc-provider
+            key: provider
+
+  gitlab:
+    webservice:
+      annotations:
+        link.argocd.argoproj.io/external-link: "https://{{gitlab.hostname}}"
+
+raw:
+  resources:
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: gitlab
+      automountServiceAccountToken: false
+
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: gitlab
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://{{gitlab.hostname}}"
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+{% if gateway is defined %}
+            name: "{{gateway.name}}"
+            namespace: "{{gateway.namespace}}"
+{% else %}
+            name: istio-ingressgateway
+            namespace: istio-system
+{% endif %}
+        hostnames:
+          - "{{gitlab.hostname}}"
+        rules:
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /
+            backendRefs:
+              # Workhorse port of the webservice Service.
+              - name: gitlab-webservice-default
+                port: 8181
+
+    # Fog and the AWS SDK read the role from EKS Pod Identity: no keys here.
+    - apiVersion: v1
+      kind: Secret
+      metadata:
+        name: gitlab-object-storage
+      stringData:
+        connection: |
+          provider: AWS
+          region: {{aws_region}}
+          use_iam_profile: true
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: gitlab-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: gitlab-secret
+        data:
+          - secretKey: root-password
+            remoteRef:
+              key: /k8s/common/gitlab/root-password
+          - secretKey: postgres-password
+            remoteRef:
+              key: /k8s/common/gitlab/postgres-password
+          - secretKey: valkey-password
+            remoteRef:
+              key: /k8s/common/gitlab/valkey-password
+
+    # The client secret is shared with Argo CD Dex (charts/argo-cd).
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: gitlab-oidc-provider
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: gitlab-oidc-provider
+          template:
+            engineVersion: v2
+            data:
+              provider: |
+                name: openid_connect
+                label: GitHub
+                icon: https://github.githubassets.com/favicons/favicon.svg
+                args:
+                  name: openid_connect
+                  scope: [openid, profile, email]
+                  response_type: code
+                  issuer: https://{{argocd.hostname}}/api/dex
+                  discovery: true
+                  pkce: true
+                  client_options:
+                    identifier: gitlab-sso
+                    secret: {{ '"{{ .client_secret }}"' }}
+                    redirect_uri: https://{{gitlab.hostname}}/users/auth/openid_connect/callback
+        data:
+          - secretKey: client_secret
+            remoteRef:
+              key: /k8s/common/gitlab/oidc-client-secret
+{% else %}
+# no cluster-specific overrides
+{% endif %}

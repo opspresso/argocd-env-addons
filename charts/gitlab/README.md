@@ -1,0 +1,73 @@
+# gitlab
+
+공식 GitLab chart(`gitlab/gitlab`)로 GitLab CE를 배포한다.
+관리 클러스터(`eks-demo`)에만 배포하며 namespace는 `addon-gitlab`, 주소는 `https://gitlab.demo.opsp.dev`이다.
+
+## 구성
+
+GitLab 19(chart 10.x)는 PostgreSQL·Redis·MinIO를 더 이상 포함하지 않는다. 이 chart는 다음으로 채운다.
+
+| 구성 요소 | 내용 |
+| --- | --- |
+| `gitlab-webservice-default` | Puma와 Workhorse. HTTPRoute `gitlab`이 `/` 전체를 Workhorse 포트 `8181`로 보낸다 |
+| `gitlab-sidekiq-all-in-1-v2` | 백그라운드 작업 |
+| `gitlab-gitaly` | Git 저장소. gp3 PVC 50Gi |
+| `gitlab-toolbox` | `gitlab-rails console`, `backup-utility` |
+| `gitlab-migrations-*` | DB migration Job. 설정이 바뀔 때마다 새로 실행된다 |
+| `gitlab-postgres` | PostgreSQL 18(`opspresso/helm-charts` `postgres`). gp3 PVC 20Gi. 사용자 `gitlab`은 superuser라 migration이 필요한 extension을 만든다 |
+| `gitlab-valkey` | Valkey(`opspresso/helm-charts` `valkey`). `maxmemory` 512MB, 가득 차면 쓰기를 거부한다(`noeviction`) |
+| S3 | `opspresso-gitlab-{artifacts,lfs,uploads,packages,backups,tmp}`(terraform-env-apps `demo/8-gitlab`) |
+
+- 끈 구성 요소: gitlab-shell(SSH), KAS, registry, pages, exporter, 내장 nginx·cert-manager·Prometheus·Runner·Envoy Gateway.
+  gateway가 SSH를 라우팅하지 않으므로 Git은 HTTPS로 clone·push한다.
+- 모든 GitLab Pod는 ServiceAccount `gitlab`을 쓴다. EKS Pod Identity가 이 계정에 IAM 역할 `pod-role--gitlab`을 붙인다
+  (terraform-env-demo `demo/4-role`, `demo/5-eks`). S3 연결 Secret `gitlab-object-storage`에는 키가 없고 `use_iam_profile: true`만 있다.
+- webservice·sidekiq는 HPA를 만들지만 `minReplicas`·`maxReplicas`를 1로 고정한다.
+
+### 보존해야 하는 데이터
+
+- `gitlab-rails-secret` 등 chart의 `shared-secrets` Job이 처음 설치할 때 만든 Secret. DB에 암호화해 둔 값(CI 변수, 토큰, 2FA)의 키다.
+  잃으면 그 값을 읽을 수 없다. namespace를 지우기 전에 백업한다.
+- PostgreSQL·Gitaly·Valkey PVC. `postgres`·`valkey` StatefulSet은 Application을 지우면 PVC도 지운다.
+  gp3는 `Retain`이므로 EBS 볼륨은 남는다.
+
+## SSM 파라미터
+
+배포 전에 SecureString으로 등록한다. 값이 없으면 ExternalSecret이 실패하고 Pod가 시작하지 않는다.
+
+| 파라미터 | 용도 |
+| --- | --- |
+| `/k8s/common/gitlab/root-password` | `root`의 첫 비밀번호. GitLab은 처음 설치할 때만 읽는다 |
+| `/k8s/common/gitlab/postgres-password` | PostgreSQL 사용자 `gitlab`. PostgreSQL은 데이터 디렉터리를 처음 만들 때만 읽는다 |
+| `/k8s/common/gitlab/valkey-password` | Valkey `requirepass` |
+| `/k8s/common/gitlab/oidc-client-secret` | Dex client `gitlab-sso`의 secret. Argo CD `argocd-secret`도 읽으므로, 없으면 `argocd-secret` 전체가 갱신되지 않는다 |
+
+```bash
+for name in root-password postgres-password valkey-password oidc-client-secret; do
+  aws ssm put-parameter --region ap-northeast-2 --type SecureString \
+    --name "/k8s/common/gitlab/${name}" \
+    --value "$(openssl rand -base64 33 | tr -d '/+=' | cut -c1-32)"
+done
+```
+
+`root-password`와 `postgres-password`는 첫 설치 뒤에 바꿔도 반영되지 않는다. PostgreSQL 비밀번호를 바꾸려면 DB에서
+`ALTER USER`를 먼저 실행하고 SSM을 같은 값으로 바꾼다.
+
+## 로그인
+
+- **GitHub**: Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거친다. Dex는 `opspresso` 조직 구성원만 받으므로,
+  첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. 같은 이메일의 기존 사용자에게는 연결된다.
+  provider 설정은 ExternalSecret `gitlab-oidc-provider`가 만든다.
+- **root**: `/k8s/common/gitlab/root-password`로 로그인한다. GitLab CE는 OIDC group으로 관리자를 지정할 수 없으므로,
+  관리자 권한은 root가 Admin 영역에서 준다.
+
+설치 직후 root로 **Admin > Settings > General > Sign-up restrictions**에서 **Sign-up enabled**를 끈다.
+이 설정은 DB에 저장되며 chart 값으로 바꿀 수 없다.
+
+## 백업
+
+`backup-utility`는 IAM 역할로 S3에 쓰므로 `--s3tool awscli`를 붙인다. 백업 CronJob은 켜지 않았다.
+
+```bash
+kubectl -n addon-gitlab exec deploy/gitlab-toolbox -- backup-utility --s3tool awscli
+```
