@@ -54,8 +54,7 @@ kube-prometheus-stack:
                 Forge DB checkpoints.
               summary: Workspace node {{ $labels.node }} is under disk pressure
             expr: (kube_node_status_condition{condition="DiskPressure",status="true"} == 1)
-              and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
-              or kube_node_labels{cluster=~"k3s-.+"})
+              and on(cluster,node) kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
             for: 1m
             labels:
               service: agent-forge
@@ -64,20 +63,11 @@ kube-prometheus-stack:
             annotations:
               summary: Workspace node {{ $labels.node }} is unavailable
             expr: (kube_node_status_condition{condition="Ready",status=~"false|unknown"} ==
-              1) and on(cluster,node) (kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
-              or kube_node_labels{cluster=~"k3s-.+"})
+              1) and on(cluster,node) kube_node_labels{label_karpenter_sh_nodepool="workspaces"}
             for: 1m
             labels:
               service: agent-forge
               severity: critical
-          - alert: ForgeWorkspaceStateMetricsUnavailable
-            annotations:
-              summary: Workspace state metrics are unavailable
-            expr: up{job="workspace-state"} == 0
-            for: 2m
-            labels:
-              service: agent-forge
-              severity: warning
           - alert: ForgeServiceUnavailable
             annotations:
               summary: Forge API and execution worker are unavailable
