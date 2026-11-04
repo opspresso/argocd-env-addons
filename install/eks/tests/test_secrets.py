@@ -9,10 +9,9 @@ import pytest
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "secrets.sh"
-ENV = Path(__file__).resolve().parents[3] / "env" / "eks-demo.yaml"
 
-# Fake aws keeps SSM in a JSON file. openssl, python3 and bash are real, so the
-# generated values and the Kanidm certificate are what the script really makes.
+# Fake aws keeps SSM in a JSON file. openssl and bash are real, so the
+# generated values are what the script really makes.
 AWS = r'''
 import json
 import os
@@ -54,9 +53,7 @@ elif operation == "put-parameter":
 def run(tmp_path, state, *args, **env):
     root = tmp_path / "repo"
     (root / "install" / "eks").mkdir(parents=True)
-    (root / "env").mkdir()
     shutil.copy2(SCRIPT, root / "install" / "eks" / "secrets.sh")
-    shutil.copy2(ENV, root / "env" / "eks-demo.yaml")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     aws = bin_dir / "aws"
@@ -85,33 +82,6 @@ def test_creates_every_missing_secret_and_never_overwrites(tmp_path):
     assert any(c.isupper() for c in admin) and any(c.islower() for c in admin) and any(c.isdigit() for c in admin)
     # Values must not leak to the output.
     assert state["/k8s/common/gitlab/postgres-password"] not in result.stdout
-
-
-def test_kanidm_certificate_verifies_with_its_ca_and_names_the_service(tmp_path):
-    result, state, _ = run(tmp_path, {})
-    assert result.returncode == 0, result.stderr
-    pem = tmp_path / "pem"
-    pem.mkdir()
-    (pem / "ca.crt").write_text(state["/k8s/common/kanidm/ca-crt"])
-    (pem / "chain.crt").write_text(state["/k8s/common/kanidm/tls-chain"])
-    verify = subprocess.run(["openssl", "verify", "-CAfile", str(pem / "ca.crt"), str(pem / "chain.crt")],
-                            capture_output=True, text=True)
-    assert verify.returncode == 0, verify.stderr
-    names = subprocess.run(["openssl", "x509", "-in", str(pem / "chain.crt"), "-noout", "-ext", "subjectAltName"],
-                           capture_output=True, text=True).stdout
-    assert "DNS:kanidm.addon-kanidm.svc.cluster.local" in names
-    assert "DNS:idm.demo.opsp.dev" in names
-    assert "PRIVATE KEY" in state["/k8s/common/kanidm/tls-key"]
-    # The public CA is printed so that the chart can be updated; the keys are not.
-    assert "BEGIN CERTIFICATE" in result.stdout
-    assert "PRIVATE KEY" not in result.stdout
-
-
-def test_existing_kanidm_certificate_is_kept(tmp_path):
-    result, state, calls = run(tmp_path, {"/k8s/common/kanidm/tls-chain": "existing-chain"})
-    assert result.returncode == 0, result.stderr
-    assert state["/k8s/common/kanidm/tls-chain"] == "existing-chain"
-    assert not any(op == "put-parameter" and name.startswith("/k8s/common/kanidm/") for op, name, _ in calls)
 
 
 def test_check_reports_missing_parameters_without_writing(tmp_path):

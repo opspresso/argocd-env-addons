@@ -25,7 +25,7 @@ jenkins:
           entries:
 
             - group:
-                name: "sre"
+                name: "opspresso:sre"
                 permissions:
                   - "Overall/Administer"
 

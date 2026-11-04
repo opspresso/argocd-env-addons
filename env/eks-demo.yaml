@@ -37,6 +37,9 @@ argocd:
     parent_refs:
       - name: istio-ingressgateway
         namespace: istio-system
+  # GitHub organization of the Dex connector (sso below lists its teams).
+  github:
+    org: opspresso # github org
   google:
     enabled: false
   chatUrl: https://app.slack.com/client/T03FUG4UB/C035P1YD72A
@@ -101,26 +104,14 @@ gitlab:
   admins:
     - nalbam
 
-# Sign-in rule of every addon that uses Argo CD Dex (connector kanidm). Members
+# Sign-in rule of every addon that uses Argo CD Dex (GitHub connector). Members
 # of admin_groups are administrators; members of member_groups sign in as users
-# or readers. The names are Kanidm groups (charts/kanidm).
+# or readers. Dex reports GitHub teams as "<org>:<team>".
 sso:
   admin_groups:
-    - sre
+    - opspresso:sre
   member_groups:
-    - dev
-
-# Identity provider (charts/kanidm). Kanidm keeps the people and the groups;
-# Argo CD Dex signs them in to every addon.
-kanidm:
-  hostname: idm.demo.opsp.dev
-  # The gateway Pods run in the VPC and send X-Forwarded-For.
-  trusted_proxies:
-    - 10.10.0.0/16
-  # Groups the provisioning Job creates. Only their members can sign in.
-  groups:
-    - sre
-    - dev
+    - opspresso:dev
 
 jenkins:
   hostname: jenkins.demo.opsp.dev

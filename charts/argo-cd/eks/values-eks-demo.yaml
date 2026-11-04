@@ -101,7 +101,7 @@ argo-cd:
       # default grants. Narrower reads require a smaller default role first.
       # sso.admin_groups (env/<cluster>.yaml) administer; everyone else reads (policy.default).
       policy.csv: |
-        g, sre, role:admin
+        g, opspresso:sre, role:admin
 
         p, role:mcp, applications, get, */*, allow
         p, role:mcp, applications, create, */*, allow
@@ -134,23 +134,15 @@ argo-cd:
 
       dex.config: |
         connectors:
-
-        # Kanidm (charts/kanidm) keeps the people and groups. Only members of the
-        # groups in its OAuth2 client dex can sign in. The claim groups holds the
-        # group names (scope groups_name). install/eks/kanidm.sh sets the secret.
-        - type: oidc
-          id: kanidm
-          name: Kanidm
+        - type: github
+          id: github
+          name: github
           config:
-            issuer: https://idm.demo.opsp.dev/oauth2/openid/dex
-            clientID: dex
-            clientSecret: $dex.kanidm.clientSecret
-            redirectURI: https://argocd.demo.opsp.dev/api/dex/callback
-            scopes: [openid, profile, email, groups_name]
-            insecureEnableGroups: true
-            userNameKey: preferred_username
-            pkceChallenge: S256
-
+            clientID: $dex.github.clientId
+            clientSecret: $dex.github.clientSecret
+            teamNameField: slug
+            orgs:
+              - name: opspresso
         staticClients:
         - id: argo-workflows-sso
           name: Argo Workflow
@@ -329,6 +321,12 @@ raw:
           - secretKey: admin.passwordMtime
             remoteRef:
               key: /k8s/common/argocd-mtime
+          - secretKey: dex.github.clientId
+            remoteRef:
+              key: /k8s/opspresso/argocd-github-id
+          - secretKey: dex.github.clientSecret
+            remoteRef:
+              key: /k8s/opspresso/argocd-github-secret
           - secretKey: webhook.github.secret
             remoteRef:
               key: /k8s/common/argocd-webhook
@@ -376,7 +374,3 @@ raw:
           - secretKey: harbor-client-secret
             remoteRef:
               key: /k8s/common/harbor/oidc-client-secret
-
-          - secretKey: dex.kanidm.clientSecret
-            remoteRef:
-              key: /k8s/common/kanidm/dex-client-secret

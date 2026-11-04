@@ -63,15 +63,15 @@ grafana:
       disable_login_form: true
 {% endif %}
 {% if grafana.auth.dex.enabled %}
-      # A user keeps one account across sign-in sources (GitHub, Kanidm): Grafana
+      # A user keeps one account across sign-in sources: Grafana
       # finds it by email. Dex accepts only the sso groups.
       oauth_allow_insecure_email_lookup: true
     # Sign-in through Argo CD Dex (client grafana-sso), like the other addons.
     # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/
     auth.generic_oauth:
       enabled: true
-      name: Kanidm
-      icon: signin
+      name: GitHub
+      icon: github
       allow_sign_up: true
       auto_login: true
       client_id: grafana-sso

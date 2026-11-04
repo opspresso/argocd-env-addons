@@ -69,7 +69,7 @@ step "서명 키·mcp·keep 토큰 확인"
 run ./token.sh
 run ./token.sh --account keep
 
-# addons 가 읽는 무작위 값(OIDC client secret, DB 비밀번호, 내부 TLS)을 없을 때만 만듭니다.
+# addons 가 읽는 무작위 값(OIDC client secret, DB 비밀번호 등)을 없을 때만 만듭니다.
 # charts/argo-cd 의 argocd-secret 은 OIDC client secret 을 읽으므로, 하나라도 없으면
 # argocd-secret 이 만들어지지 않습니다.
 step "addon 시크릿 확인"
@@ -96,4 +96,3 @@ run kubectl apply -n argocd -f https://raw.githubusercontent.com/opspresso/argoc
 
 # 공개 주소는 istio addon 과 argo-cd addon 의 HTTPRoute 가 동기화된 뒤 응답합니다.
 ok "Argo CD 설치 완료. addons 동기화 후 https://${ARGOCD_HOSTNAME}"
-echo "kanidm 이 준비되면 ./kanidm.sh 로 idm_admin 비밀번호와 Dex client secret 을 SSM 에 고정합니다."
