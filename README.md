@@ -134,8 +134,8 @@ addon을 동기화한다.
 - namespace는 `addon-<name>`이다. upstream 관례가 강한 것만 예외로 한다(`istio-system`, `argocd`).
 - label `opspresso.com/group: addons`, `opspresso.com/cluster: {{cluster}}`를 유지한다.
 - 관리 클러스터 전용 addon은 `env/eks-demo.yaml`만 나열하고 `name`에 `# only management cluster` 주석을 단다.
-- `syncPolicy.automated`는 대부분 켜져 있다. EKS의 `argo-cd`만 수동 sync이고 k3s의 `argo-cd`는
-  자동 sync다. 켜져 있는 자동 sync를 끄거나 꺼져 있는 것을 켜지 않는다.
+- `syncPolicy.automated`는 대부분 켜져 있다. EKS와 k3s의 `argo-cd`도 자동 sync다.
+  켜져 있는 자동 sync를 끄거나 꺼져 있는 것을 켜지 않는다.
 
 ### chart 구조
 
