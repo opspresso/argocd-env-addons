@@ -210,7 +210,7 @@ raw:
                     command: [sh, /scripts/sync.sh]
                     env:
                       - name: ADMINS
-                        value: "nalbam,nalbam-bot"
+                        value: "nalbam"
                     resources:
                       requests:
                         cpu: 10m
