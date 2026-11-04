@@ -1,7 +1,7 @@
 # keep
 
 [Keep](https://github.com/keephq/keep)은 여러 도구의 경보를 한곳에 모아 중복을 제거하고 상관관계를 보여주는 경보 관리 도구다.
-관리 클러스터(`eks-demo`)에만 배포하며 주소는 `https://keep.demo.rovr.dev`이다.
+관리 클러스터(`eks-demo`)에만 배포하며 주소는 `https://keep.demo.opsp.dev`이다.
 
 ## 구성
 
@@ -17,7 +17,7 @@
 
 ## 로그인
 
-Argo CD의 Dex(`https://argocd.demo.rovr.dev/api/dex`)로 GitHub 로그인한다. Dex client는 `charts/argo-cd`의 `keep-sso`다.
+Argo CD의 Dex(`https://argocd.demo.opsp.dev/api/dex`)로 GitHub 로그인한다. Dex client는 `charts/argo-cd`의 `keep-sso`다.
 
 - `opspresso:dev` 팀은 `admin` 역할을 받는다.
 - 그 밖의 사용자는 매핑된 group이 없어 403을 받는다. Keep OIDC에는 기본 역할이 없다.

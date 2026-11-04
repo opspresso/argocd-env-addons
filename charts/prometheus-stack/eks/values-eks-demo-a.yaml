@@ -102,7 +102,7 @@ kube-prometheus-stack:
             name: istio-ingressgateway
             namespace: istio-system
         hostnames:
-          - "prom.demo-in.rovr.dev"
+          - "prom.demo-in.opsp.dev"
     prometheusSpec:
 
       # Nothing scraped here carries a cluster label, so every dashboard's

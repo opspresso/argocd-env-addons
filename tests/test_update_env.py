@@ -24,8 +24,8 @@ elif args[:2] == ["ec2", "describe-vpcs"]:
 elif args[:2] == ["acm", "list-certificates"]:
     if scenario in ("shared_cert", "special_cert"):
         certificate = r"arn:argocd$new\certificate|new" if scenario == "special_cert" else "arn:argocd-new"
-        print("argocd.demo.rovr.dev\t" + certificate)
-        print("demo.rovr.dev\tarn:atlantis-new")
+        print("argocd.demo.opsp.dev\t" + certificate)
+        print("demo.opsp.dev\tarn:atlantis-new")
 elif args[:2] == ["elbv2", "describe-target-groups"]:
     name = args[args.index("--names") + 1]
     assert name in ("demo-h1-0", "demo-in-http-0", "demo-grpc-0"), args

@@ -21,7 +21,7 @@ keep:
       - name: AUTH_TYPE
         value: OIDC
       - name: KEEP_OIDC_ISSUER
-        value: "https://argocd.demo.rovr.dev/api/dex"
+        value: "https://argocd.demo.opsp.dev/api/dex"
       - name: KEEP_OIDC_CLIENT_ID
         value: keep-sso
       # Dex reports GitHub teams as "<org>:<team>". A user in no listed group gets 403.
@@ -111,7 +111,7 @@ keep:
                       elements:
                         - {type: mrkdwn, text: "심각도 `{{ alert.severity }}` · Grafana · 시작 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                      text: {type: mrkdwn, text: "<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기> · <https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: section
                       text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
@@ -135,7 +135,7 @@ keep:
                       elements:
                         - {type: mrkdwn, text: "심각도 `{{ alert.severity }}` · Grafana · 해소 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                      text: {type: mrkdwn, text: "<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기> · <https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: context
                       elements:
@@ -190,7 +190,7 @@ keep:
                       elements:
                         - {type: mrkdwn, text: "심각도 `{{ alert.severity }}` · Prometheus · 시작 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                      text: {type: mrkdwn, text: "<https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: section
                       text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
@@ -214,7 +214,7 @@ keep:
                       elements:
                         - {type: mrkdwn, text: "심각도 `{{ alert.severity }}` · Prometheus · 해소 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                      text: {type: mrkdwn, text: "<https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: context
                       elements:
@@ -270,7 +270,7 @@ keep:
                       elements:
                         - {type: mrkdwn, text: "심각도 `{{ alert.severity }}` · Argo CD · 프로젝트 `{{ alert.labels.project }}` · 시작 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<{{ alert.url }}|Argo CD> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                      text: {type: mrkdwn, text: "<{{ alert.url }}|Argo CD> · <https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: section
                       text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
@@ -294,7 +294,7 @@ keep:
                       elements:
                         - {type: mrkdwn, text: "심각도 `{{ alert.severity }}` · Argo CD · 프로젝트 `{{ alert.labels.project }}` · 해소 <!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<{{ alert.url }}|Argo CD> · <https://keep.demo.rovr.dev/alerts/feed|Keep>"}
+                      text: {type: mrkdwn, text: "<{{ alert.url }}|Argo CD> · <https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: context
                       elements:
@@ -338,13 +338,13 @@ keep:
                     - type: section
                       text: {type: mrkdwn, text: "경보 {{ incident.alerts_count }}개를 하나의 incident로 묶었습니다. 심각도 `{{ incident.severity }}`"}
                     - type: section
-                      text: {type: mrkdwn, text: "<https://keep.demo.rovr.dev/incidents/{{ incident.id }}|Keep에서 보기>"}
+                      text: {type: mrkdwn, text: "<https://keep.demo.opsp.dev/incidents/{{ incident.id }}|Keep에서 보기>"}
                     - type: section
                       text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
   frontend:
     env:
       - name: NEXTAUTH_URL
-        value: "https://keep.demo.rovr.dev"
+        value: "https://keep.demo.opsp.dev"
       - name: VERCEL
         value: "1"
       - name: ENV
@@ -360,14 +360,14 @@ keep:
       - name: AUTH_TYPE
         value: OIDC
       - name: KEEP_OIDC_ISSUER
-        value: "https://argocd.demo.rovr.dev/api/dex"
+        value: "https://argocd.demo.opsp.dev/api/dex"
       - name: KEEP_OIDC_CLIENT_ID
         value: keep-sso
       - name: KEEP_OIDC_ADMIN_ROLES
         value: "opspresso:dev"
 
     podAnnotations:
-      link.argocd.argoproj.io/external-link: "https://keep.demo.rovr.dev"
+      link.argocd.argoproj.io/external-link: "https://keep.demo.opsp.dev"
 
 raw:
   resources:
@@ -377,7 +377,7 @@ raw:
       metadata:
         name: keep
         annotations:
-          link.argocd.argoproj.io/external-link: "https://keep.demo.rovr.dev"
+          link.argocd.argoproj.io/external-link: "https://keep.demo.opsp.dev"
       spec:
         parentRefs:
           - group: gateway.networking.k8s.io
@@ -387,7 +387,7 @@ raw:
             namespace: istio-system
 
         hostnames:
-          - "keep.demo.rovr.dev"
+          - "keep.demo.opsp.dev"
         rules:
           - matches:
               - path:
