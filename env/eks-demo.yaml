@@ -113,7 +113,6 @@ gitlab:
   # from Dex, so keep this list equal to the team (charts/gitlab README.md).
   admins:
     - nalbam
-    - nalbam-bot
 
 keep:
   hostname: keep.demo.opsp.dev
