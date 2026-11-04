@@ -184,6 +184,16 @@ argo-cd:
           redirectURIs:
             - https://grafana.{{hostname.public}}/login/generic_oauth
           secretEnv: GRAFANA_SSO_CLIENT_SECRET
+        - id: jenkins-sso
+          name: Jenkins
+          redirectURIs:
+            - https://jenkins.{{hostname.public}}/securityRealm/finishLogin
+          secretEnv: JENKINS_SSO_CLIENT_SECRET
+        - id: harbor-sso
+          name: Harbor
+          redirectURIs:
+            - https://harbor.{{hostname.public}}/c/oidc/callback
+          secretEnv: HARBOR_SSO_CLIENT_SECRET
 
 {% endif %}
 
@@ -384,5 +394,11 @@ raw:
               key: /k8s/common/gitlab/oidc-client-secret
           - secretKey: grafana-client-secret
             remoteRef:
-              key: /k8s/common/grafana/oidc-client-secret{% endif %}
+              key: /k8s/common/grafana/oidc-client-secret
+          - secretKey: jenkins-client-secret
+            remoteRef:
+              key: /k8s/common/jenkins/oidc-client-secret
+          - secretKey: harbor-client-secret
+            remoteRef:
+              key: /k8s/common/harbor/oidc-client-secret{% endif %}
 {%- endif %}

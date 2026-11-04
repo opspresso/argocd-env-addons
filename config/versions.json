@@ -27,7 +27,7 @@
     "atlantis": {
       "app_version": "v0.49.0",
       "chart": "atlantis/atlantis",
-      "current": "6.16.2",
+      "current": "7.0.0",
       "version": "7.0.0"
     },
     "dynamodb-chart": {
@@ -69,12 +69,24 @@
       "current": "10.5.15",
       "version": "10.5.15"
     },
+    "harbor": {
+      "app_version": "2.15.4",
+      "chart": "goharbor/harbor",
+      "current": "1.19.4",
+      "version": "1.19.4"
+    },
     "istiod": {
       "app_version": "1.31.3",
       "chart": "istio/istiod",
       "current": "1.31.3",
       "path": "istio",
       "version": "1.31.3"
+    },
+    "jenkins": {
+      "app_version": "2.580.2",
+      "chart": "jenkinsci/jenkins",
+      "current": "5.10.10",
+      "version": "5.10.10"
     },
     "keep": {
       "app_version": "0.54.3",

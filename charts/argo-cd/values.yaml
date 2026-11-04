@@ -123,6 +123,16 @@ argo-cd:
           secretKeyRef:
             name: argocd-secret
             key: grafana-client-secret
+      - name: JENKINS_SSO_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: argocd-secret
+            key: jenkins-client-secret
+      - name: HARBOR_SSO_CLIENT_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: argocd-secret
+            key: harbor-client-secret
 
     metrics:
       enabled: true
