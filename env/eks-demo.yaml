@@ -114,6 +114,18 @@ gitlab:
   admins:
     - nalbam
 
+# Identity provider (charts/kanidm). Kanidm keeps the people and the groups;
+# Argo CD Dex signs them in to every addon.
+kanidm:
+  hostname: idm.demo.opsp.dev
+  # The gateway Pods run in the VPC and send X-Forwarded-For.
+  trusted_proxies:
+    - 10.10.0.0/16
+  # Groups the provisioning Job creates. Only their members can sign in.
+  groups:
+    - sre
+    - dev
+
 jenkins:
   hostname: jenkins.demo.opsp.dev
 
