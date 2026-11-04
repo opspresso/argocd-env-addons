@@ -32,14 +32,16 @@ Kanidm은 Helm chart를 내지 않는다. 이 chart는 공식 이미지 `kanidm/
 kanidmd는 HTTPS만 받는다. ALB가 브라우저 TLS를 종료하고, gateway가 kanidmd로 다시 암호화한다.
 
 - 서버 인증서는 내부 CA가 발급했다(ECDSA P-256, 10년, SAN `kanidm.addon-kanidm.svc.cluster.local`).
-- gateway는 DestinationRule `istio-system/kanidm`으로 이 CA(`kanidm-ca`)를 검증한다.
+- gateway는 DestinationRule `istio-system/kanidm`으로 이 CA를 검증한다. CA 인증서는 공개 정보이므로
+  `values-template.yaml.j2`에 두고 Secret `istio-system/kanidm-ca`로 만든다. ClusterSecretStore가 `istio-system`을 허용하지 않기 때문이다.
 - 갱신: CA 키(`/k8s/common/kanidm/ca-key`)로 새 서버 인증서를 발급해 `tls-chain`·`tls-key`를 바꾸고 Pod를 재시작한다.
+  CA를 바꾸면 `values-template.yaml.j2`의 CA 인증서도 바꾼다.
 
 | SSM 파라미터 | 내용 |
 | --- | --- |
 | `/k8s/common/kanidm/tls-chain` | 서버 인증서 + CA 인증서 |
 | `/k8s/common/kanidm/tls-key` | 서버 키 |
-| `/k8s/common/kanidm/ca-crt` | CA 인증서. gateway가 검증에 쓴다 |
+| `/k8s/common/kanidm/ca-crt` | CA 인증서 원본. `values-template.yaml.j2`에도 같은 값이 있다 |
 | `/k8s/common/kanidm/ca-key` | CA 키. 인증서 갱신에만 쓴다 |
 | `/k8s/common/kanidm/idm-admin-password` | `idm_admin` 비밀번호. provisioning Job이 쓴다 |
 | `/k8s/common/kanidm/dex-client-secret` | OAuth2 client `dex`의 secret. Argo CD `argocd-secret`이 읽는다 |
