@@ -217,6 +217,10 @@ gitlab:
 
 postgres:
   fullnameOverride: gitlab-postgres
+  # The schema load locks every table in one transaction. The default 64 fails
+  # with "out of shared memory"; GitLab Omnibus uses 128.
+  config:
+    max_locks_per_transaction: 128
   database: gitlab
   username: gitlab
   passwordSecret:
