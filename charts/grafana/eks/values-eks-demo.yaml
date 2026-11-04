@@ -1483,11 +1483,11 @@ grafana:
 
 
   podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
+    link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
 
   grafana.ini:
     server:
-      root_url: "https://grafana.demo.rovr.dev/"
+      root_url: "https://grafana.demo.opsp.dev/"
     # Users land on the overview, mounted from the bundled dashboards ConfigMap.
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
@@ -1519,7 +1519,7 @@ grafana:
     main:
       enabled: true
       annotations:
-        link.argocd.argoproj.io/external-link: "https://grafana.demo.rovr.dev"
+        link.argocd.argoproj.io/external-link: "https://grafana.demo.opsp.dev"
       parentRefs:
         - group: gateway.networking.k8s.io
           kind: Gateway
@@ -1528,7 +1528,7 @@ grafana:
           namespace: istio-system
 
       hostnames:
-        - "grafana.demo.rovr.dev"
+        - "grafana.demo.opsp.dev"
 
   datasources:
     datasources.yaml:
@@ -1561,7 +1561,7 @@ grafana:
       - name: Loki
         type: loki
         uid: loki
-        url: http://loki.demo-in.rovr.dev
+        url: http://loki.demo-in.opsp.dev
         access: proxy
 
 

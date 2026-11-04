@@ -18,10 +18,10 @@ argo-cd:
 
     ingress:
       enabled: false
-      hostname: "argocd.demo.rovr.dev"
+      hostname: "argocd.demo.opsp.dev"
       annotations:
         kubernetes.io/ingress.class: "alb"
-        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.rovr.dev"
+        external-dns.alpha.kubernetes.io/hostname: "argocd.demo.opsp.dev"
         alb.ingress.kubernetes.io/scheme: "internet-facing"
         alb.ingress.kubernetes.io/target-type: "ip"
         alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
@@ -35,7 +35,7 @@ argo-cd:
         - name: istio-ingressgateway
           namespace: istio-system
       hostnames:
-        - "argocd.demo.rovr.dev"
+        - "argocd.demo.opsp.dev"
 
     metrics:
       serviceMonitor:
@@ -73,7 +73,7 @@ argo-cd:
 
   notifications:
     enabled: True
-    argocdUrl: https://argocd.demo.rovr.dev
+    argocdUrl: https://argocd.demo.opsp.dev
 
     # Keep (charts/keep) receives each problem and its recovery, so an alert
     # there resolves itself. Keep sends the Slack message.
@@ -117,9 +117,9 @@ argo-cd:
         # which is all the Keep argocd provider uses (applications, resource trees).
 
     cm:
-      url: https://argocd.demo.rovr.dev
+      url: https://argocd.demo.opsp.dev
 
-      statusbadge.url: https://argocd.demo.rovr.dev/
+      statusbadge.url: https://argocd.demo.opsp.dev/
 
       help.chatUrl: "https://app.slack.com/client/T03FUG4UB/C035P1YD72A"
       help.chatText: "Chat now!"
@@ -146,17 +146,17 @@ argo-cd:
         - id: argo-workflows-sso
           name: Argo Workflow
           redirectURIs:
-            - https://workflows.demo.rovr.dev/oauth2/callback
+            - https://workflows.demo.opsp.dev/oauth2/callback
           secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
         - id: oauth2-proxy-sso
           name: OAuth2 Proxy
           redirectURIs:
-            - https://auth.demo.rovr.dev/oauth2/callback
+            - https://auth.demo.opsp.dev/oauth2/callback
           secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
         - id: keep-sso
           name: Keep
           redirectURIs:
-            - https://keep.demo.rovr.dev/api/auth/callback/oidc
+            - https://keep.demo.opsp.dev/api/auth/callback/oidc
           secretEnv: KEEP_SSO_CLIENT_SECRET
 
 

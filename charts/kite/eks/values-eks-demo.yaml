@@ -3,9 +3,9 @@ kite:
 
 
   podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://kite.demo.rovr.dev"
+    link.argocd.argoproj.io/external-link: "https://kite.demo.opsp.dev"
 
-  host: "https://kite.demo.rovr.dev"
+  host: "https://kite.demo.opsp.dev"
 
   gateway:
     enabled: true
@@ -15,7 +15,7 @@ kite:
     httpRoutes:
       - name: kite
         hostnames:
-          - "kite.demo.rovr.dev"
+          - "kite.demo.opsp.dev"
         rules:
           - matches:
               - path:

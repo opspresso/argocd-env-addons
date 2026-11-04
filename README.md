@@ -12,8 +12,8 @@ Argo CD로 클러스터 addon을 배포하는 GitOps 저장소다. 애플리케�
 | --- | --- | --- | --- | --- |
 | EKS | 운영 중. `eks-demo`(Auto Mode, Kubernetes 1.37, phase `prod`) | 서비스 안정성 | `addons-eks.yaml` → `addons/eks/` | [install/eks](install/eks/README.md) |
 
-운영 클러스터 `eks-demo`의 Argo CD(`argocd.demo.rovr.dev`)가 `addons-eks.yaml`을 동기화한다.
-addon 공개 주소는 `*.demo.rovr.dev`, 내부 주소는 `*.demo-in.rovr.dev`를 사용하며 ACM 인증서 `demo.rovr.dev`는
+운영 클러스터 `eks-demo`의 Argo CD(`argocd.demo.opsp.dev`)가 `addons-eks.yaml`을 동기화한다.
+addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`를 사용하며 ACM 인증서 `demo.opsp.dev`는
 `terraform-env-demo`의 `3-alb`가 발급한다. `env/eks-demo-a.yaml`·`env/eks-demo-b.yaml`은 향후 서비스 클러스터
 선언이다.
 `local`은 공통 템플릿과 정책 검사에서만 지원하며, 로컬 클러스터용 env·Application·설치
@@ -198,11 +198,11 @@ Service·경보 그룹은 환경 설정에서 관리한다.
 
 ### EKS 모니터링
 
-- Grafana는 `https://grafana.demo.rovr.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
+- Grafana는 `https://grafana.demo.opsp.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
   경보 평가와 Slack 알림을 사용한다. 홈 대시보드는 Cluster Overview다. 대시보드와 경보 목록은
   [grafana README](charts/grafana/README.md)에 있다.
 - Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor를 수집한다.
-- Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.rovr.dev`다.
+- Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.opsp.dev`다.
 - 저장소 크기와 보존 기간은 [Production addon 용량](docs/production-capacity.md)을 따른다.
 
 ### EKS Auto Mode NetworkPolicy

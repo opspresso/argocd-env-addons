@@ -13,8 +13,8 @@ aws_environment: demo
 vpcId: vpc-077dc86403278b4d6
 
 hostname:
-  internal: demo-in.rovr.dev
-  public: demo.rovr.dev
+  internal: demo-in.opsp.dev
+  public: demo.opsp.dev
 
 argo_workflows:
   github:
@@ -49,4 +49,4 @@ prometheus:
     enabled: true
 
 loki:
-  hostname: loki.demo-in.rovr.dev
+  hostname: loki.demo-in.opsp.dev

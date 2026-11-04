@@ -13,8 +13,8 @@ aws_environment: demo
 vpcId: vpc-093b5bd80076c011d
 
 hostname:
-  internal: demo-in.rovr.dev
-  public: demo.rovr.dev
+  internal: demo-in.opsp.dev
+  public: demo.opsp.dev
 
 resources:
   enabled: true
@@ -23,7 +23,7 @@ autoscaling:
 
 argocd:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/d4da4325-af9e-43f7-8d35-868b1b6f8fa7
-  hostname: argocd.demo.rovr.dev
+  hostname: argocd.demo.opsp.dev
   replicas:
     server: 2
     repo_server: 2
@@ -84,7 +84,7 @@ target_group:
   public_http: arn:aws:elasticloadbalancing:ap-northeast-2:396608815058:targetgroup/demo-h1-0/7f5705c5101010d1
 
 grafana:
-  hostname: grafana.demo.rovr.dev
+  hostname: grafana.demo.opsp.dev
   auth:
     github:
       enabled: true
@@ -95,16 +95,16 @@ grafana:
       enabled: false
       allowed_domains: nalbam.com opspresso.com
   # datasource:
-  #   # demo: http://prom.demo-in.rovr.dev
-  #   # demo_a: http://prom.demo-in-a.rovr.dev
-  #   # demo_b: http://prom.demo-in-b.rovr.dev
-  #   loki: http://loki.demo-in.rovr.dev
+  #   # demo: http://prom.demo-in.opsp.dev
+  #   # demo_a: http://prom.demo-in-a.opsp.dev
+  #   # demo_b: http://prom.demo-in-b.opsp.dev
+  #   loki: http://loki.demo-in.opsp.dev
 
 kite:
-  hostname: kite.demo.rovr.dev
+  hostname: kite.demo.opsp.dev
 
 keep:
-  hostname: keep.demo.rovr.dev
+  hostname: keep.demo.opsp.dev
   slack:
     # #noti-eks-demo in the nalbam workspace. The bot token needs the channel id
     # to edit its messages.
@@ -121,7 +121,7 @@ prometheus:
     enabled: true
 
 loki:
-  hostname: loki.demo-in.rovr.dev
+  hostname: loki.demo-in.opsp.dev
 
 # Auto Mode node subnets and stable Service IPs used by the Alloy policy.
 alloy_network_policy:
