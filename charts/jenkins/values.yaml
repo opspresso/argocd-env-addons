@@ -1,0 +1,53 @@
+jenkins:
+  fullnameOverride: jenkins
+
+  controller:
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        memory: 2Gi
+    initContainerResources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+
+    # Plugins of the chart default plus OIDC sign-in and matrix authorization.
+    additionalPlugins:
+      - oic-auth:latest
+      - matrix-auth:latest
+
+    # The Dex client secret, readable in JCasC as ${jenkins-oidc-client-secret}.
+    additionalExistingSecrets:
+      - name: jenkins-oidc
+        keyName: client-secret
+
+    sidecars:
+      configAutoReload:
+        resources:
+          requests:
+            cpu: 10m
+            memory: 64Mi
+          limits:
+            memory: 256Mi
+
+    # The chart test Pod sets no resources.
+    testEnabled: false
+
+    ingress:
+      enabled: false
+
+  agent:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+  persistence:
+    storageClass: gp3
+    size: 20Gi

@@ -1,0 +1,76 @@
+
+jenkins:
+  controller:
+    jenkinsUrl: "https://jenkins.demo.opsp.dev/"
+    podAnnotations:
+      link.argocd.argoproj.io/external-link: "https://jenkins.demo.opsp.dev"
+
+    JCasC:
+      # Sign-in through Argo CD Dex (client jenkins-sso). There is no local user
+      # and no password form. Dex accepts only members of opspresso;
+      # members of opspresso:sre administer, the others read.
+      securityRealm: |-
+        oic:
+          serverConfiguration:
+            wellKnown:
+              wellKnownOpenIDConfigurationUrl: "https://argocd.demo.opsp.dev/api/dex/.well-known/openid-configuration"
+              scopesOverride: "openid profile email groups"
+          clientId: jenkins-sso
+          clientSecret: "${jenkins-oidc-client-secret}"
+          userNameField: preferred_username
+          fullNameFieldName: name
+          emailFieldName: email
+          groupsFieldName: groups
+      authorizationStrategy: |-
+        globalMatrix:
+          entries:
+            - group:
+                name: "opspresso:sre"
+                permissions:
+                  - "Overall/Administer"
+            - group:
+                name: "authenticated"
+                permissions:
+                  - "Overall/Read"
+                  - "Job/Read"
+                  - "View/Read"
+
+raw:
+  resources:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: jenkins
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://jenkins.demo.opsp.dev"
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+
+            name: istio-ingressgateway
+            namespace: istio-system
+
+        hostnames:
+          - "jenkins.demo.opsp.dev"
+        rules:
+          - backendRefs:
+              - name: jenkins
+                port: 8080
+
+    # The client secret is shared with Argo CD Dex (charts/argo-cd).
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: jenkins-oidc
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: jenkins-oidc
+        data:
+          - secretKey: client-secret
+            remoteRef:
+              key: /k8s/common/jenkins/oidc-client-secret

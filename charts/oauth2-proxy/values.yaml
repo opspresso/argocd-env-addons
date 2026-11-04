@@ -4,11 +4,9 @@ oauth2-proxy:
     requests: {cpu: 50m, memory: 64Mi}
     limits: {memory: 256Mi}
 
+  # client-id, client-secret, cookie-secret
   config:
     existingSecret: oauth2-proxy-secret
-
-    google:
-      existingSecret: oauth2-proxy-secret
 
 raw:
   resources:
@@ -23,13 +21,15 @@ raw:
           name: parameter-store
         target:
           name: oauth2-proxy-secret
+          template:
+            engineVersion: v2
+            mergePolicy: Merge
+            data:
+              client-id: oauth2-proxy-sso
         data:
-          - secretKey: client-id
-            remoteRef:
-              key: /common/google/client_id
           - secretKey: client-secret
             remoteRef:
-              key: /common/google/client_secret
+              key: /k8s/common/oauth2-proxy-client-secret
           - secretKey: cookie-secret
             remoteRef:
               key: /k8s/common/cookie-secret

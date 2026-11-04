@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: oauth2-proxy
+  name: atlantis
 spec:
   generators:
     - git:
@@ -9,12 +9,12 @@ spec:
         revision: HEAD
         files:
           - path: "env/eks-demo.yaml"
-          # - path: "env/eks-demo-a.yaml"
-          # - path: "env/eks-demo-b.yaml"
 
   template:
     metadata:
-      name: "oauth2-proxy-{{cluster}}"
+      name: "atlantis" # only management cluster
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: /charts/atlantis
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         opspresso.com/cluster: "{{cluster}}"
@@ -23,11 +23,11 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-oauth2-proxy
+        namespace: addon-atlantis
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/oauth2-proxy
+        path: charts/atlantis
         helm:
           valueFiles:
             - values.yaml

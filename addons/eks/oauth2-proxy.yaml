@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: atlantis
+  name: oauth2-proxy
 spec:
   generators:
     - git:
@@ -12,7 +12,7 @@ spec:
 
   template:
     metadata:
-      name: "atlantis" # only management cluster
+      name: "oauth2-proxy" # only management cluster
       labels:
         app.kubernetes.io/instance: "addons-{{cluster}}"
         opspresso.com/cluster: "{{cluster}}"
@@ -21,19 +21,19 @@ spec:
       project: addons
       destination:
         name: "{{cluster}}"
-        namespace: addon-atlantis
+        namespace: addon-oauth2-proxy
       source:
         repoURL: https://github.com/opspresso/argocd-env-addons.git
         targetRevision: HEAD
-        path: charts/atlantis
+        path: charts/oauth2-proxy
         helm:
           valueFiles:
             - values.yaml
             - "{{env}}/values-{{cluster}}.yaml"
 
       syncPolicy:
-        # automated:
-        #   prune: true
-        #   selfHeal: true
+        automated:
+          prune: true
+          selfHeal: true
         syncOptions:
           - CreateNamespace=true

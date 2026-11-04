@@ -1,0 +1,14 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: jenkins
+type: application
+version: "5.10.10" # helm chart jenkins version
+
+dependencies:
+- name: jenkins
+  repository: https://charts.jenkins.io
+  version: "5.10.10" # helm chart jenkins version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

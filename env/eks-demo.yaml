@@ -114,6 +114,19 @@ gitlab:
   admins:
     - nalbam
 
+jenkins:
+  hostname: jenkins.demo.opsp.dev
+
+harbor:
+  hostname: harbor.demo.opsp.dev
+
+nexus:
+  hostname: nexus.demo.opsp.dev
+  # GitHub logins of the argocd.github.team team. Nexus Community Edition has no
+  # group mapping, so these users get nx-admin (charts/nexus README.md).
+  admins:
+    - nalbam
+
 keep:
   hostname: keep.demo.opsp.dev
   slack:
