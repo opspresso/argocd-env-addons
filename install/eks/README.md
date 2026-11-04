@@ -31,7 +31,6 @@ export ARGOCD_PASSWORD="$(htpasswd -nbBC 10 "" ${ADMIN_PASSWORD} | tr -d ':\n' |
 export ARGOCD_MTIME="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 export ARGOCD_SERVER_SECRET="REPLACE_ME" # random string. 아래 'Set server secret and mcp token' 참고
 export ARGOCD_WEBHOOK="REPLACE_ME" # random string
-export ARGOCD_NOTI_TOKEN="REPLACE_ME" # xoxp-xxxx <https://api.slack.com/apps>
 
 export ARGOCD_GITHUB_ID="REPLACE_ME" # github OAuth Apps <https://github.com/organizations/opspresso/settings/applications>
 export ARGOCD_GITHUB_SECRET="REPLACE_ME" # github OAuth Apps
@@ -50,7 +49,6 @@ aws ssm put-parameter --name /k8s/common/argocd-password --value "${ARGOCD_PASSW
 aws ssm put-parameter --name /k8s/common/argocd-mtime --value "${ARGOCD_MTIME}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/argocd-server-secret --value "${ARGOCD_SERVER_SECRET}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/argocd-webhook --value "${ARGOCD_WEBHOOK}" --type SecureString --overwrite | jq .
-aws ssm put-parameter --name /k8s/common/argocd-noti-token --value "${ARGOCD_NOTI_TOKEN}" --type SecureString --overwrite | jq .
 
 aws ssm put-parameter --name /k8s/common/argo-workflows-client-secret --value "${ARGOCD_SERVER_SECRET}" --type SecureString --overwrite | jq .
 aws ssm put-parameter --name /k8s/common/oauth2-proxy-client-secret --value "${ARGOCD_SERVER_SECRET}" --type SecureString --overwrite | jq .
