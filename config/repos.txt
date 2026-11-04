@@ -11,3 +11,4 @@ oauth2-proxy https://oauth2-proxy.github.io/manifests
 opspresso https://opspresso.github.io/helm-charts
 prometheus https://prometheus-community.github.io/helm-charts
 vllm https://vllm-project.github.io/production-stack
+gitlab https://charts.gitlab.io

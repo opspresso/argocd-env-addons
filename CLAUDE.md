@@ -37,7 +37,7 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 `argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
 `keep` 은 같은 Dex 의 `keep-sso` 클라이언트로 로그인한다. Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는
 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와 kube-sre 호출을 만든다 (`charts/keep/README.md`).
-`gitlab-ce` 는 Omnibus 이미지를 `app` chart 로 배포하고 같은 Dex 의 `gitlab-sso` 클라이언트로 로그인한다 (`charts/gitlab-ce/README.md`).
+`gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙이고, 같은 Dex 의 `gitlab-sso` 클라이언트로 로그인한다 (`charts/gitlab/README.md`).
 
 istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해
 `charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`). 템플릿이 이 파일을 include 하므로
