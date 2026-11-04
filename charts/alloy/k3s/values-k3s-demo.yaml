@@ -250,64 +250,6 @@ alloy:
           forward_to      = [prometheus.relabel.retained_metrics.receiver]
         }
 
-        prometheus.scrape "agent_studio" {
-          targets = [{
-            "__address__" = "agent-studio.agent-studio.svc:3000",
-            "namespace"   = "agent-studio",
-            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-          }]
-          metrics_path    = "/api/metrics"
-          bearer_token    = sys.env("AGENT_STUDIO_METRICS_BEARER_TOKEN")
-          job_name        = "agent-studio"
-          scrape_interval = "15s"
-          forward_to      = [prometheus.relabel.retained_metrics.receiver]
-        }
-
-        prometheus.scrape "agent_memory" {
-          targets = [{
-            "__address__" = "agent-memory.agent-memory.svc:3000",
-            "namespace"   = "agent-memory",
-            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-          }]
-          metrics_path    = "/api/metrics"
-          bearer_token    = sys.env("AGENT_MEMORY_METRICS_BEARER_TOKEN")
-          job_name        = "agent-memory"
-          scrape_interval = "15s"
-          forward_to      = [prometheus.relabel.retained_metrics.receiver]
-        }
-
-        prometheus.scrape "agent_knowledge" {
-          targets = [{
-            "__address__" = "agent-knowledge.agent-knowledge.svc:3000",
-            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-            "namespace"   = "agent-knowledge",
-            "component"   = "web",
-          }, {
-            "__address__" = "agent-knowledge-worker.agent-knowledge.svc:3000",
-            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-            "namespace"   = "agent-knowledge",
-            "component"   = "worker",
-          }]
-          metrics_path    = "/api/metrics"
-          bearer_token    = sys.env("AGENT_KNOWLEDGE_METRICS_BEARER_TOKEN")
-          job_name        = "agent-knowledge"
-          scrape_interval = "15s"
-          forward_to      = [prometheus.relabel.retained_metrics.receiver]
-        }
-
-        prometheus.scrape "agent_forge" {
-          targets = [{
-            "__address__" = "agent-forge.agent-forge.svc:3103",
-            "instance"    = sys.env("GCLOUD_FM_COLLECTOR_ID"),
-            "namespace"   = "agent-forge",
-          }]
-          metrics_path    = "/metrics"
-          bearer_token    = sys.env("AGENT_FORGE_METRICS_BEARER_TOKEN")
-          job_name        = "agent-forge"
-          scrape_interval = "15s"
-          forward_to      = [prometheus.relabel.retained_metrics.receiver]
-        }
-
     extraEnv:
       - name: GCLOUD_FM_COLLECTOR_ID
         value: "k3s-demo"
@@ -398,15 +340,3 @@ raw:
           - secretKey: GCLOUD_RW_API_KEY
             remoteRef:
               key: /k8s/common/grafana-cloud/remote-write-api-key
-          - secretKey: AGENT_STUDIO_METRICS_BEARER_TOKEN
-            remoteRef:
-              key: /k8s/k3s-demo/agent-studio/metrics-bearer-token
-          - secretKey: AGENT_MEMORY_METRICS_BEARER_TOKEN
-            remoteRef:
-              key: /k8s/k3s-demo/agent-memory/metrics-bearer-token
-          - secretKey: AGENT_KNOWLEDGE_METRICS_BEARER_TOKEN
-            remoteRef:
-              key: /k8s/k3s-demo/agent-knowledge/metrics-bearer-token
-          - secretKey: AGENT_FORGE_METRICS_BEARER_TOKEN
-            remoteRef:
-              key: /k8s/k3s-demo/agent-forge/metrics-bearer-token
