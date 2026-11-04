@@ -34,15 +34,15 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 운영 클러스터는 EKS `eks-demo`이며 같은 클러스터의 Argo CD가 `addons-eks.yaml`을 동기화한다.
 `local` 템플릿·정책 지원은 남아 있지만 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
-`argo-workflows` 는 `argo-cd` Dex 의 `argo-workflows-sso` OIDC 클라이언트로 SSO 로그인한다.
-`keep`·`grafana` 는 같은 Dex 의 `keep-sso`·`grafana-sso` 클라이언트로 로그인한다. Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는
-Keep 으로만 보내고, Keep workflow 가 Slack 메시지와 kube-sre 호출을 만든다 (`charts/keep/README.md`).
-Dex client 는 모두 같은 규칙을 따른다(`env/<cluster>.yaml` 의 `sso`): `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
-사람과 팀은 GitHub `opspresso` 조직이 관리하고, Dex 의 GitHub connector 가 팀을 `<org>:<team>` 그룹으로 넘긴다.
-addon 이 읽는 무작위 값은 `install/eks/secrets.sh` 가 SSM 에 만든다.
-GitLab CE 는 group 으로 관리자를 지정할 수 없어 CronJob `gitlab-admin-sync` 가 맞춘다.
-`jenkins`(`jenkins-sso`)·`harbor`(`harbor-sso`)도 같은 Dex 를 쓴다. 자체 로그인이 없는 `atlantis`·`nexus` 는 `oauth2-proxy`(`oauth2-proxy-sso`)가 막는다.
-`gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙이고, 같은 Dex 의 `gitlab-sso` 클라이언트로 로그인한다 (`charts/gitlab/README.md`).
+인증: GitHub `opspresso` 조직 → Argo CD Dex(connector `github`) → 각 addon 의 OIDC client
+(`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`jenkins-sso`·`harbor-sso`·`oauth2-proxy-sso`).
+권한은 `env/<cluster>.yaml` 의 `sso`: `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
+자체 로그인이 없는 `atlantis`·`nexus` 는 `oauth2-proxy` 가 막는다. GitLab CE·Nexus CE 의 관리자는 `gitlab.admins`·`nexus.admins`
+목록을 CronJob 이 맞춘다. addon 이 읽는 무작위 값은 `install/eks/secrets.sh` 가 SSM 에 만든다.
+
+경보: Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와
+kube-sre 호출을 만든다 (`charts/keep/README.md`).
+`gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙인다 (`charts/gitlab/README.md`).
 
 istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해
 `charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`). 템플릿이 이 파일을 include 하므로

@@ -23,7 +23,7 @@ requests는 `eks-demo`에서 측정한 working set·CPU peak에 여유를 더한
 | Argo repo-server | 50m / 256Mi | 1Gi | 2 replicas, PDB 1, Helm 생성 시 CPU burst 허용 |
 | Argo server | 10m / 64Mi | 256Mi | 2 replicas, PDB 1 |
 | Argo application-set / Dex / Redis | 10m/64Mi, 5m/48Mi, 10m/32Mi | 128Mi / 128Mi / 128Mi | 실제 사용량·queue 지연에 따라 조정 |
-| Argo notifications | 5m / 48Mi | 128Mi | `service.slack`과 기존 Secret의 `slack-token` 연결 |
+| Argo notifications | 5m / 48Mi | 128Mi | `service.webhook.keep`으로 Keep에 전송 |
 | metrics-server | 10m / 48Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
 | Prometheus adapter | 10m / 48Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
 | Prometheus | 50m / 1Gi | 3Gi | 80Gi PVC, 10일·60GiB retention |
@@ -49,8 +49,8 @@ Prometheus는 API latency·SLO histogram을 유지하고 사용하지 않는 상
 
 Grafana의 `Workspace Capacity`는 Deployment owner가 없는 Sandbox Pod도 직접 조회한다.
 Pod quota·phase·CPU·메모리·전용 노드·worker·웹 실행 부하를 함께 확인한다.
-Workspace PrometheusRule의 firing 상태는 Grafana가 기존 Slack 경로로 전달한다. 임계값과 대기 시간은
-`config/workspace-alerts.yaml` 한 곳에서 평가하며, Grafana는 `workspace_alert`와 severity label을 보존한다.
+Workspace PrometheusRule의 firing·resolved 상태는 Alertmanager가 Keep으로 보낸다. 임계값과 대기 시간은
+`config/workspace-alerts.yaml` 한 곳에서 평가한다.
 
 1. EKS 앱 HPA가 `ScalingActive=True`인지 확인한다. Studio는 Agent 실행만 집계한
    `agent_studio_active_execution_requests` 및 앱 컨테이너 CPU를 사용한다. Forge native 모델 요청은
@@ -70,4 +70,4 @@ Grafana·Loki·Prometheus의 저장소는 현재 단일 인스턴스다. Node �
 각각 설계한다. RWO 저장소를 공유한 채 replica 수만 올리지 않는다.
 
 Argo CD 자체도 EKS에서 자동 sync다. addon PR을 merge하면 Argo CD chart가 해당 revision으로 sync되는지 확인하고
-controller·server·repo-server·알림 로그를 확인한다. Slack 전송 시험을 위해 장애를 인위적으로 만들지 않는다.
+controller·server·repo-server·알림 로그를 확인한다. 알림 시험을 위해 장애를 인위적으로 만들지 않는다.

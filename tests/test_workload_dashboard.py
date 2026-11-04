@@ -76,22 +76,19 @@ def test_provisioning_has_unique_uids_and_links_to_existing_panels(rendered_graf
 def test_rules_are_actionable_and_query_errors_do_not_page(rendered_grafana):
     """Every rule names its severity and object; only the dedicated rule turns a Prometheus error into an alert."""
     secret = next(doc for doc in rendered_grafana if "workload-health.yaml" in (doc.get("stringData") or {}))
-    erroring, provisioned = [], set()
+    erroring = []
     for name, content in secret["stringData"].items():
         config = yaml.safe_load(content)
         for group in config.get("groups", []):
             for rule in group["rules"]:
-                provisioned.add(rule["uid"])
                 a = rule["annotations"]
                 assert a.get("summary") and a.get("description"), rule["uid"]
                 assert "{{`" not in a["summary"], rule["uid"]
-                if rule["data"][0]["datasourceUid"] == "prometheus" and rule["uid"] != "addons-workspace-prometheus-alerts":
+                if rule["data"][0]["datasourceUid"] == "prometheus":
                     assert rule["labels"]["severity"] in ("critical", "warning"), rule["uid"]
                 if rule["execErrState"] != "KeepLast":
                     erroring.append(rule["uid"])
     assert erroring == ["addons-prometheus-unreachable"]
-    retired = yaml.safe_load(secret["stringData"]["workload-health.yaml"])["deleteRules"]
-    assert {r["uid"] for r in retired}.isdisjoint(provisioned)
 
 
 def test_alerts_go_only_to_keep_one_alert_per_notification(rendered_grafana):
@@ -106,5 +103,3 @@ def test_alerts_go_only_to_keep_one_alert_per_notification(rendered_grafana):
     assert settings["title"] == "{{ .CommonLabels.alertname }}"
     policy = yaml.safe_load(data["policies.yaml"])["policies"][0]
     assert policy["receiver"] == "keep" and policy["group_by"] == ["..."] and "routes" not in policy
-    assert yaml.safe_load(data["contactpoints.yaml"])["deleteContactPoints"] == [{"orgId": 1, "uid": "slack-noti-eks-demo"}]
-    assert yaml.safe_load(data["templates.yaml"]) == {"apiVersion": 1, "deleteTemplates": [{"orgId": 1, "name": "addons-slack"}]}

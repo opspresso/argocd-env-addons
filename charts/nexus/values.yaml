@@ -23,7 +23,6 @@ nexus:
       value: >-
         -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
         -Djava.util.prefs.userRoot=/nexus-data/javaprefs
-        -Dnexus.scripts.allowCreation=true
 
   resources:
     requests:

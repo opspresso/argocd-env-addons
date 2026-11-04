@@ -1,7 +1,0 @@
-# Alertmanager sends the Prometheus rules in config/workspace-alerts.yaml to Keep
-# directly, with their own summary and description. This removes the Grafana rule
-# that used to forward them while Alertmanager was disabled.
-apiVersion: 1
-deleteRules:
-- orgId: 1
-  uid: addons-workspace-prometheus-alerts

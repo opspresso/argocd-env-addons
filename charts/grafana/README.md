@@ -84,7 +84,6 @@ Grafana 규칙으로 중복하지 않는다.
   firing과 resolved가 섞인 그룹은 resolved 경보도 firing으로 기록된다.
 - contact point의 `title`은 규칙 이름(`alertname`)이다. Keep은 이 값을 경보 이름으로 쓴다.
 - 반복 전송(4시간)은 Keep의 경보 상태만 갱신한다. Keep은 status가 바뀔 때만 Slack에 보낸다.
-- 예전 `slack` contact point와 `addons-slack` 템플릿은 `deleteContactPoints`·`deleteTemplates`로 지운다.
 
 ### 오류와 데이터 없음 처리
 
@@ -141,13 +140,12 @@ workload 경보(`Container restarting repeatedly`)로 보고한다.
   같은 경보를 반복하지 않게 하기 위해서다.
 - `CPU/Memory requests above 90%` 경보는 제거했다. Auto Mode에서는 높은 예약률이 정상 운영 상태이고,
   실제 문제는 `Pod unschedulable`로 알린다. `Istio success rate below 99%`는 HTTP 오류율 경보와 같은 신호여서 합쳤다.
-  `Container restarted after Error`는 반복 재시작 경보로 대체했다. 제거한 규칙은 `deleteRules`로 Grafana에서 삭제한다.
+  `Container restarted after Error`는 반복 재시작 경보로 대체했다.
 
 ### 기타 규칙
 
 - `config/cni-health-alerts.yaml`: Alloy가 수집한 Loki 로그에서 AWS network policy agent의 egress BPF attach 실패를 즉시 알린다(critical).
-- `config/workspace-notifications.yaml`: 예전에 `config/workspace-alerts.yaml`의 Prometheus 규칙을 전달하던 Grafana 규칙을 지운다.
-  이 규칙들은 이제 Alertmanager가 Keep으로 직접 보낸다.
+- `config/workspace-alerts.yaml`의 Prometheus 규칙은 Grafana를 거치지 않고 Alertmanager가 Keep으로 직접 보낸다.
 
 ### 규칙 작성 규칙
 
@@ -155,7 +153,8 @@ workload 경보(`Container restarting repeatedly`)로 보고한다.
   예: ``summary: 'Node {{`{{ $labels.node }}`}} is NotReady'``
 - 모든 규칙에 `severity`, summary(대상과 값), description(영향과 첫 조치), `__dashboardUid__`·`__panelId__`를 둔다.
   owner가 있는 workload 경보는 변수가 채워진 `dashboard_url`도 둔다.
-- UID를 바꾸거나 규칙을 지우면 `deleteRules`에 옛 UID를 추가한다. Grafana 파일 프로비저닝은 파일에서 사라진 규칙을 지우지 않는다.
+- UID를 바꾸거나 규칙을 지우면 해당 파일에 `deleteRules`로 옛 UID를 추가한다. Grafana 파일 프로비저닝은 파일에서 사라진 규칙을 지우지 않는다.
+  Grafana에서 지워진 것을 확인하면 `deleteRules` 항목을 뺀다.
 
 ## 반영과 검증
 

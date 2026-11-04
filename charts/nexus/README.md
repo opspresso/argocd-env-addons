@@ -17,7 +17,8 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
 - UI와 API(`/repository/` 밖)는 oauth2-proxy(Dex)로 로그인한 사용자만 연다.
-  gateway가 `X-Auth-Request-Preferred-Username`(GitHub login)을 붙이고, Nexus는 Remote User Token realm으로 그 사용자를 로그인시킨다.
+  gateway가 `X-Auth-Request-Preferred-Username`(GitHub login)을 붙인다. Nexus가 이 header로 사용자를 로그인시키려면
+  Remote User Token capability가 있어야 한다(아래). 없으면 로그인한 사용자도 익명 읽기 권한만 갖고, 관리는 로컬 `admin`으로 한다.
 - `nexus.admins`(`sre` 팀의 GitHub login)는 `nx-admin`이다. Community Edition은 group을 역할에 연결할 수 없어 목록을 코드에 둔다.
   `sre` 팀 구성원이 바뀌면 이 목록도 고친다. 목록에 없는 사용자는 익명 읽기 권한만 갖는다.
 - `/repository/`(Maven, npm 등 패키지 클라이언트)는 oauth2-proxy를 거치지 않는다. 익명 읽기 또는 Nexus 사용자 토큰·비밀번호를 쓴다.
@@ -28,10 +29,12 @@ CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 실패하면 이후 단
 
 1. 처음 실행할 때 `/nexus-data/admin.password`로 로그인해 admin 비밀번호를 SSM 값으로 바꾼다.
 2. Community Edition EULA를 수락한다.
-3. Remote User Token capability(header `X-Auth-Request-Preferred-Username`)를 Groovy script로 만들거나 고친다.
-   REST API에 capability endpoint가 없어서 `-Dnexus.scripts.allowCreation=true`를 켠다.
-4. 활성 realm을 `rutauth-realm`, `NexusAuthenticatingRealm`으로, 익명 읽기를 켠다.
-5. `nexus.admins` 사용자를 만들고 `nx-admin`을 준다. 그 밖의 로컬 사용자(admin·anonymous 제외)는 `nx-anonymous`로 맞춘다.
+3. 활성 realm을 `rutauth-realm`, `NexusAuthenticatingRealm`으로, 익명 읽기를 켠다.
+4. `nexus.admins` 사용자를 만들고 `nx-admin`을 준다. 그 밖의 로컬 사용자(admin·anonymous 제외)는 `nx-anonymous`로 맞춘다.
+
+Remote User Token capability는 REST API로 만들 수 없다. Nexus 3.96부터 script 실행도 막혀 있다(`nexus.scripts.allowExecution`).
+사용하려면 로컬 `admin`으로 **Capabilities > Create capability > Rut Auth**에서 HTTP header를
+`X-Auth-Request-Preferred-Username`로 한 번 만든다. DB에 저장되므로 다시 만들 필요가 없다.
 
 ```bash
 kubectl -n addon-nexus create job --from=cronjob/nexus-sync nexus-sync-manual

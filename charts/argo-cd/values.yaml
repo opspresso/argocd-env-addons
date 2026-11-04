@@ -20,8 +20,6 @@ argo-cd:
       serviceMonitor:
         enabled: false
         interval: 30s
-        # selector:
-        #   release: prometheus-{{cluster}}
 
   server:
     replicas: 1
@@ -49,8 +47,6 @@ argo-cd:
       serviceMonitor:
         enabled: false
         interval: 30s
-        # selector:
-        #   release: prometheus-{{cluster}}
 
   # Manifest generation can burst above its reservation without a CPU ceiling.
   repoServer:
@@ -59,13 +55,6 @@ argo-cd:
     pdb:
       enabled: true
       maxUnavailable: 1
-    # autoscaling:
-    #   enabled: true
-    #   minReplicas: 2
-    #   maxReplicas: 4
-    #   targetCPUUtilizationPercentage: 60
-    #   targetMemoryUtilizationPercentage: 60
-
     resources:
       requests:
         cpu: 50m
@@ -78,8 +67,6 @@ argo-cd:
       serviceMonitor:
         enabled: false
         interval: 30s
-        # selector:
-        #   release: prometheus-{{cluster}}
 
   applicationSet:
     resources:
@@ -139,8 +126,6 @@ argo-cd:
       serviceMonitor:
         enabled: false
         interval: 30s
-        # selector:
-        #   release: prometheus-{{cluster}}
 
   redis:
     resources:
@@ -151,8 +136,6 @@ argo-cd:
         memory: 128Mi
 
   notifications:
-    # argocdUrl: https://{{argocd.hostname}}
-
     resources:
       requests:
         cpu: 5m
@@ -276,19 +259,12 @@ argo-cd:
           when: app.status.sync.status in ['Synced', 'OutOfSync']
 
   configs:
-    # rbac:
-    #   policy.default: "role:readonly"
-    #   policy.csv: |
-    #     g, {{argocd.github.org}}:{{argocd.github.team}}, role:admin
-
     params:
       server.insecure: true
 
     cm:
 
       statusbadge.enabled: "true"
-      # statusbadge.url: https://{{argocd.hostname}}
-
       # EKS Auto Mode churns NodeClaims on every scale event; keep them out of
       # the resource cache.
       resource.exclusions: |
@@ -370,32 +346,6 @@ argo-cd:
           end
         end
         return hs
-
-      # help.chatUrl: "{{argocd.chatUrl}}"
-      # help.chatText: "Chat now!"
-
-      # dex.config: |
-      #   connectors:
-      #   - type: github
-      #     id: github
-      #     name: github
-      #     config:
-      #       clientID: $dex.github.clientId
-      #       clientSecret: $dex.github.clientSecret
-      #       teamNameField: slug
-      #       orgs:
-      #         - name: {{argocd.github.org}}
-      #   staticClients:
-      #   - id: argo-workflows-sso
-      #     name: Argo Workflow
-      #     redirectURIs:
-      #       - https://workflows.{{hostname.public}}/oauth2/callback
-      #     secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
-      #   - id: oauth2-proxy-sso
-      #     name: OAuth2 Proxy
-      #     redirectURIs:
-      #       - https://auth.{{hostname.public}}/oauth2/callback
-      #     secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
 
     secret:
       createSecret: false

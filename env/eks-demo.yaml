@@ -1,7 +1,6 @@
 cluster: eks-demo
 
 active: "true"
-country: kr
 env: eks
 group: eks-demo
 role: mgmt
@@ -68,8 +67,6 @@ istio:
     autoscale: true
     min: 2
     max: 6
-  tracing:
-    sampling: 10
   target_group: http_0
   target_group_public: h1_0
   target_group_grpc: grpc_0

@@ -19,6 +19,28 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 `local`은 공통 템플릿과 정책 검사에서만 지원하며, 로컬 클러스터용 env·Application·설치
 스크립트는 제공하지 않는다.
 
+## addon 목록
+
+`eks-demo`에 배포하는 addon이다(`addons/eks/`). 주소는 `*.demo.opsp.dev`, 내부 전용은 `*.demo-in.opsp.dev`다.
+
+| 분류 | addon | 주소 |
+| --- | --- | --- |
+| 배포·자동화 | argo-cd, argo-workflows, atlantis | argocd, workflows, atlantis(UI)·atlantis-public(webhook) |
+| 개발 도구 | gitlab, jenkins, harbor, nexus | gitlab, jenkins, harbor, nexus |
+| 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
+| 인증 | oauth2-proxy (Dex는 argo-cd에 포함) | auth |
+| 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
+
+## 로그인
+
+GitHub `opspresso` 조직 → Argo CD Dex → 각 addon의 OIDC client로 로그인한다. 아이디·비밀번호 폼은 숨긴다.
+
+- 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(`opspresso:sre`)는 관리자,
+  `sso.member_groups`(`opspresso:dev`)는 일반 사용자·읽기 전용.
+- 자체 로그인이 없는 Atlantis·Nexus는 oauth2-proxy가 막는다.
+- GitLab CE·Nexus CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins`·`nexus.admins` 목록을 CronJob이 맞춘다.
+- 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
+
 ## 저장소 구조
 
 ```text
@@ -199,7 +221,7 @@ Service·경보 그룹은 환경 설정에서 관리한다.
 ### EKS 모니터링
 
 - Grafana는 `https://grafana.demo.opsp.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
-  경보 평가와 Slack 알림을 사용한다. 홈 대시보드는 Cluster Overview다. 대시보드와 경보 목록은
+  경보를 평가해 Keep으로 보내고, Slack 알림은 Keep이 보낸다. 홈 대시보드는 Cluster Overview다. 대시보드와 경보 목록은
   [grafana README](charts/grafana/README.md)에 있다.
 - Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor를 수집한다.
 - Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.opsp.dev`다.
@@ -329,7 +351,9 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 - [Kubernetes monitoring](docs/kubernetes-monitoring.md): 클러스터·워크로드 대시보드와 중요 알림
 - [Workspace와 Agent 서비스 관측성](docs/workspace-observability.md): Workspace·Agent 서비스 지표와 경보
 - chart별 절차: [alloy](charts/alloy/README.md), [argo-cd](charts/argo-cd/README.md),
-  [atlantis](charts/atlantis/README.md), [grafana](charts/grafana/README.md)
+  [atlantis](charts/atlantis/README.md), [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md),
+  [harbor](charts/harbor/README.md), [jenkins](charts/jenkins/README.md), [keep](charts/keep/README.md),
+  [nexus](charts/nexus/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
 
 관련 저장소:
 

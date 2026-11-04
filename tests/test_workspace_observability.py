@@ -8,14 +8,6 @@ from test_node_observability import rendered_grafana, run_promtool
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_grafana_no_longer_forwards_workspace_prometheus_alerts(rendered_grafana):
-    # Alertmanager sends these rules to Keep with their own summary; a Grafana copy would duplicate them.
-    secret = next(doc for doc in rendered_grafana if "workspace-notifications.yaml" in (doc.get("stringData") or {}))
-    document = yaml.safe_load(secret["stringData"]["workspace-notifications.yaml"])
-    assert "groups" not in document
-    assert document["deleteRules"] == [{"orgId": 1, "uid": "addons-workspace-prometheus-alerts"}]
-
-
 def test_prometheus_rules_use_the_shared_policy_with_existing_node_labels():
     groups = yaml.safe_load((ROOT / "config/workspace-alerts.yaml").read_text())["groups"]
     chart = ROOT / "charts/prometheus-stack"

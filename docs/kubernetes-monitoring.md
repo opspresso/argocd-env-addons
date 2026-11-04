@@ -17,6 +17,6 @@
 | 쓰기 가능한 `/` 또는 `/local` 파일시스템 사용량 > 95% | 2분 | 공간 확보 또는 용량 증설 |
 | PVC 사용량 > 95% | 2분 | 볼륨 확장 또는 데이터 정리 |
 
-Grafana가 Prometheus를 조회하고 기존 Slack contact point로 보냅니다. critical은 그룹 대기 10초, 그룹 갱신 1분, 지속 장애 재알림 30분입니다. 평가 간격과 각 규칙의 지속 시간 이후 알림이 전송됩니다. webhook은 기존 Secret 환경변수로 전달합니다. 노드 전용 규칙은 EKS에만 제공됩니다.
+Grafana가 Prometheus를 조회해 경보를 평가하고 contact point `keep`(webhook)으로 Keep에 보냅니다. Slack 메시지는 Keep이 보냅니다([keep README](../charts/keep/README.md)). 경보마다 따로 보내며(`group_by: ['...']`) 그룹 대기 10초, 그룹 갱신 1분, 재전송 4시간입니다. 노드 전용 규칙은 EKS에만 제공됩니다.
 
-변경은 GitOps 설정이며 실제 배포와 Slack 수신 확인은 별도입니다. 대시보드 JSON은 public GitHub의 대시보드 변경 커밋 URL에서 Pod 시작 시 다운로드합니다. JSON 변경 후 values를 재생성하면 checksum이 변경되어 Grafana가 다시 시작하고 다운로드합니다. 생성기는 Git 이력에서 마지막 대시보드 변경 커밋을 조회해 URL을 고정합니다. 대시보드 JSON을 먼저 커밋한 뒤 values를 재생성해야 하며, push CI도 이 순서로 생성물을 갱신합니다. JSON 본문은 배포 values에 포함하지 않습니다.
+대시보드 JSON은 `charts/grafana/dashboards/`에 있고, chart가 ConfigMap `grafana-dashboards`로 묶어 Grafana에 마운트합니다. ConfigMap이 바뀌면 Grafana가 다시 시작하지 않고 반영합니다([grafana README](../charts/grafana/README.md)). 경보의 Slack 수신은 배포 후 Keep에서 확인합니다.
