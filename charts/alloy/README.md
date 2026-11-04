@@ -6,7 +6,7 @@ DaemonSet으로 배포하며, 수집 설정은 `values-template.yaml.j2`에서 �
 | 환경 | 배포 정의 | 수집 대상 | 전송 대상 |
 | --- | --- | --- | --- |
 | EKS | `addons/eks/alloy.yaml` | Pod 로그 | Loki |
-| k3s(미배포 선언) | `addons/k3s/alloy.yaml` | 호스트·컨테이너·앱 메트릭 | Grafana Cloud |
+| k3s(미배포 선언) | `addons/k3s/alloy.yaml` | 호스트·컨테이너·Workspace 상태 메트릭 | Grafana Cloud |
 
 ## EKS 로그
 
@@ -49,39 +49,24 @@ k3s 선언에는 Loki 전송 대상이 없어 로그를 수집하지 않습니�
 | 호스트 | `integrations/node_exporter` | 15초 |
 | kubelet | `kubelet` | 30초 |
 | 컨테이너 | `integrations/cadvisor` | 15초 |
-| Agent Studio | `agent-studio` | 15초 |
-| Agent Memory | `agent-memory` | 15초 |
-| Agent Knowledge 웹·worker | `agent-knowledge` (`component=web` 또는 `worker`) | 15초 |
-| Agent Forge API·실행 worker | `agent-forge` | 15초 |
 | Workspace·worker 상태 | `workspace-state` | 15초 |
 
-호스트와 앱의 `instance`는 클러스터 이름입니다. cAdvisor의 `service`는 workload
+호스트의 `instance`는 클러스터 이름입니다. cAdvisor의 `service`는 workload
 이름으로 맞춰 `../dockpad/grafana`의 Agent Platform 대시보드에서 조회할 수 있습니다.
-Studio·Memory·Knowledge 웹·worker의 내부 Service 포트는 `3000`, Forge는 `3103`이며 Pod 포트와 같습니다.
-Studio·Memory·Knowledge는 `/api/metrics`, Forge는 `/metrics`를 제공합니다.
-Memory·Knowledge·Forge는 각각 별도의 Bearer token을 사용합니다. 앱의 `namespace`를 대상에 붙이며,
-`agent-forge-workspaces`에서 Job controller가 생성한 `forge-ws-<40hex>-<5자 suffix>` Pod의
+Agent 앱 메트릭은 수집하지 않습니다. `agent-forge-workspaces`에서 Job controller가 생성한 `forge-ws-<40hex>-<5자 suffix>` Pod의
 cAdvisor `service`는 `agent-forge-sandbox`입니다. 노드 단위 수집에는 Pod discovery 라벨이 없으므로
 namespace와 전체 Pod 이름 형식을 함께 확인합니다.
 kubelet은 노드·실행 수·볼륨·runtime 상태를, cAdvisor는 대시보드의
 CPU·메모리·네트워크·디스크 I/O·OOM 메트릭을 전송해 Cloud 시리즈 사용량을 제한합니다.
-호스트와 앱 메트릭은 전체를 전송합니다.
+호스트 메트릭은 전체를 전송합니다.
 
 ## 인증
 
-External Secrets가 `parameter-store` ClusterSecretStore를 통해 다음 SSM SecureString을
+External Secrets가 `parameter-store` ClusterSecretStore를 통해 SSM SecureString
+`/k8s/common/grafana-cloud/remote-write-api-key`(Grafana Cloud metrics write token)를
 읽어 `alloy-grafana-cloud` Secret을 생성합니다. 토큰 값은 Git에 저장하지 않습니다.
 
-- `/k8s/common/grafana-cloud/remote-write-api-key`: Grafana Cloud metrics write token
-- `/k8s/<cluster>/agent-memory/metrics-bearer-token`: Agent Memory metrics token
-- `/k8s/<cluster>/agent-knowledge/metrics-bearer-token`: Knowledge 웹·worker의 `METRICS_BEARER_TOKEN`
-- `/k8s/<cluster>/agent-forge/metrics-bearer-token`: Forge 전용 수집 principal의 token
-
-`<cluster>`는 `env/<cluster>.yaml`의 `cluster`입니다. 기존 파라미터를 재사용하며,
-노드 IAM 역할에는 해당 SSM 파라미터 읽기·복호화 권한이 필요합니다.
-신규 파라미터를 준비한 뒤 addon을 동기화합니다. 일부 경로가 없으면 ExternalSecret 갱신이 실패합니다.
-Forge 앱은 수집 token의 SHA-256을 전용 principal에 등록하며 scope는 `workspace:read`만 허용합니다.
-Alloy에는 Studio 위임·정책 서명 키를 전달하지 않습니다. 앱별 receiver 설정은 `argocd-env-apps`,
+노드 IAM 역할에는 이 SSM 파라미터 읽기·복호화 권한이 필요합니다. 경로가 없으면 ExternalSecret 갱신이 실패합니다.
 SSM·IAM은 `terraform-env-demo`가 소유합니다.
 Secret을 환경변수로 읽으므로 토큰 교체 후 Alloy Pod를 재시작합니다.
 

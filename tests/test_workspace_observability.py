@@ -64,7 +64,7 @@ def test_cloud_filter_retains_workspace_state_and_disk_metrics_without_accepting
     assert config.count("prometheus.remote_write.grafana_cloud.receiver") == 1
     replay_pattern = re.search(r'prometheus.remote_write "grafana_cloud"\s*\{.*?write_relabel_config\s*\{.*?regex\s*=\s*"([^"]+)"', config, re.S).group(1)
     assert replay_pattern == pattern
-    assert config.count("prometheus.relabel.retained_metrics.receiver") == 8
+    assert config.count("prometheus.relabel.retained_metrics.receiver") == 4
 
 
 @pytest.mark.parametrize("namespace,pod,expected", [
@@ -123,31 +123,15 @@ def test_platform_alerts_evaluate_owner_failure_maintenance_and_cluster_boundari
     run_promtool(tmp_path)
 
 
-def test_application_scrapes_use_separate_credentials_and_exporter_roles():
+def test_grafana_cloud_collector_has_no_agent_application_scrapes():
     values = yaml.safe_load((ROOT / "charts/alloy/k3s/values-k3s-demo.yaml").read_text())
     config = values["alloy"]["alloy"]["configMap"]["content"]
-    targets = {}
-    for name in ("agent_studio", "agent_memory", "agent_knowledge", "agent_forge"):
-        block = re.search(r'prometheus.scrape "' + name + r'" \{(.*?)^\}', config, re.S | re.M).group(1)
-        targets[name] = re.findall(r'"__address__"\s*=\s*"([^\"]+)"', block)
-        assert f'"namespace"   = "{name.replace("_", "-")}"' in block
-        if name != "agent_studio":
-            assert f'bearer_token    = sys.env("{name.upper()}_METRICS_BEARER_TOKEN")' in block
-        path = "/metrics" if name == "agent_forge" else "/api/metrics"
-        assert f'metrics_path    = "{path}"' in block
-    assert targets == {
-        "agent_studio": ["agent-studio.agent-studio.svc:3000"],
-        "agent_memory": ["agent-memory.agent-memory.svc:3000"],
-        "agent_knowledge": ["agent-knowledge.agent-knowledge.svc:3000", "agent-knowledge-worker.agent-knowledge.svc:3000"],
-        "agent_forge": ["agent-forge.agent-forge.svc:3103"],
-    }
-    assert '"component"   = "worker"' in config
+    assert not re.search(r'prometheus.scrape "agent_', config)
+    assert "METRICS_BEARER_TOKEN" not in config
     secret = next(resource for resource in values["raw"]["resources"]
                   if resource["kind"] == "ExternalSecret" and resource["metadata"]["name"] == "alloy-grafana-cloud")
     paths = {entry["secretKey"]: entry["remoteRef"]["key"] for entry in secret["spec"]["data"]}
-    for service in ("MEMORY", "KNOWLEDGE", "FORGE"):
-        assert paths[f"AGENT_{service}_METRICS_BEARER_TOKEN"] == f"/k8s/k3s-demo/agent-{service.lower()}/metrics-bearer-token"
-    assert all("delegation" not in value and "policy" not in value for value in paths.values())
+    assert paths == {"GCLOUD_RW_API_KEY": "/k8s/common/grafana-cloud/remote-write-api-key"}
 
 
 def test_capacity_dashboard_separates_control_plane_and_execution_load(tmp_path):
