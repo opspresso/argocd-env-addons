@@ -85,24 +85,34 @@ def test_backend_keeps_the_trace_id_middleware():
     assert "OTEL_EXPORTER_OTLP_ENDPOINT" not in env
 
 
-def test_slack_workflows_ask_kube_sre_only_about_problems():
+def test_slack_workflows_thread_the_recovery_under_the_problem():
     env = yaml.safe_load((ROOT / "env" / "eks-demo.yaml").read_text())["keep"]["slack"]
     ask = f"<@{env['responder']}>"
     docs = render()
     config = next(doc for doc in docs if doc["kind"] == "ConfigMap" and doc["metadata"]["name"] == "keep-workflows")
     workflows = {wf["id"]: wf for wf in (yaml.safe_load(body) for body in config["data"].values())}
-    assert set(workflows) == {"grafana-alert-to-slack", "prometheus-alert-to-slack", "argocd-alert-to-slack",
-                              "alert-resolved-to-slack", "incident-to-slack"}
-    for workflow_id, workflow in workflows.items():
-        action = workflow["actions"][0]
-        assert action["provider"]["type"] == "slack" and action["provider"]["config"] == "{{ providers.slack }}"
-        message = action["provider"]["with"]["message"]
+    sources = {"grafana-alert-to-slack", "prometheus-alert-to-slack", "argocd-alert-to-slack"}
+    assert set(workflows) == sources | {"incident-to-slack"}
+    for workflow_id in sources:
+        workflow = workflows[workflow_id]
+        trigger = workflow["triggers"][0]
+        assert trigger["only_on_change"] == ["status"]
+        assert 'status == "resolved" && firingCounter > 1' in trigger["cel"]
+        actions = {action["name"]: action for action in workflow["actions"]}
+        assert set(actions) == {"post-problem", "mark-resolved", "reply-resolved", "post-resolved"}
+        for action in actions.values():
+            assert action["provider"] == {**action["provider"], "type": "slack", "config": "{{ providers.slack }}"}
+            assert action["provider"]["with"]["channel"] == env["channel"]
+        post = actions["post-problem"]["provider"]["with"]
         # Agent Studio runs an app message only when the text holds the agent's keyword.
-        problem = workflow_id != "alert-resolved-to-slack"
-        assert (ask in message and env["keyword"] in message) is problem, workflow_id
-        for trigger in workflow["triggers"]:
-            if trigger["type"] == "alert":
-                assert trigger["only_on_change"] == ["status"], workflow_id
-    assert "firingCounter > 1" in workflows["alert-resolved-to-slack"]["triggers"][0]["cel"]
+        assert ask in post["message"] and env["keyword"] in post["message"]
+        assert post["enrich_alert"] == [{"key": "slack_timestamp", "value": "results.slack_timestamp"}]
+        assert actions["mark-resolved"]["provider"]["with"]["slack_timestamp"] == "{{ alert.slack_timestamp }}"
+        assert actions["reply-resolved"]["provider"]["with"]["thread_timestamp"] == "{{ alert.slack_timestamp }}"
+        for name in ("mark-resolved", "reply-resolved", "post-resolved"):
+            text = yaml.safe_dump(actions[name]["provider"]["with"], allow_unicode=True)
+            assert ask not in text and env["keyword"] not in text, (workflow_id, name)
+    incident = workflows["incident-to-slack"]["actions"][0]["provider"]["with"]
+    assert ask in incident["message"] and env["keyword"] in incident["message"]
     backend = next(doc for doc in docs if doc["kind"] == "Deployment" and doc["metadata"]["name"] == "keep-backend")
     assert {"name": "workflows", "configMap": {"name": "keep-workflows"}} in backend["spec"]["template"]["spec"]["volumes"]
