@@ -1,0 +1,233 @@
+{% if nexus is defined %}
+nexus:
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://{{nexus.hostname}}"
+
+raw:
+  resources:
+    - apiVersion: gateway.networking.k8s.io/v1
+      kind: HTTPRoute
+      metadata:
+        name: nexus
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://{{nexus.hostname}}"
+      spec:
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+{% if gateway is defined %}
+            name: "{{gateway.name}}"
+            namespace: "{{gateway.namespace}}"
+{% else %}
+            name: istio-ingressgateway
+            namespace: istio-system
+{% endif %}
+        hostnames:
+          - "{{nexus.hostname}}"
+        rules:
+          # Package clients (Maven, npm, ...) use HTTP basic auth or anonymous
+          # read here, without oauth2-proxy. A client must not set the trusted
+          # user header on this path.
+          - matches:
+              - path:
+                  type: PathPrefix
+                  value: /repository/
+            filters:
+              - type: RequestHeaderModifier
+                requestHeaderModifier:
+                  remove:
+                    - X-Auth-Request-Preferred-Username
+            backendRefs:
+              - name: nexus
+                port: 8081
+          - backendRefs:
+              - name: nexus
+                port: 8081
+
+    # The UI and the API require a GitHub sign-in through oauth2-proxy (Dex).
+    # The gateway then sets X-Auth-Request-Preferred-Username, which Nexus reads
+    # with the Remote User Token realm.
+    - apiVersion: security.istio.io/v1
+      kind: AuthorizationPolicy
+      metadata:
+        name: nexus
+        namespace: istio-system
+      spec:
+        selector:
+          matchLabels:
+            istio: ingressgateway
+        action: CUSTOM
+        provider:
+          name: oauth2-proxy
+        rules:
+          - to:
+              - operation:
+                  hosts:
+                    - "{{nexus.hostname}}"
+                  notPaths:
+                    - /repository/*
+
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: nexus-admin
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: nexus-admin
+        data:
+          - secretKey: NEXUS_ADMIN_PASSWORD
+            remoteRef:
+              key: /k8s/common/nexus/admin-password
+
+    # Nexus Community Edition has no group mapping. This CronJob applies the
+    # shared sign-in rule: users in nexus.admins (the GitHub logins of
+    # {{argocd.github.org}}/{{argocd.github.team}}) get nx-admin, other signed-in users read
+    # anonymously. It also sets the admin password, the EULA, the Remote User
+    # Token header, the realms and anonymous read access.
+    - apiVersion: v1
+      kind: ServiceAccount
+      metadata:
+        name: nexus-sync
+
+    # Reads /nexus-data/admin.password once, before the admin password is set.
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: Role
+      metadata:
+        name: nexus-sync
+      rules:
+        - apiGroups: [""]
+          resources: [pods]
+          verbs: [get, list]
+        - apiGroups: [""]
+          resources: [pods/exec]
+          verbs: [create]
+
+    - apiVersion: rbac.authorization.k8s.io/v1
+      kind: RoleBinding
+      metadata:
+        name: nexus-sync
+      roleRef:
+        apiGroup: rbac.authorization.k8s.io
+        kind: Role
+        name: nexus-sync
+      subjects:
+        - kind: ServiceAccount
+          name: nexus-sync
+
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: nexus-sync
+      data:
+        sync.sh: |
+          set -eu
+          [ -n "${ADMINS}" ] || { echo "nexus.admins is empty"; exit 1; }
+          B=http://nexus:8081/service/rest
+          api() { curl -fsS -u "admin:${NEXUS_ADMIN_PASSWORD}" -H 'Content-Type: application/json' "$@"; }
+
+          # First run: replace the generated admin password with the SSM value.
+          code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:${NEXUS_ADMIN_PASSWORD}" "$B/v1/status/check")
+          if [ "$code" = "401" ]; then
+            pod=$(kubectl get pod -l app.kubernetes.io/name=nexus --field-selector=status.phase=Running -o name | head -1)
+            initial=$(kubectl exec "$pod" -c nexus -- cat /nexus-data/admin.password)
+            curl -fsS -u "admin:${initial}" -H 'Content-Type: text/plain' -X PUT \
+              "$B/v1/security/users/admin/change-password" --data-binary "${NEXUS_ADMIN_PASSWORD}"
+            echo "admin password set"
+          fi
+
+          # Community Edition serves requests only after the EULA is accepted.
+          if [ "$(api "$B/v1/system/eula" | jq -r .accepted)" != "true" ]; then
+            api "$B/v1/system/eula" | jq '.accepted = true' | api -X POST "$B/v1/system/eula" -d @-
+            echo "EULA accepted"
+          fi
+
+          # Remote User Token capability. The REST API has no capability endpoint,
+          # so a Groovy script creates or updates it.
+          api -X DELETE "$B/v1/script/rut-auth" -o /dev/null 2>/dev/null || true
+          jq -n --rawfile c /scripts/rut-auth.groovy '{name: "rut-auth", type: "groovy", content: $c}' \
+            | api -X POST "$B/v1/script" -d @-
+          api -X POST -H 'Content-Type: text/plain' "$B/v1/script/rut-auth/run" -d "X-Auth-Request-Preferred-Username" | jq -r .result
+
+          api -X PUT "$B/v1/security/realms/active" -d '["rutauth-realm","NexusAuthenticatingRealm"]'
+          api -X PUT "$B/v1/security/anonymous" \
+            -d '{"enabled":true,"userId":"anonymous","realmName":"NexusAuthorizingRealm"}' -o /dev/null
+
+          # Local users other than admin and anonymous: nx-admin when listed, read-only otherwise.
+          for user in $(echo "${ADMINS}" | tr ',' ' '); do
+            if [ "$(api "$B/v1/security/users?userId=${user}&source=default" | jq --arg u "$user" 'map(select(.userId == $u)) | length')" = "0" ]; then
+              jq -n --arg u "$user" --arg p "$(head -c 32 /dev/urandom | base64)" \
+                '{userId: $u, firstName: $u, lastName: $u, emailAddress: ($u + "@users.noreply.github.com"), password: $p, status: "active", roles: ["nx-admin"]}' \
+                | api -X POST "$B/v1/security/users" -d @- -o /dev/null
+              echo "${user} created"
+            fi
+          done
+          api "$B/v1/security/users?source=default" | jq -c '.[] | select(.userId != "admin" and .userId != "anonymous")' | while read -r u; do
+            id=$(echo "$u" | jq -r .userId)
+            if echo ",${ADMINS}," | grep -q ",${id},"; then roles='["nx-admin"]'; else roles='["nx-anonymous"]'; fi
+            if [ "$(echo "$u" | jq -c '.roles | sort')" != "$roles" ]; then
+              echo "$u" | jq --argjson r "$roles" '.roles = $r' | api -X PUT "$B/v1/security/users/${id}" -d @-
+              echo "${id} roles=${roles}"
+            fi
+          done
+        rut-auth.groovy: |
+          import org.sonatype.nexus.capability.CapabilityRegistry
+          import org.sonatype.nexus.capability.CapabilityType
+
+          def registry = container.lookup(CapabilityRegistry.class.getName())
+          def type = CapabilityType.capabilityType('rutauth')
+          def props = ['httpHeader': args]
+          def existing = registry.all.find { it.context().type() == type }
+          if (existing) {
+            registry.update(existing.context().id(), true, existing.context().notes(), props)
+            return 'rutauth updated'
+          }
+          registry.add(type, true, 'oauth2-proxy', props)
+          return 'rutauth created'
+
+    - apiVersion: batch/v1
+      kind: CronJob
+      metadata:
+        name: nexus-sync
+      spec:
+        schedule: "*/10 * * * *"
+        concurrencyPolicy: Forbid
+        successfulJobsHistoryLimit: 1
+        failedJobsHistoryLimit: 3
+        jobTemplate:
+          spec:
+            backoffLimit: 1
+            activeDeadlineSeconds: 600
+            template:
+              spec:
+                serviceAccountName: nexus-sync
+                restartPolicy: Never
+                containers:
+                  - name: sync
+                    image: alpine/k8s:1.37.1
+                    command: [sh, /scripts/sync.sh]
+                    env:
+                      - name: ADMINS
+                        value: "{{ nexus.admins | default([]) | join(',') }}"
+                    envFrom:
+                      - secretRef:
+                          name: nexus-admin
+                    resources:
+                      requests:
+                        cpu: 10m
+                        memory: 64Mi
+                      limits:
+                        memory: 256Mi
+                    volumeMounts:
+                      - name: scripts
+                        mountPath: /scripts
+                volumes:
+                  - name: scripts
+                    configMap:
+                      name: nexus-sync
+{% else %}
+# no cluster-specific overrides
+{% endif %}

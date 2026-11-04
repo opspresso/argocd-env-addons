@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nexus
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        revision: HEAD
+        files:
+          - path: "env/eks-demo.yaml"
+
+  template:
+    metadata:
+      name: "nexus" # only management cluster
+      annotations:
+        argocd.argoproj.io/manifest-generate-paths: /charts/nexus
+      labels:
+        app.kubernetes.io/instance: "addons-{{cluster}}"
+        opspresso.com/cluster: "{{cluster}}"
+        opspresso.com/group: "addons"
+    spec:
+      project: addons
+      destination:
+        name: "{{cluster}}"
+        namespace: addon-nexus
+      source:
+        repoURL: https://github.com/opspresso/argocd-env-addons.git
+        targetRevision: HEAD
+        path: charts/nexus
+        helm:
+          valueFiles:
+            - values.yaml
+            - "{{env}}/values-{{cluster}}.yaml"
+
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 10s
+            factor: 2
+            maxDuration: 3m
