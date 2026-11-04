@@ -75,24 +75,27 @@ raw:
             remoteRef:
               key: /k8s/common/kanidm/tls-key
 
-    # The gateway re-encrypts to kanidmd and verifies its certificate with the
-    # internal CA. Istio reads the CA from a Secret in the gateway namespace.
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
+    # The gateway re-encrypts to kanidmd and verifies its certificate with this
+    # CA. Istio reads it from a Secret in the gateway namespace. The CA
+    # certificate is public; its key stays in SSM (/k8s/common/kanidm/ca-key).
+    - apiVersion: v1
+      kind: Secret
       metadata:
         name: kanidm-ca
         namespace: istio-system
-      spec:
-        refreshInterval: 1h
-        secretStoreRef:
-          kind: ClusterSecretStore
-          name: parameter-store
-        target:
-          name: kanidm-ca
-        data:
-          - secretKey: ca.crt
-            remoteRef:
-              key: /k8s/common/kanidm/ca-crt
+      stringData:
+        ca.crt: |
+            -----BEGIN CERTIFICATE-----
+            MIIBpjCCAUygAwIBAgIUY7Mc984d9Qyl3zLAk+fCSDov0hYwCgYIKoZIzj0EAwIw
+            MTEbMBkGA1UEAwwSa2FuaWRtIGludGVybmFsIENBMRIwEAYDVQQKDAlvcHNwcmVz
+            c28wHhcNMjYxMTA0MDYxMDIwWhcNMzYxMTAxMDYxMDIwWjAxMRswGQYDVQQDDBJr
+            YW5pZG0gaW50ZXJuYWwgQ0ExEjAQBgNVBAoMCW9wc3ByZXNzbzBZMBMGByqGSM49
+            AgEGCCqGSM49AwEHA0IABJS/cZs2WLtgPPLgA2RySVyQiv0ZzgI9RHmJLTLB6H8q
+            ainJ7oAfYDzPdS7OKpO5LROYj4tOksnTgHFg68DecqqjQjBAMB0GA1UdDgQWBBSs
+            zPYcYOqZN/XGUla9nwXMpXYmMjAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQE
+            AwIBBjAKBggqhkjOPQQDAgNIADBFAiEAo0bgnIF8ZEcvETt3cRcM6SLKjmygRE91
+            wbjarOODrHACIBKWvV1evx7fCLh4C+RwTeAharQCVL0tsl/UyGntPIXp
+            -----END CERTIFICATE-----
 
     - apiVersion: networking.istio.io/v1
       kind: DestinationRule
