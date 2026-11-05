@@ -7,10 +7,10 @@
       "version": "1.15.0"
     },
     "argo-cd": {
-      "app_version": "v3.5.7",
+      "app_version": "v3.6.1",
       "chart": "argo/argo-cd",
       "current": "10.11.6",
-      "version": "10.11.7"
+      "version": "10.12.1"
     },
     "argo-rollouts": {
       "app_version": "v1.10.1",
@@ -136,7 +136,7 @@
       "app_version": "v0.94.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "92.17.1"
+      "version": "92.18.0"
     },
     "rds-chart": {
       "app_version": "1.14.2",
