@@ -54,9 +54,10 @@ istiod:
 
   meshConfig:
     defaultConfig:
-      proxyMetadata:
-        EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
-        MINIMUM_DRAIN_DURATION: "10s"
+      # Sidecars are native: a sidecar stops only after its app has exited, then drains for
+      # terminationDrainDuration. Waiting for clients' idle connections (EXIT_ON_ZERO_ACTIVE_CONNECTIONS)
+      # served no request and kept every old pod about 5 minutes, until Prometheus closed its idle
+      # scrape connection. The gateway sets its own drain below.
       gatewayTopology:
         numTrustedProxies: 1
       holdApplicationUntilProxyStarts: true
@@ -104,6 +105,14 @@ istiod:
 
 gateway:
   name: istio-ingressgateway
+
+  # The gateway carries external clients: on shutdown it drains at least 10 s and until no
+  # connection is left.
+  podAnnotations:
+    proxy.istio.io/config: |
+      proxyMetadata:
+        EXIT_ON_ZERO_ACTIVE_CONNECTIONS: "true"
+        MINIMUM_DRAIN_DURATION: "10s"
 
   # Every request into the cluster passes through these pods.
   priorityClassName: system-cluster-critical
