@@ -13,6 +13,13 @@ argo-workflows:
       limits: {memory: 512Mi}
     revisionHistoryLimit: 2
 
+    # The controller runs only Workflows that reference a WorkflowTemplate.
+    # Agent Runway submits every Workflow this way; an inline Workflow from a
+    # stolen submitter token cannot run its own steps. Secure would also fail
+    # running Workflows when GitOps changes their template, so Strict.
+    workflowRestrictions:
+      templateReferencing: Strict
+
     # Applies only where a Workflow and its WorkflowTemplate leave these unset.
     # Successful Pods go at once; failed Pods and Workflows stay a day for logs.
     workflowDefaults:
