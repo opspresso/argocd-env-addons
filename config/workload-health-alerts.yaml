@@ -8,7 +8,7 @@ groups:
   - uid: addons-workload-unavailable
     title: Workload has no available replicas
     condition: C
-    for: 3m
+    for: 10m
     noDataState: OK
     execErrState: KeepLast
     labels:
@@ -18,7 +18,8 @@ groups:
       summary: '{{`{{ $labels.namespace }}`}}/{{`{{ $labels.workload }}`}} ({{`{{ $labels.workload_type }}`}}) has no available
         replicas'
       description: The service is down. Check Pod events, readiness probes, image pulls and node health. Single-replica workloads
-        with the Recreate strategy are down for a short time during every rollout; 3 minutes covers a normal restart.
+        with the Recreate strategy are down for a short time during every rollout, and a first install waits for its dependencies;
+        10 minutes covers both.
       __dashboardUid__: kube-workload
       __panelId__: '101'
       dashboard_url: '{{ index .Values "grafana.ini" "server" "root_url" }}d/kube-workload?var-cluster={{`{{ $labels.cluster
@@ -119,26 +120,30 @@ groups:
             type: gt
             params:
             - 0
+  # A few restarts while a new Pod waits for its dependencies are normal and
+  # stop on their own. Only a loop that keeps going needs a person: the kubelet
+  # backs off up to 5 minutes between restarts, so the 5-minute window bridges
+  # the short runs between back-offs and the rule needs about 10 minutes of loop.
   - uid: addons-pod-crash-looping
-    title: Container restarting repeatedly
+    title: Container stuck in CrashLoopBackOff
     condition: C
-    for: 0s
+    for: 10m
     noDataState: OK
     execErrState: KeepLast
     labels:
-      severity: warning
+      severity: critical
       scope: workload
     annotations:
-      summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} restarted
-        {{`{{ printf "%.0f" $values.A.Value }}`}} times in 15 minutes
-      description: The container keeps exiting (crash loop, failing liveness probe or OOM). Read the previous container log
-        and the termination reason in the workload dashboard.
+      summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} has been
+        in CrashLoopBackOff for 10 minutes
+      description: The container keeps exiting and does not recover by itself (crash, failing liveness probe or OOM). Read
+        the previous container log and the termination reason in the workload dashboard.
       __dashboardUid__: kube-workload
       __panelId__: '62'
     data:
     - refId: A
       relativeTimeRange:
-        from: 1800
+        from: 600
         to: 0
       datasourceUid: prometheus
       model:
@@ -149,10 +154,11 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: (max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total[15m]) or increase(kube_pod_init_container_status_restarts_total[15m])))
-          * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type)
-          (namespace_workload_pod:kube_pod_owner:relabel)) or on (cluster, namespace, pod, container) max by (cluster, namespace,
-          pod, container) ((increase(kube_pod_container_status_restarts_total[15m]) or increase(kube_pod_init_container_status_restarts_total[15m])))
+        expr: (max by (cluster, namespace, pod, container) (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m])
+          or max_over_time(kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m])) * on (cluster, namespace,
+          pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
+          or on (cluster, namespace, pod, container) max by (cluster, namespace, pod, container) (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m])
+          or max_over_time(kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]))
     - refId: C
       datasourceUid: __expr__
       model:
@@ -166,7 +172,7 @@ groups:
         - evaluator:
             type: gt
             params:
-            - 2.5
+            - 0
   - uid: addons-pod-oom-killed
     title: Workload container OOMKilled
     condition: C
@@ -174,7 +180,7 @@ groups:
     noDataState: OK
     execErrState: KeepLast
     labels:
-      severity: warning
+      severity: critical
       scope: workload
     annotations:
       summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} was OOMKilled
@@ -601,3 +607,99 @@ groups:
             type: gt
             params:
             - 95
+  # Argo CD application state from the application controller metrics. A rule
+  # waits out the short Degraded and Unknown states of installs, rollouts and
+  # deletions; a deleted application loses its series and the alert resolves.
+  # "name" becomes "application" so it does not clash with the alert name.
+  - uid: addons-argocd-app-degraded
+    title: Argo CD application Degraded
+    condition: C
+    for: 10m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+      scope: workload
+    annotations:
+      summary: Argo CD application {{`{{ $labels.application }}`}} (project {{`{{ $labels.project }}`}}) has been Degraded
+        for 10 minutes
+      description: A resource of the application stays unhealthy. Open the application in Argo CD and read the Degraded resource
+        and its events.
+      __dashboardUid__: cluster-overview
+      __panelId__: '22'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, project, application) (label_replace(argocd_app_info{health_status="Degraded"}, "application",
+          "$1", "name", "(.*)"))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0
+  - uid: addons-argocd-app-sync-unknown
+    title: Argo CD application sync status Unknown
+    condition: C
+    for: 15m
+    noDataState: OK
+    execErrState: KeepLast
+    labels:
+      severity: critical
+      scope: workload
+    annotations:
+      summary: Argo CD cannot compare application {{`{{ $labels.application }}`}} (project {{`{{ $labels.project }}`}}) for
+        15 minutes
+      description: Argo CD cannot build the desired state or read the live state, so it does not sync the application. Read
+        the comparison error in Argo CD; check the repository, the manifest generation and the cluster connection.
+      __dashboardUid__: cluster-overview
+      __panelId__: '22'
+    data:
+    - refId: A
+      relativeTimeRange:
+        from: 600
+        to: 0
+      datasourceUid: prometheus
+      model:
+        refId: A
+        datasource:
+          type: prometheus
+          uid: prometheus
+        editorMode: code
+        instant: true
+        range: false
+        expr: max by (cluster, project, application) (label_replace(argocd_app_info{sync_status="Unknown"}, "application", "$1",
+          "name", "(.*)"))
+    - refId: C
+      datasourceUid: __expr__
+      model:
+        refId: C
+        datasource:
+          type: __expr__
+          uid: __expr__
+        type: threshold
+        expression: A
+        conditions:
+        - evaluator:
+            type: gt
+            params:
+            - 0

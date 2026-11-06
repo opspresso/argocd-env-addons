@@ -27,8 +27,8 @@ grafana:
                 $labels.workload_type }}`}}&var-workload={{`{{ $labels.workload }}`}}'
               description: The service is down. Check Pod events, readiness probes, image
                 pulls and node health. Single-replica workloads with the Recreate strategy
-                are down for a short time during every rollout; 3 minutes covers a normal
-                restart.
+                are down for a short time during every rollout, and a first install waits
+                for its dependencies; 10 minutes covers both.
               summary: '{{`{{ $labels.namespace }}`}}/{{`{{ $labels.workload }}`}} ({{`{{
                 $labels.workload_type }}`}}) has no available replicas'
             condition: C
@@ -75,7 +75,7 @@ grafana:
                 type: threshold
               refId: C
             execErrState: KeepLast
-            for: 3m
+            for: 10m
             labels:
               scope: workload
               severity: critical
@@ -154,12 +154,11 @@ grafana:
           - annotations:
               __dashboardUid__: kube-workload
               __panelId__: '62'
-              description: The container keeps exiting (crash loop, failing liveness probe
-                or OOM). Read the previous container log and the termination reason in the
-                workload dashboard.
+              description: The container keeps exiting and does not recover by itself (crash,
+                failing liveness probe or OOM). Read the previous container log and the termination
+                reason in the workload dashboard.
               summary: Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace
-                }}`}}/{{`{{ $labels.pod }}`}} restarted {{`{{ printf "%.0f" $values.A.Value
-                }}`}} times in 15 minutes
+                }}`}}/{{`{{ $labels.pod }}`}} has been in CrashLoopBackOff for 10 minutes
             condition: C
             data:
             - datasourceUid: prometheus
@@ -168,26 +167,26 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: (max by (cluster, namespace, pod, container) ((increase(kube_pod_container_status_restarts_total[15m])
-                  or increase(kube_pod_init_container_status_restarts_total[15m]))) * on (cluster,
-                  namespace, pod) group_left(workload, workload_type) max by (cluster, namespace,
-                  pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
+                expr: (max by (cluster, namespace, pod, container) (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m])
+                  or max_over_time(kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]))
+                  * on (cluster, namespace, pod) group_left(workload, workload_type) max by
+                  (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel))
                   or on (cluster, namespace, pod, container) max by (cluster, namespace, pod,
-                  container) ((increase(kube_pod_container_status_restarts_total[15m]) or
-                  increase(kube_pod_init_container_status_restarts_total[15m])))
+                  container) (max_over_time(kube_pod_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m])
+                  or max_over_time(kube_pod_init_container_status_waiting_reason{reason="CrashLoopBackOff"}[5m]))
                 instant: true
                 range: false
                 refId: A
               refId: A
               relativeTimeRange:
-                from: 1800
+                from: 600
                 to: 0
             - datasourceUid: __expr__
               model:
                 conditions:
                 - evaluator:
                     params:
-                    - 2.5
+                    - 0
                     type: gt
                 datasource:
                   type: __expr__
@@ -197,12 +196,12 @@ grafana:
                 type: threshold
               refId: C
             execErrState: KeepLast
-            for: 0s
+            for: 10m
             labels:
               scope: workload
-              severity: warning
+              severity: critical
             noDataState: OK
-            title: Container restarting repeatedly
+            title: Container stuck in CrashLoopBackOff
             uid: addons-pod-crash-looping
           - annotations:
               __dashboardUid__: kube-workload
@@ -257,7 +256,7 @@ grafana:
             for: 0s
             labels:
               scope: workload
-              severity: warning
+              severity: critical
             noDataState: OK
             title: Workload container OOMKilled
             uid: addons-pod-oom-killed
@@ -660,6 +659,99 @@ grafana:
             noDataState: OK
             title: PersistentVolume above 95% used
             uid: addons-pvc-critical
+          - annotations:
+              __dashboardUid__: cluster-overview
+              __panelId__: '22'
+              description: A resource of the application stays unhealthy. Open the application
+                in Argo CD and read the Degraded resource and its events.
+              summary: Argo CD application {{`{{ $labels.application }}`}} (project {{`{{
+                $labels.project }}`}}) has been Degraded for 10 minutes
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, project, application) (label_replace(argocd_app_info{health_status="Degraded"},
+                  "application", "$1", "name", "(.*)"))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 10m
+            labels:
+              scope: workload
+              severity: critical
+            noDataState: OK
+            title: Argo CD application Degraded
+            uid: addons-argocd-app-degraded
+          - annotations:
+              __dashboardUid__: cluster-overview
+              __panelId__: '22'
+              description: Argo CD cannot build the desired state or read the live state,
+                so it does not sync the application. Read the comparison error in Argo CD;
+                check the repository, the manifest generation and the cluster connection.
+              summary: Argo CD cannot compare application {{`{{ $labels.application }}`}}
+                (project {{`{{ $labels.project }}`}}) for 15 minutes
+            condition: C
+            data:
+            - datasourceUid: prometheus
+              model:
+                datasource:
+                  type: prometheus
+                  uid: prometheus
+                editorMode: code
+                expr: max by (cluster, project, application) (label_replace(argocd_app_info{sync_status="Unknown"},
+                  "application", "$1", "name", "(.*)"))
+                instant: true
+                range: false
+                refId: A
+              refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+            - datasourceUid: __expr__
+              model:
+                conditions:
+                - evaluator:
+                    params:
+                    - 0
+                    type: gt
+                datasource:
+                  type: __expr__
+                  uid: __expr__
+                expression: A
+                refId: C
+                type: threshold
+              refId: C
+            execErrState: KeepLast
+            for: 15m
+            labels:
+              scope: workload
+              severity: critical
+            noDataState: OK
+            title: Argo CD application sync status Unknown
+            uid: addons-argocd-app-sync-unknown
 
   # These target names and host collectors belong to the EKS Prometheus stack.
     node-health.yaml:
@@ -1088,8 +1180,9 @@ grafana:
           - annotations:
               __dashboardUid__: kube-cluster
               __panelId__: '108'
-              description: Growth above 256 MiB compared with six hours ago. Needs six hours
-                of history. Inspect BPF lifecycle cleanup before host memory runs out.
+              description: Growth above 256 MiB compared with six hours ago; resolves below
+                192 MiB. Needs six hours of history. Inspect BPF lifecycle cleanup before
+                host memory runs out.
               summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew
                 {{`{{ printf "%.0f" $values.A.Value }}`}} MiB in 6 hours
             condition: C
@@ -1117,6 +1210,10 @@ grafana:
                     params:
                     - 256
                     type: gt
+                  unloadEvaluator:
+                    params:
+                    - 192
+                    type: lt
                 datasource:
                   type: __expr__
                   uid: __expr__
@@ -1318,7 +1415,7 @@ grafana:
               __panelId__: '114'
               description: Restarts of unrelated containers on one node point to the node
                 (memory, PSI, network), not to one application. A single crash-looping container
-                is reported by the repeated-restart alert instead.
+                is reported by the CrashLoopBackOff workload alert instead.
               summary: '{{`{{ printf "%.0f" $values.A.Value }}`}} different containers restarted
                 on node {{`{{ $labels.node }}`}} in 10 minutes'
             condition: C
