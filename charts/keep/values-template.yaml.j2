@@ -64,7 +64,7 @@ keep:
 
 {% set keep_url = "https://" ~ keep.hostname %}
 {% set channel = keep.slack.channel %}
-{% set ask = "<@" ~ keep.slack.responder ~ "> *" ~ keep.slack.keyword ~ "*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요." %}
+{% set ask = "<@" ~ keep.slack.responder ~ "> *" ~ keep.slack.keyword ~ "*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요." %}
 {% set at %}{% raw %}<!date^keep.to_timestamp('{{ alert.lastReceived }}')^{date_short_pretty} {time}|{{ alert.lastReceived }}>{% endraw %}{% endset %}
 {% set keep_link = "<" ~ keep_url ~ "/alerts/feed|Keep>" %}
 {#- Blocks of one alert message. The problem message and its resolved edit share

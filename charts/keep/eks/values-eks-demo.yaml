@@ -104,7 +104,7 @@ keep:
                 config: "{{ providers.slack }}"
                 with:
                   channel: C0BPEEU2B8S
-                  message: "🔴 {{ alert.name }} — {{ alert.annotations.summary }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."
+                  message: "🔴 {{ alert.name }} — {{ alert.annotations.summary }} <@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."
                   enrich_alert:
                     - {key: slack_timestamp, value: results.slack_timestamp}
                   blocks:
@@ -120,7 +120,7 @@ keep:
                       text: {type: mrkdwn, text: "<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기> · <https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: section
-                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."}
 
             - name: mark-resolved
               if: "'{{ alert.status }}' == 'resolved' and '{{ alert.slack_timestamp }}'"
@@ -183,7 +183,7 @@ keep:
                 config: "{{ providers.slack }}"
                 with:
                   channel: C0BPEEU2B8S
-                  message: "🔴 {{ alert.name }} — {{ alert.description }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."
+                  message: "🔴 {{ alert.name }} — {{ alert.description }} <@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."
                   enrich_alert:
                     - {key: slack_timestamp, value: results.slack_timestamp}
                   blocks:
@@ -199,7 +199,7 @@ keep:
                       text: {type: mrkdwn, text: "<https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: section
-                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."}
 
             - name: mark-resolved
               if: "'{{ alert.status }}' == 'resolved' and '{{ alert.slack_timestamp }}'"
@@ -263,7 +263,7 @@ keep:
                 config: "{{ providers.slack }}"
                 with:
                   channel: C0BPEEU2B8S
-                  message: "🔴 {{ alert.name }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."
+                  message: "🔴 {{ alert.name }} <@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."
                   enrich_alert:
                     - {key: slack_timestamp, value: results.slack_timestamp}
                   blocks:
@@ -279,7 +279,7 @@ keep:
                       text: {type: mrkdwn, text: "<{{ alert.url }}|Argo CD> · <https://keep.demo.opsp.dev/alerts/feed|Keep>"}
 
                     - type: section
-                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."}
 
             - name: mark-resolved
               if: "'{{ alert.status }}' == 'resolved' and '{{ alert.slack_timestamp }}'"
@@ -337,7 +337,7 @@ keep:
                 config: "{{ providers.slack }}"
                 with:
                   channel: C0BPEEU2B8S
-                  message: '🧩 새 incident: {{ incident.name }} <@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요.'
+                  message: '🧩 새 incident: {{ incident.name }} <@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요.'
                   blocks:
                     - type: header
                       text: {type: plain_text, emoji: true, text: "🧩 새 incident: {{ incident.name }}"}
@@ -346,7 +346,7 @@ keep:
                     - type: section
                       text: {type: mrkdwn, text: "<https://keep.demo.opsp.dev/incidents/{{ incident.id }}|Keep에서 보기>"}
                     - type: section
-                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 원인과 영향 범위를 확인하고 조치 방법을 이 스레드에 남겨 주세요."}
+                      text: {type: mrkdwn, text: "<@U0C3UAFR7SM> *원인 조사 요청*: 이 경보의 원인과 영향, 우선 조치를 이 스레드에 짧게 남겨 주세요."}
   frontend:
     env:
       - name: NEXTAUTH_URL
