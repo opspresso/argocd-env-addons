@@ -257,8 +257,8 @@ raw:
           - {group: "*", kind: "*"}
 
 
-    # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities and Agent Runway's submit
-    # permission.
+    # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities, Agent Runway's submit
+    # permission, and the env-cleanup CronWorkflow that removes emptied environment directories once nothing is live.
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
       metadata:
@@ -284,6 +284,7 @@ raw:
           - {group: networking.k8s.io, kind: NetworkPolicy}
           - {group: external-secrets.io, kind: ExternalSecret}
           - {group: argoproj.io, kind: WorkflowTemplate}
+          - {group: argoproj.io, kind: CronWorkflow}
 
 {%- endif %}
 
