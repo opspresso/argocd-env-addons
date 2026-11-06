@@ -231,7 +231,7 @@ groups:
     noDataState: OK
     execErrState: KeepLast
     labels:
-      severity: warning
+      severity: critical
       scope: workload
     annotations:
       summary: 'Container {{`{{ $labels.container }}`}} in {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} cannot start:

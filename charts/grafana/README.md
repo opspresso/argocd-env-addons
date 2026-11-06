@@ -127,7 +127,7 @@ workload 경보(`Container stuck in CrashLoopBackOff`)로 보고한다.
 | Service HTTP error rate above 5% | ingress 요청 >0.1 req/s 중 5xx·code 0(`DC` 제외) >5% | 5분 | critical |
 | Container stuck in CrashLoopBackOff | 컨테이너(init·sidecar 포함)가 `CrashLoopBackOff`. 5분 창으로 재시작 사이의 짧은 실행을 메운다 | 10분 | critical |
 | Workload container OOMKilled | 최근 10분 재시작의 마지막 종료 사유가 OOMKilled | 즉시 | critical |
-| Workload container cannot start | ImagePullBackOff·CreateContainerConfigError 등 | 5분 | warning |
+| Workload container cannot start | ImagePullBackOff·CreateContainerConfigError 등 | 5분 | critical |
 | Workload container memory above 90% of limit | 양수 memory limit 대비 working set | 5분 | warning |
 | Pod failed recently | 최근 1시간 안에 Failed가 된 Pod. Job·Workflow Pod, 노드 종료로 멈춘 Pod 제외 | 5분 | warning |
 | Job failed | 최근 1시간 안에 실패한 Job | 즉시 | warning |
