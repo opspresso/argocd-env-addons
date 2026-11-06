@@ -64,6 +64,9 @@ Slack에는 사람이 확인해야 하는 경보만 보낸다. `warning`은 Keep
 - 해소는 `firingCounter > 1`인 경보만 처리한다. 처음 들어온 이벤트가 resolved인 경보(예: 새 Argo CD 앱의 Healthy)는 보내지 않는다.
 - 시각은 Slack date token이라 보는 사람의 시간대로 표시된다.
 - 메시지를 고치려면 채널 ID가 필요하다(`env/eks-demo.yaml`의 `keep.slack.channel`).
+- 링크 미리보기는 만들지 않는다. Slack은 메시지의 링크를 가져와 미리보기를 붙이는데, Keep·Grafana·Argo CD는 로그인 페이지만
+  보여 줘서 경보마다 로그인 페이지 미리보기가 붙는다. Keep의 Slack provider는 `unfurl_links: false`를 보낼 수 없으므로
+  `AuthorizationPolicy/keep-slack-no-unfurl`(istio-system)이 이 세 host에서 Slack 링크 수집기(`User-Agent: Slackbot*`)를 403으로 막는다.
 
 ### kube-sre 호출
 

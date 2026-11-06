@@ -405,6 +405,32 @@ raw:
               - name: keep-frontend
                 port: 3000
 
+    # Slack fetches every link of a Keep message to build a preview. Keep,
+    # Grafana and Argo CD show it only a sign-in page, so each alert gets
+    # previews of sign-in pages. Keep's Slack provider cannot send
+    # unfurl_links=false, so the gateway refuses Slack's link expander
+    # (User-Agent "Slackbot-LinkExpanding ...") on these hosts.
+    - apiVersion: security.istio.io/v1
+      kind: AuthorizationPolicy
+      metadata:
+        name: keep-slack-no-unfurl
+        namespace: istio-system
+      spec:
+        selector:
+          matchLabels:
+            istio: ingressgateway
+        action: DENY
+        rules:
+          - to:
+              - operation:
+                  hosts:
+                    - "keep.demo.opsp.dev"
+                    - "grafana.demo.opsp.dev"
+                    - "argocd.demo.opsp.dev"
+            when:
+              - key: request.headers[User-Agent]
+                values: ["Slackbot*"]
+
     # Names start with addon-keep-, not keep-: the chart's pre-delete hook
     # deletes every Secret whose name starts with keep-.
     - apiVersion: external-secrets.io/v1
