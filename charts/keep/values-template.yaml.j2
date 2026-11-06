@@ -149,6 +149,9 @@ keep:
     # send their alerts to Keep. The Slack app "Keep" posts with its bot token.
     # Each workflow reads only fields its source always sets, because Keep fails
     # the action on a missing field.
+    # Slack gets only alerts that need a person: critical Grafana and Prometheus
+    # alerts (and Agent platform alerts), and Argo CD sync failures. Warnings
+    # stay in Keep. Rules wait out short states before they turn critical.
     # only_on_change sends on status changes, not on repeats. A recovery counts
     # only after a firing (firingCounter > 1).
     # Problem messages mention the kube-sre agent with its channel keyword; Agent
@@ -162,8 +165,8 @@ keep:
 {% set body %}{% raw %}*{{ alert.annotations.summary }}*\n{{ alert.description }}{% endraw %}{% endset %}
 {% set links %}{% raw %}<{{ alert.dashboardUrl }}|대시보드> · <{{ alert.url }}|규칙> · <{{ alert.silenceURL }}|알림 끄기>{% endraw %} · {{ keep_link }}{% endset %}
 {{ source_workflow('grafana-alert-to-slack', 'Grafana alert to Slack',
-     'Posts each Grafana alert to Slack, asks kube-sre to investigate, and marks the message resolved.',
-     '"grafana" in source && ' ~ problem_or_recovery, text, body, 'Grafana', links) }}
+     'Posts critical Grafana alerts to Slack, asks kube-sre to investigate, and marks the message resolved.',
+     '"grafana" in source && severity == "critical" && ' ~ problem_or_recovery, text, body, 'Grafana', links) }}
 
 {% set text %}{% raw %}{{ alert.name }} — {{ alert.description }}{% endraw %}{% endset %}
 {% set body %}{% raw %}{{ alert.description }}{% endraw %}{% endset %}
@@ -176,7 +179,7 @@ keep:
 {% set meta %}{% raw %}Argo CD · 프로젝트 `{{ alert.labels.project }}`{% endraw %}{% endset %}
 {% set links %}{% raw %}<{{ alert.url }}|Argo CD>{% endraw %} · {{ keep_link }}{% endset %}
 {{ source_workflow('argocd-alert-to-slack', 'Argo CD alert to Slack',
-     'Posts each Argo CD application problem to Slack, asks kube-sre to investigate, and marks the message resolved.',
+     'Posts each Argo CD sync failure to Slack, asks kube-sre to investigate, and marks the message resolved.',
      '"argocd" in source && ' ~ problem_or_recovery, text, body, meta, links) }}
 
         - id: incident-to-slack

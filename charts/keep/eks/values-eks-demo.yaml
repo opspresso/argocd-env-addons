@@ -73,6 +73,9 @@ keep:
     # send their alerts to Keep. The Slack app "Keep" posts with its bot token.
     # Each workflow reads only fields its source always sets, because Keep fails
     # the action on a missing field.
+    # Slack gets only alerts that need a person: critical Grafana and Prometheus
+    # alerts (and Agent platform alerts), and Argo CD sync failures. Warnings
+    # stay in Keep. Rules wait out short states before they turn critical.
     # only_on_change sends on status changes, not on repeats. A recovery counts
     # only after a firing (firingCounter > 1).
     # Problem messages mention the kube-sre agent with its channel keyword; Agent
@@ -88,10 +91,10 @@ keep:
 
         - id: grafana-alert-to-slack
           name: Grafana alert to Slack
-          description: Posts each Grafana alert to Slack, asks kube-sre to investigate, and marks the message resolved.
+          description: Posts critical Grafana alerts to Slack, asks kube-sre to investigate, and marks the message resolved.
           triggers:
             - type: alert
-              cel: '"grafana" in source && (status == "firing" || (status == "resolved" && firingCounter > 1))'
+              cel: '"grafana" in source && severity == "critical" && (status == "firing" || (status == "resolved" && firingCounter > 1))'
               only_on_change: [status]
           actions:
             - name: post-problem
@@ -247,7 +250,7 @@ keep:
 
         - id: argocd-alert-to-slack
           name: Argo CD alert to Slack
-          description: Posts each Argo CD application problem to Slack, asks kube-sre to investigate, and marks the message resolved.
+          description: Posts each Argo CD sync failure to Slack, asks kube-sre to investigate, and marks the message resolved.
           triggers:
             - type: alert
               cel: '"argocd" in source && (status == "firing" || (status == "resolved" && firingCounter > 1))'

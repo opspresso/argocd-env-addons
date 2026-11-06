@@ -30,7 +30,7 @@ Keep은 Slack 경보의 유일한 발신처다. Grafana·Alertmanager·Argo CD�
 | --- | --- | --- | --- |
 | Grafana | Grafana → Keep | contact point `keep`(webhook, `/alerts/event/grafana`). 경보마다 따로 보낸다(`group_by: ['...']`) | Grafana 규칙 경보가 firing·resolved로 들어온다 |
 | Prometheus | Prometheus → Keep | Alertmanager webhook(`/alerts/event/prometheus`, `send_resolved`). `env/<cluster>.yaml`에 `keep`이 있는 클러스터에서만 Alertmanager를 켠다. `Watchdog`은 보내지 않는다 | PrometheusRule 경보가 firing·resolved로 들어온다 |
-| Argo CD | Argo CD → Keep | notifications `service.webhook.keep`(`/alerts/event`), trigger `on-keep-health`·`on-keep-sync`·`on-keep-sync-status` | 앱별 health·sync·sync status 경보. 문제와 회복을 같은 fingerprint로 보내므로 회복하면 resolved가 된다 |
+| Argo CD | Argo CD → Keep | notifications `service.webhook.keep`(`/alerts/event`), trigger `on-keep-sync` | 앱별 sync 실패 경보. 실패와 회복을 같은 fingerprint로 보내므로 회복하면 resolved가 된다. 지속되는 Degraded·Unknown은 Grafana 규칙(`argocd_app_info`)이 알린다 |
 | Argo CD | Keep → Argo CD | provider `argocd`(계정 `keep`, 읽기 전용) | Application·리소스 트리로 topology를 만든다 |
 | Loki | Keep → Loki | provider `loki`(`grafana_loki`) | workflow에서 로그를 조회한다. Loki 로그 경보는 Grafana 규칙(`config/cni-health-alerts.yaml`)으로 들어온다 |
 | Slack | Keep → Slack | provider `slack`: nalbam workspace의 Slack 앱 `Keep`(App ID `A0CEH0R5CBV`)의 bot token(`chat:write`, `chat:write.public`) → `#noti-eks-demo`(`C0BPEEU2B8S`) | 아래 workflow가 보낸다 |
@@ -45,10 +45,13 @@ workflow는 `values-template.yaml.j2`에 있다. 소스마다 workflow를 따로
 
 | workflow | 보내는 경보 | 메시지 내용 |
 | --- | --- | --- |
-| `grafana-alert-to-slack` | Grafana 경보 전부 | 규칙 이름, summary(대상과 측정값), description(영향과 첫 조치), 심각도·시각, 대시보드·규칙·알림 끄기·Keep 링크 |
+| `grafana-alert-to-slack` | `critical`인 Grafana 경보 | 규칙 이름, summary(대상과 측정값), description(영향과 첫 조치), 심각도·시각, 대시보드·규칙·알림 끄기·Keep 링크 |
 | `prometheus-alert-to-slack` | `critical`이거나 `service`가 `agent-studio`·`agent-forge`·`agent-knowledge`인 경보 | 경보 이름, description, 심각도·시각, Keep 링크 |
-| `argocd-alert-to-slack` | Argo CD 경보 전부 | 앱 상태, 설명, 프로젝트·시각, Argo CD·Keep 링크 |
+| `argocd-alert-to-slack` | Argo CD sync 실패 | 앱 상태, 설명, 프로젝트·시각, Argo CD·Keep 링크 |
 | `incident-to-slack` | Keep이 만든 incident | incident 이름, 경보 수, 심각도, Keep 링크 |
+
+Slack에는 사람이 확인해야 하는 경보만 보낸다. `warning`은 Keep에만 남는다. 짧게 지나가는 상태(배포·설치 중 재시작, 잠깐의 Degraded)는
+규칙의 대기 시간(`for`)이 걸러 내고, 대기 시간을 넘어 지속되는 문제만 `critical`로 둔다(`charts/grafana/README.md`).
 
 경보 하나의 Slack 수명:
 
