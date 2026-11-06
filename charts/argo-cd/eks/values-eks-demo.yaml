@@ -75,15 +75,13 @@ argo-cd:
     enabled: True
     argocdUrl: https://argocd.demo.opsp.dev
 
-    # Keep (charts/keep) receives each problem and its recovery, so an alert
-    # there resolves itself. Keep sends the Slack message.
+    # Keep (charts/keep) receives each sync failure and its recovery, so an
+    # alert there resolves itself. Keep sends the Slack message.
     subscriptions:
       - recipients:
           - keep
         triggers:
-          - on-keep-health
           - on-keep-sync
-          - on-keep-sync-status
 
 
 

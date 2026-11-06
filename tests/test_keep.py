@@ -112,6 +112,8 @@ def test_slack_workflows_thread_the_recovery_under_the_problem():
         for name in ("mark-resolved", "reply-resolved", "post-resolved"):
             text = yaml.safe_dump(actions[name]["provider"]["with"], allow_unicode=True)
             assert ask not in text and env["keyword"] not in text, (workflow_id, name)
+    # Slack gets only what needs a person; warnings stay in Keep.
+    assert '"grafana" in source && severity == "critical" && ' in workflows["grafana-alert-to-slack"]["triggers"][0]["cel"]
     incident = workflows["incident-to-slack"]["actions"][0]["provider"]["with"]
     assert ask in incident["message"] and env["keyword"] in incident["message"]
     backend = next(doc for doc in docs if doc["kind"] == "Deployment" and doc["metadata"]["name"] == "keep-backend")

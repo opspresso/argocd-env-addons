@@ -106,7 +106,7 @@ Grafana 규칙으로 중복하지 않는다.
 | Node filesystem above 85% / 95% used | 쓰기 가능한 `/`, `/local` | 10분 / 2분 | warning / critical |
 | Host memory usage above 85% / 92% | 1 - MemAvailable/MemTotal | 5분 / 2분 | warning / critical |
 | Kernel vmalloc above 20% of RAM | VmallocUsed / MemTotal | 15분 | warning |
-| Kernel vmalloc growing over 6 hours | 6시간 전보다 256MiB 초과 증가 | 15분 | warning |
+| Kernel vmalloc growing over 6 hours | 6시간 전보다 256MiB 초과 증가. 192MiB 미만이면 해소 | 15분 | warning |
 | Tasks stalled on memory above 10% | 메모리 PSI | 2분 | warning |
 | Node CPU busy above 90% | 비유휴 CPU | 10분 | warning |
 | Core monitoring target down | node-exporter·kubelet·apiserver·kube-state-metrics·Loki target의 `up=0` | 5분 | warning |
@@ -116,26 +116,33 @@ Grafana 규칙으로 중복하지 않는다.
 
 Auto Mode는 하루 10대 안팎의 노드를 교체한다. 교체되는 노드의 target은 몇 분 동안 실패한 뒤 discovery에서 사라진다.
 `Core monitoring target down`이 5분을 기다리는 이유다. 한 컨테이너의 반복 재시작은 노드 경보가 아니라
-workload 경보(`Container restarting repeatedly`)로 보고한다.
+workload 경보(`Container stuck in CrashLoopBackOff`)로 보고한다.
 
 ### Workload (`config/workload-health-alerts.yaml`)
 
 | 경보 | 조건 | 유지 | severity |
 | --- | --- | --- | --- |
-| Workload has no available replicas | desired >0이고 available=0 | 3분 | critical |
+| Workload has no available replicas | desired >0이고 available=0 | 10분 | critical |
 | Workload replicas below desired | 일부만 available | 10분 | warning |
 | Service HTTP error rate above 5% | ingress 요청 >0.1 req/s 중 5xx·code 0(`DC` 제외) >5% | 5분 | critical |
-| Container restarting repeatedly | 한 컨테이너가 15분 안에 3회 이상 재시작(init·sidecar 포함) | 즉시 | warning |
-| Workload container OOMKilled | 최근 10분 재시작의 마지막 종료 사유가 OOMKilled | 즉시 | warning |
+| Container stuck in CrashLoopBackOff | 컨테이너(init·sidecar 포함)가 `CrashLoopBackOff`. 5분 창으로 재시작 사이의 짧은 실행을 메운다 | 10분 | critical |
+| Workload container OOMKilled | 최근 10분 재시작의 마지막 종료 사유가 OOMKilled | 즉시 | critical |
 | Workload container cannot start | ImagePullBackOff·CreateContainerConfigError 등 | 5분 | warning |
 | Workload container memory above 90% of limit | 양수 memory limit 대비 working set | 5분 | warning |
 | Pod failed recently | 최근 1시간 안에 Failed가 된 Pod. Job·Workflow Pod, 노드 종료로 멈춘 Pod 제외 | 5분 | warning |
 | Job failed | 최근 1시간 안에 실패한 Job | 즉시 | warning |
 | Pod unschedulable | 스케줄할 수 없는 Pod | 10분 | warning |
 | PersistentVolume above 85% / 95% used | kubelet volume 통계 | 15분 / 2분 | warning / critical |
+| Argo CD application Degraded | `argocd_app_info`의 health가 `Degraded` | 10분 | critical |
+| Argo CD application sync status Unknown | `argocd_app_info`의 sync status가 `Unknown` | 15분 | critical |
 
-- Recreate 전략의 단일 replica workload(Grafana, Prometheus, Loki)는 배포할 때마다 잠시 중단된다. 전체 중단 경보는
-  이 정상 재시작을 넘는 3분을 기다린다.
+- Keep은 `critical`만 Slack으로 보낸다(`charts/keep/README.md`). `warning`은 Keep에만 남는다.
+  사람이 확인해야 하는 문제만 `critical`로 두고, 짧게 지나가는 상태는 `for`로 기다린다.
+- Recreate 전략의 단일 replica workload(Grafana, Prometheus, Loki)는 배포할 때마다 잠시 중단되고, 처음 설치하는
+  workload는 의존 서비스를 기다린다. 전체 중단 경보는 이 둘을 넘는 10분을 기다린다.
+- 새 Pod가 의존 서비스를 기다리며 몇 번 재시작하는 것은 스스로 끝난다. 그래서 재시작 횟수가 아니라
+  10분 넘게 이어지는 `CrashLoopBackOff`만 알린다.
+- Argo CD 앱 경보는 앱이 삭제되면 series가 사라져 해소된다.
 - `Pod failed recently`와 `Job failed`는 실패 후 1시간이 지나면 해소된다. 실패한 객체가 남아 있어도 12시간마다
   같은 경보를 반복하지 않게 하기 위해서다.
 - `CPU/Memory requests above 90%` 경보는 제거했다. Auto Mode에서는 높은 예약률이 정상 운영 상태이고,

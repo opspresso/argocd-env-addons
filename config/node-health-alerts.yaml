@@ -420,8 +420,8 @@ groups:
     annotations:
       summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew {{`{{ printf "%.0f" $values.A.Value }}`}}
         MiB in 6 hours
-      description: Growth above 256 MiB compared with six hours ago. Needs six hours of history. Inspect BPF lifecycle cleanup
-        before host memory runs out.
+      description: Growth above 256 MiB compared with six hours ago; resolves below 192 MiB. Needs six hours of history. Inspect
+        BPF lifecycle cleanup before host memory runs out.
       __dashboardUid__: kube-cluster
       __panelId__: '108'
     data:
@@ -454,6 +454,12 @@ groups:
             type: gt
             params:
             - 256
+          # Recovers only below 192 MiB, so growth that hovers near 256 MiB
+          # does not fire and resolve over and over.
+          unloadEvaluator:
+            type: lt
+            params:
+            - 192
   - uid: addons-node-memory-stalls
     title: Tasks stalled on memory above 10%
     condition: C
@@ -643,7 +649,7 @@ groups:
       summary: '{{`{{ printf "%.0f" $values.A.Value }}`}} different containers restarted on node {{`{{ $labels.node }}`}}
         in 10 minutes'
       description: Restarts of unrelated containers on one node point to the node (memory, PSI, network), not to one application.
-        A single crash-looping container is reported by the repeated-restart alert instead.
+        A single crash-looping container is reported by the CrashLoopBackOff workload alert instead.
       __dashboardUid__: kube-cluster
       __panelId__: '114'
     data:

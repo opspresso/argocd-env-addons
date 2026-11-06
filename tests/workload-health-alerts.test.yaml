@@ -2,25 +2,28 @@ rule_files:
 - rules.yaml
 evaluation_interval: 30s
 tests:
-- name: zero Pods still alert and same-name Deployment or another cluster cannot hide the StatefulSet outage
+- name: zero Pods alert after ten minutes and same-name Deployment or another cluster cannot hide the StatefulSet outage
   interval: 1m
   input_series:
   - series: kube_statefulset_replicas{cluster="demo",namespace="apps",statefulset="shared"}
-    values: 2+0x10
+    values: 2+0x15
   - series: kube_statefulset_status_replicas_available{cluster="demo",namespace="apps",statefulset="shared"}
-    values: 0+0x10
+    values: 0+0x15
   - series: kube_deployment_spec_replicas{cluster="demo",namespace="apps",deployment="shared"}
-    values: 3+0x10
+    values: 3+0x15
   - series: kube_deployment_status_replicas_available{cluster="demo",namespace="apps",deployment="shared"}
-    values: 3+0x10
+    values: 3+0x15
   - series: kube_statefulset_replicas{cluster="other",namespace="apps",statefulset="shared"}
-    values: 2+0x10
+    values: 2+0x15
   - series: kube_statefulset_status_replicas_available{cluster="other",namespace="apps",statefulset="shared"}
-    values: 2+0x10
+    values: 2+0x15
   - series: kube_statefulset_labels{cluster="demo",namespace="apps",statefulset="shared"}
-    values: 1+0x10
+    values: 1+0x15
   alert_rule_test:
-  - eval_time: 4m
+  - eval_time: 9m
+    alertname: addons-workload-unavailable
+    exp_alerts: []
+  - eval_time: 11m
     alertname: addons-workload-unavailable
     exp_alerts:
     - exp_labels:
@@ -472,17 +475,26 @@ tests:
     exp_samples:
     - labels: '{}'
       value: 0
-- name: repeated restarts alert per container while two restarts stay quiet
+- name: a lasting CrashLoopBackOff alerts per container while a few startup restarts stay quiet
   interval: 1m
   input_series:
   - series: namespace_workload_pod:kube_pod_owner:relabel{cluster="demo",namespace="apps",pod="web-1",workload="web",workload_type="deployment"}
-    values: 1+0x15
-  - series: kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="web-1",container="app"}
-    values: 0 1 2 3 4 4 4 4 4 4 4 4 4 4 4 4
-  - series: kube_pod_container_status_restarts_total{cluster="demo",namespace="apps",pod="bare",container="app"}
-    values: 0 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+    values: 1+0x20
+  # Back-off with short runs in between (the series goes stale while the
+  # container runs): the 5-minute window bridges the gaps.
+  - series: kube_pod_container_status_waiting_reason{cluster="demo",namespace="apps",pod="web-1",container="app",reason="CrashLoopBackOff"}
+    values: 1 1 stale 1 1 1 stale _ 1 1 1 1 stale _ _ 1 1 1 1 1 1
+  # Unowned Pod keeps coverage without owner labels.
+  - series: kube_pod_init_container_status_waiting_reason{cluster="demo",namespace="apps",pod="bare",container="init",reason="CrashLoopBackOff"}
+    values: 1+0x20
+  # Two back-offs while a dependency starts, then the container runs.
+  - series: kube_pod_container_status_waiting_reason{cluster="demo",namespace="apps",pod="api-1",container="app",reason="CrashLoopBackOff"}
+    values: 1 1 1 stale _x17
   alert_rule_test:
-  - eval_time: 6m
+  - eval_time: 9m
+    alertname: addons-pod-crash-looping
+    exp_alerts: []
+  - eval_time: 12m
     alertname: addons-pod-crash-looping
     exp_alerts:
     - exp_labels:
@@ -492,6 +504,45 @@ tests:
         container: app
         workload: web
         workload_type: deployment
+    - exp_labels:
+        cluster: demo
+        namespace: apps
+        pod: bare
+        container: init
+- name: Argo CD applications alert only after Degraded or Unknown persists
+  interval: 1m
+  input_series:
+  # Labels differ between controller Pods and operations; the rule merges them.
+  - series: argocd_app_info{cluster="demo",name="broken",project="addons",health_status="Degraded",sync_status="Synced",instance="a"}
+    values: 1+0x6 stale _x13
+  - series: argocd_app_info{cluster="demo",name="broken",project="addons",health_status="Degraded",sync_status="Synced",instance="b"}
+    values: _x7 1+0x13
+  - series: argocd_app_info{cluster="demo",name="rollout",project="apps",health_status="Degraded",sync_status="Synced"}
+    values: 1+0x4 stale _x15
+  - series: argocd_app_info{cluster="demo",name="rollout",project="apps",health_status="Healthy",sync_status="Synced"}
+    values: _x5 1+0x15
+  - series: argocd_app_info{cluster="demo",name="stuck",project="apps",health_status="Healthy",sync_status="Unknown"}
+    values: 1+0x20
+  - series: argocd_app_info{cluster="demo",name="deleted",project="apps",health_status="Healthy",sync_status="Unknown"}
+    values: 1+0x5 stale
+  alert_rule_test:
+  - eval_time: 12m
+    alertname: addons-argocd-app-degraded
+    exp_alerts:
+    - exp_labels:
+        cluster: demo
+        project: addons
+        application: broken
+  - eval_time: 14m
+    alertname: addons-argocd-app-sync-unknown
+    exp_alerts: []
+  - eval_time: 17m
+    alertname: addons-argocd-app-sync-unknown
+    exp_alerts:
+    - exp_labels:
+        cluster: demo
+        project: apps
+        application: stuck
 - name: a recent pod failure alerts once while Job, Workflow, shutdown and old failures stay quiet
   interval: 5m
   input_series:
