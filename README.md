@@ -417,11 +417,11 @@ helm repo update
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy |  | 1.14.4 | 1.15.0 (v1.21.3) |
-| argo-cd |  | 10.11.6 | 10.12.1 (v3.6.1) |
-| argo-rollouts | ✅ | 2.43.8 | 2.43.8 (v1.10.1) |
+| argo-cd |  | 10.11.6 | 10.14.0 (v3.6.1) |
+| argo-rollouts |  | 2.43.8 | 2.43.9 (v1.10.2) |
 | argo-workflows |  | 2.0.14 | 2.0.16 (v4.1.6) |
 | atlantis | ✅ | 7.0.0 | 7.0.0 (v0.49.0) |
-| aws-controllers | 🔒 | 1.13.4 | 1.14.1 (1.14.1) |
+| aws-controllers | 🔒 | 1.13.4 | 1.14.2 (1.14.2) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
@@ -435,9 +435,9 @@ helm repo update
 | kro | 🔒 | 0.9.4 | v0.9.4 (v0.9.4) |
 | loki | ✅ | 7.5.0 | 7.5.0 (3.6.16) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
-| oauth2-proxy | ✅ | 10.7.1 | 10.7.1 (7.15.5) |
+| oauth2-proxy |  | 10.7.1 | 10.7.2 (7.15.6) |
 | prometheus-adapter |  | 5.3.0 | 5.4.0 (v0.12.0) |
-| prometheus-stack |  | 92.14.1 | 92.18.0 (v0.94.2) |
+| prometheus-stack |  | 92.14.1 | 92.21.1 (v0.94.2) |
 | aws-controllers |  | 1.13.4 | 1.14.2 (1.14.2) |
 | aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
 | vllm-stack |  |  | 0.1.13 |

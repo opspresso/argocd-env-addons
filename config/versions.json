@@ -10,13 +10,13 @@
       "app_version": "v3.6.1",
       "chart": "argo/argo-cd",
       "current": "10.11.6",
-      "version": "10.12.1"
+      "version": "10.14.0"
     },
     "argo-rollouts": {
-      "app_version": "v1.10.1",
+      "app_version": "v1.10.2",
       "chart": "argo/argo-rollouts",
       "current": "2.43.8",
-      "version": "2.43.8"
+      "version": "2.43.9"
     },
     "argo-workflows": {
       "app_version": "v4.1.6",
@@ -31,13 +31,13 @@
       "version": "7.0.0"
     },
     "dynamodb-chart": {
-      "app_version": "1.14.1",
+      "app_version": "1.14.2",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.14.1"
+      "version": "1.14.2"
     },
     "external-dns": {
       "app_version": "0.23.0",
@@ -121,10 +121,10 @@
       "version": "3.14.0"
     },
     "oauth2-proxy": {
-      "app_version": "7.15.5",
+      "app_version": "7.15.6",
       "chart": "oauth2-proxy/oauth2-proxy",
       "current": "10.7.1",
-      "version": "10.7.1"
+      "version": "10.7.2"
     },
     "prometheus-adapter": {
       "app_version": "v0.12.0",
@@ -136,7 +136,7 @@
       "app_version": "v0.94.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "92.18.0"
+      "version": "92.21.1"
     },
     "rds-chart": {
       "app_version": "1.14.2",
