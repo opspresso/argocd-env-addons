@@ -1,0 +1,15 @@
+apiVersion: v2
+name: arc-runners
+description: GitHub Actions runner scale set for the opspresso organization
+type: application
+version: "0.15.1" # helm chart gha-runner-scale-set version
+
+dependencies:
+- name: gha-runner-scale-set
+  alias: arc-runners
+  repository: oci://ghcr.io/actions/actions-runner-controller-charts
+  version: "0.15.1" # helm chart gha-runner-scale-set version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

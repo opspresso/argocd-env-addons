@@ -1,0 +1,141 @@
+# Organization runner scale set. Workflows select it with `runs-on: eks-arm64`.
+# The controller is charts/arc-controller. Nodes come from the Karpenter
+# NodePool `gha-runners` (terraform-env-demo demo/6-eks-node/63-gha-runners.tf).
+arc-runners:
+  githubConfigUrl: https://github.com/opspresso
+  # GitHub App opspresso-arc (organization Self-hosted runners: write).
+  # The ExternalSecret below creates this Secret from SSM.
+  githubConfigSecret: arc-github-app
+  runnerScaleSetName: eks-arm64
+  runnerGroup: Default
+
+  minRunners: 0
+  # Keep equal to gha_runner_max_runners in terraform-env-demo 6-eks-node.
+  maxRunners: 6
+
+  # Argo CD renders without cluster lookup; name the controller explicitly.
+  controllerServiceAccount:
+    namespace: addon-arc-controller
+    name: arc-controller
+
+  listenerTemplate:
+    spec:
+      containers:
+        - name: listener
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+
+  # containerMode stays empty: this template is the upstream dind layout with
+  # resources, pinned images, a Docker data volume and runner node placement.
+  template:
+    metadata:
+      annotations:
+        # A running job must not be stopped by node consolidation.
+        karpenter.sh/do-not-disrupt: "true"
+    spec:
+      nodeSelector:
+        karpenter.sh/nodepool: gha-runners
+      tolerations:
+        - key: opspresso.com/gha-runner
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      initContainers:
+        # Registers QEMU for linux/amd64 so one job builds multi-platform images.
+        # binfmt_misc is kernel-wide; gha-runners nodes run only runner Pods.
+        - name: binfmt
+          image: tonistiigi/binfmt:qemu-v10.2.3
+          args: ["--install", "amd64"]
+          securityContext:
+            privileged: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+        - name: init-dind-externals
+          image: ghcr.io/actions/actions-runner:2.338.2
+          command: ["cp", "-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi
+          volumeMounts:
+            - name: dind-externals
+              mountPath: /home/runner/tmpDir
+        - name: dind
+          image: docker:29.9.2-dind
+          args:
+            - dockerd
+            - --host=unix:///var/run/docker.sock
+            - --group=$(DOCKER_GROUP_GID)
+          env:
+            - name: DOCKER_GROUP_GID
+              value: "123"
+          securityContext:
+            privileged: true
+          # Native sidecar: starts before the runner and stops after it.
+          restartPolicy: Always
+          startupProbe:
+            exec:
+              command: ["docker", "info"]
+            initialDelaySeconds: 0
+            failureThreshold: 24
+            periodSeconds: 5
+          # Image builds, kind nodes and test containers run here.
+          resources:
+            requests:
+              cpu: 1500m
+              memory: 8Gi
+            limits:
+              memory: 14Gi
+          volumeMounts:
+            - name: work
+              mountPath: /home/runner/_work
+            - name: dind-sock
+              mountPath: /var/run
+            - name: dind-externals
+              mountPath: /home/runner/externals
+            - name: docker-data
+              mountPath: /var/lib/docker
+      containers:
+        - name: runner
+          image: ghcr.io/actions/actions-runner:2.338.2
+          command: ["/home/runner/run.sh"]
+          env:
+            - name: DOCKER_HOST
+              value: unix:///var/run/docker.sock
+            - name: RUNNER_WAIT_FOR_DOCKER_IN_SECONDS
+              value: "120"
+            # agent-platform service-setup accepts this rootful daemon because it
+            # lives only as long as this single-job Pod.
+            - name: CI_DOCKER_SCOPE
+              value: job
+          # Checkout, pnpm install, type checks and unit tests run here.
+          resources:
+            requests:
+              cpu: "2"
+              memory: 6Gi
+            limits:
+              memory: 12Gi
+          volumeMounts:
+            - name: work
+              mountPath: /home/runner/_work
+            - name: dind-sock
+              mountPath: /var/run
+      volumes:
+        - name: work
+          emptyDir: {}
+        - name: dind-sock
+          emptyDir: {}
+        - name: dind-externals
+          emptyDir: {}
+        - name: docker-data
+          emptyDir: {}

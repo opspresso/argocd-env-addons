@@ -1,0 +1,18 @@
+arc-controller:
+  # charts/arc-runners binds its Role to this fixed ServiceAccount
+  # (controllerServiceAccount); Argo CD renders without cluster lookup.
+  fullnameOverride: arc-controller
+  serviceAccount:
+    create: true
+    name: arc-controller
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  flags:
+    logLevel: info
+    logFormat: json

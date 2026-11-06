@@ -25,7 +25,7 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 
 | 분류 | addon | 주소 |
 | --- | --- | --- |
-| 배포·자동화 | argo-cd, argo-workflows, atlantis | argocd, workflows, atlantis(UI)·atlantis-public(webhook) |
+| 배포·자동화 | argo-cd, argo-workflows, atlantis, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows, atlantis(UI)·atlantis-public(webhook) |
 | 개발 도구 | gitlab, jenkins, harbor, nexus | gitlab, jenkins, harbor, nexus |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
 | 인증 | oauth2-proxy (Dex는 argo-cd에 포함) | auth |
@@ -350,7 +350,7 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 - [Production addon 용량](docs/production-capacity.md): EKS addon 자원 예산·확장 기준
 - [Kubernetes monitoring](docs/kubernetes-monitoring.md): 클러스터·워크로드 대시보드와 중요 알림
 - [Workspace와 Agent 서비스 관측성](docs/workspace-observability.md): Workspace·Agent 서비스 지표와 경보
-- chart별 절차: [alloy](charts/alloy/README.md), [argo-cd](charts/argo-cd/README.md),
+- chart별 절차: [alloy](charts/alloy/README.md), [arc-runners](charts/arc-runners/README.md), [argo-cd](charts/argo-cd/README.md),
   [atlantis](charts/atlantis/README.md), [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md),
   [harbor](charts/harbor/README.md), [jenkins](charts/jenkins/README.md), [keep](charts/keep/README.md),
   [nexus](charts/nexus/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
