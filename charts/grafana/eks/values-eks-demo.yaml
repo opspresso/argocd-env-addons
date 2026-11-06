@@ -308,7 +308,7 @@ grafana:
             for: 5m
             labels:
               scope: workload
-              severity: warning
+              severity: critical
             noDataState: OK
             title: Workload container cannot start
             uid: addons-workload-start-failed
