@@ -46,7 +46,7 @@ arc-runners:
           effect: NoSchedule
       initContainers:
         - name: init-dind-externals
-          image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-12274cc
+          image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-33e21d2
           command: ["cp", "-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
           resources:
             requests:
@@ -95,7 +95,7 @@ arc-runners:
       containers:
         - name: runner
           # agent-platform runner/Dockerfile (runner-image.yml publishes the tag).
-          image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-12274cc
+          image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-33e21d2
           command: ["/home/runner/run.sh"]
           env:
             - name: DOCKER_HOST
