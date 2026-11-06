@@ -7,13 +7,14 @@ Slack 메시지는 Keep이 만든다(`charts/keep/README.md`).
 
 | trigger | firing | resolved |
 | --- | --- | --- |
-| `on-keep-health` | health가 `Degraded` | health가 `Healthy` |
 | `on-keep-sync` | sync 작업이 `Error`·`Failed` | sync 작업이 `Succeeded` |
-| `on-keep-sync-status` | sync status가 `Unknown` | sync status가 `Synced`·`OutOfSync` |
 
 - 구독은 `values-template.yaml.j2`의 `subscriptions`에 있으며 `env/<cluster>.yaml`에 `keep`이 있을 때만 만든다.
 - `X-API-KEY`는 `argocd-notifications-secret`의 `keep-api-key`(`/k8s/common/keep/argocd-api-key`)다.
 - 템플릿은 앱별 fingerprint로 문제와 회복을 보내므로, 회복하면 Keep에서 같은 경보가 resolved가 된다.
+- health `Degraded`와 sync status `Unknown`은 보내지 않는다. 설치·배포·삭제 중에 잠깐 나타나고, notifications는 지속 시간을
+  기다릴 수 없으며, 삭제된 앱은 회복을 보내지 않아 경보가 닫히지 않기 때문이다. 대신 Grafana 규칙이 controller metric
+  `argocd_app_info`로 10분 넘게 `Degraded`이거나 15분 넘게 `Unknown`인 앱을 알린다(`charts/grafana/README.md`).
 
 키를 바꾼 뒤 ExternalSecret을 즉시 갱신하려면 다음 명령을 실행한다.
 

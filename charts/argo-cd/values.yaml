@@ -157,32 +157,14 @@ argo-cd:
             value: $keep-api-key
 
     templates:
-      # Keep alerts. One fingerprint per application and signal: the problem
-      # sends status firing, the recovery sends resolved to the same alert.
+      # Keep alert for a failed sync. One fingerprint per application: the
+      # failure sends status firing, the next successful sync resolves it.
+      # Degraded health and Unknown sync status are not sent from here: they
+      # are often short (installs, rollouts, deletions), notifications cannot
+      # wait them out, and a deleted application never sends its recovery.
+      # Grafana rules on argocd_app_info alert on them after they persist
+      # (config/workload-health-alerts.yaml).
       # toJson quotes values that can hold quotes or newlines.
-      template.keep-app-health: |
-        webhook:
-          keep:
-            method: POST
-            path: /alerts/event
-            body: |
-              {
-                "name": {{printf "Argo CD application %s is %s" .app.metadata.name .app.status.health.status | toJson}},
-                "status": "{{if eq .app.status.health.status "Healthy"}}resolved{{else}}firing{{end}}",
-                "severity": "high",
-                "source": ["argocd"],
-                "service": {{.app.metadata.name | toJson}},
-                "fingerprint": {{printf "argocd-health-%s" .app.metadata.name | toJson}},
-                "lastReceived": "{{(call .time.Now).UTC.Format "2006-01-02T15:04:05Z"}}",
-                "description": {{.app.status.health.message | default (printf "Health status is %s." .app.status.health.status) | toJson}},
-                "url": "{{.context.argocdUrl}}/applications/{{.app.metadata.namespace}}/{{.app.metadata.name}}",
-                "labels": {
-                  "application": {{.app.metadata.name | toJson}},
-                  "project": {{.app.spec.project | toJson}},
-                  "health": {{.app.status.health.status | toJson}},
-                  "sync": {{.app.status.sync.status | toJson}}
-                }
-              }
       template.keep-app-sync: |
         webhook:
           keep:
@@ -205,40 +187,9 @@ argo-cd:
                   "revision": {{.app.status.operationState.syncResult.revision | toJson}}
                 }
               }
-      template.keep-app-sync-status: |
-        webhook:
-          keep:
-            method: POST
-            path: /alerts/event
-            body: |
-              {
-                "name": {{printf "Argo CD application %s sync status is %s" .app.metadata.name .app.status.sync.status | toJson}},
-                "status": "{{if eq .app.status.sync.status "Unknown"}}firing{{else}}resolved{{end}}",
-                "severity": "warning",
-                "source": ["argocd"],
-                "service": {{.app.metadata.name | toJson}},
-                "fingerprint": {{printf "argocd-sync-status-%s" .app.metadata.name | toJson}},
-                "lastReceived": "{{(call .time.Now).UTC.Format "2006-01-02T15:04:05Z"}}",
-                "description": {{printf "Argo CD cannot compare the desired and live state (sync status %s). Check the repository, the manifest generation and the cluster connection." .app.status.sync.status | toJson}},
-                "url": "{{.context.argocdUrl}}/applications/{{.app.metadata.namespace}}/{{.app.metadata.name}}",
-                "labels": {
-                  "application": {{.app.metadata.name | toJson}},
-                  "project": {{.app.spec.project | toJson}},
-                  "sync": {{.app.status.sync.status | toJson}}
-                }
-              }
 
     triggers:
-      # Each pair fires on the problem and on its recovery.
-      trigger.on-keep-health: |
-        - description: Application has degraded
-          send:
-          - keep-app-health
-          when: app.status.health.status == 'Degraded'
-        - description: Application is healthy
-          send:
-          - keep-app-health
-          when: app.status.health.status == 'Healthy'
+      # Fires on the problem and on its recovery.
       trigger.on-keep-sync: |
         - description: Application syncing has failed
           send:
@@ -248,15 +199,6 @@ argo-cd:
           send:
           - keep-app-sync
           when: app.status.operationState != nil and app.status.operationState.phase in ['Succeeded']
-      trigger.on-keep-sync-status: |
-        - description: Application sync status is Unknown
-          send:
-          - keep-app-sync-status
-          when: app.status.sync.status == 'Unknown'
-        - description: Application sync status is known again
-          send:
-          - keep-app-sync-status
-          when: app.status.sync.status in ['Synced', 'OutOfSync']
 
   configs:
     params:
