@@ -57,6 +57,22 @@
       "current": "1.6.3",
       "version": "1.6.3"
     },
+    "gha-runner-scale-set": {
+      "app_version": "0.15.1",
+      "chart": "ghcr.io/actions/actions-runner-controller-charts",
+      "current": "0.15.1",
+      "path": "arc-runners",
+      "type": "oci",
+      "version": "0.15.1"
+    },
+    "gha-runner-scale-set-controller": {
+      "app_version": "0.15.1",
+      "chart": "ghcr.io/actions/actions-runner-controller-charts",
+      "current": "0.15.1",
+      "path": "arc-controller",
+      "type": "oci",
+      "version": "0.15.1"
+    },
     "gitlab": {
       "app_version": "v19.5.3",
       "chart": "gitlab/gitlab",

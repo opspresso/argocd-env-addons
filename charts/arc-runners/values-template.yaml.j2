@@ -1,0 +1,23 @@
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: arc-github-app
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: arc-github-app
+        data:
+          - secretKey: github_app_id
+            remoteRef:
+              key: /k8s/common/github/opspresso-arc/app_id
+          - secretKey: github_app_installation_id
+            remoteRef:
+              key: /k8s/common/github/opspresso-arc/installation_id
+          - secretKey: github_app_private_key
+            remoteRef:
+              key: /k8s/common/github/opspresso-arc/private_key
