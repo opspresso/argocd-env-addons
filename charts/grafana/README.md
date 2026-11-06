@@ -162,6 +162,14 @@ workload 경보(`Container stuck in CrashLoopBackOff`)로 보고한다.
   owner가 있는 workload 경보는 변수가 채워진 `dashboard_url`도 둔다.
 - UID를 바꾸거나 규칙을 지우면 해당 파일에 `deleteRules`로 옛 UID를 추가한다. Grafana 파일 프로비저닝은 파일에서 사라진 규칙을 지우지 않는다.
   Grafana에서 지워진 것을 확인하면 `deleteRules` 항목을 뺀다.
+- 경보 파일은 Secret `grafana-config-secret`을 `subPath`로 mount하므로 Argo CD가 Secret을 바꿔도 Pod 안의 파일은 그대로다.
+  Grafana는 alerting 프로비저닝을 시작할 때만 읽는다. 규칙을 바꾸면 sync 후 Grafana를 재시작하고 새 규칙이 로드됐는지 확인한다.
+
+  ```bash
+  kubectl --context eks-demo -n addon-grafana rollout restart deploy/grafana
+  kubectl --context eks-demo -n addon-grafana rollout status deploy/grafana
+  kubectl --context eks-demo -n addon-grafana logs deploy/grafana | grep 'finished to provision alerting'
+  ```
 
 ## 반영과 검증
 
