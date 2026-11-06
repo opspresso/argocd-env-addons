@@ -45,19 +45,6 @@ arc-runners:
           value: "true"
           effect: NoSchedule
       initContainers:
-        # Registers QEMU for linux/amd64 so one job builds multi-platform images.
-        # binfmt_misc is kernel-wide; gha-runners nodes run only runner Pods.
-        - name: binfmt
-          image: tonistiigi/binfmt:qemu-v10.2.3
-          args: ["--install", "amd64"]
-          securityContext:
-            privileged: true
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              memory: 256Mi
         - name: init-dind-externals
           image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-4fea6c7
           command: ["cp", "-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
