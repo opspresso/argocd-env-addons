@@ -59,7 +59,7 @@ arc-runners:
             limits:
               memory: 256Mi
         - name: init-dind-externals
-          image: ghcr.io/actions/actions-runner:2.338.2
+          image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-0dcf606
           command: ["cp", "-r", "/home/runner/externals/.", "/home/runner/tmpDir/"]
           resources:
             requests:
@@ -107,7 +107,8 @@ arc-runners:
               mountPath: /var/lib/docker
       containers:
         - name: runner
-          image: ghcr.io/actions/actions-runner:2.338.2
+          # agent-platform runner/Dockerfile (runner-image.yml publishes the tag).
+          image: 396608815058.dkr.ecr.ap-northeast-2.amazonaws.com/actions-runner:2.338.2-0dcf606
           command: ["/home/runner/run.sh"]
           env:
             - name: DOCKER_HOST
