@@ -14,7 +14,8 @@ jobs:
 ```
 
 - runner는 job마다 새 Pod로 시작하고 job이 끝나면 삭제된다. 대기 runner는 없다(`minRunners: 0`).
-- 이미지는 `ghcr.io/actions/actions-runner`(Ubuntu, linux/arm64)다. Node.js·pnpm 같은 도구는 workflow에서 설치한다.
+- 이미지는 ECR `actions-runner`(agent-platform `runner/Dockerfile`, Ubuntu linux/arm64)다. upstream runner에 `gh`·`gcc`·`make`·`zip` 등을 더했다.
+  Node.js·pnpm은 agent-platform `service-setup`, Go는 `actions/setup-go`가 설치한다. 새 image를 게시하면 `values.yaml`의 tag를 바꾼다.
 - `docker`는 같은 Pod의 privileged dind sidecar(`docker:<version>-dind`)를 쓴다. image build, `kind`, test container가 여기서 실행된다.
 - `linux/amd64` 이미지는 QEMU 에뮬레이션으로 빌드한다. Pod의 `binfmt` init container가 amd64 에뮬레이터를 등록한다.
 - runner container에는 `CI_DOCKER_SCOPE=job`이 설정된다. agent-platform service-setup은 이 값으로 job 전용 Docker daemon을 확인한다.
