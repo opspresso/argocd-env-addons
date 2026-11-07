@@ -22,13 +22,13 @@
       "app_version": "v4.1.6",
       "chart": "argo/argo-workflows",
       "current": "2.0.14",
-      "version": "2.0.16"
+      "version": "2.0.18"
     },
     "atlantis": {
       "app_version": "v0.49.0",
       "chart": "atlantis/atlantis",
       "current": "7.0.0",
-      "version": "7.0.0"
+      "version": "7.0.1"
     },
     "dynamodb-chart": {
       "app_version": "1.14.2",
@@ -92,17 +92,17 @@
       "version": "1.19.4"
     },
     "istiod": {
-      "app_version": "1.31.3",
+      "app_version": "1.31.4",
       "chart": "istio/istiod",
       "current": "1.31.3",
       "path": "istio",
-      "version": "1.31.3"
+      "version": "1.31.4"
     },
     "jenkins": {
       "app_version": "2.580.2",
       "chart": "jenkinsci/jenkins",
       "current": "5.10.10",
-      "version": "5.10.10"
+      "version": "5.10.13"
     },
     "keep": {
       "app_version": "0.54.3",
@@ -152,7 +152,7 @@
       "app_version": "v0.94.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "92.21.1"
+      "version": "92.22.0"
     },
     "rds-chart": {
       "app_version": "1.14.2",
