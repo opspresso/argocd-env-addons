@@ -417,7 +417,7 @@ helm repo update
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy |  | 1.14.4 | 1.15.0 (v1.21.3) |
-| argo-cd |  | 10.11.6 | 10.14.0 (v3.6.1) |
+| argo-cd |  | 10.11.6 | 10.15.0 (v3.6.1) |
 | argo-rollouts |  | 2.43.8 | 2.43.9 (v1.10.2) |
 | argo-workflows |  | 2.0.14 | 2.0.18 (v4.1.6) |
 | atlantis |  | 7.0.0 | 7.0.1 (v0.49.0) |
@@ -439,8 +439,8 @@ helm repo update
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy |  | 10.7.1 | 10.7.2 (7.15.6) |
 | prometheus-adapter |  | 5.3.0 | 5.4.0 (v0.12.0) |
-| prometheus-stack |  | 92.14.1 | 92.22.0 (v0.94.2) |
+| prometheus-stack |  | 92.14.1 | 93.1.0 (v0.95.1) |
 | aws-controllers |  | 1.13.4 | 1.14.2 (1.14.2) |
 | aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
-| vllm-stack |  |  | 0.1.13 |
+| vllm-stack |  |  | 0.1.14 |
 <!--- END_VERSION --->

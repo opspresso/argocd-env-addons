@@ -10,7 +10,7 @@
       "app_version": "v3.6.1",
       "chart": "argo/argo-cd",
       "current": "10.11.6",
-      "version": "10.14.0"
+      "version": "10.15.0"
     },
     "argo-rollouts": {
       "app_version": "v1.10.2",
@@ -149,10 +149,10 @@
       "version": "5.4.0"
     },
     "prometheus-stack": {
-      "app_version": "v0.94.2",
+      "app_version": "v0.95.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "92.22.0"
+      "version": "93.1.0"
     },
     "rds-chart": {
       "app_version": "1.14.2",
@@ -174,7 +174,7 @@
     "vllm-stack": {
       "app_version": "",
       "chart": "vllm/vllm-stack",
-      "version": "0.1.13"
+      "version": "0.1.14"
     }
   }
 }
