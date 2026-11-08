@@ -62,9 +62,10 @@ jobs:
       - name: Test 🧪
         run: python3 -m pytest -q
 
+      # Rendered values may end with blank lines where a template's last block is off for a cluster.
       - name: Push validated values 🚀
         run: |
-          git diff --check
+          git -c core.whitespace=-blank-at-eof diff --check
           git add -- ':(glob)charts/*/*/values-*.yaml'
           if ! git diff --cached --quiet; then
             git config user.name "nalbam-bot"
