@@ -197,6 +197,7 @@ raw:
             server: "*"
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-addons"
+          - "http://opspresso.github.io/helm-charts"
 
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
@@ -212,6 +213,8 @@ raw:
             server: "*"
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
+          - "http://opspresso.github.io/helm-charts"
+
 
     # Apps that Agent Runway deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
     # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml and
@@ -237,7 +240,6 @@ raw:
         namespaceResourceWhitelist:
           # Every kind: Argo CD hides a child kind its project does not list, and the tree must show all resources.
           - {group: "*", kind: "*"}
-
 
     # The app-build, app-deploy and resource-sync WorkflowTemplates, their step identities, Agent Runway's submit
     # permission, and the env-cleanup CronWorkflow that removes emptied environment directories once nothing is live.
@@ -267,6 +269,7 @@ raw:
           - {group: external-secrets.io, kind: ExternalSecret}
           - {group: argoproj.io, kind: WorkflowTemplate}
           - {group: argoproj.io, kind: CronWorkflow}
+
 
 
     - apiVersion: external-secrets.io/v1
@@ -302,6 +305,8 @@ raw:
           - secretKey: webhook.github.secret
             remoteRef:
               key: /k8s/common/argocd-webhook
+
+
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:

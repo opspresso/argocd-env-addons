@@ -19,6 +19,7 @@ raw:
             server: "*"
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-addons"
+          - "http://opspresso.github.io/helm-charts"
 
     - apiVersion: argoproj.io/v1alpha1
       kind: AppProject
@@ -34,6 +35,9 @@ raw:
             server: "*"
         sourceRepos:
           - "https://github.com/opspresso/argocd-env-apps"
+          - "http://opspresso.github.io/helm-charts"
+
+
 
 
 
@@ -52,3 +56,5 @@ raw:
           - secretKey: webhook.github.secret
             remoteRef:
               key: /k8s/common/argocd-webhook
+
+
