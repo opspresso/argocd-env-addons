@@ -10,13 +10,13 @@
       "app_version": "v3.6.1",
       "chart": "argo/argo-cd",
       "current": "10.11.6",
-      "version": "10.15.0"
+      "version": "10.17.0"
     },
     "argo-rollouts": {
       "app_version": "v1.10.2",
       "chart": "argo/argo-rollouts",
       "current": "2.43.8",
-      "version": "2.43.9"
+      "version": "2.43.11"
     },
     "argo-workflows": {
       "app_version": "v4.1.6",
@@ -102,7 +102,7 @@
       "app_version": "2.580.2",
       "chart": "jenkinsci/jenkins",
       "current": "5.10.10",
-      "version": "5.10.13"
+      "version": "5.11.0"
     },
     "keep": {
       "app_version": "0.54.3",
