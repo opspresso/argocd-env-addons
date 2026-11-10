@@ -64,8 +64,10 @@ lldap:
     size: 1Gi
     mountPath: /data
 
-  # The gateway reaches the web UI. The platform Dex (charts/dex) binds on the LDAP port. The
-  # bootstrap Job in this namespace calls the API.
+  # LLDAP lets every user change their own mail, and mail is the email that Agent Studio
+  # trusts. Only two paths reach the API: the ingress gateway, where the AuthorizationPolicy
+  # lldap admits only sso.admin_groups, and the bootstrap Job in this namespace. The platform
+  # Dex (charts/dex) binds on the LDAP port.
   networkPolicy:
     enabled: true
     policyTypes: [Ingress]
@@ -74,6 +76,9 @@ lldap:
           - namespaceSelector:
               matchLabels:
                 kubernetes.io/metadata.name: istio-system
+            podSelector:
+              matchLabels:
+                istio: ingressgateway
           - podSelector: {}
         ports:
           - protocol: TCP
