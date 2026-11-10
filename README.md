@@ -231,7 +231,7 @@ Service·경보 그룹은 환경 설정에서 관리한다.
 ### EKS 모니터링
 
 - Grafana는 `https://grafana.demo.opsp.dev`에서 클러스터 안의 Prometheus와 Loki를 조회한다.
-  경보를 평가해 Keep으로 보내고, Slack 알림은 Keep이 보낸다. 홈 대시보드는 Cluster Overview다. 대시보드와 경보 목록은
+  경보를 평가해 Keep으로 보내고, Slack 알림은 Keep이 보낸다. 홈 대시보드는 System Overview다. 대시보드와 경보 목록은
   [grafana README](charts/grafana/README.md)에 있다.
 - Prometheus(`prometheus-stack`)는 클러스터·addon 메트릭과 앱 ServiceMonitor를 수집한다.
 - Alloy는 모든 노드의 Pod 로그를 Loki로 전송한다. Loki 내부 주소는 `loki.demo-in.opsp.dev`다.

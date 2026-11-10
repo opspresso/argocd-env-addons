@@ -25,26 +25,43 @@ Dex는 시작할 때만 client secret을 읽는다. secret을 바꾸면 `dex-sec
 
 ## 대시보드
 
-Grafana 홈은 **Cluster Overview**다. 문제를 찾을 때는 아래 표의 위쪽 대시보드에서 아래쪽 대시보드로 내려간다.
+Grafana 홈은 **System Overview**다. 문제를 찾을 때는 아래 표의 위쪽 대시보드에서 아래쪽 대시보드로 내려간다.
 
 | 대시보드 (uid) | 질문 | 주요 내용 |
 | --- | --- | --- |
-| Cluster Overview (`cluster-overview`) | 지금 무엇이 잘못됐고 여유는 얼마나 남았나 | 상태 타일, 문제 목록, 노드 표, ingress 서비스 표, 추이 |
+| System Overview (`cluster-overview`) | 지금 무엇이 잘못됐고 여유는 얼마나 남았나 | 시스템 상태, golden signal, 용량, namespace·수집 job 가용성, 문제 목록, 노드·ingress 표, 추이 |
 | Service Status (`service-status`) | 배포된 서비스가 각각 정상인가 | namespace별 workload 표, ingress 트래픽·오류·지연, 자원, 오류 로그 |
-| Kubernetes Cluster (`kube-cluster`) | 어느 노드가 왜 불안정한가 | 호스트 메모리·커널 vmalloc·PSI·swap, 수집 상태, 노드별 재시작 |
-| Kubernetes Workload (`kube-workload`) | 이 workload의 어느 Pod·컨테이너가 문제인가 | 복제본, 종료 사유, 컨테이너 자원, 서비스 트래픽, PVC, 로그 |
+| Kubernetes Cluster (`kube-cluster`) | 클러스터와 어느 노드가 왜 불안정한가 | 노드 상태, 예약·사용 용량, 노드 fleet 표·구성, API server·etcd, 호스트 압박, 노드 저장소·네트워크 |
+| Kubernetes Workload (`kube-workload`) | 이 workload의 어느 Pod·컨테이너가 문제인가 | 상태 타일, workload·Pod 목록, 문제·종료 사유, 컨테이너 자원, 서비스 트래픽, PVC, 로그 |
 | Workspace Capacity (`workspace-capacity`) | Agent workspace 용량이 남아 있나 | workspace quota, sandbox 자원, Forge·Knowledge 가용성 |
 | ArgoCD, Istio Mesh, Istio Control Plane | upstream 제공 대시보드 | Argo CD 동기화, mesh 요약, istiod |
 
-### Cluster Overview
+### System Overview
 
-- 첫 줄의 문제 타일(firing 경보, NotReady 노드, degraded workload, 준비되지 않은 Pod, 재시작, OOM, 비정상 Argo CD 앱)은
-  정상일 때 0이고 초록색이다. `Ready nodes`와 `Nodes launched (24h)`는 정보용 파란색이다.
-- 둘째 줄은 ingress 요청량·오류율·p95 지연과 용량을 보여준다. `CPU requested`·`Memory requested`는 Pending·Running Pod의
-  requests만 합한다. EKS Auto Mode는 스케줄할 수 없는 Pod가 생기면 노드를 추가하므로 높은 예약률 자체는 문제가 아니다.
-  스케줄할 수 없는 Pod가 문제 신호다.
+- `System status`는 차단 문제의 합계다: NotReady 노드, degraded workload, 준비되지 않은 Pod, 비정상 Argo CD 앱,
+  firing 중인 critical Prometheus 경보. 0이면 `ALL SYSTEMS OPERATIONAL`이다. warning 경보는 세지 않고 `Firing alerts`와 경보 목록에 나온다.
+- 문제 타일은 정상일 때 0이고 초록색이다. 정보용 값(노드 수, 활성 Pod, 24시간 노드 생성, 재시작)은 파란색이다.
+- `Golden signals` 줄은 ingress 요청량·성공률·p95 지연과 Kubernetes API 성공률·p99 지연, 수집 target 응답률이다.
+  성공률의 실패 정의는 아래 공통 규칙과 같다.
+- `CPU requested`·`Memory requested`는 Pending·Running Pod의 requests만 합한다. EKS Auto Mode는 스케줄할 수 없는 Pod가
+  생기면 노드를 추가하므로 높은 예약률 자체는 문제가 아니다. 스케줄할 수 없는 Pod가 문제 신호다.
+- `Namespace availability`는 namespace마다 workload의 available/desired 중 가장 낮은 값이다. 타일을 누르면 `service-status`가 열린다.
+  `Monitoring targets`는 scrape job별 응답 target 비율이다. Auto Mode의 노드 교체 중에는 node 단위 job이 잠시 100% 아래로 내려간다.
 - 문제 표(경보, degraded workload, 준비되지 않은 Pod, Argo CD 앱)는 문제가 없으면 빈 상태 문구를 보여준다.
-  workload를 누르면 `kube-workload`, namespace를 누르면 `service-status`가 열린다.
+
+### Kubernetes Cluster
+
+- `Node pool` 변수는 노드 상태 타일, `Nodes` 표, 노드 구성 패널을 Karpenter node pool로 거른다. `Host` 변수는 호스트 패널을 거른다.
+- `Nodes` 표는 노드마다 pool·instance type·capacity type·zone, Ready·cordon 상태, 나이, 호스트 CPU·메모리·디스크 사용률과
+  CPU·메모리 requests 비율, Pod 수를 보여준다.
+- `Control plane` 줄은 API server가 보고한 요청 code·verb별 p99 지연·etcd 요청 지연이다. EKS는 etcd를 직접 노출하지 않는다.
+
+### Kubernetes Workload
+
+- `Workload inventory`는 선택한 범위의 workload마다 desired·available·Ready 비율·실행 중 Pod·1시간 재시작·CPU·메모리를 보여준다.
+  Ready가 낮은 행이 위로 정렬된다. workload를 누르면 이 대시보드가 그 workload로 좁혀진다.
+- `Pods` 표는 선택한 workload의 Pod마다 phase·Ready·재시작·나이·CPU·메모리·노드를 보여준다.
+- `Error and warning lines`는 선택한 Pod의 Loki 로그 중 error·fatal·panic·exception·warn과 일치하는 줄이다(대소문자 무시).
 
 ### Service Status
 

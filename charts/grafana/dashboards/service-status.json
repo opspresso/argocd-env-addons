@@ -22,7 +22,7 @@
   "id": null,
   "links": [
     {
-      "title": "Cluster Overview",
+      "title": "System Overview",
       "type": "link",
       "url": "/d/cluster-overview",
       "icon": "dashboard",
@@ -32,7 +32,7 @@
       "tooltip": ""
     },
     {
-      "title": "Nodes and host health",
+      "title": "Kubernetes Cluster",
       "type": "link",
       "url": "/d/kube-cluster",
       "icon": "dashboard",
@@ -42,7 +42,7 @@
       "tooltip": ""
     },
     {
-      "title": "Workload detail",
+      "title": "Kubernetes Workload",
       "type": "link",
       "url": "/d/kube-workload",
       "icon": "dashboard",

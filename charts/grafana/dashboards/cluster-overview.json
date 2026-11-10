@@ -1,4 +1,73 @@
 {
+  "uid": "cluster-overview",
+  "title": "System Overview",
+  "description": "Home: is anything broken, how much headroom is left, and where to look next.",
+  "tags": [
+    "kubernetes",
+    "overview"
+  ],
+  "editable": true,
+  "graphTooltip": 1,
+  "fiscalYearStartMonth": 0,
+  "liveNow": false,
+  "refresh": "1m",
+  "schemaVersion": 41,
+  "version": 1,
+  "weekStart": "",
+  "timezone": "browser",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": [
+      "30s",
+      "1m",
+      "5m",
+      "15m",
+      "1h"
+    ]
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "label": "Data source",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {
+          "text": "Prometheus",
+          "value": "prometheus"
+        },
+        "includeAll": false,
+        "options": [],
+        "refresh": 1,
+        "regex": "",
+        "hide": 0
+      },
+      {
+        "name": "cluster",
+        "label": "Cluster",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(kube_node_info, cluster)",
+        "query": {
+          "query": "label_values(kube_node_info, cluster)",
+          "refId": "cluster"
+        },
+        "refresh": 1,
+        "regex": "",
+        "sort": 1,
+        "includeAll": false,
+        "multi": false,
+        "options": [],
+        "current": {}
+      }
+    ]
+  },
   "annotations": {
     "list": [
       {
@@ -15,12 +84,31 @@
       }
     ]
   },
-  "description": "Landing page: is anything wrong right now, where, and how much headroom is left. Every tile in the first row is 0 or green when the cluster is healthy. Tables list only problems. Follow links to Service Status, node health and workload detail.",
-  "editable": true,
-  "fiscalYearStartMonth": 0,
-  "graphTooltip": 1,
-  "id": null,
   "links": [
+    {
+      "title": "Kubernetes Cluster",
+      "type": "link",
+      "url": "/d/kube-cluster",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": "Nodes, capacity and control plane",
+      "asDropdown": false,
+      "tags": []
+    },
+    {
+      "title": "Kubernetes Workload",
+      "type": "link",
+      "url": "/d/kube-workload",
+      "icon": "dashboard",
+      "includeVars": false,
+      "keepTime": true,
+      "targetBlank": false,
+      "tooltip": "Workloads, pods and containers",
+      "asDropdown": false,
+      "tags": []
+    },
     {
       "title": "Service Status",
       "type": "link",
@@ -29,27 +117,9 @@
       "includeVars": false,
       "keepTime": true,
       "targetBlank": false,
-      "tooltip": ""
-    },
-    {
-      "title": "Nodes and host health",
-      "type": "link",
-      "url": "/d/kube-cluster",
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": true,
-      "targetBlank": false,
-      "tooltip": ""
-    },
-    {
-      "title": "Workload detail",
-      "type": "link",
-      "url": "/d/kube-workload",
-      "icon": "dashboard",
-      "includeVars": false,
-      "keepTime": true,
-      "targetBlank": false,
-      "tooltip": ""
+      "tooltip": "Per-namespace service health",
+      "asDropdown": false,
+      "tags": []
     },
     {
       "title": "Alert rules",
@@ -57,39 +127,35 @@
       "url": "/alerting/list",
       "icon": "bolt",
       "includeVars": false,
-      "keepTime": false,
+      "keepTime": true,
       "targetBlank": false,
-      "tooltip": "Grafana-managed alert rules and their current state"
+      "tooltip": "Grafana-managed alert rules and their state",
+      "asDropdown": false,
+      "tags": []
     }
   ],
   "panels": [
     {
       "id": 1,
       "type": "row",
-      "title": "Health at a glance — every tile is 0 or green when the cluster is healthy",
+      "title": "System status",
       "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
         "y": 0,
         "w": 24,
         "h": 1
-      },
-      "panels": []
+      }
     },
     {
-      "id": 2,
+      "id": 40,
       "type": "stat",
-      "title": "Firing alerts",
-      "description": "Grafana-managed alert instances in Alerting state across all rules. Open the alert list below or Alerting > Alert rules for details. This count is global, not filtered by cluster.",
+      "title": "System status",
+      "description": "Sum of blocking problems: NotReady nodes, degraded workloads, pods not ready, unhealthy Argo CD apps and firing critical Prometheus alerts. Warnings do not count here; they are in the alert list below.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 1,
-        "w": 3,
-        "h": 4
       },
       "targets": [
         {
@@ -98,7 +164,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(grafana_alerting_alerts{state=\"alerting\"})",
+          "expr": "(count(kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=~\"false|unknown\"} == 1) or vector(0)) + (count((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0) - on (cluster, namespace, workload, workload_type) max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0) or vector(0)) + (count((max by (cluster, namespace, pod, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\"} == 1) or max by (cluster, namespace, pod, reason) (kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",reason!=\"PodInitializing\"} == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Unknown|Failed\"} == 1) unless on (cluster, namespace, pod) kube_pod_owner{cluster=~\"$cluster\",owner_kind=~\"Job|Workflow\"}, \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace(max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=\"Running\"}) == 1) unless on (cluster, namespace, pod) kube_pod_deletion_timestamp{cluster=~\"$cluster\"}, \"reason\", \"NotReady\", \"\", \"\"))) or vector(0)) + (count(argocd_app_info{health_status!=\"Healthy\"} or argocd_app_info{sync_status!=\"Synced\"}) or vector(0)) + (count(ALERTS{alertstate=\"firing\",severity=\"critical\"}) or vector(0))",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -126,13 +192,44 @@
           "color": {
             "mode": "thresholds"
           },
-          "links": [
+          "mappings": [
             {
-              "title": "Open firing alerts",
-              "url": "/alerting/list?search=state:firing"
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "ALL SYSTEMS OPERATIONAL",
+                  "color": "green",
+                  "index": 0
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 1,
+                "to": 1,
+                "result": {
+                  "text": "1 ISSUE",
+                  "color": "red",
+                  "index": 1
+                }
+              }
+            },
+            {
+              "type": "range",
+              "options": {
+                "from": 2,
+                "to": 1000000000.0,
+                "result": {
+                  "text": "ISSUES DETECTED",
+                  "color": "red",
+                  "index": 2
+                }
+              }
             }
           ],
-          "mappings": []
+          "links": [],
+          "custom": {}
         },
         "overrides": []
       },
@@ -144,29 +241,108 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
+        "colorMode": "background_solid",
         "graphMode": "none",
         "justifyMode": "center",
         "textMode": "value",
         "wideLayout": true,
         "showPercentChange": false,
-        "orientation": "auto"
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 8,
+        "h": 5
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Firing alerts",
+      "description": "Grafana-managed alerts in the Alerting state (critical and warning). The list below names them.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(grafana_alerting_alerts{state=\"alerting\"}) or vector(0)",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": [
+            {
+              "title": "Alert rules",
+              "url": "/alerting/list"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 3,
+        "h": 5
       }
     },
     {
       "id": 3,
       "type": "stat",
-      "title": "Nodes not ready",
+      "title": "Nodes NotReady",
       "description": "Nodes whose Ready condition is false or unknown. Nodes that Auto Mode is draining (karpenter.sh/disrupted taint) are included here but excluded from the alert rule.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 3,
-        "y": 1,
-        "w": 3,
-        "h": 4
       },
       "targets": [
         {
@@ -177,8 +353,8 @@
           },
           "expr": "count(kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=~\"false|unknown\"} == 1) or vector(0)",
           "legendFormat": "",
-          "range": false,
-          "instant": true,
+          "range": true,
+          "instant": false,
           "format": "time_series"
         }
       ],
@@ -203,8 +379,13 @@
           "color": {
             "mode": "thresholds"
           },
-          "links": [],
-          "mappings": []
+          "mappings": [],
+          "links": [
+            {
+              "title": "Kubernetes Cluster",
+              "url": "/d/kube-cluster?var-cluster=$cluster&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -216,81 +397,20 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "center",
         "textMode": "value",
         "wideLayout": true,
         "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 4,
-      "type": "stat",
-      "title": "Ready nodes",
-      "description": "Nodes reporting Ready. EKS Auto Mode adds and removes nodes as pod requests change, so the count changes during normal operation.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 6,
+        "x": 11,
         "y": 1,
         "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum(kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"})",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "N/A",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
+        "h": 5
       }
     },
     {
@@ -302,12 +422,6 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "gridPos": {
-        "x": 9,
-        "y": 1,
-        "w": 3,
-        "h": 4
-      },
       "targets": [
         {
           "refId": "A",
@@ -317,8 +431,8 @@
           },
           "expr": "count((max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0) - on (cluster, namespace, workload, workload_type) max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0) or vector(0)",
           "legendFormat": "",
-          "range": false,
-          "instant": true,
+          "range": true,
+          "instant": false,
           "format": "time_series"
         }
       ],
@@ -343,13 +457,13 @@
           "color": {
             "mode": "thresholds"
           },
+          "mappings": [],
           "links": [
             {
               "title": "Service status",
               "url": "/d/service-status?var-cluster=$cluster&${__url_time_range}"
             }
-          ],
-          "mappings": []
+          ]
         },
         "overrides": []
       },
@@ -361,13 +475,20 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
-        "graphMode": "none",
+        "colorMode": "value",
+        "graphMode": "area",
         "justifyMode": "center",
         "textMode": "value",
         "wideLayout": true,
         "showPercentChange": false,
-        "orientation": "auto"
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 14,
+        "y": 1,
+        "w": 3,
+        "h": 5
       }
     },
     {
@@ -379,12 +500,6 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "gridPos": {
-        "x": 12,
-        "y": 1,
-        "w": 3,
-        "h": 4
-      },
       "targets": [
         {
           "refId": "A",
@@ -394,8 +509,8 @@
           },
           "expr": "count((max by (cluster, namespace, pod, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\"} == 1) or max by (cluster, namespace, pod, reason) (kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",reason!=\"PodInitializing\"} == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Unknown|Failed\"} == 1) unless on (cluster, namespace, pod) kube_pod_owner{cluster=~\"$cluster\",owner_kind=~\"Job|Workflow\"}, \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace(max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=\"Running\"}) == 1) unless on (cluster, namespace, pod) kube_pod_deletion_timestamp{cluster=~\"$cluster\"}, \"reason\", \"NotReady\", \"\", \"\"))) or vector(0)",
           "legendFormat": "",
-          "range": false,
-          "instant": true,
+          "range": true,
+          "instant": false,
           "format": "time_series"
         }
       ],
@@ -412,20 +527,21 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
-              },
-              {
                 "color": "red",
-                "value": 5
+                "value": 1
               }
             ]
           },
           "color": {
             "mode": "thresholds"
           },
-          "links": [],
-          "mappings": []
+          "mappings": [],
+          "links": [
+            {
+              "title": "Kubernetes Workload",
+              "url": "/d/kube-workload?var-cluster=$cluster&${__url_time_range}"
+            }
+          ]
         },
         "overrides": []
       },
@@ -437,29 +553,1165 @@
           "fields": "",
           "values": false
         },
-        "colorMode": "background",
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 17,
+        "y": 1,
+        "w": 3,
+        "h": 5
+      }
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "OOM kills · 1h",
+      "description": "Containers that restarted in the last hour and whose last termination reason is OOMKilled. Raise the memory limit or fix the leak; see Service Status for memory/limit.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count((max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[1h])) > 0) and on (cluster, namespace, pod, container) (kube_pod_container_status_last_terminated_reason{cluster=~\"$cluster\",reason=\"OOMKilled\"} == 1)) or vector(0)",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": [
+            {
+              "title": "Kubernetes Workload",
+              "url": "/d/kube-workload?var-cluster=$cluster&${__url_time_range}"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 1,
+        "w": 2,
+        "h": 5
+      }
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Argo CD unhealthy",
+      "description": "Argo CD applications that are not Healthy or not Synced. Argo CD notifications already report degraded and failed syncs to Slack; this tile shows the current count.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(argocd_app_info{health_status!=\"Healthy\"} or argocd_app_info{sync_status!=\"Synced\"}) or vector(0)",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": [
+            {
+              "title": "Argo CD",
+              "url": "/d/LCAgc9rWz"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 22,
+        "y": 1,
+        "w": 2,
+        "h": 5
+      }
+    },
+    {
+      "id": 41,
+      "type": "row",
+      "title": "Golden signals — ingress and Kubernetes API",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Ingress traffic",
+      "description": "Requests per second through the Istio ingress gateway (reporter=source), all services.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m]))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "decimals": 2,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 4,
+        "h": 5
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Ingress success rate",
+      "description": "Share of ingress requests that did not fail. Failed = 5xx or transport code 0, excluding client disconnects (DC). The error-rate alert fires below 95% (5% errors).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 - (100 * sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\",response_code=~\"0|5..\",response_flags!=\"DC\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m])))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "noValue": "No traffic",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 95
+              },
+              {
+                "color": "green",
+                "value": 99
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 7,
+        "w": 4,
+        "h": 5
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Ingress p95 latency",
+      "description": "95th percentile request duration at the ingress gateway over 5 minutes, all services. Streaming and long-poll endpoints raise this value.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter=\"source\",cluster=~\"$cluster\"}[5m])))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0,
+          "noValue": "No traffic",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 500
+              },
+              {
+                "color": "red",
+                "value": 1000
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 7,
+        "w": 4,
+        "h": 5
+      }
+    },
+    {
+      "id": 42,
+      "type": "stat",
+      "title": "API server success",
+      "description": "Share of Kubernetes API requests that did not return 5xx. Controllers, Argo CD and kubectl all depend on it.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * (1 - sum(rate(apiserver_request_total{cluster=~\"$cluster\",code=~\"5..\"}[5m])) / sum(rate(apiserver_request_total{cluster=~\"$cluster\"}[5m])))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 2,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 99
+              },
+              {
+                "color": "green",
+                "value": 99.9
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 4,
+        "h": 5
+      }
+    },
+    {
+      "id": 43,
+      "type": "stat",
+      "title": "API p99 latency",
+      "description": "p99 latency of non-streaming API requests (WATCH and CONNECT excluded).",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(apiserver_request_duration_seconds_bucket{cluster=~\"$cluster\",verb!~\"WATCH|CONNECT|APPLY\"}[5m])))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "decimals": 2,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 3
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 7,
+        "w": 4,
+        "h": 5
+      }
+    },
+    {
+      "id": 44,
+      "type": "stat",
+      "title": "Scrape targets up",
+      "description": "Share of Prometheus scrape targets answering. A node replacement drops it briefly; the Monitoring targets panel shows which job is missing.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * avg(up{cluster=~\"$cluster\"})",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 90
+              },
+              {
+                "color": "green",
+                "value": 99.5
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 7,
+        "w": 4,
+        "h": 5
+      }
+    },
+    {
+      "id": 45,
+      "type": "row",
+      "title": "Capacity",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 13,
+      "type": "gauge",
+      "title": "Host CPU busy",
+      "description": "Average non-idle CPU time across all nodes (node-exporter). Sustained values near 100% cause throttling and latency.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"node-exporter\",cluster=~\"$cluster\",mode=\"idle\"}[5m])))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 80
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 4,
+        "h": 6
+      }
+    },
+    {
+      "id": 14,
+      "type": "gauge",
+      "title": "Host memory used",
+      "description": "1 - MemAvailable / MemTotal summed across nodes. Includes kernel memory that pod working sets do not show.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * (1 - sum(node_memory_MemAvailable_bytes{job=\"node-exporter\",cluster=~\"$cluster\"}) / sum(node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\"}))",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 85
+              },
+              {
+                "color": "red",
+                "value": 92
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75
+      },
+      "gridPos": {
+        "x": 4,
+        "y": 13,
+        "w": 4,
+        "h": 6
+      }
+    },
+    {
+      "id": 15,
+      "type": "gauge",
+      "title": "CPU requested",
+      "description": "CPU requests of Pending and Running pods / allocatable CPU. Auto Mode adds nodes when pods cannot be scheduled, so a high value is expected; Pending pods are the problem signal.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",resource=\"cpu\"} * on (cluster, namespace, pod) group_left() (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Running\"}) == 1)) / sum(kube_node_status_allocatable{cluster=~\"$cluster\",resource=\"cpu\"})",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 13,
+        "w": 4,
+        "h": 6
+      }
+    },
+    {
+      "id": 16,
+      "type": "gauge",
+      "title": "Memory requested",
+      "description": "Memory requests of Pending and Running pods / allocatable memory. See CPU requested for how Auto Mode uses this value.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",resource=\"memory\"} * on (cluster, namespace, pod) group_left() (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Running\"}) == 1)) / sum(kube_node_status_allocatable{cluster=~\"$cluster\",resource=\"memory\"})",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "N/A",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "sizing": "auto",
+        "minVizHeight": 75,
+        "minVizWidth": 75
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 13,
+        "w": 4,
+        "h": 6
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Ready nodes",
+      "description": "Nodes reporting Ready. EKS Auto Mode adds and removes nodes as pod requests change, so the count changes during normal operation.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum(kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"})",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 13,
+        "w": 4,
+        "h": 3
+      }
+    },
+    {
+      "id": 46,
+      "type": "stat",
+      "title": "Active pods",
+      "description": "Pods in Pending or Running phase.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum((max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Running\"}) == 1))",
+          "legendFormat": "",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "textMode": "value",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 13,
+        "w": 4,
+        "h": 3
+      }
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Nodes launched · 24h",
+      "description": "Nodes created in the last 24 hours, including nodes already removed. Auto Mode consolidation replaces nodes routinely; a sudden jump together with restarts or alerts points to node instability.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "count(max_over_time(kube_node_created{cluster=~\"$cluster\"}[24h]) > time() - 86400) or vector(0)",
+          "legendFormat": "",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#5794F2",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "value",
         "graphMode": "none",
         "justifyMode": "center",
         "textMode": "value",
         "wideLayout": true,
         "showPercentChange": false,
-        "orientation": "auto"
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 16,
+        "w": 4,
+        "h": 3
       }
     },
     {
       "id": 7,
       "type": "stat",
-      "title": "Container restarts (1h)",
+      "title": "Restarts · 1h",
       "description": "Container restarts in the last hour, including init and sidecar containers. Pod replacement during a rollout is not a restart.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 15,
-        "y": 1,
-        "w": 3,
-        "h": 4
       },
       "targets": [
         {
@@ -488,756 +1740,11 @@
                 "value": null
               },
               {
-                "color": "orange",
+                "color": "#5794F2",
                 "value": 1
               },
               {
-                "color": "red",
-                "value": 10
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 8,
-      "type": "stat",
-      "title": "OOM kills (1h)",
-      "description": "Containers that restarted in the last hour and whose last termination reason is OOMKilled. Raise the memory limit or fix the leak; see Service Status for memory/limit.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 1,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "count((max by (cluster, namespace, pod, container) (increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[1h])) > 0) and on (cluster, namespace, pod, container) (kube_pod_container_status_last_terminated_reason{cluster=~\"$cluster\",reason=\"OOMKilled\"} == 1)) or vector(0)",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 1
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 9,
-      "type": "stat",
-      "title": "Argo CD apps unhealthy",
-      "description": "Argo CD applications that are not Healthy or not Synced. Argo CD notifications already report degraded and failed syncs to Slack; this tile shows the current count.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 21,
-        "y": 1,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "count(argocd_app_info{health_status!=\"Healthy\"} or argocd_app_info{sync_status!=\"Synced\"}) or vector(0)",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [
-            {
-              "title": "Argo CD dashboard",
-              "url": "/d/LCAgc9rWz"
-            }
-          ],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "background",
-        "graphMode": "none",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 10,
-      "type": "stat",
-      "title": "Ingress requests",
-      "description": "Requests per second through the Istio ingress gateway (reporter=source), all services.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 0,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m]))",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "reqps",
-          "decimals": 2,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 11,
-      "type": "stat",
-      "title": "Ingress error rate",
-      "description": "Share of gateway requests that failed with 5xx or a transport failure (code 0). Client disconnects (response flag DC) are not failures. The alert fires above 5% for 5 minutes.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 3,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\",response_code=~\"0|5..\",response_flags!=\"DC\"}[5m])) / sum(rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m]))",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 2,
-          "noValue": "No traffic",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1
-              },
-              {
-                "color": "red",
-                "value": 5
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 12,
-      "type": "stat",
-      "title": "Ingress p95 latency",
-      "description": "95th percentile request duration at the ingress gateway over 5 minutes, all services. Streaming and long-poll endpoints raise this value.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 6,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter=\"source\",cluster=~\"$cluster\"}[5m])))",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "ms",
-          "decimals": 0,
-          "noValue": "No traffic",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 1000
-              },
-              {
-                "color": "red",
-                "value": 3000
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "links": [],
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "colorMode": "value",
-        "graphMode": "area",
-        "justifyMode": "center",
-        "textMode": "value",
-        "wideLayout": true,
-        "showPercentChange": false,
-        "orientation": "auto"
-      }
-    },
-    {
-      "id": 13,
-      "type": "gauge",
-      "title": "Host CPU busy",
-      "description": "Average non-idle CPU time across all nodes (node-exporter). Sustained values near 100% cause throttling and latency.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 9,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * (1 - avg(rate(node_cpu_seconds_total{job=\"node-exporter\",cluster=~\"$cluster\",mode=\"idle\"}[5m])))",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "min": 0,
-          "max": 100,
-          "noValue": "N/A",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "orientation": "auto",
-        "minVizWidth": 75,
-        "minVizHeight": 75,
-        "sizing": "auto"
-      }
-    },
-    {
-      "id": 14,
-      "type": "gauge",
-      "title": "Host memory used",
-      "description": "1 - MemAvailable / MemTotal summed across nodes. Includes kernel memory that pod working sets do not show.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 12,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * (1 - sum(node_memory_MemAvailable_bytes{job=\"node-exporter\",cluster=~\"$cluster\"}) / sum(node_memory_MemTotal_bytes{job=\"node-exporter\",cluster=~\"$cluster\"}))",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "min": 0,
-          "max": 100,
-          "noValue": "N/A",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 80
-              },
-              {
-                "color": "red",
-                "value": 90
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "orientation": "auto",
-        "minVizWidth": 75,
-        "minVizHeight": 75,
-        "sizing": "auto"
-      }
-    },
-    {
-      "id": 15,
-      "type": "gauge",
-      "title": "CPU requested",
-      "description": "CPU requests of Pending and Running pods / allocatable CPU. Auto Mode adds nodes when pods cannot be scheduled, so a high value is expected; Pending pods are the problem signal.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 15,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",resource=\"cpu\"} * on (cluster, namespace, pod) group_left() (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Running\"}) == 1)) / sum(kube_node_status_allocatable{cluster=~\"$cluster\",resource=\"cpu\"})",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "min": 0,
-          "max": 100,
-          "noValue": "N/A",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 90
-              },
-              {
-                "color": "red",
-                "value": 98
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "orientation": "auto",
-        "minVizWidth": 75,
-        "minVizHeight": 75,
-        "sizing": "auto"
-      }
-    },
-    {
-      "id": 16,
-      "type": "gauge",
-      "title": "Memory requested",
-      "description": "Memory requests of Pending and Running pods / allocatable memory. See CPU requested for how Auto Mode uses this value.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 18,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * sum(kube_pod_container_resource_requests{cluster=~\"$cluster\",resource=\"memory\"} * on (cluster, namespace, pod) group_left() (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Running\"}) == 1)) / sum(kube_node_status_allocatable{cluster=~\"$cluster\",resource=\"memory\"})",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "decimals": 0,
-          "min": 0,
-          "max": 100,
-          "noValue": "N/A",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 90
-              },
-              {
-                "color": "red",
-                "value": 98
-              }
-            ]
-          },
-          "color": {
-            "mode": "thresholds"
-          },
-          "mappings": []
-        },
-        "overrides": []
-      },
-      "options": {
-        "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
-          "fields": "",
-          "values": false
-        },
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true,
-        "orientation": "auto",
-        "minVizWidth": 75,
-        "minVizHeight": 75,
-        "sizing": "auto"
-      }
-    },
-    {
-      "id": 17,
-      "type": "stat",
-      "title": "Nodes launched (24h)",
-      "description": "Nodes created in the last 24 hours, including nodes already removed. Auto Mode consolidation replaces nodes routinely; a sudden jump together with restarts or alerts points to node instability.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 21,
-        "y": 5,
-        "w": 3,
-        "h": 4
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "count(max_over_time(kube_node_created{cluster=~\"$cluster\"}[24h]) > time() - 86400) or vector(0)",
-          "legendFormat": "",
-          "range": false,
-          "instant": true,
-          "format": "time_series"
-        }
-      ],
-      "fieldConfig": {
-        "defaults": {
-          "unit": "short",
-          "decimals": 0,
-          "noValue": "0",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "blue",
-                "value": null
-              },
-              {
-                "color": "orange",
+                "color": "#FF9830",
                 "value": 20
               }
             ]
@@ -1245,8 +1752,8 @@
           "color": {
             "mode": "thresholds"
           },
-          "links": [],
-          "mappings": []
+          "mappings": [],
+          "links": []
         },
         "overrides": []
       },
@@ -1264,7 +1771,186 @@
         "textMode": "value",
         "wideLayout": true,
         "showPercentChange": false,
-        "orientation": "auto"
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 20,
+        "y": 16,
+        "w": 4,
+        "h": 3
+      }
+    },
+    {
+      "id": 47,
+      "type": "row",
+      "title": "Services — availability by namespace",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 19,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 48,
+      "type": "stat",
+      "title": "Namespace availability",
+      "description": "Lowest available/desired ratio of the Deployments, StatefulSets and DaemonSets in each namespace. 100% means every workload has all replicas available. Click a tile for Service Status.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * min by (namespace) (clamp_max(max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) / (max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0), 1))",
+          "legendFormat": "{{namespace}}",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "noValue": "No workloads",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": [
+            {
+              "title": "Service status for ${__field.labels.namespace}",
+              "url": "/d/service-status?var-cluster=$cluster&var-namespace=${__field.labels.namespace}&${__url_time_range}"
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 8
+      }
+    },
+    {
+      "id": 49,
+      "type": "stat",
+      "title": "Monitoring targets",
+      "description": "Share of targets answering per scrape job. Red means the job has no healthy target.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * avg by (job) (up{cluster=~\"$cluster\"})",
+          "legendFormat": "{{job}}",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "noValue": "0",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 50
+              },
+              {
+                "color": "green",
+                "value": 100
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "textMode": "value_and_name",
+        "wideLayout": true,
+        "showPercentChange": false,
+        "orientation": "auto",
+        "percentChangeColorMode": "standard"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 24,
+        "h": 4
       }
     },
     {
@@ -1272,13 +1958,13 @@
       "type": "row",
       "title": "Needs attention — empty tables mean nothing is wrong",
       "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 9,
+        "y": 32,
         "w": 24,
         "h": 1
-      },
-      "panels": []
+      }
     },
     {
       "id": 19,
@@ -1288,9 +1974,9 @@
       "description": "Grafana-managed alerts that are firing or pending, newest first. Click an alert to open the rule, its query and the linked dashboard panel.",
       "gridPos": {
         "x": 0,
-        "y": 10,
+        "y": 33,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "options": {
         "viewMode": "list",
@@ -1323,9 +2009,9 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 10,
+        "y": 33,
         "w": 12,
-        "h": 8
+        "h": 9
       },
       "targets": [
         {
@@ -1481,7 +2167,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 18,
+        "y": 42,
         "w": 12,
         "h": 8
       },
@@ -1595,7 +2281,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 18,
+        "y": 42,
         "w": 12,
         "h": 8
       },
@@ -1758,13 +2444,13 @@
       "type": "row",
       "title": "Nodes",
       "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 26,
+        "y": 50,
         "w": 24,
         "h": 1
-      },
-      "panels": []
+      }
     },
     {
       "id": 24,
@@ -1777,9 +2463,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 27,
+        "y": 51,
         "w": 24,
-        "h": 7
+        "h": 8
       },
       "targets": [
         {
@@ -2196,13 +2882,13 @@
       "type": "row",
       "title": "Services behind the ingress gateway",
       "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 34,
+        "y": 59,
         "w": 24,
         "h": 1
-      },
-      "panels": []
+      }
     },
     {
       "id": 26,
@@ -2215,9 +2901,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 35,
+        "y": 60,
         "w": 24,
-        "h": 7
+        "h": 8
       },
       "targets": [
         {
@@ -2459,13 +3145,329 @@
       "type": "row",
       "title": "Trends",
       "collapsed": false,
+      "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 68,
         "w": 24,
         "h": 1
+      }
+    },
+    {
+      "id": 32,
+      "type": "timeseries",
+      "title": "Ingress requests by service",
+      "description": "Requests per second per destination service at the ingress gateway.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
       },
-      "panels": []
+      "gridPos": {
+        "x": 0,
+        "y": 69,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "sum by (destination_service_name) (rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m])) > 0",
+          "legendFormat": "{{destination_service_name}}",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 35,
+            "gradientMode": "opacity",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "noValue": "No data",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": true
+        }
+      }
+    },
+    {
+      "id": 33,
+      "type": "timeseries",
+      "title": "Ingress error rate by service",
+      "description": "Failure percentage per service (5xx and transport code 0, excluding client disconnects). Only services with failures are drawn. The dashed line is the 5% alert threshold.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 69,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * sum by (destination_service_name) (rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\",response_code=~\"0|5..\",response_flags!=\"DC\"}[5m])) / sum by (destination_service_name) (rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m])) > 0",
+          "legendFormat": "{{destination_service_name}}",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "interval": "1m",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 14,
+            "gradientMode": "opacity",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "color": {
+            "mode": "palette-classic"
+          },
+          "noValue": "No failed requests",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "transparent",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "decimals": 1,
+          "max": 100
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": true
+        }
+      }
+    },
+    {
+      "id": 50,
+      "type": "timeseries",
+      "title": "Ingress latency p50 / p95 / p99",
+      "description": "Latency of all requests through the ingress gateway.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter=\"source\",cluster=~\"$cluster\"}[5m])))",
+          "legendFormat": "p50",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter=\"source\",cluster=~\"$cluster\"}[5m])))",
+          "legendFormat": "p95",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(istio_request_duration_milliseconds_bucket{reporter=\"source\",cluster=~\"$cluster\"}[5m])))",
+          "legendFormat": "p99",
+          "range": true,
+          "instant": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "drawStyle": "line",
+            "lineInterpolation": "smooth",
+            "lineWidth": 2,
+            "fillOpacity": 14,
+            "gradientMode": "opacity",
+            "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
+            "axisSoftMin": 0,
+            "barAlignment": 0,
+            "thresholdsStyle": {
+              "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "noValue": "No data",
+          "mappings": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "showLegend": true,
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull",
+            "max"
+          ],
+          "sortBy": "Last *",
+          "sortDesc": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc",
+          "hideZeros": true
+        }
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 69,
+        "w": 8,
+        "h": 8
+      }
     },
     {
       "id": 28,
@@ -2478,7 +3480,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -2526,18 +3528,29 @@
           "unit": "none",
           "custom": {
             "drawStyle": "line",
+            "lineInterpolation": "smooth",
             "lineWidth": 2,
-            "fillOpacity": 10,
+            "fillOpacity": 14,
             "gradientMode": "opacity",
-            "showPoints": "never",
             "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
             "stacking": {
               "mode": "none",
               "group": "A"
             },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
             "axisSoftMin": 0,
+            "barAlignment": 0,
             "thresholdsStyle": {
               "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             }
           },
           "color": {
@@ -2559,19 +3572,20 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true,
           "calcs": [
             "lastNotNull",
             "max"
           ],
-          "sortBy": "Max",
+          "sortBy": "Last *",
           "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "desc"
+          "sort": "desc",
+          "hideZeros": true
         }
       }
     },
@@ -2586,7 +3600,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 43,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -2634,18 +3648,29 @@
           "unit": "bytes",
           "custom": {
             "drawStyle": "line",
+            "lineInterpolation": "smooth",
             "lineWidth": 2,
-            "fillOpacity": 10,
+            "fillOpacity": 14,
             "gradientMode": "opacity",
-            "showPoints": "never",
             "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
             "stacking": {
               "mode": "none",
               "group": "A"
             },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
             "axisSoftMin": 0,
+            "barAlignment": 0,
             "thresholdsStyle": {
               "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             }
           },
           "color": {
@@ -2666,19 +3691,20 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true,
           "calcs": [
             "lastNotNull",
             "max"
           ],
-          "sortBy": "Max",
+          "sortBy": "Last *",
           "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "desc"
+          "sort": "desc",
+          "hideZeros": true
         }
       }
     },
@@ -2693,7 +3719,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 43,
+        "y": 77,
         "w": 8,
         "h": 8
       },
@@ -2750,19 +3776,20 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true,
           "calcs": [
             "lastNotNull",
             "max"
           ],
-          "sortBy": "Max",
+          "sortBy": "Last *",
           "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "desc"
+          "sort": "desc",
+          "hideZeros": true
         }
       }
     },
@@ -2777,9 +3804,9 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 51,
-        "w": 8,
-        "h": 8
+        "y": 85,
+        "w": 12,
+        "h": 7
       },
       "targets": [
         {
@@ -2802,18 +3829,29 @@
           "unit": "none",
           "custom": {
             "drawStyle": "bars",
+            "lineInterpolation": "smooth",
             "lineWidth": 1,
-            "fillOpacity": 80,
+            "fillOpacity": 35,
             "gradientMode": "none",
-            "showPoints": "never",
             "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
             "stacking": {
               "mode": "normal",
               "group": "A"
             },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
             "axisSoftMin": 0,
+            "barAlignment": 0,
             "thresholdsStyle": {
               "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             }
           },
           "color": {
@@ -2835,35 +3873,30 @@
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true,
           "calcs": [
             "sum"
           ],
-          "sortBy": null,
+          "sortBy": "Last *",
           "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "desc"
+          "sort": "desc",
+          "hideZeros": true
         }
       }
     },
     {
-      "id": 32,
+      "id": 51,
       "type": "timeseries",
-      "title": "Ingress requests by service",
-      "description": "Requests per second per destination service at the ingress gateway.",
+      "title": "API server requests by code",
+      "description": "Kubernetes API request rate by HTTP code.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 8,
-        "y": 51,
-        "w": 8,
-        "h": 8
       },
       "targets": [
         {
@@ -2872,37 +3905,46 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (destination_service_name) (rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m])) > 0",
-          "legendFormat": "{{destination_service_name}}",
+          "expr": "sum by (code) (rate(apiserver_request_total{cluster=~\"$cluster\"}[5m]))",
+          "legendFormat": "{{code}}",
           "range": true,
           "instant": false,
           "format": "time_series"
         }
       ],
-      "interval": "1m",
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
+          "color": {
+            "mode": "palette-classic"
+          },
           "custom": {
             "drawStyle": "line",
+            "lineInterpolation": "smooth",
             "lineWidth": 2,
-            "fillOpacity": 10,
+            "fillOpacity": 35,
             "gradientMode": "opacity",
-            "showPoints": "never",
             "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
             "stacking": {
               "mode": "normal",
               "group": "A"
             },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
             "axisSoftMin": 0,
+            "barAlignment": 0,
             "thresholdsStyle": {
               "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             }
           },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "noValue": "No data",
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -2912,181 +3954,66 @@
               }
             ]
           },
-          "decimals": 2
+          "noValue": "No data",
+          "mappings": []
         },
-        "overrides": []
-      },
-      "options": {
-        "legend": {
-          "displayMode": "table",
-          "placement": "bottom",
-          "showLegend": true,
-          "calcs": [
-            "lastNotNull",
-            "max"
-          ],
-          "sortBy": "Max",
-          "sortDesc": true
-        },
-        "tooltip": {
-          "mode": "multi",
-          "sort": "desc"
-        }
-      }
-    },
-    {
-      "id": 33,
-      "type": "timeseries",
-      "title": "Ingress error rate by service",
-      "description": "Failure percentage per service (5xx and transport code 0, excluding client disconnects). Only services with failures are drawn. The dashed line is the 5% alert threshold.",
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${datasource}"
-      },
-      "gridPos": {
-        "x": 16,
-        "y": 51,
-        "w": 8,
-        "h": 8
-      },
-      "targets": [
-        {
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "expr": "100 * sum by (destination_service_name) (rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\",response_code=~\"0|5..\",response_flags!=\"DC\"}[5m])) / sum by (destination_service_name) (rate(istio_requests_total{reporter=\"source\",cluster=~\"$cluster\"}[5m])) > 0",
-          "legendFormat": "{{destination_service_name}}",
-          "range": true,
-          "instant": false,
-          "format": "time_series"
-        }
-      ],
-      "interval": "1m",
-      "fieldConfig": {
-        "defaults": {
-          "unit": "percent",
-          "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10,
-            "gradientMode": "opacity",
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": {
-              "mode": "none",
-              "group": "A"
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "5.."
             },
-            "axisSoftMin": 0,
-            "thresholdsStyle": {
-              "mode": "dashed"
-            }
-          },
-          "color": {
-            "mode": "palette-classic"
-          },
-          "noValue": "No failed requests",
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
+            "properties": [
               {
-                "color": "transparent",
-                "value": null
-              },
-              {
-                "color": "red",
-                "value": 5
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "red"
+                }
               }
             ]
           },
-          "decimals": 1,
-          "max": 100
-        },
-        "overrides": []
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "4.."
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#FF9830"
+                }
+              }
+            ]
+          }
+        ]
       },
       "options": {
         "legend": {
+          "showLegend": true,
           "displayMode": "table",
           "placement": "bottom",
-          "showLegend": true,
           "calcs": [
             "lastNotNull",
             "max"
           ],
-          "sortBy": "Max",
+          "sortBy": "Last *",
           "sortDesc": true
         },
         "tooltip": {
           "mode": "multi",
-          "sort": "desc"
+          "sort": "desc",
+          "hideZeros": true
         }
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 85,
+        "w": 12,
+        "h": 7
       }
     }
-  ],
-  "refresh": "1m",
-  "schemaVersion": 41,
-  "tags": [
-    "kubernetes",
-    "overview"
-  ],
-  "templating": {
-    "list": [
-      {
-        "name": "datasource",
-        "label": "Prometheus",
-        "type": "datasource",
-        "query": "prometheus",
-        "current": {
-          "text": "Prometheus",
-          "value": "prometheus"
-        },
-        "hide": 2,
-        "includeAll": false,
-        "options": [],
-        "refresh": 1,
-        "regex": ""
-      },
-      {
-        "name": "cluster",
-        "label": "Cluster",
-        "type": "query",
-        "datasource": {
-          "type": "prometheus",
-          "uid": "${datasource}"
-        },
-        "definition": "label_values(kube_node_info, cluster)",
-        "query": {
-          "query": "label_values(kube_node_info, cluster)",
-          "refId": "cluster-var"
-        },
-        "refresh": 2,
-        "regex": "",
-        "sort": 1,
-        "multi": false,
-        "includeAll": false,
-        "options": [],
-        "current": {
-          "text": "eks-demo",
-          "value": "eks-demo"
-        }
-      }
-    ]
-  },
-  "time": {
-    "from": "now-6h",
-    "to": "now"
-  },
-  "timepicker": {
-    "refresh_intervals": [
-      "30s",
-      "1m",
-      "5m",
-      "15m"
-    ]
-  },
-  "timezone": "browser",
-  "title": "Cluster Overview",
-  "uid": "cluster-overview",
-  "version": 1
+  ]
 }
