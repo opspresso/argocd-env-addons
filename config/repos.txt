@@ -13,4 +13,3 @@ prometheus https://prometheus-community.github.io/helm-charts
 vllm https://vllm-project.github.io/production-stack
 gitlab https://charts.gitlab.io
 jenkinsci https://charts.jenkins.io
-goharbor https://helm.goharbor.io

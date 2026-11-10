@@ -85,12 +85,6 @@
       "current": "10.5.15",
       "version": "10.5.15"
     },
-    "harbor": {
-      "app_version": "2.15.4",
-      "chart": "goharbor/harbor",
-      "current": "1.19.4",
-      "version": "1.19.4"
-    },
     "istiod": {
       "app_version": "1.32.0",
       "chart": "istio/istiod",

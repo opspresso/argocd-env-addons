@@ -77,7 +77,7 @@ create() {
 random() { openssl rand -base64 48 | tr -dc 'A-Za-z0-9' | cut -c1-"${1:-32}"; }
 
 step "OIDC client secret (Argo CD Dex 와 각 addon 이 같은 값을 읽습니다)"
-for name in grafana gitlab jenkins harbor keep; do
+for name in grafana gitlab jenkins keep; do
   create "/k8s/common/${name}/oidc-client-secret" "$(random)"
 done
 
@@ -85,12 +85,6 @@ step "GitLab"
 create /k8s/common/gitlab/root-password "$(random)"
 create /k8s/common/gitlab/postgres-password "$(random)"
 create /k8s/common/gitlab/valkey-password "$(random)"
-
-step "Harbor"
-# Harbor 는 대문자·소문자·숫자가 모두 든 8~128자를 요구합니다.
-create /k8s/common/harbor/admin-password "$(random 29)Aa1"
-# 저장된 자격 증명을 암호화합니다. 정확히 16자여야 합니다.
-create /k8s/common/harbor/secret-key "$(openssl rand -hex 8)"
 
 step "Nexus"
 create /k8s/common/nexus/admin-password "$(random)"

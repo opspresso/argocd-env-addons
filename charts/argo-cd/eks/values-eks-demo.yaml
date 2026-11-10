@@ -172,11 +172,6 @@ argo-cd:
           redirectURIs:
             - https://jenkins.demo.opsp.dev/securityRealm/finishLogin
           secretEnv: JENKINS_SSO_CLIENT_SECRET
-        - id: harbor-sso
-          name: Harbor
-          redirectURIs:
-            - https://harbor.demo.opsp.dev/c/oidc/callback
-          secretEnv: HARBOR_SSO_CLIENT_SECRET
 
 
 
@@ -375,6 +370,3 @@ raw:
           - secretKey: jenkins-client-secret
             remoteRef:
               key: /k8s/common/jenkins/oidc-client-secret
-          - secretKey: harbor-client-secret
-            remoteRef:
-              key: /k8s/common/harbor/oidc-client-secret

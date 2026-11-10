@@ -113,9 +113,6 @@ sso:
 jenkins:
   hostname: jenkins.demo.opsp.dev
 
-harbor:
-  hostname: harbor.demo.opsp.dev
-
 nexus:
   hostname: nexus.demo.opsp.dev
   # Login names of the sso.admin_groups members. Nexus Community Edition has no
