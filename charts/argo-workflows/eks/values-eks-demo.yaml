@@ -21,7 +21,7 @@ argo-workflows:
     sso:
       enabled: true
 
-      issuer: https://argocd.demo.opsp.dev/api/dex
+      issuer: https://sso.demo.opsp.dev
 
       redirectUrl: https://workflows.demo.opsp.dev/oauth2/callback
 

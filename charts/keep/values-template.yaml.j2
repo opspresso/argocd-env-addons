@@ -21,7 +21,7 @@ keep:
       - name: AUTH_TYPE
         value: OIDC
       - name: KEEP_OIDC_ISSUER
-        value: "https://{{argocd.hostname}}/api/dex"
+        value: "https://{{dex.hostname}}"
       - name: KEEP_OIDC_CLIENT_ID
         value: keep-sso
       # sso.admin_groups get admin, sso.member_groups the read-only noc role.
@@ -224,7 +224,7 @@ keep:
       - name: AUTH_TYPE
         value: OIDC
       - name: KEEP_OIDC_ISSUER
-        value: "https://{{argocd.hostname}}/api/dex"
+        value: "https://{{dex.hostname}}"
       - name: KEEP_OIDC_CLIENT_ID
         value: keep-sso
       - name: KEEP_OIDC_ADMIN_ROLES

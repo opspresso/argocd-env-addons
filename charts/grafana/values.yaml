@@ -61,7 +61,7 @@ grafana:
     auth:
       disable_login_form: false
 
-    # OAuth sign-in (Argo CD Dex) is in values-template.yaml.j2.
+    # OAuth sign-in (the platform Dex, charts/dex) is in values-template.yaml.j2.
 
   ingress:
     enabled: false

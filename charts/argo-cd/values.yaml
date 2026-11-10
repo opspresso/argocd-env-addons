@@ -79,51 +79,9 @@ argo-cd:
       limits:
         memory: 128Mi
 
+  # Off: Argo CD signs in through the platform Dex (charts/dex, oidc.config).
   dex:
-    resources:
-      requests:
-        cpu: 5m
-        memory: 128Mi
-      limits:
-        memory: 256Mi
-
-    env:
-      - name: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-secret
-            key: argo-workflows-client-secret
-      - name: OAUTH2_PROXY_SSO_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-secret
-            key: oauth2-proxy-client-secret
-      - name: KEEP_SSO_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-secret
-            key: keep-client-secret
-      - name: GITLAB_SSO_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-secret
-            key: gitlab-client-secret
-      - name: GRAFANA_SSO_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-secret
-            key: grafana-client-secret
-      - name: JENKINS_SSO_CLIENT_SECRET
-        valueFrom:
-          secretKeyRef:
-            name: argocd-secret
-            key: jenkins-client-secret
-
-    metrics:
-      enabled: true
-      serviceMonitor:
-        enabled: false
-        interval: 30s
+    enabled: false
 
   redis:
     resources:

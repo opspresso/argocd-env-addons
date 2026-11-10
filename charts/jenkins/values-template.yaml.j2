@@ -6,13 +6,13 @@ jenkins:
       link.argocd.argoproj.io/external-link: "https://{{jenkins.hostname}}"
 
     JCasC:
-      # Sign-in through Argo CD Dex (client jenkins-sso). There is no local user
+      # Sign-in through the platform Dex (charts/dex, client jenkins-sso). There is no local user
       # and no password form. sso.admin_groups administer; other users read.
       securityRealm: |-
         oic:
           serverConfiguration:
             wellKnown:
-              wellKnownOpenIDConfigurationUrl: "https://{{argocd.hostname}}/api/dex/.well-known/openid-configuration"
+              wellKnownOpenIDConfigurationUrl: "https://{{dex.hostname}}/.well-known/openid-configuration"
               scopesOverride: "openid profile email groups"
           clientId: jenkins-sso
           clientSecret: "${jenkins-oidc-client-secret}"
@@ -62,7 +62,7 @@ raw:
               - name: jenkins
                 port: 8080
 
-    # The client secret is shared with Argo CD Dex (charts/argo-cd).
+    # The client secret is shared with the platform Dex (charts/dex).
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:

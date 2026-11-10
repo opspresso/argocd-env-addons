@@ -40,7 +40,7 @@ GitLab 19(chart 10.x)는 PostgreSQL·Redis·MinIO를 더 이상 포함하지 않
 | `/k8s/common/gitlab/root-password` | `root`의 첫 비밀번호. GitLab은 처음 설치할 때만 읽는다 |
 | `/k8s/common/gitlab/postgres-password` | PostgreSQL 사용자 `gitlab`. PostgreSQL은 데이터 디렉터리를 처음 만들 때만 읽는다 |
 | `/k8s/common/gitlab/valkey-password` | Valkey `requirepass` |
-| `/k8s/common/gitlab/oidc-client-secret` | Dex client `gitlab-sso`의 secret. Argo CD `argocd-secret`도 읽으므로, 없으면 `argocd-secret` 전체가 갱신되지 않는다 |
+| `/k8s/common/gitlab/oidc-client-secret` | Dex client `gitlab-sso`의 secret. 플랫폼 Dex의 `dex-secret`도 읽으므로, 없으면 `dex-secret` 전체가 갱신되지 않는다 |
 
 `root-password`와 `postgres-password`는 첫 설치 뒤에 바꿔도 반영되지 않는다. PostgreSQL 비밀번호를 바꾸려면 DB에서
 `ALTER USER`를 먼저 실행하고 SSM을 같은 값으로 바꾼다.
@@ -49,7 +49,7 @@ GitLab 19(chart 10.x)는 PostgreSQL·Redis·MinIO를 더 이상 포함하지 않
 
 모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
-- LLDAP 사용자는 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거쳐 로그인한다.
+- LLDAP 사용자는 플랫폼 Dex(`https://sso.demo.opsp.dev`, `charts/dex`)를 거쳐 로그인한다.
   첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. provider 설정은 ExternalSecret `gitlab-oidc-provider`가 만든다.
 - `gitlab.admins`(`sso.admin_groups` 구성원의 login 이름)는 관리자, 다른 사용자는 일반 사용자다.
 - 로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider`). 가입과 웹 비밀번호 로그인은 꺼져 있다.
@@ -70,8 +70,8 @@ kubectl -n addon-gitlab create job --from=cronjob/gitlab-admin-sync gitlab-admin
 kubectl -n addon-gitlab logs -f job/gitlab-admin-sync-manual
 ```
 
-Dex는 시작할 때만 client secret을 읽는다. `/k8s/common/gitlab/oidc-client-secret`을 바꾸면 `argocd-secret`이 갱신된 뒤
-`kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다. 재시작하지 않으면 GitLab 로그인이
+Dex는 시작할 때만 client secret을 읽는다. `/k8s/common/gitlab/oidc-client-secret`을 바꾸면 `dex-secret`이 갱신된 뒤
+`kubectl -n addon-dex rollout restart deploy/dex`를 실행한다. 재시작하지 않으면 GitLab 로그인이
 `Invalid client credentials`로 실패한다.
 
 ## 백업

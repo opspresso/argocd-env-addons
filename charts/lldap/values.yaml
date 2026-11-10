@@ -64,7 +64,7 @@ lldap:
     size: 1Gi
     mountPath: /data
 
-  # The gateway reaches the web UI. Argo CD Dex binds on the LDAP port. The
+  # The gateway reaches the web UI. The platform Dex (charts/dex) binds on the LDAP port. The
   # bootstrap Job in this namespace calls the API.
   networkPolicy:
     enabled: true
@@ -81,10 +81,10 @@ lldap:
       - from:
           - namespaceSelector:
               matchLabels:
-                kubernetes.io/metadata.name: argocd
+                kubernetes.io/metadata.name: addon-dex
             podSelector:
               matchLabels:
-                app.kubernetes.io/name: argocd-dex-server
+                app.kubernetes.io/name: dex
         ports:
           - protocol: TCP
             port: 3890

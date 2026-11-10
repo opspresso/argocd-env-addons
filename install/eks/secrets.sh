@@ -26,6 +26,9 @@ case "${1:-}" in
   ;;
 esac
 
+# Cluster of the per-cluster values (agent-studio). install.sh exports it.
+CLUSTER="${CLUSTER:-eks-demo}"
+
 WORK_DIR=$(mktemp -d)
 trap 'rm -rf "$WORK_DIR"' EXIT
 
@@ -155,12 +158,16 @@ unset ADMIN_PASSWORD ARGOCD_PASSWORD
 step "Argo CD webhook"
 create /k8s/common/argocd-webhook "$(random)"
 
-step "OIDC client secret (Argo CD Dex 와 각 addon 이 같은 값을 읽습니다)"
+step "OIDC client secret (플랫폼 Dex(charts/dex)와 각 client 가 같은 값을 읽습니다)"
+create /k8s/common/argocd/oidc-client-secret "$(random)"
 create /k8s/common/argo-workflows-client-secret "$(random)"
 create /k8s/common/oauth2-proxy-client-secret "$(random)"
 for name in grafana gitlab jenkins keep; do
   create "/k8s/common/${name}/oidc-client-secret" "$(random)"
 done
+# Agent Studio (argocd-env-apps) reads its values under the cluster prefix.
+create "/k8s/${CLUSTER}/agent-studio/oidc-client-id" agent-studio
+create "/k8s/${CLUSTER}/agent-studio/oidc-client-secret" "$(random)"
 
 step "GitLab"
 create /k8s/common/gitlab/root-password "$(random)"

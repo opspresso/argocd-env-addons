@@ -34,9 +34,10 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 운영 클러스터는 EKS `eks-demo`이며 같은 클러스터의 Argo CD가 `addons-eks.yaml`을 동기화한다.
 `local` 템플릿·정책 지원은 남아 있지만 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
-인증: LLDAP(`charts/lldap`, `id.demo.opsp.dev`) → Argo CD Dex(connector `lldap`) → 각 addon 의 OIDC client
-(`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`jenkins-sso`·`oauth2-proxy-sso`).
-GitHub connector 는 꺼져 있고 설정은 주석으로 남아 있다(`charts/argo-cd`, `env/<cluster>.yaml` 의 `sso`).
+인증: LLDAP(`charts/lldap`, `id.demo.opsp.dev`) → 플랫폼 Dex(`charts/dex`, `sso.demo.opsp.dev`, connector `lldap`, 로그인 ID 는 `mail`)
+→ 각 OIDC client(`argo-cd`·`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`jenkins-sso`·`oauth2-proxy-sso`·`agent-studio`).
+Agent 서비스는 Agent Studio 를 거친다. Dex 세션(Kubernetes storage)이 한 번의 로그인을 모든 client 에 유지한다.
+Argo CD 내장 Dex 는 끈다(`oidc.config`). GitHub connector 는 꺼져 있고 설정은 주석으로 남아 있다(`charts/dex`, `env/<cluster>.yaml` 의 `sso`).
 권한은 `env/<cluster>.yaml` 의 `sso`: `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
 LLDAP 그룹은 이름 그대로 들어온다. LLDAP 관리자·Dex bind 사용자는 Argo CD 관리자(`/k8s/common/admin-user`·`admin-password`)다.
 자체 로그인이 없는 서비스는 `oauth2-proxy` 가 막는다. GitLab CE 의 관리자는 `gitlab.admins` 목록을 CronJob 이 맞춘다.

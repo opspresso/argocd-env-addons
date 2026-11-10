@@ -1,0 +1,14 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: dex
+type: application
+version: "0.26.0" # helm chart dex version
+
+dependencies:
+- name: dex
+  repository: https://charts.dexidp.io
+  version: "0.26.0" # helm chart dex version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

@@ -28,21 +28,23 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 | 배포·자동화 | argo-cd, argo-workflows, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows |
 | 개발 도구 | gitlab | gitlab |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
-| 인증 | lldap, oauth2-proxy (Dex는 argo-cd에 포함) | id, auth |
+| 인증 | dex, lldap, oauth2-proxy | sso, id, auth |
 | 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
 
 `backup/`에 보관한 addon(배포하지 않음): argo-rollouts, atlantis, external-dns, jenkins, kite, nexus.
 
 ## 로그인
 
-LLDAP 아이디·비밀번호 → Argo CD Dex(connector `lldap`) → 각 addon의 OIDC client로 로그인한다.
+플랫폼 Dex(`charts/dex`, `https://sso.demo.opsp.dev`)가 모든 로그인의 OIDC issuer다. 각 addon과 Agent Studio가
+Dex의 client이고, Agent 서비스(Memory·Knowledge·Forge·Runway·Models)는 Agent Studio를 거친다. 사용자는 LLDAP 이메일·비밀번호로
+한 번 로그인하고, Dex 세션(마지막 사용 후 24시간, 최대 7일)이 남아 있는 동안 어느 서비스도 다시 묻지 않는다.
 Dex connector가 하나라 선택 화면 없이 LLDAP 로그인 폼으로 간다. addon 자체의 아이디·비밀번호 폼은 숨긴다.
-GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남아 있다(`charts/argo-cd`, `env/<cluster>.yaml`의 `sso`).
+GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남아 있다(`charts/dex`, `env/<cluster>.yaml`의 `sso`).
 
 - 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(LLDAP 그룹 `sre`)는 관리자,
   `sso.member_groups`(`dev`)는 일반 사용자·읽기 전용.
-- LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)다. 사용자는 LLDAP 웹 UI에서
-  관리한다(`charts/lldap/README.md`).
+- LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)이며 Dex에는 이메일 `lldap.admin_email`로
+  로그인한다. 사용자는 LLDAP 웹 UI에서 관리한다(`charts/lldap/README.md`).
 - 자체 로그인이 없는 서비스는 oauth2-proxy가 막는다(`charts/oauth2-proxy/README.md`). 지금 그 대상(Atlantis, Nexus,
   Argo Rollouts dashboard)은 모두 `backup/`에 있다.
 - GitLab CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins` 목록을 CronJob이 맞춘다.
@@ -360,7 +362,7 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 - [Workspace와 Agent 서비스 관측성](docs/workspace-observability.md): Workspace·Agent 서비스 지표와 경보
 - chart별 절차: [alloy](charts/alloy/README.md), [arc-runners](charts/arc-runners/README.md), [argo-cd](charts/argo-cd/README.md),
   [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md), [keep](charts/keep/README.md),
-  [lldap](charts/lldap/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
+  [dex](charts/dex/README.md), [lldap](charts/lldap/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
 - 보관 chart: [atlantis](charts/atlantis/README.md), [jenkins](charts/jenkins/README.md), [nexus](charts/nexus/README.md)
 
 관련 저장소:

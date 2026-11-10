@@ -27,8 +27,9 @@ argocd:
     server: 2
     repo_server: 2
     application_set: 1
+  # Argo CD signs in through the platform Dex (dex below), not its bundled Dex.
   dex:
-    enabled: true
+    enabled: false
   notifications:
     enabled: true
   http_route:
@@ -36,7 +37,7 @@ argocd:
     parent_refs:
       - name: istio-ingressgateway
         namespace: istio-system
-  # GitHub organization of the Dex connector github (off; charts/argo-cd).
+  # GitHub organization of the Dex connector github (off; charts/dex).
   github:
     org: opspresso # github org
   google:
@@ -104,10 +105,10 @@ gitlab:
     # - nalbam
     - admin1
 
-# Sign-in rule of every addon that uses Argo CD Dex. Only the connector lldap
+# Sign-in rule of every client of the platform Dex (charts/dex). Only the connector lldap
 # signs in; its groups come by name. Members of admin_groups are administrators;
 # members of member_groups sign in as users or readers. The GitHub teams
-# ("<org>:<team>") are off with the connector github (charts/argo-cd).
+# ("<org>:<team>") are off with the connector github (charts/dex).
 sso:
   admin_groups:
     # - opspresso:sre
@@ -116,7 +117,7 @@ sso:
     # - opspresso:dev
     - dev
 
-# LLDAP (charts/lldap): ID and password sign-in through the Dex connector
+# LLDAP (charts/lldap): email and password sign-in through the Dex connector
 # lldap. Its admin is the Argo CD admin (/k8s/common/admin-user). The groups are
 # the LLDAP names in sso above; the bootstrap Job creates them and puts the admin
 # in admin_groups.
@@ -128,6 +129,20 @@ lldap:
     - sre
   member_groups:
     - dev
+
+# Platform sign-in (charts/dex): the OIDC issuer of every addon and Agent
+# Studio. One sign-in lasts across all of them until the session ends:
+# absolute_lifetime after the sign-in, or idle without use.
+dex:
+  hostname: sso.demo.opsp.dev
+  session:
+    absolute_lifetime: 168h
+    idle: 24h
+
+# Agent Studio (argocd-env-apps): the Dex client agent-studio. The Agent
+# services sign in through Studio.
+agent_studio:
+  hostname: studio.agrt.dev
 
 jenkins:
   hostname: jenkins.demo.opsp.dev

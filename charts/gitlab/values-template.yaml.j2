@@ -6,7 +6,7 @@ gitlab:
       gitlab:
         name: "{{gitlab.hostname}}"
     appConfig:
-      # Sign-in through Argo CD Dex (client gitlab-sso). Dex accepts only the
+      # Sign-in through the platform Dex (charts/dex, client gitlab-sso). Dex accepts only the
       # sso groups, so the first sign-in creates an active user without admin
       # approval.
       # The sign-in page goes straight to Dex. The password form also stays off:
@@ -96,7 +96,7 @@ raw:
             remoteRef:
               key: /k8s/common/gitlab/valkey-password
 
-    # The client secret is shared with Argo CD Dex (charts/argo-cd).
+    # The client secret is shared with the platform Dex (charts/dex).
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
@@ -118,7 +118,7 @@ raw:
                   name: openid_connect
                   scope: [openid, profile, email]
                   response_type: code
-                  issuer: https://{{argocd.hostname}}/api/dex
+                  issuer: https://{{dex.hostname}}
                   discovery: true
                   pkce: true
                   client_options:
