@@ -56,7 +56,7 @@ argo-workflows:
 
 raw:
   resources:
-    # SSO users of the platform team edit workflows in default and only read app Deliveries.
+    # SSO users of the platform team edit workflows in default and read them in every namespace.
     - apiVersion: v1
       kind: ServiceAccount
       metadata:
@@ -99,11 +99,12 @@ raw:
         - kind: ServiceAccount
           name: sso-team
           namespace: addon-argo-workflows
+    # The UI lists every namespace when none is selected, so the team also reads cluster-wide.
+    # This grants read only; app Deliveries stay read-only for SSO users.
     - apiVersion: rbac.authorization.k8s.io/v1
-      kind: RoleBinding
+      kind: ClusterRoleBinding
       metadata:
         name: argo-workflows-sso-team
-        namespace: app-delivery
       roleRef:
         apiGroup: rbac.authorization.k8s.io
         kind: ClusterRole
