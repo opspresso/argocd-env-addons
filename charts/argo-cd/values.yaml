@@ -7,13 +7,14 @@ argo-cd:
       limits: {memory: 128Mi}
 
   controller:
-    # Working set idles near 800Mi and reaches 2.8Gi during full reconciles.
+    # Working set p95 1.7Gi and peak 3.4Gi during full reconciles; CPU p95
+    # 200m (7-day peak to 2026-11-10).
     resources:
       requests:
-        cpu: 100m
-        memory: 1536Mi
+        cpu: 200m
+        memory: 2Gi
       limits:
-        memory: 4Gi
+        memory: 5Gi
 
     metrics:
       enabled: true
@@ -29,10 +30,11 @@ argo-cd:
       enabled: true
       maxUnavailable: 1
 
+    # Working set p95 100Mi.
     resources:
       requests:
         cpu: 10m
-        memory: 64Mi
+        memory: 128Mi
       limits:
         memory: 256Mi
 
@@ -55,10 +57,11 @@ argo-cd:
     pdb:
       enabled: true
       maxUnavailable: 1
+    # Working set p95 310Mi, peak 540Mi while rendering; CPU p95 100m.
     resources:
       requests:
-        cpu: 50m
-        memory: 256Mi
+        cpu: 100m
+        memory: 384Mi
       limits:
         memory: 1Gi
 
@@ -80,7 +83,7 @@ argo-cd:
     resources:
       requests:
         cpu: 5m
-        memory: 96Mi
+        memory: 128Mi
       limits:
         memory: 256Mi
 

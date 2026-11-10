@@ -21,10 +21,11 @@ grafana:
   deploymentStrategy:
     type: Recreate
 
+  # Working set p95 255Mi.
   resources:
     requests:
       cpu: 20m
-      memory: 160Mi
+      memory: 288Mi
     limits:
       memory: 512Mi
 

@@ -5,10 +5,11 @@ external-secrets:
   # should outrank the workloads it serves when a node runs short.
   priorityClassName: system-cluster-critical
 
+  # Working set p95 62Mi; it grows with the number of ExternalSecrets.
   resources:
     requests:
       cpu: 10m
-      memory: 64Mi
+      memory: 96Mi
     limits:
       memory: 256Mi
 

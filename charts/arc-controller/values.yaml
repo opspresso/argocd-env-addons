@@ -8,8 +8,8 @@ arc-controller:
 
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 10m
+      memory: 64Mi
     limits:
       memory: 512Mi
 

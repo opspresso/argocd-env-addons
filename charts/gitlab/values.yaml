@@ -131,10 +131,11 @@ gitlab:
       minReplicas: 1
       maxReplicas: 1
       workerProcesses: 2
+      # Puma with two workers: working set 2.3Gi.
       resources:
         requests:
           cpu: 300m
-          memory: 2Gi
+          memory: 2560Mi
         limits:
           memory: 3Gi
       workhorse:
@@ -189,12 +190,14 @@ gitlab:
             memory: 64Mi
           limits:
             memory: 256Mi
+      # gitlab-admin-sync runs gitlab-rails here every 10 minutes: working set
+      # p95 750Mi and peak 1Gi, CPU p95 320m.
       resources:
         requests:
-          cpu: 50m
-          memory: 350Mi
+          cpu: 200m
+          memory: 768Mi
         limits:
-          memory: 1Gi
+          memory: 2Gi
       # backup-utility reads the IAM role through awscli; no s3cmd keys.
       backups:
         objectStorage:
@@ -229,10 +232,11 @@ postgres:
   persistence:
     storageGiB: 20
     storageClass: gp3
+  # Working set p95 350Mi.
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 512Mi
     limits:
       memory: 1Gi
 

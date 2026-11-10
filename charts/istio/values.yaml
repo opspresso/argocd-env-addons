@@ -30,10 +30,11 @@ istiod:
     EXCLUDE_UNSAFE_503_FROM_DEFAULT_RETRY: "false"
     ENABLE_100_CONTINUE_HEADERS: "false"
 
+  # Working set p95 142Mi. CPU stays low for the HPA target.
   resources:
     requests:
       cpu: 25m
-      memory: 128Mi
+      memory: 192Mi
     limits:
       memory: 512Mi
 
@@ -116,10 +117,11 @@ gateway:
 
   # Every request into the cluster passes through these pods.
   priorityClassName: system-cluster-critical
+  # Working set p95 128Mi. CPU stays low for the HPA target.
   resources:
     requests:
       cpu: 50m
-      memory: 96Mi
+      memory: 160Mi
     limits:
       memory: 512Mi
 
