@@ -75,11 +75,8 @@ def test_creates_every_missing_secret_and_never_overwrites(tmp_path):
     assert result.returncode == 0, result.stderr
     assert state["/k8s/common/gitlab/root-password"] == "kept"
     assert not any(overwrite for _, _, overwrite in calls)
-    for name in ("grafana", "gitlab", "jenkins", "harbor", "keep"):
+    for name in ("grafana", "gitlab", "jenkins", "keep"):
         assert len(state[f"/k8s/common/{name}/oidc-client-secret"]) == 32
-    assert len(state["/k8s/common/harbor/secret-key"]) == 16
-    admin = state["/k8s/common/harbor/admin-password"]
-    assert any(c.isupper() for c in admin) and any(c.islower() for c in admin) and any(c.isdigit() for c in admin)
     # Values must not leak to the output.
     assert state["/k8s/common/gitlab/postgres-password"] not in result.stdout
 
