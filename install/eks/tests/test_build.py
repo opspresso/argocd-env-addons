@@ -41,8 +41,6 @@ print(json.dumps({"Parameter": {"Value": values[parameter]}}))
 ENV = """\
 argocd:
   hostname: argocd.example.test
-  github:
-    org: fixture-org
 sso:
   admin_groups:
     - fixture-org:fixture-team
@@ -66,11 +64,7 @@ def run_build(tmp_path, scenario="ready", env=ENV):
         "argocd-server-secret": SECRET,
         "argocd-webhook": SECRET,
         "argocd-mcp-tokens": '[{"id":"fixture", "iat":123}]',
-        "argocd-github-id": "123",
-        "argocd-github-secret": SECRET,
     }
-    if scenario == "no_github":
-        del values["argocd-github-id"], values["argocd-github-secret"]
     values_path = tmp_path / "ssm.json"
     values_path.write_text(json.dumps(values))
     bin_dir = tmp_path / "bin"
@@ -101,26 +95,17 @@ def test_build_preserves_secret_characters_and_writes_private_yaml(tmp_path):
     assert secret["argocdServerAdminPassword"] == SECRET
     assert secret["githubSecret"] == SECRET
     assert secret["extra"]["server.secretkey"] == SECRET
-    assert secret["extra"]["dex.github.clientSecret"] == SECRET
     assert secret["extra"]["accounts.mcp.tokens"] == values["argocd-mcp-tokens"]
     assert rendered["configs"]["cm"]["url"] == "https://argocd.example.test"
     # The bootstrap exposes nothing publicly; the argo-cd addon's HTTPRoute serves the UI.
     assert "ingress" not in rendered["server"]
     policy = rendered["configs"]["rbac"]["policy.csv"]
     assert "g, fixture-org:fixture-team, role:admin\ng, sre, role:admin\n" in policy
-    assert "- name: fixture-org" in rendered["configs"]["cm"]["dex.config"]
+    # The bootstrap signs in with the admin account only; LLDAP comes with the argo-cd addon.
+    assert "dex.config" not in rendered["configs"]["cm"]
+    assert not any(key.startswith("dex.") for key in secret["extra"])
     assert output.stat().st_mode & 0o777 == 0o600
     assert list(output.parent.glob(".values.output-*.tmp")) == []
-
-
-def test_build_without_github_oauth_app_signs_in_with_admin_only(tmp_path):
-    result, output, _ = run_build(tmp_path, "no_github")
-    assert result.returncode == 0, result.stderr
-    assert "GitHub 로그인 없이 설치합니다" in result.stdout
-    rendered = yaml.safe_load(output.read_text())
-    assert "dex.config" not in rendered["configs"]["cm"]
-    assert not any(key.startswith("dex.github") for key in rendered["configs"]["secret"]["extra"])
-    assert rendered["configs"]["secret"]["argocdServerAdminPassword"] == SECRET
 
 
 @pytest.mark.parametrize("env", [

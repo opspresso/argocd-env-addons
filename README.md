@@ -33,11 +33,12 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 
 ## 로그인
 
-GitHub `opspresso` 조직 또는 LLDAP 아이디·비밀번호 → Argo CD Dex → 각 addon의 OIDC client로 로그인한다.
-Dex 화면에서 connector `github`나 `lldap`을 고른다. addon 자체의 아이디·비밀번호 폼은 숨긴다.
+LLDAP 아이디·비밀번호 → Argo CD Dex(connector `lldap`) → 각 addon의 OIDC client로 로그인한다.
+Dex connector가 하나라 선택 화면 없이 LLDAP 로그인 폼으로 간다. addon 자체의 아이디·비밀번호 폼은 숨긴다.
+GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남아 있다(`charts/argo-cd`, `env/<cluster>.yaml`의 `sso`).
 
-- 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(`opspresso:sre`, `sre`)는 관리자,
-  `sso.member_groups`(`opspresso:dev`, `dev`)는 일반 사용자·읽기 전용. `sre`·`dev`는 LLDAP 그룹이다.
+- 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(LLDAP 그룹 `sre`)는 관리자,
+  `sso.member_groups`(`dev`)는 일반 사용자·읽기 전용.
 - LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)다. 사용자는 LLDAP 웹 UI에서
   관리한다(`charts/lldap/README.md`).
 - 자체 로그인이 없는 Atlantis·Nexus는 oauth2-proxy가 막는다.

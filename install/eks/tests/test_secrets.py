@@ -56,8 +56,6 @@ def run(tmp_path, state, *args, **env):
     root = tmp_path / "repo"
     (root / "install" / "eks").mkdir(parents=True)
     shutil.copy2(SCRIPT, root / "install" / "eks" / "secrets.sh")
-    (root / "env").mkdir()
-    (root / "env" / "eks-demo.yaml").write_text("argocd:\n  github:\n    org: fixture-org\n")
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     aws = bin_dir / "aws"
@@ -83,7 +81,6 @@ GENERATED = [
     "/k8s/common/gitlab/root-password", "/k8s/common/keep/nextauth-secret",
 ]
 EXTERNAL = [
-    "/k8s/fixture-org/argocd-github-id", "/k8s/fixture-org/argocd-github-secret",
     "/k8s/common/github/opspresso-arc/app_id", "/k8s/common/github/opspresso-arc/installation_id",
     "/k8s/common/github/opspresso-arc/private_key", "/k8s/common/keep/slack-bot-token",
 ]
@@ -109,6 +106,8 @@ def test_empty_ssm_gets_every_generated_value(tmp_path):
     for name in EXTERNAL:
         assert name not in state
         assert f"warn {name} 없음" in result.stdout
+    # GitHub sign-in is off: its OAuth App is neither made nor asked for.
+    assert "argocd-github" not in result.stdout
     assert password not in result.stdout + result.stderr
 
 

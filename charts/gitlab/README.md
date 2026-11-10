@@ -63,8 +63,9 @@ done
 - 로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider`). 가입과 웹 비밀번호 로그인은 꺼져 있다.
 - `root`(`/k8s/common/gitlab/root-password`)는 API·rails console에서만 쓴다.
 
-GitLab CE는 OIDC group으로 관리자를 지정할 수 없다(Premium 이상). 그래서 관리자 GitHub login 목록을
-`env/<cluster>.yaml`의 `gitlab.admins`에 둔다. `sre` 팀 구성원이 바뀌면 이 목록도 함께 고친다.
+GitLab CE는 OIDC group으로 관리자를 지정할 수 없다(Premium 이상). 그래서 관리자 login 목록을
+`env/<cluster>.yaml`의 `gitlab.admins`에 둔다. LLDAP `sre` 그룹 구성원이 바뀌면 이 목록도 함께 고친다.
+GitLab은 `admin`을 예약하므로 LLDAP `admin`은 `admin1`이다.
 CronJob `gitlab-admin-sync`가 10분마다 toolbox Pod에서 `gitlab-rails runner`를 실행한다.
 
 - SSO 사용자 중 목록에 있는 사용자는 관리자로, 그 밖의 사용자는 일반 사용자로 맞춘다. `root`는 바꾸지 않는다.

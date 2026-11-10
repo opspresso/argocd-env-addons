@@ -15,8 +15,8 @@ terraform apply
 
 `./install.sh`는 SSM이 비어 있는 계정과 값이 이미 있는 계정에서 같은 명령으로 실행한다.
 만들 수 있는 값은 없을 때만 만들고, 있는 값은 바꾸지 않는다. 클러스터 설정(Argo CD 주소,
-GitHub 조직, 관리자 그룹)은 SSM이 아니라 `env/<cluster>.yaml`의 `argocd.hostname`,
-`argocd.github.org`, `sso.admin_groups`에서 읽는다.
+관리자 그룹)은 SSM이 아니라 `env/<cluster>.yaml`의 `argocd.hostname`,
+`sso.admin_groups`에서 읽는다.
 
 | 종류 | 파라미터 | 만드는 곳 |
 | --- | --- | --- |
@@ -43,17 +43,16 @@ GitHub 조직, 관리자 그룹)은 SSM이 아니라 `env/<cluster>.yaml`의 `ar
 
 | 파라미터 | 없을 때 | 발급 |
 | --- | --- | --- |
-| `/k8s/<org>/argocd-github-id`, `argocd-github-secret` | GitHub 로그인 불가. 관리자·LLDAP 로그인은 동작 | GitHub OAuth App, callback `https://<argocd-hostname>/api/dex/callback` |
 | `/k8s/common/github/opspresso-arc/app_id`, `installation_id`, `private_key` | `arc-runners` 미동작 | GitHub App |
 | `/k8s/common/keep/slack-bot-token` | `keep` 미동작 | Slack app (`charts/keep/README.md`) |
 
 ```bash
-aws ssm put-parameter --name /k8s/opspresso/argocd-github-id --value "<client id>" --type SecureString
-aws ssm put-parameter --name /k8s/opspresso/argocd-github-secret --value "<client secret>" --type SecureString
+aws ssm put-parameter --name /k8s/common/keep/slack-bot-token --value "<xoxb-...>" --type SecureString
 ```
 
-GitHub OAuth App 값은 Secret `argocd-dex-github`(argocd)가 읽는다. 값을 넣거나 바꾼 뒤
-ExternalSecret이 갱신되면(최대 1시간) `argocd-dex-server`를 재시작한다.
+GitHub 로그인은 꺼져 있다. 다시 켜려면 `charts/argo-cd`의 connector `github`·`argocd-dex-github`와
+`env/<cluster>.yaml`의 GitHub 팀 주석을 풀고, GitHub OAuth App(callback `https://<argocd-hostname>/api/dex/callback`)의
+값을 `/k8s/<argocd.github.org>/argocd-github-id`·`argocd-github-secret`에 넣는다.
 
 ## Server secret and API tokens
 
@@ -90,8 +89,8 @@ python3 -m pip install -r ../../requirements/runtime.txt
 1. `env/<cluster>.yaml`(`CLUSTER`, 기본 `eks-demo`)에서 Argo CD 주소를 읽는다.
 2. `token.sh`: Argo CD 서명 키와 mcp·keep 계정 토큰을 SSM에서 확인하거나 만든다.
 3. `secrets.sh`: 관리자 계정과 addon이 읽는 무작위 값을 없을 때만 SSM에 만든다(아래 'Addon secrets').
-4. `build.sh`: env 설정과 SSM 값으로 `values.output.yaml`(0600)을 만든다. GitHub OAuth App이 없으면
-   GitHub connector 없이 만든다. 다른 값 조회가 하나라도 실패하면 기존 파일을 유지한다.
+4. `build.sh`: env 설정과 SSM 값으로 `values.output.yaml`(0600)을 만든다. 부트스트랩은 관리자 계정으로만
+   로그인한다. 값 조회가 하나라도 실패하면 기존 파일을 유지한다.
 5. `helm upgrade --install argocd`: Argo CD를 설치하고 준비될 때까지 기다린다(`HELM_TIMEOUT`, 기본 10m).
 6. `bootstrap.yaml`: 이 클러스터를 이름 `eks-demo`로 등록하는 cluster Secret과 `addons`·`apps` AppProject를 적용한다.
 7. `addons-eks.yaml`과 `argocd-env-apps`의 `apps-eks.yaml`을 등록한다.

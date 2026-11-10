@@ -9,10 +9,10 @@ namespace는 `addon-lldap`, 웹 UI 주소는 `https://lldap.demo.opsp.dev`다.
 ## 로그인 흐름
 
 1. addon(Grafana, Keep, GitLab 등)이 Argo CD Dex로 보낸다.
-2. Dex 화면에서 **LLDAP**을 고르고 LLDAP 아이디·비밀번호를 넣는다. GitHub은 그대로 고를 수 있다.
+2. Dex의 LLDAP 로그인 폼에 LLDAP 아이디·비밀번호를 넣는다. connector가 `lldap` 하나라 선택 화면은 없다.
 3. Dex는 `uid=<admin>,ou=people,<base_dn>`으로 bind해 사용자와 그룹을 찾는다.
 4. 그룹 `sre`는 관리자, `dev`는 일반 사용자다(`env/<cluster>.yaml`의 `sso`). 그룹이 없는 LLDAP 사용자도
-   로그인할 수 있으며 읽기 권한만 받는다. GitHub 조직원과 같은 규칙이다.
+   로그인할 수 있으며 읽기 권한만 받는다.
 
 ## 관리자 계정
 

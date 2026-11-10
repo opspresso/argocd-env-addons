@@ -72,7 +72,7 @@ raw:
         annotations:
           kubernetes.io/service-account.name: sso-team
       type: kubernetes.io/service-account-token
-    # Every other signed-in user (GitHub organization member or LLDAP user) reads workflows in default only.
+    # Every other signed-in LLDAP user reads workflows in default only.
     - apiVersion: v1
       kind: ServiceAccount
       metadata:

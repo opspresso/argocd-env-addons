@@ -48,19 +48,19 @@ configs:
     # 없고 UI 세션으로도 바뀌지 않습니다.
     accounts.mcp: apiKey
 
-    # build.py removes the connector and its keys below when the GitHub OAuth
-    # App is not in SSM: the bootstrap then signs in with the admin account only.
-    dex.config: |
-      connectors:
-      - type: github
-        id: github
-        name: github
-        config:
-          clientID: $dex.github.clientId
-          clientSecret: $dex.github.clientSecret
-          teamNameField: slug
-          orgs:
-            - name: GITHUB_ORG
+    # 부트스트랩은 관리자 계정으로만 로그인합니다. LLDAP connector 는 argo-cd addon 이
+    # 동기화되면 생깁니다(charts/argo-cd). GitHub 로그인은 꺼져 있습니다.
+    # dex.config: |
+    #   connectors:
+    #   - type: github
+    #     id: github
+    #     name: github
+    #     config:
+    #       clientID: $dex.github.clientId
+    #       clientSecret: $dex.github.clientSecret
+    #       teamNameField: slug
+    #       orgs:
+    #         - name: <argocd.github.org>
 
   secret:
     createSecret: true
@@ -70,8 +70,9 @@ configs:
     extra:
       server.secretkey: "ARGOCD_SERVER_SECRET"
 
-      dex.github.clientId: "ARGOCD_GITHUB_ID"
-      dex.github.clientSecret: "ARGOCD_GITHUB_SECRET"
+      # GitHub 로그인(꺼짐)의 OAuth App 입니다.
+      # dex.github.clientId: <SSM /k8s/<org>/argocd-github-id>
+      # dex.github.clientSecret: <SSM /k8s/<org>/argocd-github-secret>
 
       # mcp 계정의 토큰 목록입니다. server.secretkey 와 이 목록이 같이 고정되어
       # 있으면 mcp-argocd 가 들고 있는 토큰이 재설치 후에도 그대로 통합니다.

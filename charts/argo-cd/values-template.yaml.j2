@@ -70,13 +70,14 @@ argo-cd:
   dex:
     enabled: {{argocd.dex.enabled}}
     # Connector credentials as environment variables, each from its own
-    # ExternalSecret below. Optional: a missing GitHub OAuth App or LLDAP
-    # account disables only that sign-in, and Dex still starts (it continues on
-    # connector failure).
+    # ExternalSecret below. Optional: a missing value disables only that
+    # sign-in, and Dex still starts (it continues on connector failure).
+    # Only LLDAP signs in. To bring GitHub back, uncomment argocd-dex-github
+    # here, the connector github and its ExternalSecret below.
     envFrom:
-      - secretRef:
-          name: argocd-dex-github
-          optional: true
+      # - secretRef:
+      #     name: argocd-dex-github
+      #     optional: true
 {% if lldap is defined %}
       - secretRef:
           name: argocd-dex-lldap
@@ -162,16 +163,17 @@ argo-cd:
 
       dex.config: |
         connectors:
-        - type: github
-          id: github
-          name: github
-          config:
-            # Secret argocd-dex-github (dex.envFrom).
-            clientID: $GITHUB_CLIENT_ID
-            clientSecret: $GITHUB_CLIENT_SECRET
-            teamNameField: slug
-            orgs:
-              - name: {{argocd.github.org}}
+        # GitHub sign-in is off: only LLDAP signs in (dex.envFrom above).
+        # - type: github
+        #   id: github
+        #   name: github
+        #   config:
+        #     # Secret argocd-dex-github (dex.envFrom).
+        #     clientID: $GITHUB_CLIENT_ID
+        #     clientSecret: $GITHUB_CLIENT_SECRET
+        #     teamNameField: slug
+        #     orgs:
+        #       - name: {{argocd.github.org}}
 {% if lldap is defined %}
         # LLDAP (charts/lldap): ID and password. The claim groups holds the
         # LLDAP group names. The bind user is the LLDAP admin. Dex expands the
@@ -434,28 +436,29 @@ raw:
             remoteRef:
               key: /k8s/common/jenkins/oidc-client-secret
 
-    # GitHub OAuth App of the Dex connector github. It is apart from
-    # argocd-secret: a missing App fails only this ExternalSecret and the GitHub
-    # sign-in, not the admin password and API tokens. dex.config resolves $<key>
-    # only from argocd-secret, so Dex reads these values as environment variables.
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
-      metadata:
-        name: argocd-dex-github
-      spec:
-        refreshInterval: 1h
-        secretStoreRef:
-          kind: ClusterSecretStore
-          name: parameter-store
-        target:
-          name: argocd-dex-github
-        data:
-          - secretKey: GITHUB_CLIENT_ID
-            remoteRef:
-              key: /k8s/{{argocd.github.org}}/argocd-github-id
-          - secretKey: GITHUB_CLIENT_SECRET
-            remoteRef:
-              key: /k8s/{{argocd.github.org}}/argocd-github-secret
+    # GitHub OAuth App of the Dex connector github (off: only LLDAP signs in).
+    # It is apart from argocd-secret: a missing App fails only this
+    # ExternalSecret and the GitHub sign-in, not the admin password and API
+    # tokens. dex.config resolves $<key> only from argocd-secret, so Dex reads
+    # these values as environment variables.
+    # - apiVersion: external-secrets.io/v1
+    #   kind: ExternalSecret
+    #   metadata:
+    #     name: argocd-dex-github
+    #   spec:
+    #     refreshInterval: 1h
+    #     secretStoreRef:
+    #       kind: ClusterSecretStore
+    #       name: parameter-store
+    #     target:
+    #       name: argocd-dex-github
+    #     data:
+    #       - secretKey: GITHUB_CLIENT_ID
+    #         remoteRef:
+    #           key: /k8s/{{argocd.github.org}}/argocd-github-id
+    #       - secretKey: GITHUB_CLIENT_SECRET
+    #         remoteRef:
+    #           key: /k8s/{{argocd.github.org}}/argocd-github-secret
 {% if lldap is defined %}
 
     # Bind user of the Dex connector lldap: the Argo CD admin, which is also

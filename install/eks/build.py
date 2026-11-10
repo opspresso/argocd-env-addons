@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Render bootstrap values without interpreting secrets as YAML or sed syntax.
 
-Cluster settings (hostname, GitHub organization, admin groups) come from
-env/<CLUSTER>.yaml, the same file the addons render from. Secrets come from SSM;
-secrets.sh and token.sh create them before this runs. The GitHub OAuth App is
-issued outside and may be absent: the bootstrap then has no GitHub connector.
+Cluster settings (hostname, admin groups) come from env/<CLUSTER>.yaml, the
+same file the addons render from. Secrets come from SSM; secrets.sh and token.sh
+create them before this runs. The bootstrap signs in with the admin account only.
 """
 
 import json
@@ -23,29 +22,16 @@ ENV_DIR = SCRIPT_DIR.parents[1] / "env"
 NOT_FOUND = "(ParameterNotFound)"
 
 
-class ParameterNotFound(ValueError):
-    pass
-
-
 def aws(*args):
     result = subprocess.run(
         ["aws", *args], capture_output=True, text=True, check=False
     )
     if result.returncode:
         if NOT_FOUND in result.stderr:
-            raise ParameterNotFound(f"SSM 파라미터가 없습니다: {args[args.index('--name') + 1]}")
+            raise ValueError(f"SSM 파라미터가 없습니다: {args[args.index('--name') + 1]}")
         # Do not include captured output, which may contain decrypted values.
         raise ValueError(f"AWS {args[0]} {args[1]} 조회 실패 (종료 코드 {result.returncode})")
     return result.stdout
-
-
-def optional_ssm(name):
-    """Return None only for ParameterNotFound; every other failure stops."""
-    try:
-        return ssm(name)
-    except ParameterNotFound:
-        print(f"  miss {name}")
-        return None
 
 
 def ssm(name):
@@ -83,24 +69,20 @@ def cluster_settings(cluster):
     try:
         env = yaml.safe_load(path.read_text())
         hostname = env["argocd"]["hostname"]
-        org = env["argocd"]["github"]["org"]
         groups = env["sso"]["admin_groups"]
     except (OSError, KeyError, TypeError) as error:
-        raise ValueError(
-            f"{path.name}에 argocd.hostname, argocd.github.org, sso.admin_groups가 필요합니다"
-        ) from error
-    if not all(isinstance(value, str) and value for value in (hostname, org)) or \
+        raise ValueError(f"{path.name}에 argocd.hostname, sso.admin_groups가 필요합니다") from error
+    if not (isinstance(hostname, str) and hostname) or \
             not groups or not all(isinstance(group, str) and group for group in groups):
-        raise ValueError(f"{path.name}의 argocd.hostname, argocd.github.org, sso.admin_groups가 비어 있습니다")
-    return hostname, org, groups
+        raise ValueError(f"{path.name}의 argocd.hostname, sso.admin_groups가 비어 있습니다")
+    return hostname, groups
 
 
 def build():
     cluster = os.environ.get("CLUSTER", "eks-demo")
-    hostname, org, groups = cluster_settings(cluster)
+    hostname, groups = cluster_settings(cluster)
     replacements = {
         "ARGOCD_HOSTNAME": hostname,
-        "GITHUB_ORG": org,
         "ADMIN_GROUPS_POLICY": "\n".join(f"g, {group}, role:admin" for group in groups),
     }
     replacements.update({
@@ -113,22 +95,8 @@ def build():
             ("ARGOCD_MCP_TOKENS", "argocd-mcp-tokens"),
         )
     })
-    github = {
-        key: optional_ssm(f"/k8s/{org}/{name}")
-        for key, name in (
-            ("ARGOCD_GITHUB_ID", "argocd-github-id"),
-            ("ARGOCD_GITHUB_SECRET", "argocd-github-secret"),
-        )
-    }
 
     template = yaml.safe_load((SCRIPT_DIR / "values.yaml").read_text())
-    if all(github.values()):
-        replacements.update(github)
-    else:
-        print("  GitHub OAuth App이 SSM에 없어 GitHub 로그인 없이 설치합니다 (README: External values).")
-        del template["configs"]["cm"]["dex.config"]
-        for key in ("dex.github.clientId", "dex.github.clientSecret"):
-            del template["configs"]["secret"]["extra"][key]
     values = replace_values(template, replacements)
     output = SCRIPT_DIR / "values.output.yaml"
     descriptor, temporary = tempfile.mkstemp(prefix=".values.output-", suffix=".tmp", dir=SCRIPT_DIR)

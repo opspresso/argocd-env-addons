@@ -62,7 +62,7 @@ raw:
       metadata:
         name: sso-team
         annotations:
-          workflows.argoproj.io/rbac-rule: "'opspresso:sre' in groups || 'sre' in groups"
+          workflows.argoproj.io/rbac-rule: "'sre' in groups"
           workflows.argoproj.io/rbac-rule-precedence: "1"
     - apiVersion: v1
       kind: Secret
@@ -71,7 +71,7 @@ raw:
         annotations:
           kubernetes.io/service-account.name: sso-team
       type: kubernetes.io/service-account-token
-    # Every other signed-in user (GitHub organization member or LLDAP user) reads workflows in default only.
+    # Every other signed-in LLDAP user reads workflows in default only.
     - apiVersion: v1
       kind: ServiceAccount
       metadata:

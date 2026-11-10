@@ -8,10 +8,10 @@
 #   데이터·발급된 세션이 맞지 않게 됩니다.
 # - 예외는 argocd-password 하나입니다. admin-password 의 bcrypt 해시이므로, 없거나
 #   admin-password 와 맞지 않으면 다시 만들고 argocd-mtime 도 갱신합니다.
-# - 밖에서 발급하는 값(GitHub OAuth App, GitHub App, Slack bot token)은 만들지 않습니다.
+# - 밖에서 발급하는 값(GitHub App, Slack bot token)은 만들지 않습니다.
 #   없으면 영향받는 기능과 함께 경고만 출력합니다 (README 'External values').
 #
-#   ./secrets.sh                # 기본 클러스터 eks-demo (CLUSTER 로 변경)
+#   ./secrets.sh                # 없는 값을 만든다
 #   ./secrets.sh --check        # 만들지 않고 없는 값만 출력 (만들 값이 없으면 0, 있으면 1)
 
 set -euo pipefail
@@ -39,9 +39,6 @@ step() { echo -e "\n${C_STEP}==> $*${C_OFF}"; }
 ok() { echo -e "${C_OK}✔ $*${C_OFF}"; }
 warn() { echo -e "${C_CMD}  warn $*${C_OFF}"; }
 
-SHELL_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-CLUSTER="${CLUSTER:-eks-demo}"
-ENV_FILE="${SHELL_DIR}/../../env/${CLUSTER}.yaml"
 
 # 파라미터가 있으면 0, ParameterNotFound 면 1. 그 밖의 오류(권한·통신)는 중단합니다.
 exists() {
@@ -126,13 +123,8 @@ put_overwrite() {
   }
 }
 
-if ! python3 -c 'import bcrypt, yaml' >/dev/null 2>&1; then
-  echo "bcrypt·PyYAML이 필요합니다. 저장소 루트에서 python3 -m pip install -r requirements/runtime.txt 로 설치하세요." >&2
-  exit 1
-fi
-
-if ! GITHUB_ORG=$(python3 -c 'import sys, yaml; print(yaml.safe_load(open(sys.argv[1]))["argocd"]["github"]["org"])' "$ENV_FILE" 2>/dev/null) || [ -z "$GITHUB_ORG" ]; then
-  echo "${ENV_FILE} 에서 argocd.github.org 를 읽을 수 없습니다." >&2
+if ! python3 -c 'import bcrypt' >/dev/null 2>&1; then
+  echo "bcrypt가 필요합니다. 저장소 루트에서 python3 -m pip install -r requirements/runtime.txt 로 설치하세요." >&2
   exit 1
 fi
 
@@ -205,8 +197,9 @@ external() {
     EXTERNAL=$((EXTERNAL + 1))
   fi
 }
-external "/k8s/${GITHUB_ORG}/argocd-github-id" "GitHub 로그인 (Dex connector github)"
-external "/k8s/${GITHUB_ORG}/argocd-github-secret" "GitHub 로그인 (Dex connector github)"
+# GitHub 로그인은 꺼져 있습니다(charts/argo-cd). 다시 켜면 OAuth App 도 확인합니다.
+# external "/k8s/<argocd.github.org>/argocd-github-id" "GitHub 로그인 (Dex connector github)"
+# external "/k8s/<argocd.github.org>/argocd-github-secret" "GitHub 로그인 (Dex connector github)"
 for name in app_id installation_id private_key; do
   external "/k8s/common/github/opspresso-arc/${name}" "GitHub Actions runner (arc-runners)"
 done
