@@ -10,8 +10,8 @@ kro:
   deployment:
     resources:
       requests:
-        cpu: 50m
-        memory: 128Mi
+        cpu: 10m
+        memory: 64Mi
       # Drop the upstream 1000m CPU limit; this repository sets no CPU limits.
       limits:
         cpu: null

@@ -70,13 +70,13 @@ kube-prometheus-stack:
               requests:
                 storage: 80Gi
 
-      # Working set holds near 1.2Gi with 1.3Gi peaks; CPU peaks near 100m.
+      # Working set p95 2.3Gi, peak 2.6Gi; CPU p95 90m (7-day peak to 2026-11-10).
       resources:
         requests:
           cpu: 100m
-          memory: 1536Mi
+          memory: 2560Mi
         limits:
-          memory: 3Gi
+          memory: 4Gi
 
   alertmanager:
     enabled: false

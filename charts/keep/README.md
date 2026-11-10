@@ -20,7 +20,7 @@
 Argo CD의 Dex(`https://argocd.demo.opsp.dev/api/dex`)로 로그인한다. Dex client는 `charts/argo-cd`의 `keep-sso`다.
 
 - `sso.admin_groups`는 `admin`, `sso.member_groups`는 읽기 전용 `noc` 역할을 받는다.
-- 두 목록 어디에도 없는 사용자는 403을 받는다. Keep OIDC에는 기본 역할이 없다.
+- 두 목록 어디에도 없는 사용자는 403을 받는다. Keep OIDC에는 기본 역할이 없다. LLDAP 사용자를 `sre`나 `dev`에 넣는다.
 
 ## 연동
 
@@ -105,7 +105,8 @@ Basic Information에서 `slack-app-icon.png`를 올린 뒤 workspace에 설치�
 
 ## SSM 파라미터
 
-ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들지 않는다. 처음 배포하기 전에 아래를 모두 등록한다.
+ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들지 않는다. `slack-bot-token`을 뺀 값은
+`install/eks/install.sh`(`secrets.sh`, `token.sh --account keep`)가 없을 때만 만든다. `slack-bot-token`은 직접 넣는다.
 
 | 파라미터 | 읽는 곳 |
 | --- | --- |
@@ -120,13 +121,7 @@ ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들
 | `/k8s/common/argocd-keep-tokens` | `argocd-secret`의 `accounts.keep.tokens`. 위와 같은 스크립트가 만든다 |
 
 ```bash
-# URL에 들어가므로 hex 값을 쓴다. 이미 있으면 덮어쓰지 않는다.
-for name in database-password nextauth-secret oidc-client-secret grafana-api-key argocd-api-key alertmanager-api-key; do
-  aws ssm put-parameter --name "/k8s/common/keep/${name}" --value "$(openssl rand -hex 32)" --type SecureString | jq .Version
-done
-
-# Argo CD keep 계정의 토큰. install/eks/install.sh도 매번 실행한다.
-(cd install/eks && ./token.sh --account keep)
+aws ssm put-parameter --name /k8s/common/keep/slack-bot-token --value "<xoxb-...>" --type SecureString
 ```
 
 ### 값 교체

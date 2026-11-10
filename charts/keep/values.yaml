@@ -31,9 +31,10 @@ keep:
     podAnnotations:
       "prometheus.io/scrape": "false"
 
+    # CPU p95 130m, working set peak 650Mi.
     resources:
       requests:
-        cpu: 100m
+        cpu: 150m
         memory: 768Mi
       limits:
         memory: 2Gi
@@ -115,7 +116,7 @@ keep:
           periodSeconds: 10
     resources:
       requests:
-        cpu: 50m
+        cpu: 20m
         memory: 256Mi
       limits:
         memory: 1Gi

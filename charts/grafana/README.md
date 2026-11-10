@@ -6,21 +6,19 @@ Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)로 로그인한다. 다른 a
 
 - 로그인 화면은 바로 Dex로 이동한다(`auto_login`). 아이디·비밀번호 폼은 숨긴다(`disable_login_form`).
 - `sso.admin_groups`는 Grafana `Admin`, 그 밖의 사용자는 `Viewer`를 받는다. 로그인할 때마다 다시 맞춘다.
-- 이전 GitHub OAuth 로그인으로 만든 사용자는 같은 이메일로 연결된다(`oauth_allow_insecure_email_lookup`).
-- 로컬 관리자(`/k8s/common/admin-user`, `admin-password`)는 HTTP API에서만 쓴다.
+- 이미 있는 사용자는 같은 이메일로 연결된다(`oauth_allow_insecure_email_lookup`).
+- 로컬 관리자(`/k8s/common/admin-user`, `admin-password`)와 LLDAP 관리자는 login `admin`이 같다. 둘의 email을
+  `lldap.admin_email`로 맞춰 같은 계정으로 연결한다(`security.admin_email`, `charts/lldap/README.md`).
 
 ## SSM 파라미터
 
-```bash
-aws ssm put-parameter --name /k8s/common/admin-user --value "${ADMIN_USERNAME}" --type SecureString --overwrite
-aws ssm put-parameter --name /k8s/common/admin-password --value "${ADMIN_PASSWORD}" --type SecureString --overwrite
+`install/eks/secrets.sh`가 없을 때만 만든다.
 
-# Dex client grafana-sso의 secret. Argo CD argocd-secret도 읽으므로 merge 전에 만든다.
-aws ssm put-parameter --name /k8s/common/grafana/oidc-client-secret --type SecureString \
-  --value "$(openssl rand -base64 33 | tr -d '/+=' | cut -c1-32)"
-```
-
-`/k8s/common/keep/grafana-api-key`는 Keep contact point가 읽는다. `charts/keep/README.md`가 만든다.
+| 파라미터 | 읽는 곳 |
+| --- | --- |
+| `/k8s/common/admin-user`, `admin-password` | `grafana-secret`(로컬 관리자) |
+| `/k8s/common/grafana/oidc-client-secret` | `grafana-secret`, `argocd-secret`(Dex client `grafana-sso`) |
+| `/k8s/common/keep/grafana-api-key` | `grafana-secret`(Keep contact point) |
 
 Dex는 시작할 때만 client secret을 읽는다. secret을 바꾸면 `argocd-secret`이 갱신된 뒤
 `kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다.

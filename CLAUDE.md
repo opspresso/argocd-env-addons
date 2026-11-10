@@ -34,12 +34,16 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 운영 클러스터는 EKS `eks-demo`이며 같은 클러스터의 Argo CD가 `addons-eks.yaml`을 동기화한다.
 `local` 템플릿·정책 지원은 남아 있지만 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
-인증: LLDAP(`charts/lldap`) → Argo CD Dex(connector `lldap`) → 각 addon 의 OIDC client. GitHub connector 는 꺼져 있고 주석으로 남아 있다
+인증: LLDAP(`charts/lldap`, `id.demo.opsp.dev`) → Argo CD Dex(connector `lldap`) → 각 addon 의 OIDC client
 (`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`jenkins-sso`·`oauth2-proxy-sso`).
+GitHub connector 는 꺼져 있고 설정은 주석으로 남아 있다(`charts/argo-cd`, `env/<cluster>.yaml` 의 `sso`).
 권한은 `env/<cluster>.yaml` 의 `sso`: `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
-LLDAP 그룹은 이름 그대로 들어온다(GitHub 팀은 `<org>:<team>`). LLDAP 관리자·Dex bind 사용자는 `/k8s/common/admin-user`·`admin-password`.
-자체 로그인이 없는 `atlantis`·`nexus` 는 `oauth2-proxy` 가 막는다. GitLab CE·Nexus CE 의 관리자는 `gitlab.admins`·`nexus.admins`
-목록을 CronJob 이 맞춘다. addon 이 읽는 무작위 값은 `install/eks/secrets.sh` 가 SSM 에 만든다.
+LLDAP 그룹은 이름 그대로 들어온다. LLDAP 관리자·Dex bind 사용자는 Argo CD 관리자(`/k8s/common/admin-user`·`admin-password`)다.
+자체 로그인이 없는 서비스는 `oauth2-proxy` 가 막는다. GitLab CE 의 관리자는 `gitlab.admins` 목록을 CronJob 이 맞춘다.
+
+설치(`install/eks`)는 SSM 이 비어 있어도, 값이 있어도 같은 명령으로 실행한다. 클러스터 설정은 `env/eks-demo.yaml` 에서 읽고,
+만들 수 있는 SSM 값은 `token.sh`·`secrets.sh` 가 없을 때만 만든다. 배포 addon 이 새 SSM 파라미터를 읽으면
+`secrets.sh` 에 생성을 추가하거나 외부 발급 값으로 등록한다(`install/eks/tests/test_empty_ssm.py` 가 검사).
 
 경보: Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와
 kube-sre 호출을 만든다 (`charts/keep/README.md`).

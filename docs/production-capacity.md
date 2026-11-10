@@ -13,31 +13,37 @@ CPU limit은 격리나 명확한 실행 예산이 필요한 곳에만 둔다. `s
 CI는 미배포 `backup/`도 검사한다. 보관 chart의 예산은 활성화 전 실제 부하로 다시 검증한다.
 Atlantis의 upstream 테스트는 자원 옵션이 없어, 제한을 선언한 HTTP UI 테스트로 대체한다.
 
-requests는 `eks-demo`에서 측정한 working set·CPU peak에 여유를 더한 값이다(2026-10-27, 클러스터 기동 후
-3시간 구간). memory limit은 peak보다 충분히 크게 둔다. CPU 기반 HPA를 쓰는 workload는 목표 사용률이
-의미를 갖도록 CPU request를 25~50m로 유지한다. 7일 peak가 쌓이면 아래 "확장 확인" 기준으로 다시 검토한다.
+requests는 `eks-demo`에서 측정한 working set p95·CPU p95에 여유를 더한 값이다(2026-11-10까지 7일 구간).
+memory limit은 7일 peak보다 충분히 크게 둔다. CPU 기반 HPA를 쓰는 workload는 목표 사용률이
+의미를 갖도록 CPU request를 25~50m로 유지하고 메모리만 조정한다. 측정 기간이 짧은 workload(GitLab, LLDAP)는
+줄이지 않고 7일 데이터가 쌓이면 "확장 확인" 기준으로 다시 검토한다.
 
 | 구성 | requests CPU / memory | memory limit | 확장·운영 기준 |
 | --- | --- | --- | --- |
-| Argo controller | 100m / 768Mi | 2Gi | 초기 sync peak 1.1Gi, reconciliation 지연·메모리 관찰 |
-| Argo repo-server | 50m / 256Mi | 1Gi | 2 replicas, PDB 1, Helm 생성 시 CPU burst 허용 |
-| Argo server | 10m / 64Mi | 256Mi | 2 replicas, PDB 1 |
-| Argo application-set / Dex / Redis | 10m/64Mi, 5m/48Mi, 10m/32Mi | 128Mi / 128Mi / 128Mi | 실제 사용량·queue 지연에 따라 조정 |
+| Argo controller | 200m / 2Gi | 5Gi | 전체 reconcile peak 3.4Gi, reconciliation 지연·메모리 관찰 |
+| Argo repo-server | 100m / 384Mi | 1Gi | 2 replicas, PDB 1, Helm 렌더 peak 540Mi |
+| Argo server | 10m / 128Mi | 256Mi | 2 replicas, PDB 1 |
+| Argo application-set / Dex / Redis | 10m/64Mi, 5m/128Mi, 10m/32Mi | 128Mi / 256Mi / 128Mi | 실제 사용량·queue 지연에 따라 조정 |
 | Argo notifications | 5m / 48Mi | 128Mi | `service.webhook.keep`으로 Keep에 전송 |
-| metrics-server | 10m / 48Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
+| Argo Workflows controller / server | 20m/128Mi, 10m/128Mi | 512Mi / 256Mi | 실행 workflow 수가 늘면 controller 메모리 확인 |
+| metrics-server | 10m / 64Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
 | Prometheus adapter | 10m / 48Mi | 256Mi | 2 replicas, 다른 노드에 배치, PDB 1 |
-| Prometheus | 50m / 1Gi | 3Gi | 80Gi PVC, 10일·60GiB retention |
-| Loki / rules sidecar | 25m/192Mi, 5m/96Mi | 1Gi / 256Mi | 50Gi PVC, 31일 retention |
-| Grafana | 20m / 160Mi | 512Mi | RWO PVC·SQLite, Recreate 배포 |
-| Alloy / reloader | 20m/96Mi, 5m/16Mi | 256Mi / 64Mi | 노드마다 1개 |
+| Prometheus | 100m / 2560Mi | 4Gi | working set p95 2.3Gi, 80Gi PVC, 10일·60GiB retention |
+| Loki / rules sidecar | 25m/384Mi, 10m/96Mi | 1Gi / 256Mi | 50Gi PVC, 31일 retention |
+| Grafana | 20m / 288Mi | 512Mi | RWO PVC·SQLite, Recreate 배포 |
+| Alloy / reloader | 40m/128Mi, 5m/16Mi | 256Mi / 64Mi | 노드마다 1개 |
 | node-exporter | 10m / 24Mi | 64Mi | 노드마다 1개 |
-| Istiod / gateway | 25m/128Mi, 50m/64Mi | 512Mi / 512Mi | EKS에서 2~6 replicas, CPU HPA, `system-cluster-critical` |
+| Istiod / gateway | 25m/192Mi, 50m/160Mi | 512Mi / 512Mi | EKS에서 2~6 replicas, CPU HPA, `system-cluster-critical` |
 | Istio sidecar | 10m / 64Mi | 256Mi | meshed Pod마다 1개 |
-| external-secrets controller / webhook / cert-controller | 10m/64Mi, 5m/64Mi, 5m/64Mi | 256Mi / 128Mi / 128Mi | webhook 2 replicas·PDB 1. ExternalSecret 수가 늘면 controller 메모리 확인 |
-| kro | 50m / 128Mi | 512Mi | 측정 전 초기값. 인스턴스·RGD 수가 늘면 메모리 확인 |
-| ACK RDS controller | 10m / 64Mi | 256Mi | 측정 전 초기값. chart schema가 CPU limit을 요구해 200m을 둔다 |
-| ACK S3 controller | 10m / 64Mi | 256Mi | 측정 전 초기값. RDS controller와 같은 이유로 CPU limit 200m |
-| ACK DynamoDB controller | 10m / 64Mi | 256Mi | 측정 전 초기값. RDS controller와 같은 이유로 CPU limit 200m |
+| external-secrets controller / webhook / cert-controller | 10m/96Mi, 5m/64Mi, 5m/96Mi | 256Mi / 128Mi / 128Mi | webhook 2 replicas·PDB 1. ExternalSecret 수가 늘면 controller 메모리 확인 |
+| kro | 10m / 64Mi | 512Mi | 인스턴스·RGD 수가 늘면 메모리 확인 |
+| ARC controller | 10m / 64Mi | 512Mi | runner 수가 늘면 메모리 확인 |
+| ACK RDS / S3 / DynamoDB controller | 10m / 64Mi | 256Mi | chart schema가 CPU limit을 요구해 200m을 둔다 |
+| GitLab webservice / sidekiq / gitaly | 300m/2560Mi, 300m/1500Mi, 100m/256Mi | 3Gi / 2560Mi / 1Gi | Puma worker 2개. 측정 3시간, 7일 뒤 재검토 |
+| GitLab toolbox / PostgreSQL | 200m/768Mi, 100m/512Mi | 2Gi / 1Gi | `gitlab-admin-sync`가 10분마다 toolbox에서 `gitlab-rails` 실행 |
+| Keep backend / frontend / DB | 150m/768Mi, 50m/256Mi, 20m/256Mi | 2Gi / 768Mi / 1Gi | 알림 유입량이 늘면 backend CPU 확인 |
+| LLDAP | 10m / 32Mi | 128Mi | SQLite PVC, 1 replica |
+| oauth2-proxy | 10m / 64Mi | 256Mi | 보호 대상이 생기면 다시 측정 |
 
 Agent 앱의 requests·limits는 `argocd-env-apps`의 각 chart `values.yaml`이 소유한다. limit은 부하 시험
 peak(48 동시 요청에서 Studio 1.1Gi, Memory 530Mi, Models 400Mi)보다 크게 둔다.

@@ -12,7 +12,7 @@ namespace는 `addon-lldap`, 웹 UI 주소는 `https://id.demo.opsp.dev`다.
 2. Dex의 LLDAP 로그인 폼에 LLDAP 아이디·비밀번호를 넣는다. connector가 `lldap` 하나라 선택 화면은 없다.
 3. Dex는 `uid=<admin>,ou=people,<base_dn>`으로 bind해 사용자와 그룹을 찾는다.
 4. 그룹 `sre`는 관리자, `dev`는 일반 사용자다(`env/<cluster>.yaml`의 `sso`). 그룹이 없는 LLDAP 사용자도
-   로그인할 수 있으며 읽기 권한만 받는다.
+   로그인할 수 있으며 읽기 권한만 받는다. Keep만 그룹이 없는 사용자를 거부한다.
 
 ## 관리자 계정
 
@@ -38,8 +38,8 @@ LLDAP 관리자는 Argo CD 관리자와 같은 값을 쓴다.
 - 사용자 추가·그룹 배정·비밀번호 재설정은 웹 UI에서 관리자로 한다. 사용자는 자기 비밀번호를 웹 UI에서 바꾼다.
 - Dex는 email이 없는 사용자의 로그인을 거부한다. 사용자를 만들 때 email을 넣는다.
 - SMTP가 없어 비밀번호 재설정 메일은 보내지 않는다.
-- GitLab CE·Nexus CE 관리자는 그룹이 아니라 `gitlab.admins`·`nexus.admins`의 로그인 이름으로 정한다.
-  GitLab은 `admin`을 예약해 LLDAP 관리자를 `admin1`로 만든다.
+- GitLab CE 관리자는 그룹이 아니라 `gitlab.admins`의 로그인 이름으로 정한다.
+  GitLab은 `admin`을 예약해 LLDAP 관리자를 `admin1`로 만든다. `sre`에 사용자를 넣으면 이 목록에도 추가한다.
 - Grafana 로컬 관리자도 로그인 이름이 `admin`이다. LLDAP 관리자는 email로 이 계정에 연결된다. 두 email이 다르면
   Grafana 로그인이 `unable to create user`로 실패한다. Grafana가 이미 있으면 관리자 email을 `lldap.admin_email`로 바꾼다.
 

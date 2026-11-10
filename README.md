@@ -25,11 +25,13 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 
 | 분류 | addon | 주소 |
 | --- | --- | --- |
-| 배포·자동화 | argo-cd, argo-workflows, atlantis, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows, atlantis(UI)·atlantis-public(webhook) |
-| 개발 도구 | gitlab, jenkins, nexus | gitlab, jenkins, nexus |
+| 배포·자동화 | argo-cd, argo-workflows, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows |
+| 개발 도구 | gitlab | gitlab |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
-| 인증 | oauth2-proxy, lldap (Dex는 argo-cd에 포함) | auth, id |
+| 인증 | lldap, oauth2-proxy (Dex는 argo-cd에 포함) | id, auth |
 | 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
+
+`backup/`에 보관한 addon(배포하지 않음): argo-rollouts, atlantis, external-dns, jenkins, kite, nexus.
 
 ## 로그인
 
@@ -41,8 +43,10 @@ GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남
   `sso.member_groups`(`dev`)는 일반 사용자·읽기 전용.
 - LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)다. 사용자는 LLDAP 웹 UI에서
   관리한다(`charts/lldap/README.md`).
-- 자체 로그인이 없는 Atlantis·Nexus는 oauth2-proxy가 막는다.
-- GitLab CE·Nexus CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins`·`nexus.admins` 목록을 CronJob이 맞춘다.
+- 자체 로그인이 없는 서비스는 oauth2-proxy가 막는다(`charts/oauth2-proxy/README.md`). 지금 그 대상(Atlantis, Nexus,
+  Argo Rollouts dashboard)은 모두 `backup/`에 있다.
+- GitLab CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins` 목록을 CronJob이 맞춘다.
+- Keep은 `sso` 그룹이 없는 사용자를 거부한다. 다른 addon은 그룹이 없는 사용자에게 읽기 권한을 준다.
 - 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
 
 ## 저장소 구조
@@ -355,9 +359,9 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 - [Kubernetes monitoring](docs/kubernetes-monitoring.md): 클러스터·워크로드 대시보드와 중요 알림
 - [Workspace와 Agent 서비스 관측성](docs/workspace-observability.md): Workspace·Agent 서비스 지표와 경보
 - chart별 절차: [alloy](charts/alloy/README.md), [arc-runners](charts/arc-runners/README.md), [argo-cd](charts/argo-cd/README.md),
-  [atlantis](charts/atlantis/README.md), [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md),
-  [jenkins](charts/jenkins/README.md), [keep](charts/keep/README.md),
-  [nexus](charts/nexus/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
+  [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md), [keep](charts/keep/README.md),
+  [lldap](charts/lldap/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
+- 보관 chart: [atlantis](charts/atlantis/README.md), [jenkins](charts/jenkins/README.md), [nexus](charts/nexus/README.md)
 
 관련 저장소:
 
@@ -425,15 +429,15 @@ helm repo update
 | argo-rollouts |  | 2.43.8 | 2.43.12 (v1.10.2) |
 | argo-workflows |  | 2.0.14 | 2.0.18 (v4.1.6) |
 | atlantis |  | 7.0.0 | 7.1.0 (v0.49.0) |
-| aws-controllers | 🔒 | 1.13.4 | 1.14.2 (1.14.2) |
+| aws-controllers (dynamodb-chart) | 🔒 | 1.13.4 | 1.14.2 (1.14.2) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
-| arc-runners | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
-| arc-controller | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
+| arc-runners (gha-runner-scale-set) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
+| arc-controller (gha-runner-scale-set-controller) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | gitlab | ✅ | 10.5.4 | 10.5.4 (v19.5.3) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
-| istio |  | 1.31.3 | 1.32.0 (1.32.0) |
+| istio (istiod) |  | 1.31.3 | 1.32.0 (1.32.0) |
 | jenkins |  | 5.10.10 | 5.11.0 (2.580.2) |
 | keep | ✅ | 0.1.97 | 0.1.97 (0.54.3) |
 | kite |  | 0.16.0 | 0.17.0 (v0.17.0) |
@@ -443,7 +447,7 @@ helm repo update
 | oauth2-proxy |  | 10.7.1 | 10.7.2 (7.15.6) |
 | prometheus-adapter |  | 5.3.0 | 5.4.0 (v0.12.0) |
 | prometheus-stack |  | 92.14.1 | 93.1.1 (v0.95.1) |
-| aws-controllers |  | 1.13.4 | 1.14.2 (1.14.2) |
-| aws-controllers | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
+| aws-controllers (rds-chart) |  | 1.13.4 | 1.14.2 (1.14.2) |
+| aws-controllers (s3-chart) | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
 | vllm-stack |  |  | 0.1.14 |
 <!--- END_VERSION --->

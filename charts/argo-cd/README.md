@@ -38,37 +38,13 @@ create/update/delete/sync/action 권한을 함께 제거한다. `MCP_READ_ONLY`�
 서버 권한을 제한하지 않는다. `policy.default`로 받은 권한은 deny로 제거할 수 없으므로
 읽기 범위를 좁히려면 기본 역할부터 조정한다. [RBAC 기본 권한 설명](https://argo-cd.readthedocs.io/en/stable/operator-manual/rbac/#default-policy-for-authenticated-users).
 
-## token
+## 로그인과 token
 
-토큰은 `install/eks/token.sh` 가 만들어 SSM 에 고정 합니다. 여기서 할 일은 없습니다.
-같은 스크립트가 `server.secretkey` 도 **없을 때만** 만듭니다 — 토큰이 그 키로
-서명되기 때문에 둘은 같이 움직입니다.
-
-```bash
-cd ../../install/eks && ./token.sh
-```
-
-Argo CD 가 토큰을 받을 때 보는 것은 세 가지 입니다
-(argoproj/argo-cd `util/session/sessionmanager.go`).
-
-1. `server.secretkey` 로 서명한 HS256 JWT
-2. `sub` 가 `mcp:apiKey` 이고 그 계정에 `apiKey` capability 가 있을 것
-3. `jti` 가 `accounts.mcp.tokens` 목록에 있을 것
-
-셋 다 SSM 에 고정되어 있으므로 클러스터를 다시 만들어도 같은 토큰이 그대로
-통합니다. `argocd account generate-token` 을 쓰지 않는 이유가 이것 입니다 —
-그 명령은 3 번 목록을 클러스터 안 `argocd-secret` 에만 남기고, 이 chart 의
-ExternalSecret 이 그 Secret 을 소유하므로 다음 refresh 에 지워집니다.
-
-| 파라미터 | 읽는 곳 |
-|---|---|
-| `/k8s/common/argocd-server-secret` | 이 chart 의 `argocd-secret` ExternalSecret (`server.secretkey`), 그리고 `install/eks/values.yaml` |
-| `/k8s/common/argocd-mcp-tokens` | 이 chart 의 `argocd-secret` ExternalSecret (`accounts.mcp.tokens`), 그리고 `install/eks/values.yaml` |
-| `/k8s/common/mcp-argocd/argocd-api-token` | mcp-argocd 파드의 `ARGOCD_API_TOKEN` (argocd-env-apps) |
-
-`/k8s/common/argocd-mcp-tokens` 는 이 chart 를 sync 하기 **전에** 있어야 합니다.
-없으면 ExternalSecret 이 통째로 실패해서, 새 클러스터에서는 `argocd-secret` 자체가
-생기지 않습니다. `install/eks/token.sh` 가 그것까지 처리 합니다.
-
-토큰을 폐기 하려면 `./token.sh --rotate` 로 갈아 끼우거나, 파라미터를 `[]` 로
-되돌려 계정의 모든 토큰을 무효화 합니다.
+- 로그인은 Dex connector `lldap` 하나다(`charts/lldap/README.md`). GitHub connector와 ExternalSecret `argocd-dex-github`는
+  주석으로 남아 있다. Dex는 connector 자격 증명을 환경 변수로 받는다(`dex.envFrom`, Secret `argocd-dex-lldap`).
+  Secret 값이 바뀌면 `kubectl -n argocd rollout restart deploy/argocd-dex-server`로 다시 읽게 한다.
+- 로컬 `admin`(`/k8s/common/argocd-password`, `admin-password`의 bcrypt)은 비상용이다.
+- `server.secretkey`와 `mcp`·`keep` 계정 토큰은 `install/eks/token.sh`가 SSM에 고정한다. 동작과 파라미터는
+  [install/eks README](../../install/eks/README.md#server-secret-and-api-tokens)에 있다.
+- ExternalSecret `argocd-secret`은 파라미터가 하나라도 없으면 통째로 실패한다. 새 클러스터에서는 `install/eks/install.sh`가
+  먼저 모든 값을 만든다.

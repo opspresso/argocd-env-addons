@@ -368,8 +368,10 @@ def process_chart(
             new_ver = chart_info.get("version", "")
             new_app = chart_info.get("app_version", "")
 
-    # Print version info
-    version_line = print_version(path, old_ver, old_app, new_ver, new_app, locked, disabled, verbose)
+    # Several keys can share one chart directory (the ACK controllers of
+    # aws-controllers), so a row names the key when it differs from the path.
+    name = path if path == key else f"{path} ({key})"
+    version_line = print_version(name, old_ver, old_app, new_ver, new_app, locked, disabled, verbose)
 
     return {
         "info": chart_info,
