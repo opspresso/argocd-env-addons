@@ -98,8 +98,10 @@ gitlab:
   hostname: gitlab.demo.opsp.dev
   # Login names of the sso.admin_groups members. GitLab CE cannot map groups to
   # administrators, so keep this list equal to the group (charts/gitlab README.md).
+  # admin1 is the LLDAP admin: GitLab reserves the name admin.
   admins:
     - nalbam
+    - admin1
 
 # Sign-in rule of every addon that uses Argo CD Dex (connectors github and
 # lldap). Members of admin_groups are administrators; members of member_groups

@@ -52,6 +52,15 @@ grafana:
     # Users land on the overview, mounted from the bundled dashboards ConfigMap.
     dashboards:
       default_home_dashboard_path: /var/lib/grafana/dashboards/managed/cluster-overview.json
+{% if lldap is defined %}
+    # The local admin (grafana-secret) and the LLDAP admin share the login
+    # admin. The same email makes the Dex sign-in of the LLDAP admin find the
+    # local admin (oauth_allow_insecure_email_lookup) instead of failing on the
+    # taken login. Grafana reads it only when it creates the admin, so an
+    # existing admin needs PUT /api/users/1 (charts/lldap/README.md).
+    security:
+      admin_email: "{{lldap.admin_email}}"
+{% endif %}
 
 {% if grafana.auth.dex.enabled or grafana.auth.google.enabled %}
     # Sign-in only through the OAuth provider: the username/password form is hidden.

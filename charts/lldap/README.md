@@ -39,6 +39,15 @@ LLDAP 관리자는 Argo CD 관리자와 같은 값을 쓴다.
 - Dex는 email이 없는 사용자의 로그인을 거부한다. 사용자를 만들 때 email을 넣는다.
 - SMTP가 없어 비밀번호 재설정 메일은 보내지 않는다.
 - GitLab CE·Nexus CE 관리자는 그룹이 아니라 `gitlab.admins`·`nexus.admins`의 로그인 이름으로 정한다.
+  GitLab은 `admin`을 예약해 LLDAP 관리자를 `admin1`로 만든다.
+- Grafana 로컬 관리자도 로그인 이름이 `admin`이다. LLDAP 관리자는 email로 이 계정에 연결된다. 두 email이 다르면
+  Grafana 로그인이 `unable to create user`로 실패한다. Grafana가 이미 있으면 관리자 email을 `lldap.admin_email`로 바꾼다.
+
+  ```bash
+  kubectl -n addon-grafana exec deploy/grafana -c grafana -- sh -c \
+    'curl -s -u "$GF_SECURITY_ADMIN_USER:$GF_SECURITY_ADMIN_PASSWORD" -X PUT -H "Content-Type: application/json" \
+     -d "{\"email\":\"admin@demo.opsp.dev\",\"login\":\"admin\"}" http://localhost:3000/api/users/1'
+  ```
 
 ## 저장소와 백업
 
