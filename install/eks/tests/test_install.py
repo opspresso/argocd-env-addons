@@ -26,11 +26,12 @@ with log.open("a") as stream:
 scenario = os.environ.get("SCENARIO", "ready")
 
 if name == "aws":
-    if scenario == "ssm_failure":
-        print("AccessDeniedException", file=sys.stderr)
-        sys.exit(254)
-    value = None if scenario == "ssm_empty" else "argocd.example.test"
-    print(json.dumps({"Parameter": {"Value": value}}))
+    # install.sh reads nothing from SSM itself: token.sh, secrets.sh and build.sh do.
+    sys.exit(1)
+elif name == "python3" and len(args) > 2 and "yaml.safe_load" in args[1]:
+    if scenario == "env_invalid":
+        sys.exit(1)
+    print("argocd.example.test")
 elif name == "helm" and args[0] == "upgrade" and scenario == "helm_failure":
     sys.exit(1)
 elif name == "kubectl" and scenario == "kubectl_failure":
@@ -89,14 +90,19 @@ class InstallTest(unittest.TestCase):
         install = next(i for i, c in enumerate(commands) if c[:2] == ["helm", "upgrade"])
         self.assertLess(names.index("secrets.sh"), install)
 
-    def test_ssm_error_or_missing_value_stops_before_installation(self):
-        for scenario in ("ssm_failure", "ssm_empty"):
-            with self.subTest(scenario=scenario):
-                result, commands = self.run_installer(scenario)
-                self.assertNotEqual(result.returncode, 0)
-                self.assertIn("SSM 접속 정보 조회 단계 실패", result.stderr)
-                self.assertFalse(any(command[0] in ("token.sh", "secrets.sh", "build.sh", "kubectl") for command in commands))
-                self.assertFalse(any(command[:2] == ["helm", "upgrade"] for command in commands))
+    def test_reads_cluster_settings_from_env_not_ssm(self):
+        result, commands = self.run_installer()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(any(command[0] == "aws" for command in commands))
+        read = next(c for c in commands if c[0] == "python3" and len(c) > 2 and "yaml.safe_load" in c[2])
+        self.assertEqual(read[-1], "../../env/eks-demo.yaml")
+
+    def test_invalid_env_stops_before_ssm_writes(self):
+        result, commands = self.run_installer("env_invalid")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("클러스터 설정 확인 (env/eks-demo.yaml) 단계 실패", result.stderr)
+        self.assertFalse(any(command[0] in ("token.sh", "secrets.sh", "build.sh", "kubectl") for command in commands))
+        self.assertFalse(any(command[:2] == ["helm", "upgrade"] for command in commands))
 
     def test_helm_error_stops_before_registration(self):
         result, commands = self.run_installer("helm_failure")
@@ -113,8 +119,8 @@ class InstallTest(unittest.TestCase):
     def test_missing_python_dependency_stops_before_ssm_writes(self):
         result, commands = self.run_installer("python_dependency_missing")
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("PyYAML이 필요합니다", result.stderr)
-        self.assertEqual(commands, [["python3", "-c", "import yaml"]])
+        self.assertIn("bcrypt·PyYAML이 필요합니다", result.stderr)
+        self.assertEqual(commands, [["python3", "-c", "import bcrypt, yaml"]])
 
 
 if __name__ == "__main__":

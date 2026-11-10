@@ -22,8 +22,10 @@ configs:
     # 조회 전용으로 바꾸려면 여기와 charts/argo-cd/values-template.yaml.j2의
     # create/update/delete/sync/action 권한을 함께 제거합니다.
     # policy.default로 상속한 읽기 권한은 deny로 제거할 수 없습니다.
+    # ADMIN_GROUPS_POLICY becomes one `g, <group>, role:admin` line for each
+    # sso.admin_groups entry of env/<cluster>.yaml (build.py).
     policy.csv: |
-      g, GITHUB_ORG:GITHUB_TEAM, role:admin
+      ADMIN_GROUPS_POLICY
 
       p, role:mcp, applications, get, */*, allow
       p, role:mcp, applications, create, */*, allow
@@ -46,6 +48,8 @@ configs:
     # 없고 UI 세션으로도 바뀌지 않습니다.
     accounts.mcp: apiKey
 
+    # build.py removes the connector and its keys below when the GitHub OAuth
+    # App is not in SSM: the bootstrap then signs in with the admin account only.
     dex.config: |
       connectors:
       - type: github
