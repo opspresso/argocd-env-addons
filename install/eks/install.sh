@@ -47,8 +47,9 @@ if ! python3 -c 'import bcrypt, yaml' >/dev/null 2>&1; then
   exit 1
 fi
 
-# 클러스터 설정(주소, GitHub 조직, 관리자 그룹)은 addons 와 같은 env/<cluster>.yaml 에서 읽습니다.
-export CLUSTER="${CLUSTER:-eks-demo}"
+# 클러스터 설정(주소, 관리자 그룹)은 addons 와 같은 env/<cluster>.yaml 에서 읽습니다.
+# bootstrap.yaml 과 addons 는 관리 클러스터 eks-demo 를 위한 것이므로 이름을 고정합니다.
+export CLUSTER=eks-demo
 step "클러스터 설정 확인 (env/${CLUSTER}.yaml)"
 ARGOCD_HOSTNAME=$(python3 -c 'import sys, yaml; print(yaml.safe_load(open(sys.argv[1]))["argocd"]["hostname"])' "../../env/${CLUSTER}.yaml")
 echo "  argocd.hostname ${ARGOCD_HOSTNAME}"
