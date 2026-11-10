@@ -121,7 +121,7 @@ sso:
 # the LLDAP names in sso above; the bootstrap Job creates them and puts the admin
 # in admin_groups.
 lldap:
-  hostname: lldap.demo.opsp.dev
+  hostname: id.demo.opsp.dev
   base_dn: dc=opspresso,dc=com
   admin_email: admin@demo.opsp.dev
   admin_groups:

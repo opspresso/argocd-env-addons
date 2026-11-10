@@ -1,11 +1,11 @@
 
 lldap:
   podAnnotations:
-    link.argocd.argoproj.io/external-link: "https://lldap.demo.opsp.dev"
+    link.argocd.argoproj.io/external-link: "https://id.demo.opsp.dev"
 
   env:
     - name: LLDAP_HTTP_URL
-      value: "https://lldap.demo.opsp.dev"
+      value: "https://id.demo.opsp.dev"
     # Changing the base DN after the first start breaks every bind DN.
     - name: LLDAP_LDAP_BASE_DN
       value: "dc=opspresso,dc=com"
@@ -33,11 +33,11 @@ lldap:
 
   routing:
     hosts:
-      - "lldap.demo.opsp.dev"
+      - "id.demo.opsp.dev"
     httpRoute:
       enabled: true
       annotations:
-        link.argocd.argoproj.io/external-link: "https://lldap.demo.opsp.dev"
+        link.argocd.argoproj.io/external-link: "https://id.demo.opsp.dev"
       parentRefs:
         - group: gateway.networking.k8s.io
           kind: Gateway

@@ -28,7 +28,7 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 | 배포·자동화 | argo-cd, argo-workflows, atlantis, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows, atlantis(UI)·atlantis-public(webhook) |
 | 개발 도구 | gitlab, jenkins, nexus | gitlab, jenkins, nexus |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
-| 인증 | oauth2-proxy, lldap (Dex는 argo-cd에 포함) | auth, lldap |
+| 인증 | oauth2-proxy, lldap (Dex는 argo-cd에 포함) | auth, id |
 | 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
 
 ## 로그인

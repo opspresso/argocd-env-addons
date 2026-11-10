@@ -2,7 +2,7 @@
 
 아이디·비밀번호로 addon에 로그인하게 하는 경량 LDAP 디렉터리다. Argo CD Dex의 connector `lldap`이
 LDAP으로 사용자를 확인하고, LLDAP 그룹 이름을 claim `groups`로 넘긴다.
-namespace는 `addon-lldap`, 웹 UI 주소는 `https://lldap.demo.opsp.dev`다.
+namespace는 `addon-lldap`, 웹 UI 주소는 `https://id.demo.opsp.dev`다.
 
 공식 이미지 `lldap/lldap`(rootless)을 opspresso `app` chart로 배포한다. LLDAP은 Helm chart를 내지 않는다.
 
