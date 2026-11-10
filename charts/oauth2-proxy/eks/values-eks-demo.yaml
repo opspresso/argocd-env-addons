@@ -16,6 +16,11 @@ oauth2-proxy:
 
       upstreams = [ "static://200" ]
       email_domains = [ "*" ]
+      # Only the administrators (sso.admin_groups) pass: every protected host
+      # is an admin tool, such as the LLDAP web UI. A host for all members
+      # needs its own oauth2-proxy.
+      oidc_groups_claim = "groups"
+      allowed_groups = [ "sre" ]
       cookie_domains = [ ".demo.opsp.dev" ]
       whitelist_domains = [ ".demo.opsp.dev" ]
       cookie_secure = true

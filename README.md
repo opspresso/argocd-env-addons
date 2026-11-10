@@ -44,9 +44,9 @@ GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남
 - 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(LLDAP 그룹 `sre`)는 관리자,
   `sso.member_groups`(`dev`)는 일반 사용자·읽기 전용.
 - LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)이며 Dex에는 이메일 `lldap.admin_email`로
-  로그인한다. 사용자는 LLDAP 웹 UI에서 관리한다(`charts/lldap/README.md`).
-- 자체 로그인이 없는 서비스는 oauth2-proxy가 막는다(`charts/oauth2-proxy/README.md`). 지금 그 대상(Atlantis, Nexus,
-  Argo Rollouts dashboard)은 모두 `backup/`에 있다.
+  로그인한다. 사용자는 관리자가 LLDAP 웹 UI에서 관리한다(`charts/lldap/README.md`). 웹 UI는 관리자만 열 수 있다.
+- 관리 도구는 oauth2-proxy가 관리자 로그인으로 막는다(`charts/oauth2-proxy/README.md`). 배포된 대상은 LLDAP 웹 UI이고,
+  Atlantis, Nexus, Argo Rollouts dashboard는 `backup/`에 있다.
 - GitLab CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins` 목록을 CronJob이 맞춘다.
 - Keep은 `sso` 그룹이 없는 사용자를 거부한다. 다른 addon은 그룹이 없는 사용자에게 읽기 권한을 준다.
 - 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
