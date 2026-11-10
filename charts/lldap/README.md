@@ -37,9 +37,13 @@ LLDAP 관리자는 Argo CD 관리자와 같은 값을 쓴다.
 
 - PostSync Job `lldap-bootstrap`이 sync마다 `lldap.admin_groups`·`lldap.member_groups`(`sre`, `dev`)를 만들고
   관리자를 `lldap_admin`과 `sre`에 넣는다. 아무것도 지우지 않는다.
-- 웹 UI와 GraphQL API는 oauth2-proxy 뒤에 있어 `sso.admin_groups`(`sre`)만 열 수 있다(AuthorizationPolicy `lldap`).
-  LLDAP은 일반 사용자가 자기 `mail`을 바꿀 수 있게 하고, 그 값이 Dex의 email claim이 된다. Agent Studio는 이 email로
-  기존 계정을 자동 연결하므로(`OIDC_TRUST_EMAIL`), email은 관리자만 바꿀 수 있어야 한다.
+- email은 관리자만 바꿀 수 있다. LLDAP v0.6.3에는 `mail`을 읽기 전용으로 만드는 설정이 없고, 사용자가 GraphQL
+  `updateUser`로 자기 `mail`을 바꿀 수 있다. 그 값이 Dex의 email claim이 되고, Agent Studio는 이 email로 기존 계정을
+  자동 연결한다(`OIDC_TRUST_EMAIL`). 그래서 일반 사용자가 LLDAP API에 닿지 못하게 막는다.
+  - 웹 UI와 GraphQL API는 oauth2-proxy 뒤에 있다. `sso.admin_groups`(`sre`)만 열 수 있다(AuthorizationPolicy `lldap`).
+  - NetworkPolicy는 API 포트 17170을 ingress gateway Pod와 이 namespace의 bootstrap Job에만 연다.
+    LDAP 포트 3890은 Dex Pod에만 연다.
+  - 관리자가 아닌 사용자를 `sre`에 넣으면 그 사용자도 email을 바꿀 수 있다.
 - 사용자 추가·email 변경·그룹 배정·비밀번호 재설정은 관리자가 웹 UI에서 한다. 사용자는 비밀번호 변경을 관리자에게 요청한다.
 - 로그인 ID가 email이다. 사용자를 만들 때 email을 넣는다. LLDAP은 email 중복을 허용하지 않는다.
 - SMTP가 없어 비밀번호 재설정 메일은 보내지 않는다.
