@@ -25,6 +25,9 @@ gitlab:
     webservice:
       annotations:
         link.argocd.argoproj.io/external-link: "https://gitlab.demo.opsp.dev"
+        # Puma reads the OIDC provider (Secret gitlab-oidc-provider) only at
+        # start. A new issuer changes this annotation and rolls the Pods.
+        opspresso.com/oidc-issuer: "https://sso.demo.opsp.dev"
 
 raw:
   resources:

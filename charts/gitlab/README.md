@@ -74,6 +74,10 @@ Dex는 시작할 때만 client secret을 읽는다. `/k8s/common/gitlab/oidc-cli
 `kubectl -n addon-dex rollout restart deploy/dex`를 실행한다. 재시작하지 않으면 GitLab 로그인이
 `Invalid client credentials`로 실패한다.
 
+GitLab webservice도 OIDC provider 설정(Secret `gitlab-oidc-provider`)을 시작할 때만 읽는다. issuer가 바뀌면
+Pod annotation `opspresso.com/oidc-issuer`가 바뀌어 webservice가 자동으로 다시 시작한다. client secret만 바꿨다면
+`kubectl -n addon-gitlab rollout restart deploy/gitlab-webservice-default`를 실행한다.
+
 ## 백업
 
 `backup-utility`는 IAM 역할로 S3에 쓰므로 `--s3tool awscli`를 붙인다. 백업 CronJob은 켜지 않았다.

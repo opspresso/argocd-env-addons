@@ -53,4 +53,10 @@ flowchart LR
 ## 로그아웃
 
 각 서비스의 로그아웃은 그 서비스 세션만 끝낸다. Dex 세션은 기한까지 남으므로 다른 서비스는 계속 로그인 상태다.
-브라우저에서 모든 로그인을 끝내려면 `sso.demo.opsp.dev`의 cookie를 지운다.
+
+다른 계정으로 바꾸려면 Dex 세션을 끝낸다.
+
+1. `https://sso.demo.opsp.dev/logout`을 열고 로그아웃을 확인한다. Dex 세션과 그 세션의 refresh token이 끝난다
+   (OIDC RP-Initiated Logout, discovery의 `end_session_endpoint`).
+2. 계정을 바꿀 서비스에서 로그아웃한다. 서비스 세션은 Dex와 따로 남아 있기 때문이다.
+3. 다시 로그인하면 Dex가 이메일·비밀번호 폼을 보인다.
