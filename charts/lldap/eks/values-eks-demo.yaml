@@ -10,7 +10,7 @@ lldap:
     - name: LLDAP_LDAP_BASE_DN
       value: "dc=opspresso,dc=com"
     - name: LLDAP_LDAP_USER_EMAIL
-      value: "admin@demo.opsp.dev"
+      value: "admin@nalbam.com"
     # SSM is the source of the admin password: every start resets it.
     - name: LLDAP_FORCE_LDAP_USER_PASS_RESET
       value: "always"
@@ -125,7 +125,7 @@ raw:
                         name: lldap-secret
                         key: LLDAP_LDAP_USER_PASS
                   - name: ADMIN_EMAIL
-                    value: "admin@demo.opsp.dev"
+                    value: "admin@nalbam.com"
                   - name: SSO_GROUPS
                     value: "sre dev"
                   - name: ADMIN_GROUPS

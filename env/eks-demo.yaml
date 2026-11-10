@@ -124,7 +124,7 @@ sso:
 lldap:
   hostname: id.demo.opsp.dev
   base_dn: dc=opspresso,dc=com
-  admin_email: admin@demo.opsp.dev
+  admin_email: admin@nalbam.com
   admin_groups:
     - sre
   member_groups:

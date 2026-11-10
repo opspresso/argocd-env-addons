@@ -51,7 +51,7 @@ LLDAP 관리자는 Argo CD 관리자와 같은 값을 쓴다.
   ```bash
   kubectl -n addon-grafana exec deploy/grafana -c grafana -- sh -c \
     'curl -s -u "$GF_SECURITY_ADMIN_USER:$GF_SECURITY_ADMIN_PASSWORD" -X PUT -H "Content-Type: application/json" \
-     -d "{\"email\":\"admin@demo.opsp.dev\",\"login\":\"admin\"}" http://localhost:3000/api/users/1'
+     -d "{\"email\":\"admin@nalbam.com\",\"login\":\"admin\"}" http://localhost:3000/api/users/1'
   ```
 
 ## 저장소와 백업

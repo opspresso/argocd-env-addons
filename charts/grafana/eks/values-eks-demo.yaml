@@ -1580,7 +1580,7 @@ grafana:
     # taken login. Grafana reads it only when it creates the admin, so an
     # existing admin needs PUT /api/users/1 (charts/lldap/README.md).
     security:
-      admin_email: "admin@demo.opsp.dev"
+      admin_email: "admin@nalbam.com"
 
 
 
