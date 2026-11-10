@@ -1611,7 +1611,7 @@ grafana:
       login_attribute_path: preferred_username
       groups_attribute_path: groups
       # sso.admin_groups are Admin, other users Viewer. The role syncs on every login.
-      role_attribute_path: "(contains(groups[*], 'opspresso:sre') || contains(groups[*], 'sre')) && 'Admin' || 'Viewer'"
+      role_attribute_path: "(contains(groups[*], 'sre')) && 'Admin' || 'Viewer'"
 
 
 

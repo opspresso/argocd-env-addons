@@ -127,8 +127,8 @@ raw:
             remoteRef:
               key: /k8s/common/gitlab/oidc-client-secret
     # GitLab CE cannot map OIDC groups to administrators (Premium only). This
-    # CronJob makes the users in gitlab.admins (the GitHub and LLDAP logins
-    # of the sso.admin_groups) administrators and the other SSO users not.
+    # CronJob makes the users in gitlab.admins (the LLDAP logins of the
+    # sso.admin_groups members) administrators and the other SSO users not.
     # It also keeps sign-up and the web password form off. root is not changed.
     - apiVersion: v1
       kind: ServiceAccount
@@ -209,7 +209,7 @@ raw:
                     command: [sh, /scripts/sync.sh]
                     env:
                       - name: ADMINS
-                        value: "nalbam,admin1"
+                        value: "admin1"
                     resources:
                       requests:
                         cpu: 10m

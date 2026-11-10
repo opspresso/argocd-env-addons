@@ -36,7 +36,7 @@ argocd:
     parent_refs:
       - name: istio-ingressgateway
         namespace: istio-system
-  # GitHub organization of the Dex connector (sso below lists its teams).
+  # GitHub organization of the Dex connector github (off; charts/argo-cd).
   github:
     org: opspresso # github org
   google:
@@ -98,21 +98,22 @@ gitlab:
   hostname: gitlab.demo.opsp.dev
   # Login names of the sso.admin_groups members. GitLab CE cannot map groups to
   # administrators, so keep this list equal to the group (charts/gitlab README.md).
-  # admin1 is the LLDAP admin: GitLab reserves the name admin.
+  # admin1 is the LLDAP admin: GitLab reserves the name admin. nalbam signed in
+  # through GitHub, which is off.
   admins:
-    - nalbam
+    # - nalbam
     - admin1
 
-# Sign-in rule of every addon that uses Argo CD Dex (connectors github and
-# lldap). Members of admin_groups are administrators; members of member_groups
-# sign in as users or readers. Dex reports GitHub teams as "<org>:<team>" and
-# LLDAP groups by name.
+# Sign-in rule of every addon that uses Argo CD Dex. Only the connector lldap
+# signs in; its groups come by name. Members of admin_groups are administrators;
+# members of member_groups sign in as users or readers. The GitHub teams
+# ("<org>:<team>") are off with the connector github (charts/argo-cd).
 sso:
   admin_groups:
-    - opspresso:sre
+    # - opspresso:sre
     - sre
   member_groups:
-    - opspresso:dev
+    # - opspresso:dev
     - dev
 
 # LLDAP (charts/lldap): ID and password sign-in through the Dex connector
@@ -120,7 +121,7 @@ sso:
 # the LLDAP names in sso above; the bootstrap Job creates them and puts the admin
 # in admin_groups.
 lldap:
-  hostname: lldap.demo.opsp.dev
+  hostname: id.demo.opsp.dev
   base_dn: dc=opspresso,dc=com
   admin_email: admin@demo.opsp.dev
   admin_groups:

@@ -33,12 +33,6 @@ run() {
   "$@"
 }
 
-ssm() {
-  echo "  ssm  $1" >&2
-  aws ssm get-parameter --name "$1" --with-decryption |
-    jq -er '.Parameter.Value | select(type == "string" and length > 0)'
-}
-
 
 step "필수 명령 확인"
 for command in aws jq kubectl helm openssl uuidgen python3; do
@@ -48,17 +42,20 @@ for command in aws jq kubectl helm openssl uuidgen python3; do
   fi
 done
 
-if ! python3 -c 'import yaml' >/dev/null 2>&1; then
-  echo "PyYAML이 필요합니다. 저장소 루트에서 python3 -m pip install -r requirements/runtime.txt 로 설치하세요." >&2
+if ! python3 -c 'import bcrypt, yaml' >/dev/null 2>&1; then
+  echo "bcrypt·PyYAML이 필요합니다. 저장소 루트에서 python3 -m pip install -r requirements/runtime.txt 로 설치하세요." >&2
   exit 1
 fi
+
+# 클러스터 설정(주소, GitHub 조직, 관리자 그룹)은 addons 와 같은 env/<cluster>.yaml 에서 읽습니다.
+export CLUSTER="${CLUSTER:-eks-demo}"
+step "클러스터 설정 확인 (env/${CLUSTER}.yaml)"
+ARGOCD_HOSTNAME=$(python3 -c 'import sys, yaml; print(yaml.safe_load(open(sys.argv[1]))["argocd"]["hostname"])' "../../env/${CLUSTER}.yaml")
+echo "  argocd.hostname ${ARGOCD_HOSTNAME}"
 
 step "Helm repository 등록"
 run helm repo add argo https://argoproj.github.io/argo-helm --force-update
 run helm repo update argo
-
-step "SSM 접속 정보 조회"
-ARGOCD_HOSTNAME=$(ssm /k8s/common/argocd-hostname)
 
 # Argo CD 의 서명 키(server.secretkey)와 mcp·keep 계정의 API 토큰을 SSM 에 고정합니다.
 # 키는 없을 때만 만들고, 토큰은 없거나 무효일 때만 발급하므로 매번 실행해도
@@ -69,9 +66,9 @@ step "서명 키·mcp·keep 토큰 확인"
 run ./token.sh
 run ./token.sh --account keep
 
-# addons 가 읽는 무작위 값(OIDC client secret, DB 비밀번호 등)을 없을 때만 만듭니다.
-# charts/argo-cd 의 argocd-secret 은 OIDC client secret 을 읽으므로, 하나라도 없으면
-# argocd-secret 이 만들어지지 않습니다.
+# 관리자 계정과 addons 가 읽는 무작위 값(OIDC client secret, DB 비밀번호 등)을 없을 때만
+# 만듭니다. charts/argo-cd 의 argocd-secret 은 이 값을 읽으므로, 하나라도 없으면
+# argocd-secret 이 만들어지지 않습니다. 밖에서 발급하는 값은 없으면 경고만 합니다.
 step "addon 시크릿 확인"
 run ./secrets.sh
 
