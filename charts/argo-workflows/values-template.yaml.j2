@@ -21,7 +21,7 @@ argo-workflows:
     sso:
       enabled: true
 
-      issuer: https://{{argocd.hostname}}/api/dex
+      issuer: https://{{dex.hostname}}
 
       redirectUrl: https://workflows.{{hostname.public}}/oauth2/callback
 

@@ -46,15 +46,13 @@ cd install/eks
 
 2. `istio`와 `argo-cd` addon이 동기화되면 `https://<argocd.hostname>`이 공용 ALB와 istio HTTPRoute로 응답한다.
    도메인은 `terraform-env-demo`의 `3-alb`(`*.demo.opsp.dev`)가 소유한다.
-3. `lldap` addon이 동기화되면 LLDAP 로그인(Dex connector `lldap`)이 동작한다. 관리자 아이디·비밀번호는 다음 값이다.
+3. `lldap`과 `dex` addon이 동기화되면 플랫폼 로그인(`https://sso.demo.opsp.dev`)이 동작한다.
+   관리자는 이메일 `lldap.admin_email`(`env/eks-demo.yaml`)과 다음 비밀번호로 로그인한다.
+   Argo CD 로컬 `admin`과 LLDAP 웹 UI는 아이디 `/k8s/common/admin-user`를 쓴다.
 
    ```bash
-   aws ssm get-parameter --name /k8s/common/admin-user --with-decryption --query Parameter.Value --output text
    aws ssm get-parameter --name /k8s/common/admin-password --with-decryption --query Parameter.Value --output text
    ```
-
-4. 첫 sync에서 Dex가 Secret `argocd-dex-lldap`보다 먼저 시작하면 LLDAP 로그인이 실패한다.
-   그때는 `kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다.
 
 apps(`argocd-env-apps`)가 읽는 SSM 값은 이 설치가 만들지 않는다. 각 앱 chart의 문서를 따른다.
 
@@ -98,8 +96,8 @@ apps(`argocd-env-apps`)가 읽는 SSM 값은 이 설치가 만들지 않는다. 
 aws ssm put-parameter --name /k8s/common/keep/slack-bot-token --value "<xoxb-...>" --type SecureString
 ```
 
-GitHub 로그인은 꺼져 있다. 다시 켜려면 `charts/argo-cd`의 connector `github`·`argocd-dex-github`와
-`env/eks-demo.yaml`의 GitHub 팀 주석을 풀고, GitHub OAuth App(callback `https://<argocd.hostname>/api/dex/callback`)의
+GitHub 로그인은 꺼져 있다. 다시 켜려면 `charts/dex`의 connector `github`·`dex-secret`의 GitHub 키와
+`env/eks-demo.yaml`의 GitHub 팀 주석을 풀고, GitHub OAuth App(callback `https://<dex.hostname>/callback`)의
 값을 `/k8s/<argocd.github.org>/argocd-github-id`·`argocd-github-secret`에 넣는다.
 
 ## Server secret and API tokens

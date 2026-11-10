@@ -40,9 +40,9 @@ create/update/delete/sync/action 권한을 함께 제거한다. `MCP_READ_ONLY`�
 
 ## 로그인과 token
 
-- 로그인은 Dex connector `lldap` 하나다(`charts/lldap/README.md`). GitHub connector와 ExternalSecret `argocd-dex-github`는
-  주석으로 남아 있다. Dex는 connector 자격 증명을 환경 변수로 받는다(`dex.envFrom`, Secret `argocd-dex-lldap`).
-  Secret 값이 바뀌면 `kubectl -n argocd rollout restart deploy/argocd-dex-server`로 다시 읽게 한다.
+- 로그인은 플랫폼 Dex(`charts/dex`)의 client `argo-cd`다(`oidc.config`). 내장 Dex는 끈다(`argocd.dex.enabled: false`).
+  client secret은 `/k8s/common/argocd/oidc-client-secret`이며 `argocd-secret`의 `oidc.lldap.clientSecret`으로 읽는다.
+  `argocd login <host> --sso`는 public client `argo-cd-cli`를 쓴다.
 - 로컬 `admin`(`/k8s/common/argocd-password`, `admin-password`의 bcrypt)은 비상용이다.
 - `server.secretkey`와 `mcp`·`keep` 계정 토큰은 `install/eks/token.sh`가 SSM에 고정한다. 동작과 파라미터는
   [install/eks README](../../install/eks/README.md#server-secret-and-api-tokens)에 있다.

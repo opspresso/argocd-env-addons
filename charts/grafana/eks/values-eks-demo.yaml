@@ -1593,7 +1593,7 @@ grafana:
       # A user keeps one account across sign-in sources: Grafana
       # finds it by email. Dex accepts only the sso groups.
       oauth_allow_insecure_email_lookup: true
-    # Sign-in through Argo CD Dex (client grafana-sso), like the other addons.
+    # Sign-in through the platform Dex (charts/dex, client grafana-sso), like the other addons.
     # https://grafana.com/docs/grafana/latest/setup-grafana/configure-security/configure-authentication/generic-oauth/
     auth.generic_oauth:
       enabled: true
@@ -1604,9 +1604,9 @@ grafana:
       client_id: grafana-sso
       client_secret: $__file{/etc/secrets/grafana-secret/oidc-client-secret}
       scopes: openid profile email groups
-      auth_url: https://argocd.demo.opsp.dev/api/dex/auth
-      token_url: https://argocd.demo.opsp.dev/api/dex/token
-      api_url: https://argocd.demo.opsp.dev/api/dex/userinfo
+      auth_url: https://sso.demo.opsp.dev/auth
+      token_url: https://sso.demo.opsp.dev/token
+      api_url: https://sso.demo.opsp.dev/userinfo
       use_pkce: true
       login_attribute_path: preferred_username
       groups_attribute_path: groups
@@ -1701,7 +1701,7 @@ raw:
             remoteRef:
               key: /k8s/common/keep/grafana-api-key
 
-          # Shared with the grafana-sso client of Argo CD Dex (charts/argo-cd).
+          # Shared with the grafana-sso client of the platform Dex (charts/dex).
           - secretKey: oidc-client-secret
             remoteRef:
               key: /k8s/common/grafana/oidc-client-secret

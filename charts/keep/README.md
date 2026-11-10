@@ -17,7 +17,7 @@
 
 ## 로그인
 
-Argo CD의 Dex(`https://argocd.demo.opsp.dev/api/dex`)로 로그인한다. Dex client는 `charts/argo-cd`의 `keep-sso`다.
+플랫폼 Dex(`https://sso.demo.opsp.dev`, `charts/dex`)로 로그인한다. Dex client는 `charts/dex`의 `keep-sso`다.
 
 - `sso.admin_groups`는 `admin`, `sso.member_groups`는 읽기 전용 `noc` 역할을 받는다.
 - 두 목록 어디에도 없는 사용자는 403을 받는다. Keep OIDC에는 기본 역할이 없다. LLDAP 사용자를 `sre`나 `dev`에 넣는다.
@@ -112,7 +112,7 @@ ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들
 | --- | --- |
 | `/k8s/common/keep/database-password` | `addon-keep-database`(PostgreSQL), `addon-keep-backend`(접속 문자열) |
 | `/k8s/common/keep/nextauth-secret` | `addon-keep-frontend` |
-| `/k8s/common/keep/oidc-client-secret` | `addon-keep-frontend`, `argocd-secret`(Dex `keep-sso`) |
+| `/k8s/common/keep/oidc-client-secret` | `addon-keep-frontend`, `dex-secret`(Dex `keep-sso`) |
 | `/k8s/common/keep/grafana-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `grafana`), `grafana-secret` |
 | `/k8s/common/keep/alertmanager-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `alertmanager`), `prometheus-alertmanager-secret` |
 | `/k8s/common/keep/argocd-api-key` | `addon-keep-backend`(`KEEP_DEFAULT_API_KEYS`의 `argocd`), `argocd-notifications-secret` |
@@ -128,7 +128,7 @@ aws ssm put-parameter --name /k8s/common/keep/slack-bot-token --value "<xoxb-...
 
 - `database-password`: PostgreSQL은 처음 초기화할 때만 비밀번호를 읽는다. 바꾸려면 DB에서 `ALTER USER postgres PASSWORD ...`를 먼저 실행한 뒤 파라미터를 바꾼다.
 - `grafana-api-key`, `argocd-api-key`, `alertmanager-api-key`: Keep은 같은 이름의 API key가 있으면 새 값으로 바꾸지 않는다. Keep UI(Settings → API Keys)에서 기존 key를 삭제한 뒤 파라미터를 바꾸고 `keep-backend`를 재시작한다.
-- `oidc-client-secret`: 바꾼 뒤 `argocd-dex-server`와 `keep-frontend`를 재시작한다.
+- `oidc-client-secret`: 바꾼 뒤 `dex`(addon-dex)와 `keep-frontend`를 재시작한다.
 
 ## 검증
 

@@ -2,7 +2,7 @@
 
 ## 로그인
 
-Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)로 로그인한다. 다른 addon과 같은 Dex이며 client는 `charts/argo-cd`의 `grafana-sso`다.
+플랫폼 Dex(`https://sso.demo.opsp.dev`, `charts/dex`)로 로그인한다. 다른 addon과 같은 Dex이며 client는 `charts/dex`의 `grafana-sso`다.
 
 - 로그인 화면은 바로 Dex로 이동한다(`auto_login`). 아이디·비밀번호 폼은 숨긴다(`disable_login_form`).
 - `sso.admin_groups`는 Grafana `Admin`, 그 밖의 사용자는 `Viewer`를 받는다. 로그인할 때마다 다시 맞춘다.
@@ -17,11 +17,11 @@ Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)로 로그인한다. 다른 a
 | 파라미터 | 읽는 곳 |
 | --- | --- |
 | `/k8s/common/admin-user`, `admin-password` | `grafana-secret`(로컬 관리자) |
-| `/k8s/common/grafana/oidc-client-secret` | `grafana-secret`, `argocd-secret`(Dex client `grafana-sso`) |
+| `/k8s/common/grafana/oidc-client-secret` | `grafana-secret`, `dex-secret`(Dex client `grafana-sso`) |
 | `/k8s/common/keep/grafana-api-key` | `grafana-secret`(Keep contact point) |
 
-Dex는 시작할 때만 client secret을 읽는다. secret을 바꾸면 `argocd-secret`이 갱신된 뒤
-`kubectl -n argocd rollout restart deploy/argocd-dex-server`를 실행한다.
+Dex는 시작할 때만 client secret을 읽는다. secret을 바꾸면 `dex-secret`이 갱신된 뒤
+`kubectl -n addon-dex rollout restart deploy/dex`를 실행한다.
 
 ## 대시보드
 

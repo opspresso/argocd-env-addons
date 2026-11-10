@@ -1,0 +1,40 @@
+dex:
+  fullnameOverride: dex
+
+  image:
+    tag: v2.46.1
+
+  # Two replicas share the Kubernetes storage (Dex CRDs): sign-in sessions,
+  # refresh tokens and signing keys survive a restart or a node loss.
+  replicaCount: 2
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: dex
+
+  # The Kubernetes storage creates its CRDs on the first start.
+  rbac:
+    create: true
+    createClusterScoped: true
+
+  envVars:
+    # Auth sessions: one sign-in serves every client (config.sessions).
+    - name: DEX_SESSIONS_ENABLED
+      value: "true"
+  # LLDAP bind user and OIDC client secrets (ExternalSecret dex-secret).
+  envFrom:
+    - secretRef:
+        name: dex-secret
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi

@@ -1,0 +1,214 @@
+
+dex:
+  podAnnotations:
+    link.argocd.argoproj.io/external-link: "https://sso.demo.opsp.dev/.well-known/openid-configuration"
+
+  # The platform sign-in. Every addon and Agent Studio is an OIDC client of this
+  # issuer; the Agent services sign in through Agent Studio.
+  config:
+    issuer: https://sso.demo.opsp.dev
+
+    # Dex CRDs in this namespace keep sessions, refresh tokens and signing keys
+    # across restarts and replicas.
+    storage:
+      type: kubernetes
+      config:
+        inCluster: true
+
+    frontend:
+      issuer: OpsPresso
+
+    oauth2:
+      responseTypes: [code]
+      skipApprovalScreen: true
+
+    # One sign-in serves every client until the session ends: absoluteLifetime
+    # after the sign-in, or validIfNotUsedFor without use.
+    sessions:
+      absoluteLifetime: 168h
+      validIfNotUsedFor: 24h
+      rememberMeCheckedByDefault: true
+      ssoSharedWithDefault: all
+
+    expiry:
+      idTokens: 1h
+      refreshTokens:
+        validIfNotUsedFor: 24h
+        absoluteLifetime: 168h
+
+    connectors:
+      # LLDAP (charts/lldap): email and password. The claim groups holds the
+      # LLDAP group names; preferred_username is the LLDAP user ID. The bind
+      # user is the LLDAP admin (Secret dex-secret).
+      - type: ldap
+        id: lldap
+        name: LLDAP
+        config:
+          host: lldap.addon-lldap.svc.cluster.local:3890
+          # Plain LDAP inside the cluster: the NetworkPolicy of charts/lldap
+          # admits only the Dex Pods to this port.
+          insecureNoSSL: true
+          bindDN: $LLDAP_BIND_DN
+          bindPW: $LLDAP_BIND_PW
+          usernamePrompt: Email
+          userSearch:
+            baseDN: ou=people,dc=opspresso,dc=com
+            filter: "(objectClass=person)"
+            # People type their email; LLDAP keeps each email unique.
+            username: mail
+            # The subject stays the LLDAP user ID: an email change keeps the account.
+            idAttr: uid
+            emailAttr: mail
+            nameAttr: displayName
+            preferredUsernameAttr: uid
+          groupSearch:
+            baseDN: ou=groups,dc=opspresso,dc=com
+            filter: "(objectClass=groupOfUniqueNames)"
+            userMatchers:
+              - userAttr: DN
+                groupAttr: member
+            nameAttr: cn
+      # GitHub sign-in is off. To bring it back, uncomment this connector and
+      # GITHUB_CLIENT_ID/SECRET in the ExternalSecret dex-secret below.
+      # - type: github
+      #   id: github
+      #   name: GitHub
+      #   config:
+      #     clientID: $GITHUB_CLIENT_ID
+      #     clientSecret: $GITHUB_CLIENT_SECRET
+      #     redirectURI: https://sso.demo.opsp.dev/callback
+      #     teamNameField: slug
+      #     orgs:
+      #       - name: opspresso
+
+    # Each secret is an environment variable of the Secret dex-secret.
+    staticClients:
+      - id: argo-cd
+        name: Argo CD
+        redirectURIs:
+          - https://argocd.demo.opsp.dev/auth/callback
+        secretEnv: ARGOCD_SSO_CLIENT_SECRET
+      # argocd login --sso: a public client on the local callback.
+      - id: argo-cd-cli
+        name: Argo CD CLI
+        public: true
+        redirectURIs:
+          - http://localhost:8085/auth/callback
+      - id: argo-workflows-sso
+        name: Argo Workflows
+        redirectURIs:
+          - https://workflows.demo.opsp.dev/oauth2/callback
+        secretEnv: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
+      - id: oauth2-proxy-sso
+        name: OAuth2 Proxy
+        redirectURIs:
+          - https://auth.demo.opsp.dev/oauth2/callback
+        secretEnv: OAUTH2_PROXY_SSO_CLIENT_SECRET
+      - id: keep-sso
+        name: Keep
+        redirectURIs:
+          - https://keep.demo.opsp.dev/api/auth/callback/oidc
+        secretEnv: KEEP_SSO_CLIENT_SECRET
+      - id: gitlab-sso
+        name: GitLab
+        redirectURIs:
+          - https://gitlab.demo.opsp.dev/users/auth/openid_connect/callback
+        secretEnv: GITLAB_SSO_CLIENT_SECRET
+      - id: grafana-sso
+        name: Grafana
+        redirectURIs:
+          - https://grafana.demo.opsp.dev/login/generic_oauth
+        secretEnv: GRAFANA_SSO_CLIENT_SECRET
+      - id: jenkins-sso
+        name: Jenkins
+        redirectURIs:
+          - https://jenkins.demo.opsp.dev/securityRealm/finishLogin
+        secretEnv: JENKINS_SSO_CLIENT_SECRET
+
+      # Agent Studio (argocd-env-apps) with the provider ID lldap. The Agent
+      # services sign in through Studio, so they share this session.
+      - id: agent-studio
+        name: Agent Studio
+        redirectURIs:
+          - https://studio.agrt.dev/api/auth/callback/lldap
+        secretEnv: AGENT_STUDIO_SSO_CLIENT_SECRET
+
+
+  httpRoute:
+    enabled: true
+    annotations:
+      link.argocd.argoproj.io/external-link: "https://sso.demo.opsp.dev"
+    parentRefs:
+      - group: gateway.networking.k8s.io
+        kind: Gateway
+        name: istio-ingressgateway
+        namespace: istio-system
+    hostnames:
+      - "sso.demo.opsp.dev"
+
+  serviceMonitor:
+    enabled: True
+    labels:
+      release: prometheus-eks-demo
+
+raw:
+  resources:
+    # The LLDAP bind user is the LLDAP admin (/k8s/common/admin-user). Each
+    # client secret is the value its addon reads; install/eks/secrets.sh creates
+    # the missing ones.
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: dex-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: dex-secret
+          # Merge keeps the fetched keys next to the templated bind DN.
+          template:
+            engineVersion: v2
+            mergePolicy: Merge
+            data:
+              LLDAP_BIND_DN: "uid={{ .user }},ou=people,dc=opspresso,dc=com"
+        data:
+          - secretKey: user
+            remoteRef:
+              key: /k8s/common/admin-user
+          - secretKey: LLDAP_BIND_PW
+            remoteRef:
+              key: /k8s/common/admin-password
+          - secretKey: ARGOCD_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/argocd/oidc-client-secret
+          - secretKey: ARGO_WORKFLOWS_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/argo-workflows-client-secret
+          - secretKey: OAUTH2_PROXY_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/oauth2-proxy-client-secret
+          - secretKey: KEEP_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/keep/oidc-client-secret
+          - secretKey: GITLAB_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/gitlab/oidc-client-secret
+          - secretKey: GRAFANA_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/grafana/oidc-client-secret
+          - secretKey: JENKINS_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/common/jenkins/oidc-client-secret
+
+          - secretKey: AGENT_STUDIO_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/eks-demo/agent-studio/oidc-client-secret
+
+          # - secretKey: GITHUB_CLIENT_ID
+          #   remoteRef:
+          #     key: /k8s/opspresso/argocd-github-id
+          # - secretKey: GITHUB_CLIENT_SECRET
+          #   remoteRef:
+          #     key: /k8s/opspresso/argocd-github-secret

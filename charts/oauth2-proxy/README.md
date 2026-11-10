@@ -1,6 +1,6 @@
 # oauth2-proxy
 
-자체 로그인이 없는 서비스 앞에서 Argo CD Dex(client `oauth2-proxy-sso`)로 로그인을 요구한다.
+자체 로그인이 없는 서비스 앞에서 플랫폼 Dex(`charts/dex`, client `oauth2-proxy-sso`)로 로그인을 요구한다.
 namespace는 `addon-oauth2-proxy`, callback 주소는 `https://auth.demo.opsp.dev/oauth2/callback`이다.
 지금 보호 대상(Atlantis UI, Nexus, Argo Rollouts dashboard)은 모두 `backup/`에 있어 배포된 대상은 없다.
 
@@ -12,7 +12,7 @@ namespace는 `addon-oauth2-proxy`, callback 주소는 `https://auth.demo.opsp.de
 
 | 파라미터 | 용도 |
 | --- | --- |
-| `/k8s/common/oauth2-proxy-client-secret` | Dex client `oauth2-proxy-sso`의 secret. Argo CD `argocd-secret`도 읽는다 |
+| `/k8s/common/oauth2-proxy-client-secret` | Dex client `oauth2-proxy-sso`의 secret. 플랫폼 Dex의 `dex-secret`도 읽는다 |
 | `/k8s/common/cookie-secret` | cookie 암호화 키(16·24·32 byte) |
 
 두 값은 `install/eks/secrets.sh`가 없을 때만 만든다.

@@ -1,13 +1,13 @@
 {% if argocd is defined %}
 oauth2-proxy:
   config:
-    # Sign-in through Argo CD Dex (client oauth2-proxy-sso). Dex accepts only the
+    # Sign-in through the platform Dex (charts/dex, client oauth2-proxy-sso). Dex accepts only the
     # sso groups. Istio sends the hosts of
     # the AuthorizationPolicies with provider oauth2-proxy here (charts/istio).
     configFile: |-
       provider = "oidc"
       provider_display_name = "SSO"
-      oidc_issuer_url = "https://{{argocd.hostname}}/api/dex"
+      oidc_issuer_url = "https://{{dex.hostname}}"
       client_id = "oauth2-proxy-sso"
       scope = "openid profile email groups"
       code_challenge_method = "S256"
