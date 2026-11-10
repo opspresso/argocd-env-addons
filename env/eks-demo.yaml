@@ -102,8 +102,8 @@ gitlab:
   # admin1 is the LLDAP admin: GitLab reserves the name admin. nalbam signed in
   # through GitHub, which is off.
   admins:
-    - nalbam
     - admin1
+    - nalbam
 
 # Sign-in rule of every client of the platform Dex (charts/dex). Only the connector lldap
 # signs in; its groups come by name. Members of admin_groups are administrators;
