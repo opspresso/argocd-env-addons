@@ -1577,7 +1577,7 @@
       "id": 500,
       "type": "table",
       "title": "Nodes",
-      "description": "One row per node in the selected pools. Host CPU, memory and disk come from node-exporter; requests are Pending/Running pod requests over allocatable. Auto Mode adds nodes when requests do not fit, so high request ratios are normal.",
+      "description": "One row per node in the selected pools. Host CPU, memory and disk come from node-exporter; requests are Pending/Running pod requests over allocatable. Auto Mode adds nodes when requests do not fit, so high request ratios are normal. A dash means the node has no node-exporter (for example a runner node).",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1719,7 +1719,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "noValue": "No nodes",
+          "noValue": "—",
           "custom": {
             "align": "auto",
             "cellOptions": {
