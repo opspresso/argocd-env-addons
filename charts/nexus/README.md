@@ -1,5 +1,7 @@
 # nexus
 
+> 배포하지 않는다. ApplicationSet은 `backup/nexus.yaml`에 보관한다. 되살리려면 `addons/eks/`로 옮긴다.
+
 Nexus Repository Community Edition을 공식 이미지 `sonatype/nexus3`로 배포한다. 관리 클러스터(`eks-demo`)에만
 배포하며 namespace는 `addon-nexus`, 주소는 `https://nexus.demo.opsp.dev`이다.
 
@@ -17,10 +19,10 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
 - UI와 API(`/repository/` 밖)는 oauth2-proxy(Dex)로 로그인한 사용자만 연다.
-  gateway가 `X-Auth-Request-Preferred-Username`(GitHub login)을 붙인다. Nexus가 이 header로 사용자를 로그인시키려면
+  gateway가 `X-Auth-Request-Preferred-Username`(LLDAP 아이디)을 붙인다. Nexus가 이 header로 사용자를 로그인시키려면
   Remote User Token capability가 있어야 한다(아래). 없으면 로그인한 사용자도 익명 읽기 권한만 갖고, 관리는 로컬 `admin`으로 한다.
-- `nexus.admins`(`sre` 팀의 GitHub login)는 `nx-admin`이다. Community Edition은 group을 역할에 연결할 수 없어 목록을 코드에 둔다.
-  `sre` 팀 구성원이 바뀌면 이 목록도 고친다. 목록에 없는 사용자는 익명 읽기 권한만 갖는다.
+- `nexus.admins`(LLDAP `sre` 그룹 구성원의 아이디)는 `nx-admin`이다. Community Edition은 group을 역할에 연결할 수 없어 목록을 코드에 둔다.
+  `sre` 그룹 구성원이 바뀌면 이 목록도 고친다. 목록에 없는 사용자는 익명 읽기 권한만 갖는다.
 - `/repository/`(Maven, npm 등 패키지 클라이언트)는 oauth2-proxy를 거치지 않는다. 익명 읽기 또는 Nexus 사용자 토큰·비밀번호를 쓴다.
   이 경로에서는 gateway가 사용자 header를 지워 위조할 수 없다.
 - 로컬 `admin`(`/k8s/common/nexus/admin-password`)은 API와 동기화 Job만 쓴다.

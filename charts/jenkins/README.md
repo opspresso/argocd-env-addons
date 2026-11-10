@@ -1,5 +1,7 @@
 # jenkins
 
+> 배포하지 않는다. ApplicationSet은 `backup/jenkins.yaml`에 보관한다. 되살리려면 `addons/eks/`로 옮긴다.
+
 공식 chart(`jenkinsci/jenkins`)로 Jenkins를 배포한다. 관리 클러스터(`eks-demo`)에만 배포하며 namespace는 `addon-jenkins`,
 주소는 `https://jenkins.demo.opsp.dev`이다.
 

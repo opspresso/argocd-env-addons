@@ -33,7 +33,7 @@ GitLab 19(chart 10.x)는 PostgreSQL·Redis·MinIO를 더 이상 포함하지 않
 
 ## SSM 파라미터
 
-배포 전에 SecureString으로 등록한다. 값이 없으면 ExternalSecret이 실패하고 Pod가 시작하지 않는다.
+`install/eks/secrets.sh`가 없을 때만 만든다. 값이 없으면 ExternalSecret이 실패하고 Pod가 시작하지 않는다.
 
 | 파라미터 | 용도 |
 | --- | --- |
@@ -42,14 +42,6 @@ GitLab 19(chart 10.x)는 PostgreSQL·Redis·MinIO를 더 이상 포함하지 않
 | `/k8s/common/gitlab/valkey-password` | Valkey `requirepass` |
 | `/k8s/common/gitlab/oidc-client-secret` | Dex client `gitlab-sso`의 secret. Argo CD `argocd-secret`도 읽으므로, 없으면 `argocd-secret` 전체가 갱신되지 않는다 |
 
-```bash
-for name in root-password postgres-password valkey-password oidc-client-secret; do
-  aws ssm put-parameter --region ap-northeast-2 --type SecureString \
-    --name "/k8s/common/gitlab/${name}" \
-    --value "$(openssl rand -base64 33 | tr -d '/+=' | cut -c1-32)"
-done
-```
-
 `root-password`와 `postgres-password`는 첫 설치 뒤에 바꿔도 반영되지 않는다. PostgreSQL 비밀번호를 바꾸려면 DB에서
 `ALTER USER`를 먼저 실행하고 SSM을 같은 값으로 바꾼다.
 
@@ -57,7 +49,7 @@ done
 
 모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
 
-- `sso` 그룹 구성원은 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거쳐 로그인한다.
+- LLDAP 사용자는 Argo CD Dex(`https://argocd.demo.opsp.dev/api/dex`)를 거쳐 로그인한다.
   첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. provider 설정은 ExternalSecret `gitlab-oidc-provider`가 만든다.
 - `gitlab.admins`(`sso.admin_groups` 구성원의 login 이름)는 관리자, 다른 사용자는 일반 사용자다.
 - 로그인 화면은 바로 Dex로 이동한다(`autoSignInWithProvider`). 가입과 웹 비밀번호 로그인은 꺼져 있다.

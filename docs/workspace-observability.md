@@ -15,10 +15,9 @@ EKS는 이를 `prometheus-agent-platform-workloads` PrometheusRule로 렌더한�
 Studio 관찰 worker, Forge API/worker, Knowledge worker를 구분한다. 유지보수로 desired replicas를
 0으로 둔 Deployment는 worker 장애로 알리지 않는다. 경보의 service·severity를 알림까지 보존한다.
 
-## 배포 전환과 운영 확인
+## 운영 확인
 
-- 기존 `agent-studio-workspaces`의 작업·Pod를 종료하고 소유권 이전을 확인한 뒤 기존 리소스를 정리한다.
-  addons 변경으로 기존 namespace나 PVC를 삭제하지 않는다. 새 Sandbox RBAC·격리 정책은 앱 chart가 소유한다.
+- addons 변경으로 앱 namespace나 PVC를 삭제하지 않는다. Sandbox RBAC·격리 정책은 앱 chart가 소유한다.
 - `agent-forge-workspaces`의 Pod phase/reason, OOM, Pod quota 사용량과 신규 서비스의 `up=1`을 확인한다.
 - EKS `workspaces` pool의 DiskPressure·Ready, kubelet image GC와 파일시스템 여유를 확인한다.
   기존 EKS DefaultDeny와 Alloy의 좁은 readiness·DNS·API·Loki 예외를 유지한다.
