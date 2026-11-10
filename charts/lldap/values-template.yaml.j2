@@ -46,6 +46,29 @@ lldap:
 
 raw:
   resources:
+    # The web UI and its GraphQL API require an administrator sign-in through
+    # oauth2-proxy (sso.admin_groups). LLDAP lets every user change their own
+    # mail, and the email claim of the platform Dex comes from mail: Agent
+    # Studio links accounts by that email (OIDC_TRUST_EMAIL), so only
+    # administrators may change it.
+    - apiVersion: security.istio.io/v1
+      kind: AuthorizationPolicy
+      metadata:
+        name: lldap
+        namespace: istio-system
+      spec:
+        selector:
+          matchLabels:
+            istio: ingressgateway
+        action: CUSTOM
+        provider:
+          name: oauth2-proxy
+        rules:
+          - to:
+              - operation:
+                  hosts:
+                    - "{{lldap.hostname}}"
+
     # After every sync: declares the groups of the sign-in rule (sso in
     # env/<cluster>.yaml) and puts the admin in the admin group. People and the
     # other memberships are managed in the LLDAP web UI. Nothing is deleted.
