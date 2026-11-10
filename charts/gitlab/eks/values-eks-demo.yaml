@@ -110,8 +110,7 @@ raw:
             data:
               provider: |
                 name: openid_connect
-                label: GitHub
-                icon: https://github.githubassets.com/favicons/favicon.svg
+                label: SSO
                 args:
                   name: openid_connect
                   scope: [openid, profile, email]
@@ -128,8 +127,8 @@ raw:
             remoteRef:
               key: /k8s/common/gitlab/oidc-client-secret
     # GitLab CE cannot map OIDC groups to administrators (Premium only). This
-    # CronJob makes the users in gitlab.admins (the GitHub logins of the
-    # sso.admin_groups) administrators and the other SSO users not.
+    # CronJob makes the users in gitlab.admins (the GitHub and LLDAP logins
+    # of the sso.admin_groups) administrators and the other SSO users not.
     # It also keeps sign-up and the web password form off. root is not changed.
     - apiVersion: v1
       kind: ServiceAccount

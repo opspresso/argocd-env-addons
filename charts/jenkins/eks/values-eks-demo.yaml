@@ -30,6 +30,11 @@ jenkins:
                   - "Overall/Administer"
 
             - group:
+                name: "sre"
+                permissions:
+                  - "Overall/Administer"
+
+            - group:
                 name: "authenticated"
                 permissions:
                   - "Overall/Read"

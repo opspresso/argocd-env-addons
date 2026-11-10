@@ -1,0 +1,90 @@
+lldap:
+  fullnameOverride: lldap
+
+  # The rootless image runs as lldap (uid 1000) and needs no gosu.
+  image:
+    repository: lldap/lldap
+    tag: "v0.6.3-alpine-rootless"
+
+  containerName: lldap
+
+  # One Pod owns the ReadWriteOnce volume and the SQLite database.
+  controller:
+    strategy:
+      type: Recreate
+
+  # Web UI and GraphQL API. Dex reads the LDAP port (extraPorts).
+  service:
+    name: http
+    port: 17170
+    targetPort: 17170
+    extraPorts:
+      - name: ldap
+        port: 3890
+        targetPort: ldap
+        protocol: TCP
+  extraPorts:
+    - name: ldap
+      containerPort: 3890
+      protocol: TCP
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+  podSecurityContext:
+    fsGroup: 1000
+
+  startupProbe:
+    tcpSocket:
+      port: ldap
+    periodSeconds: 5
+    failureThreshold: 30
+  readinessProbe:
+    httpGet:
+      path: /
+      port: http
+    periodSeconds: 10
+  livenessProbe:
+    tcpSocket:
+      port: ldap
+    periodSeconds: 30
+    failureThreshold: 6
+
+  # /data holds lldap_config.toml (copied from the image on first start) and
+  # users.db. The environment overrides every setting of the file.
+  persistence:
+    enabled: true
+    storageClassName: gp3
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    mountPath: /data
+
+  # The gateway reaches the web UI. Argo CD Dex binds on the LDAP port. The
+  # bootstrap Job in this namespace calls the API.
+  networkPolicy:
+    enabled: true
+    policyTypes: [Ingress]
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: istio-system
+          - podSelector: {}
+        ports:
+          - protocol: TCP
+            port: 17170
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: argocd
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: argocd-dex-server
+        ports:
+          - protocol: TCP
+            port: 3890
