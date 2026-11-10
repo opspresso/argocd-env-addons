@@ -394,12 +394,12 @@
                 "value": null
               },
               {
-                "color": "orange",
-                "value": 1
+                "color": "#FF9830",
+                "value": 50
               },
               {
                 "color": "green",
-                "value": 100
+                "value": 99.5
               }
             ]
           },
@@ -541,7 +541,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count(count by(cluster,namespace,pod) ((max by (cluster, namespace, pod, container, reason) ((kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} or kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"}) == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"}))) or (0 * count(max by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"})))",
+          "expr": "count(count by(cluster,namespace,pod) ((max by (cluster, namespace, pod, container, reason) ((kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} or kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"}) == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) topk by (cluster, namespace, pod) (1, max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"})))) or (0 * count(max by(cluster,namespace,pod)(namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"})))",
           "legendFormat": "",
           "instant": false,
           "range": true,
@@ -630,7 +630,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No data",
           "color": {
             "mode": "thresholds"
@@ -713,7 +713,7 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
+          "decimals": 0,
           "noValue": "No data",
           "color": {
             "mode": "thresholds"
@@ -762,7 +762,7 @@
     },
     {
       "id": 105,
-      "title": "HTTP / transport errors",
+      "title": "HTTP errors",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -771,7 +771,7 @@
       "gridPos": {
         "x": 0,
         "y": 5,
-        "w": 5,
+        "w": 4,
         "h": 4
       },
       "description": "5xx and response code 0, excluding client disconnects (response flag DC). No traffic or no mesh telemetry remains N/A, never 100% successful.",
@@ -857,9 +857,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 5,
+        "x": 4,
         "y": 5,
-        "w": 5,
+        "w": 4,
         "h": 4
       },
       "description": "Worst container including sidecars. Only containers with a positive limit participate.",
@@ -945,9 +945,9 @@
         "uid": "${datasource}"
       },
       "gridPos": {
-        "x": 10,
+        "x": 8,
         "y": 5,
-        "w": 2,
+        "w": 4,
         "h": 4
       },
       "description": "1 = kube-state-metrics scrape succeeds, 0 = scrape failure, No data = target absent. State-dependent panels cannot prove health while this is unavailable.",
@@ -1032,7 +1032,7 @@
     },
     {
       "id": 303,
-      "title": "CPU / Requests",
+      "title": "CPU / request",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -1120,7 +1120,7 @@
     },
     {
       "id": 304,
-      "title": "CPU / Limits",
+      "title": "CPU / limit",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -1208,7 +1208,7 @@
     },
     {
       "id": 305,
-      "title": "Memory / Requests",
+      "title": "Mem / request",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -1296,7 +1296,7 @@
     },
     {
       "id": 306,
-      "title": "Memory / Limits",
+      "title": "Mem / limit",
       "type": "gauge",
       "datasource": {
         "type": "prometheus",
@@ -1676,7 +1676,7 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "gauge",
-                  "mode": "lcd",
+                  "mode": "basic",
                   "valueDisplayMode": "text"
                 }
               },
@@ -1695,7 +1695,7 @@
                     },
                     {
                       "color": "green",
-                      "value": 1
+                      "value": 0.995
                     }
                   ]
                 }
@@ -2204,7 +2204,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(max by (cluster, namespace, pod, container, reason) ((kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} or kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"}) == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"})",
+          "expr": "(max by (cluster, namespace, pod, container, reason) ((kube_pod_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"} or kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",namespace=~\"$namespace\",reason=~\"CrashLoopBackOff|ImagePullBackOff|ErrImagePull|CreateContainerConfigError|CreateContainerError|RunContainerError|InvalidImageName\"}) == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=~\"Pending|Failed\"} == 1), \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace((max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",namespace=~\"$namespace\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",namespace=~\"$namespace\",phase=\"Running\"}) == 1)), \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(workload, workload_type) max by (cluster, namespace, pod, workload, workload_type) (namespace_workload_pod:kube_pod_owner:relabel{cluster=~\"$cluster\",namespace=~\"$namespace\",workload=~\"$workload\",workload_type=~\"$workload_type\"}) * on (cluster, namespace, pod) group_left(node) topk by (cluster, namespace, pod) (1, max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\",namespace=~\"$namespace\"}))",
           "legendFormat": "",
           "instant": true,
           "range": false,
@@ -2659,7 +2659,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -2766,7 +2765,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -2881,7 +2879,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -2996,7 +2993,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3560,7 +3556,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "cores",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3667,7 +3662,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3782,7 +3776,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3889,7 +3882,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4261,7 +4253,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4368,7 +4359,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No traffic / metrics",
           "color": {
             "mode": "palette-classic"
@@ -4507,7 +4497,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4614,7 +4603,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4733,7 +4721,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "Bps",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -5128,7 +5115,7 @@
         "type": "loki",
         "uid": "${logs}"
       },
-      "description": "Recent log lines of the selected pods that look like errors or warnings (case-insensitive).",
+      "description": "Recent log lines of the selected pods at error, fatal, critical or warning level, plus panics and exceptions. Same match as Service Status, with warnings added.",
       "targets": [
         {
           "refId": "A",
@@ -5137,7 +5124,7 @@
             "uid": "${logs}"
           },
           "queryType": "range",
-          "expr": "{cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$pod$\"} |~ \"(?i)(error|fatal|panic|exception|warn)\"",
+          "expr": "{cluster=~\"$cluster\",namespace=~\"$namespace\",pod=~\"^$pod$\"} |~ \"(?i:level[\\\"=: ]+(error|fatal|critical|warn|warning))|\\b(ERROR|FATAL|CRITICAL|WARN|WARNING)\\b|panic:|Exception\"",
           "maxLines": 300
         }
       ],

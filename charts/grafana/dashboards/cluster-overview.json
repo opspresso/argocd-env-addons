@@ -253,8 +253,8 @@
       "gridPos": {
         "x": 0,
         "y": 1,
-        "w": 8,
-        "h": 5
+        "w": 6,
+        "h": 8
       }
     },
     {
@@ -329,16 +329,16 @@
         "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 8,
+        "x": 6,
         "y": 1,
-        "w": 3,
-        "h": 5
+        "w": 6,
+        "h": 4
       }
     },
     {
       "id": 3,
       "type": "stat",
-      "title": "Nodes NotReady",
+      "title": "NotReady nodes",
       "description": "Nodes whose Ready condition is false or unknown. Nodes that Auto Mode is draining (karpenter.sh/disrupted taint) are included here but excluded from the alert rule.",
       "datasource": {
         "type": "prometheus",
@@ -407,10 +407,10 @@
         "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 11,
+        "x": 12,
         "y": 1,
-        "w": 3,
-        "h": 5
+        "w": 6,
+        "h": 4
       }
     },
     {
@@ -485,10 +485,10 @@
         "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 14,
+        "x": 18,
         "y": 1,
-        "w": 3,
-        "h": 5
+        "w": 6,
+        "h": 4
       }
     },
     {
@@ -563,16 +563,16 @@
         "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 17,
-        "y": 1,
-        "w": 3,
-        "h": 5
+        "x": 6,
+        "y": 5,
+        "w": 6,
+        "h": 4
       }
     },
     {
       "id": 8,
       "type": "stat",
-      "title": "OOM kills · 1h",
+      "title": "OOM kills · last 1h",
       "description": "Containers that restarted in the last hour and whose last termination reason is OOMKilled. Raise the memory limit or fix the leak; see Service Status for memory/limit.",
       "datasource": {
         "type": "prometheus",
@@ -641,16 +641,16 @@
         "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 20,
-        "y": 1,
-        "w": 2,
-        "h": 5
+        "x": 12,
+        "y": 5,
+        "w": 6,
+        "h": 4
       }
     },
     {
       "id": 9,
       "type": "stat",
-      "title": "Argo CD unhealthy",
+      "title": "Argo CD apps unhealthy",
       "description": "Argo CD applications that are not Healthy or not Synced. Argo CD notifications already report degraded and failed syncs to Slack; this tile shows the current count.",
       "datasource": {
         "type": "prometheus",
@@ -719,10 +719,10 @@
         "percentChangeColorMode": "standard"
       },
       "gridPos": {
-        "x": 22,
-        "y": 1,
-        "w": 2,
-        "h": 5
+        "x": 18,
+        "y": 5,
+        "w": 6,
+        "h": 4
       }
     },
     {
@@ -733,7 +733,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 6,
+        "y": 9,
         "w": 24,
         "h": 1
       }
@@ -802,7 +802,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 7,
+        "y": 10,
         "w": 4,
         "h": 5
       }
@@ -810,7 +810,7 @@
     {
       "id": 11,
       "type": "stat",
-      "title": "Ingress success rate",
+      "title": "Ingress success",
       "description": "Share of ingress requests that did not fail. Failed = 5xx or transport code 0, excluding client disconnects (DC). The error-rate alert fires below 95% (5% errors).",
       "datasource": {
         "type": "prometheus",
@@ -879,7 +879,7 @@
       },
       "gridPos": {
         "x": 4,
-        "y": 7,
+        "y": 10,
         "w": 4,
         "h": 5
       }
@@ -887,7 +887,7 @@
     {
       "id": 12,
       "type": "stat",
-      "title": "Ingress p95 latency",
+      "title": "Ingress p95",
       "description": "95th percentile request duration at the ingress gateway over 5 minutes, all services. Streaming and long-poll endpoints raise this value.",
       "datasource": {
         "type": "prometheus",
@@ -956,7 +956,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 7,
+        "y": 10,
         "w": 4,
         "h": 5
       }
@@ -964,7 +964,7 @@
     {
       "id": 42,
       "type": "stat",
-      "title": "API server success",
+      "title": "API success",
       "description": "Share of Kubernetes API requests that did not return 5xx. Controllers, Argo CD and kubectl all depend on it.",
       "datasource": {
         "type": "prometheus",
@@ -1033,7 +1033,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 7,
+        "y": 10,
         "w": 4,
         "h": 5
       }
@@ -1110,7 +1110,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 7,
+        "y": 10,
         "w": 4,
         "h": 5
       }
@@ -1118,7 +1118,7 @@
     {
       "id": 44,
       "type": "stat",
-      "title": "Scrape targets up",
+      "title": "Targets up",
       "description": "Share of Prometheus scrape targets answering. A node replacement drops it briefly; the Monitoring targets panel shows which job is missing.",
       "datasource": {
         "type": "prometheus",
@@ -1187,7 +1187,7 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 7,
+        "y": 10,
         "w": 4,
         "h": 5
       }
@@ -1200,7 +1200,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 12,
+        "y": 15,
         "w": 24,
         "h": 1
       }
@@ -1208,7 +1208,7 @@
     {
       "id": 13,
       "type": "gauge",
-      "title": "Host CPU busy",
+      "title": "Host CPU",
       "description": "Average non-idle CPU time across all nodes (node-exporter). Sustained values near 100% cause throttling and latency.",
       "datasource": {
         "type": "prometheus",
@@ -1275,7 +1275,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 13,
+        "y": 16,
         "w": 4,
         "h": 6
       }
@@ -1283,7 +1283,7 @@
     {
       "id": 14,
       "type": "gauge",
-      "title": "Host memory used",
+      "title": "Host memory",
       "description": "1 - MemAvailable / MemTotal summed across nodes. Includes kernel memory that pod working sets do not show.",
       "datasource": {
         "type": "prometheus",
@@ -1350,7 +1350,7 @@
       },
       "gridPos": {
         "x": 4,
-        "y": 13,
+        "y": 16,
         "w": 4,
         "h": 6
       }
@@ -1421,7 +1421,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 13,
+        "y": 16,
         "w": 4,
         "h": 6
       }
@@ -1429,7 +1429,7 @@
     {
       "id": 16,
       "type": "gauge",
-      "title": "Memory requested",
+      "title": "Mem requested",
       "description": "Memory requests of Pending and Running pods / allocatable memory. See CPU requested for how Auto Mode uses this value.",
       "datasource": {
         "type": "prometheus",
@@ -1492,7 +1492,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 13,
+        "y": 16,
         "w": 4,
         "h": 6
       }
@@ -1561,7 +1561,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 13,
+        "y": 16,
         "w": 4,
         "h": 3
       }
@@ -1630,7 +1630,7 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 13,
+        "y": 16,
         "w": 4,
         "h": 3
       }
@@ -1638,7 +1638,7 @@
     {
       "id": 17,
       "type": "stat",
-      "title": "Nodes launched · 24h",
+      "title": "New nodes · 24h",
       "description": "Nodes created in the last 24 hours, including nodes already removed. Auto Mode consolidation replaces nodes routinely; a sudden jump together with restarts or alerts points to node instability.",
       "datasource": {
         "type": "prometheus",
@@ -1699,7 +1699,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 16,
+        "y": 19,
         "w": 4,
         "h": 3
       }
@@ -1776,7 +1776,7 @@
       },
       "gridPos": {
         "x": 20,
-        "y": 16,
+        "y": 19,
         "w": 4,
         "h": 3
       }
@@ -1789,7 +1789,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 19,
+        "y": 22,
         "w": 24,
         "h": 1
       }
@@ -1810,7 +1810,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "100 * min by (namespace) (clamp_max(max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) / (max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0), 1))",
+          "expr": "sort(100 * min by (namespace) (clamp_max(max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_status_replicas_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_number_available{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) / (max by (cluster, namespace, workload, workload_type) (label_replace(label_replace(kube_deployment_spec_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"deployment\", \"(.*)\"), \"workload_type\", \"deployment\", \"\", \"\") or label_replace(label_replace(kube_statefulset_replicas{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"statefulset\", \"(.*)\"), \"workload_type\", \"statefulset\", \"\", \"\") or label_replace(label_replace(kube_daemonset_status_desired_number_scheduled{cluster=~\"$cluster\"}, \"workload\", \"$1\", \"daemonset\", \"(.*)\"), \"workload_type\", \"daemonset\", \"\", \"\")) > 0), 1)))",
           "legendFormat": "{{namespace}}",
           "range": false,
           "instant": true,
@@ -1867,13 +1867,17 @@
         "wideLayout": true,
         "showPercentChange": false,
         "orientation": "auto",
-        "percentChangeColorMode": "standard"
+        "percentChangeColorMode": "standard",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 18
+        }
       },
       "gridPos": {
         "x": 0,
-        "y": 20,
+        "y": 23,
         "w": 24,
-        "h": 8
+        "h": 7
       }
     },
     {
@@ -1892,7 +1896,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "100 * avg by (job) (up{cluster=~\"$cluster\"})",
+          "expr": "sort(100 * avg by (job) (up{cluster=~\"$cluster\"}))",
           "legendFormat": "{{job}}",
           "range": false,
           "instant": true,
@@ -1944,13 +1948,17 @@
         "wideLayout": true,
         "showPercentChange": false,
         "orientation": "auto",
-        "percentChangeColorMode": "standard"
+        "percentChangeColorMode": "standard",
+        "text": {
+          "titleSize": 13,
+          "valueSize": 18
+        }
       },
       "gridPos": {
         "x": 0,
-        "y": 28,
+        "y": 30,
         "w": 24,
-        "h": 4
+        "h": 5
       }
     },
     {
@@ -1961,7 +1969,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 32,
+        "y": 35,
         "w": 24,
         "h": 1
       }
@@ -1974,7 +1982,7 @@
       "description": "Grafana-managed alerts that are firing or pending, newest first. Click an alert to open the rule, its query and the linked dashboard panel.",
       "gridPos": {
         "x": 0,
-        "y": 33,
+        "y": 36,
         "w": 12,
         "h": 9
       },
@@ -2009,7 +2017,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 33,
+        "y": 36,
         "w": 12,
         "h": 9
       },
@@ -2167,7 +2175,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 45,
         "w": 12,
         "h": 8
       },
@@ -2178,7 +2186,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(max by (cluster, namespace, pod, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\"} == 1) or max by (cluster, namespace, pod, reason) (kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",reason!=\"PodInitializing\"} == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Unknown|Failed\"} == 1) unless on (cluster, namespace, pod) kube_pod_owner{cluster=~\"$cluster\",owner_kind=~\"Job|Workflow\"}, \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace(max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=\"Running\"}) == 1) unless on (cluster, namespace, pod) kube_pod_deletion_timestamp{cluster=~\"$cluster\"}, \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"})",
+          "expr": "(max by (cluster, namespace, pod, reason) (kube_pod_container_status_waiting_reason{cluster=~\"$cluster\"} == 1) or max by (cluster, namespace, pod, reason) (kube_pod_init_container_status_waiting_reason{cluster=~\"$cluster\",reason!=\"PodInitializing\"} == 1) or label_replace(max by (cluster, namespace, pod, phase) (kube_pod_status_phase{cluster=~\"$cluster\",phase=~\"Pending|Unknown|Failed\"} == 1) unless on (cluster, namespace, pod) kube_pod_owner{cluster=~\"$cluster\",owner_kind=~\"Job|Workflow\"}, \"reason\", \"$1\", \"phase\", \"(.*)\") or label_replace(max by (cluster, namespace, pod) (kube_pod_status_ready{cluster=~\"$cluster\",condition=\"false\"} == 1) and on (cluster, namespace, pod) (max by (cluster, namespace, pod) (kube_pod_status_phase{cluster=~\"$cluster\",phase=\"Running\"}) == 1) unless on (cluster, namespace, pod) kube_pod_deletion_timestamp{cluster=~\"$cluster\"}, \"reason\", \"NotReady\", \"\", \"\")) * on (cluster, namespace, pod) group_left(node) topk by (cluster, namespace, pod) (1, max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"}))",
           "legendFormat": "",
           "range": false,
           "instant": true,
@@ -2281,7 +2289,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 42,
+        "y": 45,
         "w": 12,
         "h": 8
       },
@@ -2447,7 +2455,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 50,
+        "y": 53,
         "w": 24,
         "h": 1
       }
@@ -2463,7 +2471,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 54,
         "w": 24,
         "h": 8
       },
@@ -2885,7 +2893,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 62,
         "w": 24,
         "h": 1
       }
@@ -2901,7 +2909,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 63,
         "w": 24,
         "h": 8
       },
@@ -3148,7 +3156,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 71,
         "w": 24,
         "h": 1
       }
@@ -3164,7 +3172,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 69,
+        "y": 72,
         "w": 8,
         "h": 8
       },
@@ -3225,8 +3233,7 @@
                 "value": null
               }
             ]
-          },
-          "decimals": 2
+          }
         },
         "overrides": []
       },
@@ -3260,7 +3267,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 69,
+        "y": 72,
         "w": 8,
         "h": 8
       },
@@ -3326,7 +3333,6 @@
               }
             ]
           },
-          "decimals": 1,
           "max": 100
         },
         "overrides": []
@@ -3464,7 +3470,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 69,
+        "y": 72,
         "w": 8,
         "h": 8
       }
@@ -3480,7 +3486,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 77,
+        "y": 80,
         "w": 8,
         "h": 8
       },
@@ -3565,8 +3571,7 @@
                 "value": null
               }
             ]
-          },
-          "decimals": 2
+          }
         },
         "overrides": []
       },
@@ -3600,7 +3605,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 77,
+        "y": 80,
         "w": 8,
         "h": 8
       },
@@ -3719,7 +3724,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 77,
+        "y": 80,
         "w": 8,
         "h": 8
       },
@@ -3804,7 +3809,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 85,
+        "y": 88,
         "w": 12,
         "h": 7
       },
@@ -3866,8 +3871,7 @@
                 "value": null
               }
             ]
-          },
-          "decimals": 0
+          }
         },
         "overrides": []
       },
@@ -4010,7 +4014,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 85,
+        "y": 88,
         "w": 12,
         "h": 7
       }

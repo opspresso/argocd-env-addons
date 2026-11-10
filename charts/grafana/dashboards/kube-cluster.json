@@ -420,7 +420,7 @@
     {
       "id": 206,
       "type": "stat",
-      "title": "Under pressure",
+      "title": "Pressure",
       "description": "Nodes reporting MemoryPressure, DiskPressure or PIDPressure. One node is counted once.",
       "datasource": {
         "type": "prometheus",
@@ -493,7 +493,7 @@
     {
       "id": 103,
       "type": "stat",
-      "title": "Failed targets · 5m",
+      "title": "Failed targets",
       "description": "Core monitoring targets with at least one failed scrape in the last 5 minutes; this is not the number of nodes.",
       "datasource": {
         "type": "prometheus",
@@ -570,7 +570,7 @@
     {
       "id": 104,
       "type": "stat",
-      "title": "Restarts · 10m",
+      "title": "Restarts 10m",
       "description": "Cluster-wide count across all namespaces. A last termination reason of Completed does not hide a liveness restart.",
       "datasource": {
         "type": "prometheus",
@@ -583,7 +583,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\"}[10m])) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"}))) or vector(0)",
+          "expr": "sum(sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\"}[10m])) * on (cluster, namespace, pod) group_left(node) topk by (cluster, namespace, pod) (1, max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"})))) or vector(0)",
           "legendFormat": "",
           "range": true,
           "instant": false,
@@ -647,7 +647,7 @@
     {
       "id": 105,
       "type": "stat",
-      "title": "Liveness fails · 5m",
+      "title": "Liveness fails",
       "description": "Failed liveness checks in the last 5 minutes. Zero is supplied only for a successfully scraped kubelet probes endpoint.",
       "datasource": {
         "type": "prometheus",
@@ -806,7 +806,7 @@
     {
       "id": 5,
       "type": "gauge",
-      "title": "CPU requests / allocatable",
+      "title": "CPU requests",
       "description": "CPU requests of containers and running init/native sidecar containers / allocatable CPU. Scheduling reservation only; Auto Mode adds nodes when pods cannot be scheduled.",
       "datasource": {
         "type": "prometheus",
@@ -818,7 +818,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum((kube_pod_container_resource_requests{resource=~\"cpu\"} or (kube_pod_init_container_resource_requests{resource=~\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1))) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum((kube_pod_container_resource_requests{resource=~\"cpu\"} or (kube_pod_init_container_resource_requests{resource=~\"cpu\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1))) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) /\nsum(kube_node_status_allocatable{resource=~\"cpu\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -879,7 +879,7 @@
     {
       "id": 6,
       "type": "gauge",
-      "title": "Memory requests / allocatable",
+      "title": "Memory requests",
       "description": "Scheduling reservation only. Kernel memory, page cache, and usage above requests are not represented.",
       "datasource": {
         "type": "prometheus",
@@ -891,7 +891,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum((kube_pod_container_resource_requests{resource=~\"memory\"} or (kube_pod_init_container_resource_requests{resource=~\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1))) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum((kube_pod_container_resource_requests{resource=~\"memory\"} or (kube_pod_init_container_resource_requests{resource=~\"memory\"} and on(cluster,namespace,pod,container) (kube_pod_init_container_status_running == 1))) * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) /\nsum(kube_node_status_allocatable{resource=~\"memory\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -952,7 +952,7 @@
     {
       "id": 4,
       "type": "gauge",
-      "title": "Pods / capacity",
+      "title": "Pod slots",
       "description": "Scheduled pods / allocatable pod slots. Each node has a fixed pod limit that depends on instance type.",
       "datasource": {
         "type": "prometheus",
@@ -964,7 +964,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "sum(kube_pod_info{cluster=~\"$cluster\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) /\nsum(kube_node_status_allocatable{resource=~\"pods\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_group=~\"$label_group\"}) * 100",
+          "expr": "sum(kube_pod_info{cluster=~\"$cluster\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) /\nsum(kube_node_status_allocatable{resource=~\"pods\"} * on (cluster, node) group_left (role) kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * 100",
           "format": "time_series",
           "interval": "",
           "intervalFactor": 1,
@@ -1029,7 +1029,7 @@
     {
       "id": 204,
       "type": "gauge",
-      "title": "Busiest host CPU",
+      "title": "Host CPU max",
       "description": "Worst node CPU busy percentage. CPU pressure and load trends are shown below.",
       "datasource": {
         "type": "prometheus",
@@ -1103,7 +1103,7 @@
     {
       "id": 101,
       "type": "gauge",
-      "title": "Fullest host memory",
+      "title": "Host mem max",
       "description": "Worst measured host memory usage, including kernel memory. Check failed targets before treating absent node data as recovery.",
       "datasource": {
         "type": "prometheus",
@@ -1177,7 +1177,7 @@
     {
       "id": 102,
       "type": "gauge",
-      "title": "Max kernel / RAM",
+      "title": "Kernel / RAM",
       "description": "Includes kernel BPF map allocations. Sustained growth can exhaust a node while pod memory looks normal.",
       "datasource": {
         "type": "prometheus",
@@ -1251,7 +1251,7 @@
     {
       "id": 205,
       "type": "gauge",
-      "title": "Fullest disk",
+      "title": "Disk max",
       "description": "Worst writable root/data filesystem usage; readonly OS images are excluded.",
       "datasource": {
         "type": "prometheus",
@@ -1418,8 +1418,7 @@
                 "value": null
               }
             ]
-          },
-          "decimals": 2
+          }
         },
         "overrides": []
       },
@@ -1862,7 +1861,7 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "gauge",
-                  "mode": "lcd",
+                  "mode": "basic",
                   "valueDisplayMode": "text"
                 }
               },
@@ -1920,7 +1919,7 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "gauge",
-                  "mode": "lcd",
+                  "mode": "basic",
                   "valueDisplayMode": "text"
                 }
               },
@@ -1978,7 +1977,7 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "gauge",
-                  "mode": "lcd",
+                  "mode": "basic",
                   "valueDisplayMode": "text"
                 }
               },
@@ -2032,7 +2031,7 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "gauge",
-                  "mode": "lcd",
+                  "mode": "basic",
                   "valueDisplayMode": "text"
                 }
               },
@@ -2086,7 +2085,7 @@
                 "id": "custom.cellOptions",
                 "value": {
                   "type": "gauge",
-                  "mode": "lcd",
+                  "mode": "basic",
                   "valueDisplayMode": "text"
                 }
               },
@@ -3412,7 +3411,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3515,7 +3513,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3621,7 +3618,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3735,7 +3731,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3830,7 +3825,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -3933,7 +3927,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4036,7 +4029,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4126,7 +4118,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\"}[10m])) * on (cluster, namespace, pod) group_left(node) max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"}))",
+          "expr": "sum by (cluster, node) ((increase(kube_pod_container_status_restarts_total{cluster=~\"$cluster\"}[10m]) or increase(kube_pod_init_container_status_restarts_total{cluster=~\"$cluster\"}[10m])) * on (cluster, namespace, pod) group_left(node) topk by (cluster, namespace, pod) (1, max by (cluster, namespace, pod, node) (kube_pod_info{cluster=~\"$cluster\"})))",
           "legendFormat": "{{node}}",
           "instant": false,
           "range": true
@@ -4135,7 +4127,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "short",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4238,7 +4229,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4341,7 +4331,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4450,7 +4439,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4577,7 +4565,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "Bps",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
@@ -4696,7 +4683,6 @@
       "fieldConfig": {
         "defaults": {
           "unit": "ops",
-          "decimals": 1,
           "noValue": "No data",
           "color": {
             "mode": "palette-classic"
