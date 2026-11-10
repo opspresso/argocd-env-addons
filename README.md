@@ -28,15 +28,18 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 | 배포·자동화 | argo-cd, argo-workflows, atlantis, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows, atlantis(UI)·atlantis-public(webhook) |
 | 개발 도구 | gitlab, jenkins, nexus | gitlab, jenkins, nexus |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
-| 인증 | oauth2-proxy (Dex는 argo-cd에 포함) | auth |
+| 인증 | oauth2-proxy, lldap (Dex는 argo-cd에 포함) | auth, lldap |
 | 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
 
 ## 로그인
 
-GitHub `opspresso` 조직 → Argo CD Dex → 각 addon의 OIDC client로 로그인한다. 아이디·비밀번호 폼은 숨긴다.
+GitHub `opspresso` 조직 또는 LLDAP 아이디·비밀번호 → Argo CD Dex → 각 addon의 OIDC client로 로그인한다.
+Dex 화면에서 connector `github`나 `lldap`을 고른다. addon 자체의 아이디·비밀번호 폼은 숨긴다.
 
-- 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(`opspresso:sre`)는 관리자,
-  `sso.member_groups`(`opspresso:dev`)는 일반 사용자·읽기 전용.
+- 권한은 `env/<cluster>.yaml`의 `sso`로 정한다: `sso.admin_groups`(`opspresso:sre`, `sre`)는 관리자,
+  `sso.member_groups`(`opspresso:dev`, `dev`)는 일반 사용자·읽기 전용. `sre`·`dev`는 LLDAP 그룹이다.
+- LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)다. 사용자는 LLDAP 웹 UI에서
+  관리한다(`charts/lldap/README.md`).
 - 자체 로그인이 없는 Atlantis·Nexus는 oauth2-proxy가 막는다.
 - GitLab CE·Nexus CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins`·`nexus.admins` 목록을 CronJob이 맞춘다.
 - 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.

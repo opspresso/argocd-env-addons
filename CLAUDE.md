@@ -34,9 +34,10 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 운영 클러스터는 EKS `eks-demo`이며 같은 클러스터의 Argo CD가 `addons-eks.yaml`을 동기화한다.
 `local` 템플릿·정책 지원은 남아 있지만 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
-인증: GitHub `opspresso` 조직 → Argo CD Dex(connector `github`) → 각 addon 의 OIDC client
+인증: GitHub `opspresso` 조직 또는 LLDAP(`charts/lldap`) → Argo CD Dex(connector `github`·`lldap`) → 각 addon 의 OIDC client
 (`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`jenkins-sso`·`oauth2-proxy-sso`).
 권한은 `env/<cluster>.yaml` 의 `sso`: `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
+GitHub 팀은 `<org>:<team>`, LLDAP 그룹은 이름 그대로 들어온다. LLDAP 관리자·Dex bind 사용자는 `/k8s/common/admin-user`·`admin-password`.
 자체 로그인이 없는 `atlantis`·`nexus` 는 `oauth2-proxy` 가 막는다. GitLab CE·Nexus CE 의 관리자는 `gitlab.admins`·`nexus.admins`
 목록을 CronJob 이 맞춘다. addon 이 읽는 무작위 값은 `install/eks/secrets.sh` 가 SSM 에 만든다.
 

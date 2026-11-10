@@ -89,6 +89,10 @@ create /k8s/common/gitlab/valkey-password "$(random)"
 step "Nexus"
 create /k8s/common/nexus/admin-password "$(random)"
 
+step "LLDAP"
+create /k8s/common/lldap/jwt-secret "$(random)"
+create /k8s/common/lldap/key-seed "$(random)"
+
 step "Keep"
 create /k8s/common/keep/database-password "$(random)"
 create /k8s/common/keep/nextauth-secret "$(openssl rand -hex 32)"

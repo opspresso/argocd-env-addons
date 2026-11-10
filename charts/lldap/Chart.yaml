@@ -1,0 +1,17 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: lldap
+type: application
+version: "v2.3.0" # helm chart app version
+
+# LLDAP publishes no Helm chart. This chart runs the official image
+# lldap/lldap with the opspresso app chart.
+dependencies:
+- name: app
+  alias: lldap
+  repository: https://opspresso.github.io/helm-charts/
+  version: "v2.3.0" # helm chart app version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

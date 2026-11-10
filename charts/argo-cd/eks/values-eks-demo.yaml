@@ -63,6 +63,14 @@ argo-cd:
   dex:
     enabled: True
 
+    # Bind user of the connector lldap. Optional: Dex still starts before the
+    # ExternalSecret creates the Secret; only the lldap sign-in fails then.
+    envFrom:
+      - secretRef:
+          name: argocd-dex-lldap
+          optional: true
+
+
     metrics:
       serviceMonitor:
         enabled: True
@@ -100,6 +108,7 @@ argo-cd:
       # sso.admin_groups (env/<cluster>.yaml) administer; everyone else reads (policy.default).
       policy.csv: |
         g, opspresso:sre, role:admin
+        g, sre, role:admin
 
         p, role:mcp, applications, get, */*, allow
         p, role:mcp, applications, create, */*, allow
@@ -141,6 +150,37 @@ argo-cd:
             teamNameField: slug
             orgs:
               - name: opspresso
+
+        # LLDAP (charts/lldap): ID and password. The claim groups holds the
+        # LLDAP group names. The bind user is the LLDAP admin. Dex expands the
+        # environment variables from the Secret argocd-dex-lldap (dex.envFrom).
+        - type: ldap
+          id: lldap
+          name: LLDAP
+          config:
+            host: lldap.addon-lldap.svc.cluster.local:3890
+            # Plain LDAP inside the cluster: the NetworkPolicy of charts/lldap
+            # admits only the Dex Pods to this port.
+            insecureNoSSL: true
+            bindDN: $LLDAP_BIND_DN
+            bindPW: $LLDAP_BIND_PW
+            usernamePrompt: Username
+            userSearch:
+              baseDN: ou=people,dc=opspresso,dc=com
+              filter: "(objectClass=person)"
+              username: uid
+              idAttr: uid
+              emailAttr: mail
+              nameAttr: displayName
+              preferredUsernameAttr: uid
+            groupSearch:
+              baseDN: ou=groups,dc=opspresso,dc=com
+              filter: "(objectClass=groupOfUniqueNames)"
+              userMatchers:
+                - userAttr: DN
+                  groupAttr: member
+              nameAttr: cn
+
         staticClients:
         - id: argo-workflows-sso
           name: Argo Workflow
@@ -370,3 +410,32 @@ raw:
           - secretKey: jenkins-client-secret
             remoteRef:
               key: /k8s/common/jenkins/oidc-client-secret
+
+
+    # Bind user of the Dex connector lldap: the Argo CD admin, which is also
+    # the LLDAP admin. dex.config resolves $<key> only from argocd-secret, so
+    # Dex reads these values as environment variables instead.
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: argocd-dex-lldap
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: argocd-dex-lldap
+          template:
+            engineVersion: v2
+            data:
+              LLDAP_BIND_DN: "uid={{ .user }},ou=people,dc=opspresso,dc=com"
+              LLDAP_BIND_PW: "{{ .password }}"
+        data:
+          - secretKey: user
+            remoteRef:
+              key: /k8s/common/admin-user
+          - secretKey: password
+            remoteRef:
+              key: /k8s/common/admin-password
+

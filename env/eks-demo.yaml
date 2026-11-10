@@ -101,14 +101,30 @@ gitlab:
   admins:
     - nalbam
 
-# Sign-in rule of every addon that uses Argo CD Dex (GitHub connector). Members
-# of admin_groups are administrators; members of member_groups sign in as users
-# or readers. Dex reports GitHub teams as "<org>:<team>".
+# Sign-in rule of every addon that uses Argo CD Dex (connectors github and
+# lldap). Members of admin_groups are administrators; members of member_groups
+# sign in as users or readers. Dex reports GitHub teams as "<org>:<team>" and
+# LLDAP groups by name.
 sso:
   admin_groups:
     - opspresso:sre
+    - sre
   member_groups:
     - opspresso:dev
+    - dev
+
+# LLDAP (charts/lldap): ID and password sign-in through the Dex connector
+# lldap. Its admin is the Argo CD admin (/k8s/common/admin-user). The groups are
+# the LLDAP names in sso above; the bootstrap Job creates them and puts the admin
+# in admin_groups.
+lldap:
+  hostname: lldap.demo.opsp.dev
+  base_dn: dc=opspresso,dc=com
+  admin_email: admin@demo.opsp.dev
+  admin_groups:
+    - sre
+  member_groups:
+    - dev
 
 jenkins:
   hostname: jenkins.demo.opsp.dev
