@@ -10,13 +10,13 @@
       "app_version": "v3.6.1",
       "chart": "argo/argo-cd",
       "current": "10.11.6",
-      "version": "10.17.0"
+      "version": "10.17.1"
     },
     "argo-rollouts": {
       "app_version": "v1.10.2",
       "chart": "argo/argo-rollouts",
       "current": "2.43.8",
-      "version": "2.43.11"
+      "version": "2.43.12"
     },
     "argo-workflows": {
       "app_version": "v4.1.6",
@@ -28,7 +28,7 @@
       "app_version": "v0.49.0",
       "chart": "atlantis/atlantis",
       "current": "7.0.0",
-      "version": "7.0.1"
+      "version": "7.1.0"
     },
     "dynamodb-chart": {
       "app_version": "1.14.2",
@@ -92,11 +92,11 @@
       "version": "1.19.4"
     },
     "istiod": {
-      "app_version": "1.31.4",
+      "app_version": "1.32.0",
       "chart": "istio/istiod",
       "current": "1.31.3",
       "path": "istio",
-      "version": "1.31.4"
+      "version": "1.32.0"
     },
     "jenkins": {
       "app_version": "2.580.2",
@@ -111,10 +111,10 @@
       "version": "0.1.97"
     },
     "kite": {
-      "app_version": "v0.16.0",
+      "app_version": "v0.17.0",
       "chart": "kite/kite",
       "current": "0.16.0",
-      "version": "0.16.0"
+      "version": "0.17.0"
     },
     "kro": {
       "app_version": "v0.9.4",
@@ -152,7 +152,7 @@
       "app_version": "v0.95.1",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "93.1.0"
+      "version": "93.1.1"
     },
     "rds-chart": {
       "app_version": "1.14.2",
