@@ -209,7 +209,7 @@ raw:
                     command: [sh, /scripts/sync.sh]
                     env:
                       - name: ADMINS
-                        value: "nalbam"
+                        value: "nalbam,admin1"
                     resources:
                       requests:
                         cpu: 10m
