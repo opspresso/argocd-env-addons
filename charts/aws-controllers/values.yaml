@@ -31,8 +31,8 @@ rds:
 
   resources:
     requests:
-      cpu: 10m
-      memory: 64Mi
+      cpu: 5m
+      memory: 32Mi
     # The chart's values schema requires a CPU limit.
     limits:
       cpu: 200m
@@ -61,8 +61,8 @@ s3:
 
   resources:
     requests:
-      cpu: 10m
-      memory: 64Mi
+      cpu: 5m
+      memory: 32Mi
     limits:
       cpu: 200m
       memory: 256Mi
@@ -90,8 +90,8 @@ dynamodb:
 
   resources:
     requests:
-      cpu: 10m
-      memory: 64Mi
+      cpu: 5m
+      memory: 32Mi
     limits:
       cpu: 200m
       memory: 256Mi

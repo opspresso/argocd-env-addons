@@ -113,11 +113,11 @@ kube-prometheus-stack:
               requests:
                 storage: 80Gi
 
-      # Working set p95 2.3Gi, peak 2.6Gi; CPU p95 90m (7-day peak to 2026-11-10).
+      # Working set p95 2.3Gi, peak 2.6Gi; CPU p95 330m, peak 390m (7 days to 2026-11-11).
       resources:
         requests:
-          cpu: 100m
-          memory: 2560Mi
+          cpu: 400m
+          memory: 2656Mi
         limits:
           memory: 4Gi
 
@@ -184,12 +184,13 @@ kube-prometheus-stack:
     # few seconds instead, which the alert `for` durations absorb.
     updateStrategy: Recreate
 
+    # Working set p95 and peak 127Mi (7 days to 2026-11-11); the old 128Mi limit left no headroom.
     resources:
       requests:
         cpu: 10m
-        memory: 48Mi
+        memory: 160Mi
       limits:
-        memory: 128Mi
+        memory: 256Mi
 
     # https://github.com/kubernetes/kube-state-metrics/tree/main/docs
     extraArgs:

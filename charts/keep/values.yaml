@@ -66,8 +66,8 @@ keep:
 
     resources:
       requests:
-        cpu: 50m
-        memory: 256Mi
+        cpu: 30m
+        memory: 224Mi
       limits:
         memory: 768Mi
 
@@ -116,8 +116,8 @@ keep:
           periodSeconds: 10
     resources:
       requests:
-        cpu: 20m
-        memory: 256Mi
+        cpu: 10m
+        memory: 144Mi
       limits:
         memory: 1Gi
 

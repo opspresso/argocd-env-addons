@@ -131,18 +131,18 @@ gitlab:
       minReplicas: 1
       maxReplicas: 1
       workerProcesses: 2
-      # Puma with two workers: working set 2.3Gi.
+      # Puma with two workers: working set p95 2.35Gi, peak 2.36Gi; CPU p95 140m (7 days to 2026-11-11).
       resources:
         requests:
-          cpu: 300m
-          memory: 2560Mi
+          cpu: 170m
+          memory: 2784Mi
         limits:
           memory: 3Gi
       workhorse:
         resources:
           requests:
-            cpu: 50m
-            memory: 100Mi
+            cpu: 10m
+            memory: 80Mi
           limits:
             memory: 512Mi
 
@@ -159,8 +159,8 @@ gitlab:
       concurrency: 10
       resources:
         requests:
-          cpu: 300m
-          memory: 1500Mi
+          cpu: 200m
+          memory: 1456Mi
         limits:
           memory: 2560Mi
 
@@ -177,8 +177,8 @@ gitlab:
         size: 50Gi
       resources:
         requests:
-          cpu: 100m
-          memory: 256Mi
+          cpu: 20m
+          memory: 192Mi
         limits:
           memory: 1Gi
 
@@ -194,8 +194,8 @@ gitlab:
       # p95 750Mi and peak 1Gi, CPU p95 320m.
       resources:
         requests:
-          cpu: 200m
-          memory: 768Mi
+          cpu: 380m
+          memory: 1008Mi
         limits:
           memory: 2Gi
       # backup-utility reads the IAM role through awscli; no s3cmd keys.
@@ -232,11 +232,11 @@ postgres:
   persistence:
     storageGiB: 20
     storageClass: gp3
-  # Working set p95 350Mi.
+  # Working set p95 350Mi, peak 370Mi (7 days to 2026-11-11).
   resources:
     requests:
-      cpu: 100m
-      memory: 512Mi
+      cpu: 80m
+      memory: 416Mi
     limits:
       memory: 1Gi
 
@@ -253,8 +253,8 @@ valkey:
     storageClass: gp3
   resources:
     requests:
-      cpu: 50m
-      memory: 256Mi
+      cpu: 15m
+      memory: 64Mi
     limits:
       memory: 768Mi
 

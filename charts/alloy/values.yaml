@@ -38,8 +38,8 @@ alloy:
     # Working set p95 116Mi, CPU p95 37m on each node.
     resources:
       requests:
-        cpu: 40m
-        memory: 128Mi
+        cpu: 45m
+        memory: 160Mi
       limits:
         memory: 256Mi
 
