@@ -180,7 +180,7 @@ workload 경보(`Container stuck in CrashLoopBackOff`)로 보고한다.
 | --- | --- |
 | Grafana (`config/*-alerts.yaml`) | 노드·workload 증상. 대시보드 링크와 첫 조치를 담고 promtool로 검사한다 |
 | Prometheus (kube-prometheus-stack 기본 규칙) | Prometheus·Alertmanager·operator·kube-state-metrics 자체, API server SLO, 인증서, 예측형 디스크·PV 고갈, scrape target 실패 |
-| Prometheus (`charts/prometheus-stack/values.yaml`) | `NodePoolNearLimit`: NodePool의 노드 capacity가 `spec.limits`의 90%를 15분 넘김(warning) |
+| Prometheus (`charts/prometheus-stack/values.yaml`) | `NodePoolNearLimit`: NodePool의 노드 CPU·메모리 capacity나 노드 수가 `spec.limits`의 90%를 15분 넘김(warning) |
 
 - 같은 증상의 기본 규칙(`KubePodCrashLooping`, `KubeNodeNotReady`, `NodeMemoryHighUtilization` 등)은
   `defaultRules.disabled`로 끈다. 목록 옆 주석이 대신하는 Grafana 규칙이다.

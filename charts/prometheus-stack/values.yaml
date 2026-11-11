@@ -42,18 +42,26 @@ kube-prometheus-stack:
           rules:
             # karpenter_nodepool_limit comes from the kube-state-metrics
             # custom resource config below. Karpenter counts node capacity,
-            # not allocatable, against the limit. Pools without a limit have
-            # no series and never fire.
+            # not allocatable, and the number of nodes against the limit.
+            # Pools without a limit have no series and never fire.
             - alert: NodePoolNearLimit
               expr: |
-                100 * sum by (cluster, nodepool, resource) (
+                100 * (
+                  sum by (cluster, nodepool, resource) (
+                    label_replace(
+                      kube_node_status_capacity{job="kube-state-metrics",resource=~"cpu|memory"}
+                      * on (cluster, node) group_left(label_karpenter_sh_nodepool)
+                      max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{job="kube-state-metrics"}),
+                      "nodepool", "$1", "label_karpenter_sh_nodepool", "(.+)"))
+                  or
                   label_replace(
-                    kube_node_status_capacity{job="kube-state-metrics",resource=~"cpu|memory"}
-                    * on (cluster, node) group_left(label_karpenter_sh_nodepool)
-                    max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{job="kube-state-metrics"}),
-                    "nodepool", "$1", "label_karpenter_sh_nodepool", "(.+)")
+                    count by (cluster, nodepool) (
+                      label_replace(
+                        max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{job="kube-state-metrics"}),
+                        "nodepool", "$1", "label_karpenter_sh_nodepool", "(.+)")),
+                    "resource", "nodes", "", "")
                 ) / on (cluster, nodepool, resource) group_left()
-                max by (cluster, nodepool, resource) (karpenter_nodepool_limit{resource=~"cpu|memory"}) > 90
+                max by (cluster, nodepool, resource) (karpenter_nodepool_limit{resource=~"cpu|memory|nodes"}) > 90
               for: 15m
               labels: {severity: warning}
               annotations:

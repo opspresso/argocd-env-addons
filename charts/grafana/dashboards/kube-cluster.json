@@ -2271,7 +2271,7 @@
       "id": 520,
       "type": "bargauge",
       "title": "NodePool cpu vs limit",
-      "description": "Node cpu capacity per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so its pending pods wait. NodePoolNearLimit warns above 90% for 15 minutes. Pools without a limit are not shown.",
+      "description": "Node cpu per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so pods that need it stay Pending. NodePoolNearLimit warns above 90% for 15 minutes. Pools without this limit, or without nodes, are not shown.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -2342,7 +2342,7 @@
       "gridPos": {
         "x": 0,
         "y": 29,
-        "w": 12,
+        "w": 8,
         "h": 6
       }
     },
@@ -2350,7 +2350,7 @@
       "id": 521,
       "type": "bargauge",
       "title": "NodePool memory vs limit",
-      "description": "Node memory capacity per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so its pending pods wait. NodePoolNearLimit warns above 90% for 15 minutes. Pools without a limit are not shown.",
+      "description": "Node memory per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so pods that need it stay Pending. NodePoolNearLimit warns above 90% for 15 minutes. Pools without this limit, or without nodes, are not shown.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -2419,9 +2419,88 @@
         "minVizWidth": 8
       },
       "gridPos": {
-        "x": 12,
+        "x": 8,
         "y": 29,
-        "w": 12,
+        "w": 8,
+        "h": 6
+      }
+    },
+    {
+      "id": 522,
+      "type": "bargauge",
+      "title": "NodePool nodes vs limit",
+      "description": "Node nodes per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so pods that need it stay Pending. NodePoolNearLimit warns above 90% for 15 minutes. Pools without this limit, or without nodes, are not shown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * count by (nodepool) (label_replace(max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"nodes\"})",
+          "legendFormat": "{{nodepool}}",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "No data",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 16,
+        "maxVizHeight": 28,
+        "minVizWidth": 8
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 29,
+        "w": 8,
         "h": 6
       }
     },

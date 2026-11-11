@@ -24,18 +24,22 @@ def test_nodepool_alert_fires_near_the_pool_limit_only(tmp_path):
     series = (node("a1", "full", 8) + node("a2", "full", 7)      # 15 of 16 CPU: 94%
               + node("b1", "roomy", 8)                            # 8 of 16 CPU: 50%
               + node("c1", "unbounded", 64)                       # no limit, no series
+              + node("z1", "zonal", 2) + node("z2", "zonal", 2)     # 2 of 2 nodes: at the node limit
               + [{"series": 'karpenter_nodepool_limit{cluster="demo",nodepool="full",resource="cpu"}', "values": "16x20"},
-                 {"series": 'karpenter_nodepool_limit{cluster="demo",nodepool="roomy",resource="cpu"}', "values": "16x20"}])
+                 {"series": 'karpenter_nodepool_limit{cluster="demo",nodepool="roomy",resource="cpu"}', "values": "16x20"},
+                 {"series": 'karpenter_nodepool_limit{cluster="demo",nodepool="roomy",resource="nodes"}', "values": "4x20"},
+                 {"series": 'karpenter_nodepool_limit{cluster="demo",nodepool="zonal",resource="nodes"}', "values": "2x20"}])
+    description = VALUES["additionalPrometheusRulesMap"]["nodepool-capacity"]["groups"][0]["rules"][0]["annotations"]["description"]
     tests = {"rule_files": ["rules.yaml"], "evaluation_interval": "1m", "tests": [{
         "interval": "1m", "input_series": series,
         "alert_rule_test": [
             {"eval_time": "10m", "alertname": "NodePoolNearLimit", "exp_alerts": []},
-            {"eval_time": "16m", "alertname": "NodePoolNearLimit", "exp_alerts": [{
-                "exp_labels": {"cluster": "demo", "nodepool": "full", "resource": "cpu", "severity": "warning"},
-                "exp_annotations": {
-                    "summary": "NodePool full uses 94% of its cpu limit.",
-                    "description": VALUES["additionalPrometheusRulesMap"]["nodepool-capacity"]["groups"][0]["rules"][0]["annotations"]["description"],
-                }}]},
+            {"eval_time": "16m", "alertname": "NodePoolNearLimit", "exp_alerts": [
+                {"exp_labels": {"cluster": "demo", "nodepool": "full", "resource": "cpu", "severity": "warning"},
+                 "exp_annotations": {"summary": "NodePool full uses 94% of its cpu limit.", "description": description}},
+                {"exp_labels": {"cluster": "demo", "nodepool": "zonal", "resource": "nodes", "severity": "warning"},
+                 "exp_annotations": {"summary": "NodePool zonal uses 100% of its nodes limit.", "description": description}},
+            ]},
         ]}]}
     (tmp_path / "tests.yaml").write_text(yaml.safe_dump(tests))
     run_promtool(tmp_path)
