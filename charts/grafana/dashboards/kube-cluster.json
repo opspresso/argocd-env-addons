@@ -494,7 +494,7 @@
       "id": 103,
       "type": "stat",
       "title": "Failed targets",
-      "description": "Core monitoring targets with at least one failed scrape in the last 5 minutes; this is not the number of nodes.",
+      "description": "Core scrape targets (node-exporter, kubelet, API server, kube-state-metrics) that failed every scrape for 5 minutes and are still discovered. Targets of a node that Auto Mode removed leave discovery and are not counted. Same condition as the alert Core monitoring target down.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -506,7 +506,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by(cluster,job,instance,metrics_path) (1 - min_over_time(up{cluster=~\"$cluster\",job=~\"node-exporter|kubelet|apiserver|kube-state-metrics\"}[5m]))) or vector(0)",
+          "expr": "count((max_over_time(up{cluster=~\"$cluster\",job=~\"node-exporter|kubelet|apiserver|kube-state-metrics\"}[5m]) == 0) and up{cluster=~\"$cluster\",job=~\"node-exporter|kubelet|apiserver|kube-state-metrics\"}) or vector(0)",
           "legendFormat": "",
           "range": true,
           "instant": false,
