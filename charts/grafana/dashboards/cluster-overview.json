@@ -3197,7 +3197,7 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 35,
             "gradientMode": "opacity",
             "spanNulls": false,
@@ -3292,7 +3292,7 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 14,
             "gradientMode": "opacity",
             "spanNulls": false,
@@ -3412,7 +3412,7 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 14,
             "gradientMode": "opacity",
             "spanNulls": false,
@@ -3535,7 +3535,7 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 14,
             "gradientMode": "opacity",
             "spanNulls": false,
@@ -3654,7 +3654,7 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 14,
             "gradientMode": "opacity",
             "spanNulls": false,
@@ -3748,18 +3748,29 @@
           "unit": "none",
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 10,
+            "lineInterpolation": "smooth",
+            "lineWidth": 1,
+            "fillOpacity": 35,
             "gradientMode": "opacity",
-            "showPoints": "never",
             "spanNulls": false,
+            "insertNulls": false,
+            "showPoints": "never",
+            "pointSize": 4,
             "stacking": {
               "mode": "normal",
               "group": "A"
             },
+            "axisPlacement": "auto",
+            "axisBorderShow": false,
             "axisSoftMin": 0,
+            "barAlignment": 0,
             "thresholdsStyle": {
               "mode": "off"
+            },
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
             }
           },
           "color": {
@@ -3774,8 +3785,7 @@
                 "value": null
               }
             ]
-          },
-          "decimals": 0
+          }
         },
         "overrides": []
       },
@@ -3925,7 +3935,7 @@
           "custom": {
             "drawStyle": "line",
             "lineInterpolation": "smooth",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 35,
             "gradientMode": "opacity",
             "spanNulls": false,

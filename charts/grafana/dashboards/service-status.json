@@ -1321,7 +1321,7 @@
           "unit": "reqps",
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 10,
             "gradientMode": "opacity",
             "showPoints": "never",
@@ -1405,7 +1405,7 @@
           "unit": "percent",
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 10,
             "gradientMode": "opacity",
             "showPoints": "never",
@@ -1494,7 +1494,7 @@
           "unit": "ms",
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 10,
             "gradientMode": "opacity",
             "showPoints": "never",
@@ -1591,7 +1591,7 @@
           "unit": "none",
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 10,
             "gradientMode": "opacity",
             "showPoints": "never",
@@ -1675,7 +1675,7 @@
           "unit": "bytes",
           "custom": {
             "drawStyle": "line",
-            "lineWidth": 2,
+            "lineWidth": 1,
             "fillOpacity": 10,
             "gradientMode": "opacity",
             "showPoints": "never",
