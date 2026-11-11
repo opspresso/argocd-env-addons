@@ -261,7 +261,7 @@
       "id": 2,
       "type": "stat",
       "title": "Firing alerts",
-      "description": "Grafana-managed alerts in the Alerting state (critical and warning). The list below names them.",
+      "description": "Firing critical and warning alerts from both rule engines: Grafana rules and Prometheus rules. Info alerts and the Watchdog heartbeat are left out. The list below names them.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -273,7 +273,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(grafana_alerting_alerts{state=\"alerting\"}) or vector(0)",
+          "expr": "(sum(grafana_alerting_alerts{state=\"alerting\"}) or vector(0)) + (count(ALERTS{alertstate=\"firing\",severity=~\"critical|warning\"}) or vector(0))",
           "legendFormat": "",
           "range": true,
           "instant": false,
@@ -1042,7 +1042,7 @@
       "id": 43,
       "type": "stat",
       "title": "API p99 latency",
-      "description": "p99 latency of non-streaming API requests (WATCH and CONNECT excluded).",
+      "description": "p99 latency of non-streaming API requests (WATCH and CONNECT excluded), from the SLI histogram, which leaves out time spent in admission webhooks and priority-and-fairness queues.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1054,7 +1054,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(apiserver_request_duration_seconds_bucket{cluster=~\"$cluster\",verb!~\"WATCH|CONNECT|APPLY\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(apiserver_request_sli_duration_seconds_bucket{cluster=~\"$cluster\",verb!~\"WATCH|CONNECT|APPLY\"}[5m])))",
           "legendFormat": "",
           "range": true,
           "instant": false,
@@ -1994,7 +1994,7 @@
         "sortOrder": 3,
         "dashboardAlerts": false,
         "alertName": "",
-        "alertInstanceLabelFilter": "",
+        "alertInstanceLabelFilter": "{alertname!~\"Watchdog|InfoInhibitor\"}",
         "showInstances": true,
         "folder": null,
         "stateFilter": {

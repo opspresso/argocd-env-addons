@@ -29,11 +29,18 @@ tests:
         values: '536870912+1048576x420'
       - series: 'node_memory_VmallocUsed_bytes{cluster="demo",instance="stable:9100",job="node-exporter"}'
         values: '536870912+0x420'
+      # Pods with volumes land on the node: one 400 MiB step, then flat. Not a leak.
+      - series: 'node_memory_VmallocUsed_bytes{cluster="demo",instance="placed:9100",job="node-exporter"}'
+        values: '105906176+0x200 525336576+0x220'
     alert_rule_test:
       - eval_time: 6h16m
         alertname: addons-node-kernel-memory-growth
         exp_alerts:
           - exp_labels: {cluster: demo, instance: 'growing:9100'}
+      # Right after the step the node has less than six hours of history.
+      - eval_time: 3h50m
+        alertname: addons-node-kernel-memory-growth
+        exp_alerts: []
 
   - name: high kernel share alerts independently of pod usage
     interval: 1m

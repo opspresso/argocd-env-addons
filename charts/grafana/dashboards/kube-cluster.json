@@ -2268,6 +2268,164 @@
       }
     },
     {
+      "id": 520,
+      "type": "bargauge",
+      "title": "NodePool cpu vs limit",
+      "description": "Node cpu capacity per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so its pending pods wait. NodePoolNearLimit warns above 90% for 15 minutes. Pools without a limit are not shown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * sum by (nodepool) (label_replace(kube_node_status_capacity{cluster=~\"$cluster\",resource=\"cpu\"} * on (cluster, node) group_left(label_karpenter_sh_nodepool) max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"cpu\"})",
+          "legendFormat": "{{nodepool}}",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "No data",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 16,
+        "maxVizHeight": 28,
+        "minVizWidth": 8
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 29,
+        "w": 12,
+        "h": 6
+      }
+    },
+    {
+      "id": 521,
+      "type": "bargauge",
+      "title": "NodePool memory vs limit",
+      "description": "Node memory capacity per NodePool against its spec.limits. Karpenter cannot grow a pool past 100%, so its pending pods wait. NodePoolNearLimit warns above 90% for 15 minutes. Pools without a limit are not shown.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "expr": "100 * sum by (nodepool) (label_replace(kube_node_status_capacity{cluster=~\"$cluster\",resource=\"memory\"} * on (cluster, node) group_left(label_karpenter_sh_nodepool) max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"memory\"})",
+          "legendFormat": "{{nodepool}}",
+          "range": false,
+          "instant": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 0,
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "#FF9830",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "No data",
+          "links": []
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "displayMode": "lcd",
+        "orientation": "horizontal",
+        "showUnfilled": true,
+        "valueMode": "color",
+        "namePlacement": "left",
+        "sizing": "manual",
+        "minVizHeight": 16,
+        "maxVizHeight": 28,
+        "minVizWidth": 8
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 29,
+        "w": 12,
+        "h": 6
+      }
+    },
+    {
       "id": 54,
       "type": "timeseries",
       "title": "Nodes by pool",
@@ -2357,7 +2515,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 29,
+        "y": 35,
         "w": 12,
         "h": 8
       }
@@ -2452,7 +2610,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 29,
+        "y": 35,
         "w": 12,
         "h": 8
       }
@@ -2525,7 +2683,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 37,
+        "y": 43,
         "w": 8,
         "h": 6
       }
@@ -2598,7 +2756,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 37,
+        "y": 43,
         "w": 8,
         "h": 6
       }
@@ -2706,7 +2864,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 37,
+        "y": 43,
         "w": 8,
         "h": 6
       }
@@ -2721,7 +2879,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 43,
+        "y": 49,
         "w": 24,
         "h": 7
       },
@@ -3042,7 +3200,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 50,
+        "y": 56,
         "w": 24,
         "h": 1
       }
@@ -3168,7 +3326,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 51,
+        "y": 57,
         "w": 8,
         "h": 8
       }
@@ -3177,7 +3335,7 @@
       "id": 59,
       "type": "timeseries",
       "title": "API p99 latency by verb",
-      "description": "p99 latency of non-streaming API requests by verb.",
+      "description": "p99 latency of non-streaming API requests by verb (SLI histogram: webhook and queue time excluded).",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -3189,7 +3347,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum by (le, verb) (rate(apiserver_request_duration_seconds_bucket{cluster=~\"$cluster\",verb!~\"WATCH|CONNECT\"}[5m])))",
+          "expr": "histogram_quantile(0.99, sum by (le, verb) (rate(apiserver_request_sli_duration_seconds_bucket{cluster=~\"$cluster\",verb!~\"WATCH|CONNECT\"}[5m])))",
           "legendFormat": "{{verb}}",
           "range": true,
           "instant": false,
@@ -3267,7 +3425,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 51,
+        "y": 57,
         "w": 8,
         "h": 8
       }
@@ -3275,8 +3433,8 @@
     {
       "id": 60,
       "type": "timeseries",
-      "title": "etcd request p99 by operation",
-      "description": "API server view of etcd latency (the EKS control plane hides etcd itself).",
+      "title": "etcd mean latency — slowest operations",
+      "description": "API server view of etcd latency (the EKS control plane hides etcd itself). Mean per operation from _sum/_count; the per-bucket histogram is dropped at scrape to save about 29k series.",
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -3288,7 +3446,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "histogram_quantile(0.99, sum by (le, operation) (rate(etcd_request_duration_seconds_bucket{cluster=~\"$cluster\"}[5m])))",
+          "expr": "topk(8, sum by (operation) (rate(etcd_request_duration_seconds_sum{cluster=~\"$cluster\"}[5m])) / sum by (operation) (rate(etcd_request_duration_seconds_count{cluster=~\"$cluster\"}[5m])))",
           "legendFormat": "{{operation}}",
           "range": true,
           "instant": false,
@@ -3362,7 +3520,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 51,
+        "y": 57,
         "w": 8,
         "h": 8
       }
@@ -3375,7 +3533,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 59,
+        "y": 65,
         "w": 24,
         "h": 1
       }
@@ -3390,7 +3548,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 60,
+        "y": 66,
         "w": 8,
         "h": 8
       },
@@ -3492,7 +3650,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 60,
+        "y": 66,
         "w": 8,
         "h": 8
       },
@@ -3586,7 +3744,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 60,
+        "y": 66,
         "w": 8,
         "h": 8
       },
@@ -3699,7 +3857,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 68,
+        "y": 74,
         "w": 8,
         "h": 7
       },
@@ -3804,7 +3962,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 68,
+        "y": 74,
         "w": 8,
         "h": 7
       },
@@ -3906,7 +4064,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 68,
+        "y": 74,
         "w": 8,
         "h": 7
       },
@@ -4008,7 +4166,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 75,
+        "y": 81,
         "w": 12,
         "h": 7
       },
@@ -4106,7 +4264,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 75,
+        "y": 81,
         "w": 12,
         "h": 7
       },
@@ -4208,7 +4366,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 82,
+        "y": 88,
         "w": 12,
         "h": 7
       },
@@ -4310,7 +4468,7 @@
       },
       "gridPos": {
         "x": 12,
-        "y": 82,
+        "y": 88,
         "w": 12,
         "h": 7
       },
@@ -4402,7 +4560,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 89,
+        "y": 95,
         "w": 24,
         "h": 1
       }
@@ -4417,7 +4575,7 @@
       },
       "gridPos": {
         "x": 0,
-        "y": 90,
+        "y": 96,
         "w": 8,
         "h": 8
       },
@@ -4531,7 +4689,7 @@
       },
       "gridPos": {
         "x": 8,
-        "y": 90,
+        "y": 96,
         "w": 8,
         "h": 8
       },
@@ -4649,7 +4807,7 @@
       },
       "gridPos": {
         "x": 16,
-        "y": 90,
+        "y": 96,
         "w": 8,
         "h": 8
       },
@@ -4765,7 +4923,7 @@
       "panels": [],
       "gridPos": {
         "x": 0,
-        "y": 98,
+        "y": 104,
         "w": 24,
         "h": 1
       }
@@ -4777,7 +4935,7 @@
       "description": "Live alert state across this monitoring scope; independent of the resource selectors above. Includes pending, firing, collection errors and missing data.",
       "gridPos": {
         "x": 0,
-        "y": 99,
+        "y": 105,
         "w": 24,
         "h": 6
       },

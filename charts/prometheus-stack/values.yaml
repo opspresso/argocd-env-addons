@@ -1,32 +1,67 @@
 kube-prometheus-stack:
   fullnameOverride: prometheus
 
-  # Grafana owns alert delivery to Slack. Alertmanager is disabled by default; the
-  # template enables it where Keep runs, and it sends only to Keep.
+  # Alertmanager is disabled by default; the template enables it where Keep
+  # runs, and it sends only to Keep.
+  #
+  # Grafana rules (config/*-alerts.yaml) own node and workload symptoms: they
+  # carry dashboard links, a first action and promtool tests. The bundled rules
+  # below report the same symptoms under other names, so Keep would hold two
+  # alerts for one problem. The bundled rules that stay watch the monitoring
+  # stack itself, the API server and certificates, which Grafana does not cover.
   defaultRules:
     disabled:
       PrometheusNotConnectedToAlertmanagers: true
-      # Replaced below: the Workspace namespace grows against its bounded NodePool.
+      # Same symptom as a Grafana rule (Grafana title in the comment).
+      KubePodCrashLooping: true             # Container stuck in CrashLoopBackOff
+      KubeContainerWaiting: true            # Workload container cannot start
+      KubePodNotReady: true                 # Workload replicas below desired
+      KubeDeploymentReplicasMismatch: true  # Workload replicas below desired
+      KubeStatefulSetReplicasMismatch: true # Workload replicas below desired
+      KubeJobFailed: true                   # Job failed
+      KubeNodeNotReady: true                # Kubernetes node is not Ready
+      KubeNodePressure: true                # Node under memory, PID or disk pressure
+      NodeFilesystemAlmostOutOfSpace: true  # Node filesystem above 85% / 95% used
+      NodeMemoryHighUtilization: true       # Host memory usage above 85% / 92%
+      NodeCPUHighUsage: true                # Node CPU busy above 90%
+      # EKS Auto Mode sizes the cluster to its requests, so requests or quotas
+      # above current node capacity are the normal state, not a risk. The limit
+      # that matters is the NodePool ceiling (nodepool-capacity below); a pod
+      # that cannot fit raises "Pod unschedulable" in Grafana.
+      KubeCPUOvercommit: true
+      KubeMemoryOvercommit: true
       KubeCPUQuotaOvercommit: true
       KubeMemoryQuotaOvercommit: true
+      # A full node is not a problem when Auto Mode adds the next one.
+      KubeletTooManyPods: true
 
   additionalPrometheusRulesMap:
-    nonelastic-quota-capacity:
+    nodepool-capacity:
       groups:
-        - name: nonelastic-quota-capacity
+        - name: nodepool-capacity
           rules:
-            - alert: KubeCPUQuotaOvercommit
-              expr: sum by (cluster) (min without(resource) (kube_resourcequota{job="kube-state-metrics",type="hard",resource=~"(cpu|requests.cpu)",namespace!="agent-forge-workspaces"})) / sum by (cluster) (kube_node_status_allocatable{resource="cpu",job="kube-state-metrics"}) > 1.5
-              for: 5m
+            # karpenter_nodepool_limit comes from the kube-state-metrics
+            # custom resource config below. Karpenter counts node capacity,
+            # not allocatable, against the limit. Pools without a limit have
+            # no series and never fire.
+            - alert: NodePoolNearLimit
+              expr: |
+                100 * sum by (cluster, nodepool, resource) (
+                  label_replace(
+                    kube_node_status_capacity{job="kube-state-metrics",resource=~"cpu|memory"}
+                    * on (cluster, node) group_left(label_karpenter_sh_nodepool)
+                    max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{job="kube-state-metrics"}),
+                    "nodepool", "$1", "label_karpenter_sh_nodepool", "(.+)")
+                ) / on (cluster, nodepool, resource) group_left()
+                max by (cluster, nodepool, resource) (karpenter_nodepool_limit{resource=~"cpu|memory"}) > 90
+              for: 15m
               labels: {severity: warning}
               annotations:
-                summary: Non-elastic namespace CPU quotas exceed current cluster capacity.
-            - alert: KubeMemoryQuotaOvercommit
-              expr: sum by (cluster) (min without(resource) (kube_resourcequota{job="kube-state-metrics",type="hard",resource=~"(memory|requests.memory)",namespace!="agent-forge-workspaces"})) / sum by (cluster) (kube_node_status_allocatable{resource="memory",job="kube-state-metrics"}) > 1.5
-              for: 5m
-              labels: {severity: warning}
-              annotations:
-                summary: Non-elastic namespace memory quotas exceed current cluster capacity.
+                summary: 'NodePool {{ $labels.nodepool }} uses {{ printf "%.0f" $value }}% of its {{ $labels.resource }} limit.'
+                description: >-
+                  Karpenter cannot add nodes to this pool past its limit, so new pods
+                  that need it stay Pending. Raise the NodePool limit in
+                  terraform-env-demo or reduce the pool's workload.
 
   prometheusOperator:
     admissionWebhooks:
@@ -146,6 +181,30 @@ kube-prometheus-stack:
     extraArgs:
       - --metric-labels-allowlist=nodes=[*],namespaces=[*],deployments=[*],pods=[*],services=[*],statefulsets=[*],daemonsets=[*]
 
+    # NodePool limits for the nodepool-capacity rule: karpenter_nodepool_limit{nodepool,resource}.
+    rbac:
+      extraRules:
+        - apiGroups: ["karpenter.sh"]
+          resources: ["nodepools"]
+          verbs: ["list", "watch"]
+    customResourceState:
+      enabled: true
+      config:
+        spec:
+          resources:
+            - groupVersionKind: {group: karpenter.sh, version: v1, kind: NodePool}
+              metricNamePrefix: karpenter_nodepool
+              labelsFromPath:
+                nodepool: [metadata, name]
+              metrics:
+                - name: limit
+                  help: NodePool resource limit (spec.limits).
+                  each:
+                    type: Gauge
+                    gauge:
+                      path: [spec, limits]
+                      labelFromKey: resource
+
   prometheus-node-exporter:
     fullnameOverride: prometheus-node-exporter
 
@@ -204,8 +263,10 @@ kube-prometheus-stack:
 
   kubeApiServer:
     serviceMonitor:
-      # Keep API latency/SLO histograms and counters; omit unused detailed buckets.
+      # The API server is half of all series. Rules and dashboards read API
+      # latency from apiserver_request_sli_duration_seconds_bucket and etcd
+      # latency from the _sum/_count pair, so these histograms are unread.
       metricRelabelings:
         - sourceLabels: [__name__]
           action: drop
-          regex: 'apiserver_(request_body_size_bytes|response_sizes|watch_list_duration_seconds|watch_cache_read_wait_seconds|storage_list_duration_seconds|watch_events_sizes)_bucket'
+          regex: 'apiserver_(request_body_size_bytes|response_sizes|watch_list_duration_seconds|watch_cache_read_wait_seconds|storage_list_duration_seconds|watch_events_sizes|request_duration_seconds|watch_events_dispatch_duration_seconds|watch_cache_initialization_duration_seconds)_bucket|etcd_request_duration_seconds_bucket|kubernetes_feature_enabled'

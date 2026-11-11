@@ -121,13 +121,16 @@ Grafana 규칙으로 중복하지 않는다.
 | Node filesystem above 85% / 95% used | 쓰기 가능한 `/`, `/local` | 10분 / 2분 | warning / critical |
 | Host memory usage above 85% / 92% | 1 - MemAvailable/MemTotal | 5분 / 2분 | warning / critical |
 | Kernel vmalloc above 20% of RAM | VmallocUsed / MemTotal | 15분 | warning |
-| Kernel vmalloc growing over 6 hours | 6시간 전보다 256MiB 초과 증가. 192MiB 미만이면 해소 | 15분 | warning |
+| Kernel vmalloc growing steadily for 6 hours | 최근 2시간 구간 3개가 모두 64MiB 넘게 증가. 한 구간이라도 32MiB 미만이면 해소. 6시간 기록이 없는 노드는 제외 | 15분 | warning |
 | Tasks stalled on memory above 10% | 메모리 PSI | 2분 | warning |
 | Node CPU busy above 90% | 비유휴 CPU | 10분 | warning |
 | Core monitoring target down | node-exporter·kubelet·apiserver·kube-state-metrics·Loki target의 `up=0` | 5분 | warning |
 | Core monitoring job has no targets | 위 job이 discovery에서 사라짐 | 2분 | critical |
 | Several containers restarting on one node | 한 노드에서 10분 안에 서로 다른 컨테이너 3개 이상 재시작 | 즉시 | warning |
 | Liveness probes failing for several pods on one node | 한 kubelet에서 5분 안에 Pod 2개 이상 liveness 실패 | 즉시 | warning |
+
+vmalloc 증가 경보는 계속 늘어나는 누수만 잡는다. 볼륨이 있는 Pod가 노드에 한꺼번에 배치되면 vmalloc이 한 번에 수백 MiB
+올라간 뒤 그대로 유지된다. 예전 규칙(6시간 전 대비 256MiB)은 이 계단을 누수로 보고 6시간 동안 경보를 유지했다.
 
 Auto Mode는 하루 10대 안팎의 노드를 교체한다. 교체되는 노드의 target은 몇 분 동안 실패한 뒤 discovery에서 사라진다.
 `Core monitoring target down`이 5분을 기다리는 이유다. 한 컨테이너의 반복 재시작은 노드 경보가 아니라
@@ -168,6 +171,24 @@ workload 경보(`Container stuck in CrashLoopBackOff`)로 보고한다.
 
 - `config/cni-health-alerts.yaml`: Alloy가 수집한 Loki 로그에서 AWS network policy agent의 egress BPF attach 실패를 즉시 알린다(critical).
 - `config/workspace-alerts.yaml`의 Prometheus 규칙은 Grafana를 거치지 않고 Alertmanager가 Keep으로 직접 보낸다.
+
+### Prometheus 규칙과의 역할 분담
+
+경보는 두 엔진에서 나온다. 한 증상은 한 엔진만 알린다. 그래야 Keep에 같은 문제가 이름이 다른 경보 두 개로 쌓이지 않는다.
+
+| 엔진 | 맡는 증상 |
+| --- | --- |
+| Grafana (`config/*-alerts.yaml`) | 노드·workload 증상. 대시보드 링크와 첫 조치를 담고 promtool로 검사한다 |
+| Prometheus (kube-prometheus-stack 기본 규칙) | Prometheus·Alertmanager·operator·kube-state-metrics 자체, API server SLO, 인증서, 예측형 디스크·PV 고갈, scrape target 실패 |
+| Prometheus (`charts/prometheus-stack/values.yaml`) | `NodePoolNearLimit`: NodePool의 노드 capacity가 `spec.limits`의 90%를 15분 넘김(warning) |
+
+- 같은 증상의 기본 규칙(`KubePodCrashLooping`, `KubeNodeNotReady`, `NodeMemoryHighUtilization` 등)은
+  `defaultRules.disabled`로 끈다. 목록 옆 주석이 대신하는 Grafana 규칙이다.
+- `KubeCPUOvercommit`·`KubeMemoryOvercommit`·`KubeCPUQuotaOvercommit`·`KubeMemoryQuotaOvercommit`·`KubeletTooManyPods`도 끈다.
+  이 규칙들은 requests나 quota를 현재 노드 용량과 비교한다. Auto Mode는 노드 수를 requests에 맞추므로 이 비율은 늘 높고,
+  노드가 바뀔 때마다 경보가 켜졌다 꺼졌다 했다(7일 동안 140회 넘게 firing). 실제 상한은 NodePool `spec.limits`이다.
+  kube-state-metrics가 이 값을 `karpenter_nodepool_limit{nodepool,resource}`로 내보내고 `NodePoolNearLimit`가 비교한다.
+  한도가 없는 pool은 series가 없어 경보도 없다.
 
 ### 규칙 작성 규칙
 

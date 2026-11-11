@@ -409,7 +409,7 @@ groups:
             params:
             - 20
   - uid: addons-node-kernel-memory-growth
-    title: Kernel vmalloc growing over 6 hours
+    title: Kernel vmalloc growing steadily for 6 hours
     condition: C
     for: 15m
     noDataState: OK
@@ -418,10 +418,11 @@ groups:
       severity: warning
       scope: cluster
     annotations:
-      summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew {{`{{ printf "%.0f" $values.A.Value }}`}}
-        MiB in 6 hours
-      description: Growth above 256 MiB compared with six hours ago; resolves below 192 MiB. Needs six hours of history. Inspect
-        BPF lifecycle cleanup before host memory runs out.
+      summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew at least {{`{{ printf "%.0f" $values.A.Value }}`}}
+        MiB in each of the last three 2-hour windows
+      description: A kernel leak grows without stopping. Pods placed on a node add vmalloc in one step that then stays flat,
+        so the rule needs growth above 64 MiB in each of three consecutive 2-hour windows and resolves when one window grows
+        less than 32 MiB. Inspect BPF lifecycle cleanup before host memory runs out.
       __dashboardUid__: kube-cluster
       __panelId__: '108'
     data:
@@ -438,8 +439,13 @@ groups:
         editorMode: code
         instant: true
         range: false
-        expr: (max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"}) - max by (cluster, instance,
-          node) (node_memory_VmallocUsed_bytes{job="node-exporter"} offset 6h)) / 1024 / 1024
+        # The smallest growth of the three windows: a single step raises one window only.
+        # The last clause skips nodes younger than six hours.
+        expr: min by (cluster, instance, node) (label_replace(max by (cluster, instance, node) (delta(node_memory_VmallocUsed_bytes{job="node-exporter"}[2h])),
+          "window", "0-2h", "", "") or label_replace(max by (cluster, instance, node) (delta(node_memory_VmallocUsed_bytes{job="node-exporter"}[2h]
+          offset 2h)), "window", "2-4h", "", "") or label_replace(max by (cluster, instance, node) (delta(node_memory_VmallocUsed_bytes{job="node-exporter"}[2h]
+          offset 4h)), "window", "4-6h", "", "")) / 1024 / 1024 and on (cluster, instance, node) max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"}
+          offset 6h)
     - refId: C
       datasourceUid: __expr__
       model:
@@ -453,13 +459,13 @@ groups:
         - evaluator:
             type: gt
             params:
-            - 256
-          # Recovers only below 192 MiB, so growth that hovers near 256 MiB
-          # does not fire and resolve over and over.
+            - 64
+          # Recovers only below 32 MiB, so a leak that slows briefly does not
+          # fire and resolve over and over.
           unloadEvaluator:
             type: lt
             params:
-            - 192
+            - 32
   - uid: addons-node-memory-stalls
     title: Tasks stalled on memory above 10%
     condition: C

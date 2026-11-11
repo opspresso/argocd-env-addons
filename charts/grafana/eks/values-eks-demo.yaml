@@ -1180,11 +1180,14 @@ grafana:
           - annotations:
               __dashboardUid__: kube-cluster
               __panelId__: '108'
-              description: Growth above 256 MiB compared with six hours ago; resolves below
-                192 MiB. Needs six hours of history. Inspect BPF lifecycle cleanup before
-                host memory runs out.
+              description: A kernel leak grows without stopping. Pods placed on a node add
+                vmalloc in one step that then stays flat, so the rule needs growth above 64
+                MiB in each of three consecutive 2-hour windows and resolves when one window
+                grows less than 32 MiB. Inspect BPF lifecycle cleanup before host memory runs
+                out.
               summary: Kernel vmalloc on {{`{{ or $labels.node $labels.instance }}`}} grew
-                {{`{{ printf "%.0f" $values.A.Value }}`}} MiB in 6 hours
+                at least {{`{{ printf "%.0f" $values.A.Value }}`}} MiB in each of the last
+                three 2-hour windows
             condition: C
             data:
             - datasourceUid: prometheus
@@ -1193,9 +1196,14 @@ grafana:
                   type: prometheus
                   uid: prometheus
                 editorMode: code
-                expr: (max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"})
-                  - max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"}
-                  offset 6h)) / 1024 / 1024
+                expr: min by (cluster, instance, node) (label_replace(max by (cluster, instance,
+                  node) (delta(node_memory_VmallocUsed_bytes{job="node-exporter"}[2h])), "window",
+                  "0-2h", "", "") or label_replace(max by (cluster, instance, node) (delta(node_memory_VmallocUsed_bytes{job="node-exporter"}[2h]
+                  offset 2h)), "window", "2-4h", "", "") or label_replace(max by (cluster,
+                  instance, node) (delta(node_memory_VmallocUsed_bytes{job="node-exporter"}[2h]
+                  offset 4h)), "window", "4-6h", "", "")) / 1024 / 1024 and on (cluster, instance,
+                  node) max by (cluster, instance, node) (node_memory_VmallocUsed_bytes{job="node-exporter"}
+                  offset 6h)
                 instant: true
                 range: false
                 refId: A
@@ -1208,11 +1216,11 @@ grafana:
                 conditions:
                 - evaluator:
                     params:
-                    - 256
+                    - 64
                     type: gt
                   unloadEvaluator:
                     params:
-                    - 192
+                    - 32
                     type: lt
                 datasource:
                   type: __expr__
@@ -1227,7 +1235,7 @@ grafana:
               scope: cluster
               severity: warning
             noDataState: OK
-            title: Kernel vmalloc growing over 6 hours
+            title: Kernel vmalloc growing steadily for 6 hours
             uid: addons-node-kernel-memory-growth
           - annotations:
               __dashboardUid__: kube-cluster
