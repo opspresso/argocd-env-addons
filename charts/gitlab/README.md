@@ -40,6 +40,7 @@ GitLab 19(chart 10.x)는 PostgreSQL·Redis·MinIO를 더 이상 포함하지 않
 | `/k8s/common/gitlab/root-password` | `root`의 첫 비밀번호. GitLab은 처음 설치할 때만 읽는다 |
 | `/k8s/common/gitlab/postgres-password` | PostgreSQL 사용자 `gitlab`. PostgreSQL은 데이터 디렉터리를 처음 만들 때만 읽는다 |
 | `/k8s/common/gitlab/valkey-password` | Valkey `requirepass` |
+| `/k8s/common/gitlab/agent-studio-git-client-secret` | OAuth application `agent-studio-git`의 client secret. Agent Studio도 읽는다 |
 | `/k8s/common/gitlab/oidc-client-secret` | Dex client `gitlab-sso`의 secret. 플랫폼 Dex의 `dex-secret`도 읽으므로, 없으면 `dex-secret` 전체가 갱신되지 않는다 |
 
 `root-password`와 `postgres-password`는 첫 설치 뒤에 바꿔도 반영되지 않는다. PostgreSQL 비밀번호를 바꾸려면 DB에서

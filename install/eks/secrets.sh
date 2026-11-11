@@ -173,6 +173,8 @@ step "GitLab"
 create /k8s/common/gitlab/root-password "$(random)"
 create /k8s/common/gitlab/postgres-password "$(random)"
 create /k8s/common/gitlab/valkey-password "$(random)"
+# The OAuth application agent-studio-git (gitlab.oauth_applications); Agent Studio reads the same secret.
+create /k8s/common/gitlab/agent-studio-git-client-secret "$(random)"
 
 step "oauth2-proxy"
 # cookie 암호화 키는 16·24·32 byte 여야 합니다.
