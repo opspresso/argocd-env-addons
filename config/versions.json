@@ -31,13 +31,13 @@
       "version": "7.1.0"
     },
     "dynamodb-chart": {
-      "app_version": "1.14.2",
+      "app_version": "1.15.0",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.14.2"
+      "version": "1.15.0"
     },
     "external-dns": {
       "app_version": "0.23.0",
@@ -46,10 +46,10 @@
       "version": "1.23.0"
     },
     "external-secrets": {
-      "app_version": "v2.14.0",
+      "app_version": "v2.15.0",
       "chart": "external-secrets/external-secrets",
       "current": "2.14.0",
-      "version": "2.14.0"
+      "version": "2.15.0"
     },
     "gateway-api-crds": {
       "app_version": "v1.6.3",
@@ -74,10 +74,10 @@
       "version": "0.15.1"
     },
     "gitlab": {
-      "app_version": "v19.5.3",
+      "app_version": "v19.5.4",
       "chart": "gitlab/gitlab",
       "current": "10.5.4",
-      "version": "10.5.4"
+      "version": "10.5.5"
     },
     "grafana": {
       "app_version": "12.3.1",
@@ -96,7 +96,7 @@
       "app_version": "2.580.2",
       "chart": "jenkinsci/jenkins",
       "current": "5.10.10",
-      "version": "5.11.0"
+      "version": "5.12.0"
     },
     "keep": {
       "app_version": "0.54.3",
@@ -111,18 +111,18 @@
       "version": "0.17.0"
     },
     "kro": {
-      "app_version": "v0.9.4",
+      "app_version": "v0.10.0",
       "chart": "registry.k8s.io/kro/charts",
       "current": "0.9.4",
       "locked": true,
       "type": "oci",
-      "version": "v0.9.4"
+      "version": "v0.10.0"
     },
     "loki": {
-      "app_version": "3.6.16",
+      "app_version": "3.6.18",
       "chart": "grafana/loki",
       "current": "7.5.0",
-      "version": "7.5.0"
+      "version": "7.6.0"
     },
     "metrics-server": {
       "app_version": "0.9.0",
@@ -134,7 +134,7 @@
       "app_version": "7.15.6",
       "chart": "oauth2-proxy/oauth2-proxy",
       "current": "10.7.1",
-      "version": "10.7.2"
+      "version": "10.7.3"
     },
     "prometheus-adapter": {
       "app_version": "v0.12.0",
@@ -143,27 +143,27 @@
       "version": "5.4.0"
     },
     "prometheus-stack": {
-      "app_version": "v0.95.1",
+      "app_version": "v0.95.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "92.14.1",
-      "version": "93.1.1"
+      "version": "93.1.2"
     },
     "rds-chart": {
-      "app_version": "1.14.2",
+      "app_version": "1.15.0",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.14.2"
+      "version": "1.15.0"
     },
     "s3-chart": {
-      "app_version": "1.15.0",
+      "app_version": "1.16.0",
       "chart": "public.ecr.aws/aws-controllers-k8s",
       "current": "1.13.4",
       "locked": true,
       "path": "aws-controllers",
       "type": "oci",
-      "version": "1.15.0"
+      "version": "1.16.0"
     },
     "vllm-stack": {
       "app_version": "",

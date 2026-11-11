@@ -431,25 +431,25 @@ helm repo update
 | argo-rollouts |  | 2.43.8 | 2.43.12 (v1.10.2) |
 | argo-workflows |  | 2.0.14 | 2.0.18 (v4.1.6) |
 | atlantis |  | 7.0.0 | 7.1.0 (v0.49.0) |
-| aws-controllers (dynamodb-chart) | 🔒 | 1.13.4 | 1.14.2 (1.14.2) |
+| aws-controllers (dynamodb-chart) | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
-| external-secrets | ✅ | 2.14.0 | 2.14.0 (v2.14.0) |
+| external-secrets |  | 2.14.0 | 2.15.0 (v2.15.0) |
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
 | arc-runners (gha-runner-scale-set) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | arc-controller (gha-runner-scale-set-controller) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
-| gitlab | ✅ | 10.5.4 | 10.5.4 (v19.5.3) |
+| gitlab |  | 10.5.4 | 10.5.5 (v19.5.4) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio (istiod) |  | 1.31.3 | 1.32.0 (1.32.0) |
-| jenkins |  | 5.10.10 | 5.11.0 (2.580.2) |
+| jenkins |  | 5.10.10 | 5.12.0 (2.580.2) |
 | keep | ✅ | 0.1.97 | 0.1.97 (0.54.3) |
 | kite |  | 0.16.0 | 0.17.0 (v0.17.0) |
-| kro | 🔒 | 0.9.4 | v0.9.4 (v0.9.4) |
-| loki | ✅ | 7.5.0 | 7.5.0 (3.6.16) |
+| kro | 🔒 | 0.9.4 | v0.10.0 (v0.10.0) |
+| loki |  | 7.5.0 | 7.6.0 (3.6.18) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
-| oauth2-proxy |  | 10.7.1 | 10.7.2 (7.15.6) |
+| oauth2-proxy |  | 10.7.1 | 10.7.3 (7.15.6) |
 | prometheus-adapter |  | 5.3.0 | 5.4.0 (v0.12.0) |
-| prometheus-stack |  | 92.14.1 | 93.1.1 (v0.95.1) |
-| aws-controllers (rds-chart) |  | 1.13.4 | 1.14.2 (1.14.2) |
-| aws-controllers (s3-chart) | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
+| prometheus-stack |  | 92.14.1 | 93.1.2 (v0.95.2) |
+| aws-controllers (rds-chart) |  | 1.13.4 | 1.15.0 (1.15.0) |
+| aws-controllers (s3-chart) | 🔒 | 1.13.4 | 1.16.0 (1.16.0) |
 | vllm-stack |  |  | 0.1.14 |
 <!--- END_VERSION --->
