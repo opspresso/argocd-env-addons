@@ -1,7 +1,7 @@
 oauth2-proxy:
   fullnameOverride: oauth2-proxy
   resources:
-    requests: {cpu: 10m, memory: 64Mi}
+    requests: {cpu: 5m, memory: 32Mi}
     limits: {memory: 256Mi}
 
   # client-id, client-secret, cookie-secret

@@ -8,11 +8,12 @@ argo-cd:
 
   controller:
     # Working set p95 1.7Gi and peak 3.4Gi during full reconciles; CPU p95
-    # 200m (7-day peak to 2026-11-10).
+    # 200m (7 days to 2026-11-11). The request covers the peak so a full
+    # reconcile on a full node is not the first Pod evicted.
     resources:
       requests:
-        cpu: 200m
-        memory: 2Gi
+        cpu: 240m
+        memory: 3456Mi
       limits:
         memory: 5Gi
 
@@ -57,11 +58,11 @@ argo-cd:
     pdb:
       enabled: true
       maxUnavailable: 1
-    # Working set p95 310Mi, peak 540Mi while rendering; CPU p95 100m.
+    # Working set p95 310Mi, peak 540Mi while rendering; CPU p95 100m (7 days to 2026-11-11).
     resources:
       requests:
-        cpu: 100m
-        memory: 384Mi
+        cpu: 125m
+        memory: 544Mi
       limits:
         memory: 1Gi
 
