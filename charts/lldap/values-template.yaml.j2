@@ -2,6 +2,27 @@
 lldap:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{lldap.hostname}}"
+{%- if core_tier | default(false) %}
+    # Blocks voluntary disruption such as consolidation; drift waits for the core maintenance window.
+    karpenter.sh/do-not-disrupt: "true"
+{%- endif %}
+{%- if core_tier | default(false) %}
+  # core_tier: the only LLDAP replica holds every account, so it runs only on the on-demand core nodes
+  # (terraform-env-demo 51-core-node-pool.tf); its EBS volume picks the AZ.
+  tolerations:
+    - key: opspresso.com/tier
+      operator: Equal
+      value: core
+      effect: NoSchedule
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: opspresso.com/tier
+                operator: In
+                values: [core]
+{%- endif %}
 
   env:
     - name: LLDAP_HTTP_URL

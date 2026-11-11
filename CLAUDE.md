@@ -121,6 +121,10 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 - EKS 렌더는 일반·init·테스트 컨테이너의 양수 CPU/memory requests와 memory limit을 요구한다.
   CPU limit은 필수가 아니다. Prometheus·Alertmanager operator 리소스의 예산도 검증한다.
 - `local`은 전역 `resources.enabled: false`, `autoscaling.enabled: false`를 사용한다.
+- `core_tier: true`는 중요 addon을 terraform-env-demo `demo/6-eks-node/51-core-node-pool.tf`의 on-demand
+  `core-2a`·`core-2c` 노드(label·taint `opspresso.com/tier=core`)에 둔다. LLDAP은 required affinity와
+  `karpenter.sh/do-not-disrupt`를 쓰고, Dex·istiod·ingress gateway는 preferred affinity로 복제본을 core에 두며
+  HPA 증가분과 rollout surge는 Spot으로 넘친다. core NodePool이 없는 클러스터에서는 켜지 않는다.
   Argo CD를 포함해 chart별로 같은 스위치를 중복 선언하지 않는다.
 - 컨테이너·초기화 컨테이너·Job·operator가 만드는 Pod의 requests/limits를 제거한다.
   HPA·VPA·KEDA를 만들지 않으며 PVC의 storage 요청은 유지한다.

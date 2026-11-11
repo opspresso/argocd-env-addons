@@ -20,6 +20,10 @@ resources:
 autoscaling:
   enabled: false
 
+# Critical addons run on the on-demand core NodePools (terraform-env-demo demo/6-eks-node/51-core-node-pool.tf):
+# LLDAP requires them; Dex, istiod and the ingress gateway prefer them.
+core_tier: true
+
 argocd:
   acm_arn: arn:aws:acm:ap-northeast-2:396608815058:certificate/7ee515dd-b28a-4c71-b134-9b6b6fa55064
   hostname: argocd.demo.opsp.dev
