@@ -63,6 +63,10 @@ CronJob `gitlab-admin-sync`가 10분마다 toolbox Pod에서 `gitlab-rails runne
 - SSO 사용자 중 목록에 있는 사용자는 관리자로, 그 밖의 사용자는 일반 사용자로 맞춘다. `root`는 바꾸지 않는다.
 - 가입과 웹 비밀번호 로그인이 켜져 있으면 끈다. 이 두 설정은 DB에 저장되며 chart 값으로 바꿀 수 없다.
 - 목록이 비어 있으면 아무것도 바꾸지 않고 실패한다.
+- `gitlab.oauth_applications`의 OAuth application을 `client_id`로 등록하고 이름·redirect URI·scope·client secret을 맞춘다.
+  GitLab은 OAuth application을 DB에 저장하므로 chart 값으로 만들 수 없다. client secret은 `secret_key`의 SSM parameter이며
+  application을 쓰는 서비스도 같은 parameter를 읽는다. 등록한 application은 confidential이고 사용자 동의 화면을 거친다.
+  목록에서 뺀 application은 지우지 않는다. 관리자가 **Admin > Applications**에서 지운다.
 - 처음 로그인한 사용자는 다음 실행 때 관리자가 된다. 바로 적용하려면 Job을 만든다.
 
 ```bash
