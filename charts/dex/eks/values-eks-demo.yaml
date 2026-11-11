@@ -1,5 +1,21 @@
 
 dex:
+  # core_tier: every sign-in passes through Dex, so both replicas prefer the on-demand core nodes
+  # (terraform-env-demo 51-core-node-pool.tf), one per AZ.
+  tolerations:
+    - key: opspresso.com/tier
+      operator: Equal
+      value: core
+      effect: NoSchedule
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: opspresso.com/tier
+                operator: In
+                values: [core]
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://sso.demo.opsp.dev/.well-known/openid-configuration"
 
