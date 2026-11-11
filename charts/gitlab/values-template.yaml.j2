@@ -132,10 +132,31 @@ raw:
           - secretKey: client_secret
             remoteRef:
               key: /k8s/common/gitlab/oidc-client-secret
+{%- if gitlab.oauth_applications is defined %}
+    # Client secrets of gitlab.oauth_applications, one key per client_id. The consumer reads the same parameter.
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: gitlab-oauth-applications
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: gitlab-oauth-applications
+        data:
+{%- for application in gitlab.oauth_applications %}
+          - secretKey: {{ application.client_id }}
+            remoteRef:
+              key: {{ application.secret_key }}
+{%- endfor %}
+{%- endif %}
     # GitLab CE cannot map OIDC groups to administrators (Premium only). This
     # CronJob makes the users in gitlab.admins (the LLDAP logins of the
     # sso.admin_groups members) administrators and the other SSO users not.
     # It also keeps sign-up and the web password form off. root is not changed.
+    # It registers gitlab.oauth_applications too: GitLab keeps OAuth applications in its database.
     - apiVersion: v1
       kind: ServiceAccount
       metadata:
@@ -177,7 +198,12 @@ raw:
           [ -n "${ADMINS}" ] || { echo "gitlab.admins is empty"; exit 1; }
           pod=$(kubectl get pod -l app=toolbox --field-selector=status.phase=Running -o name | head -1)
           [ -n "${pod}" ] || { echo "no running toolbox Pod"; exit 1; }
-          kubectl exec "${pod}" -c toolbox -- env ADMINS="${ADMINS}" gitlab-rails runner "$(cat /scripts/sync.rb)"
+          # Client secrets go on stdin: the API server audit log records the command line.
+          secrets=$(for file in /oauth/*; do
+            if [ -f "${file}" ]; then jq -Rs --arg id "$(basename "${file}")" '{($id): .}' "${file}"; fi
+          done | jq -s 'add // {}')
+          printf '%s' "${secrets}" | kubectl exec -i "${pod}" -c toolbox -- \
+            env ADMINS="${ADMINS}" APPLICATIONS="${APPLICATIONS}" gitlab-rails runner "$(cat /scripts/sync.rb)"
         sync.rb: |
           admins = ENV.fetch("ADMINS").split(",").map(&:downcase)
           User.joins(:identities).where(identities: { provider: "openid_connect" }).find_each do |user|
@@ -190,6 +216,20 @@ raw:
           unless !settings.signup_enabled && !settings.password_authentication_enabled_for_web
             settings.update!(signup_enabled: false, password_authentication_enabled_for_web: false)
             puts "sign-up and web password sign-in turned off"
+          end
+          secrets = JSON.parse($stdin.read)
+          JSON.parse(ENV.fetch("APPLICATIONS")).each do |declared|
+            secret = secrets.fetch(declared.fetch("client_id"))
+            application = Doorkeeper.config.application_model.find_or_initialize_by(uid: declared.fetch("client_id"))
+            application.assign_attributes(name: declared.fetch("name"), redirect_uri: declared.fetch("redirect_uri"),
+              scopes: declared.fetch("scopes").join(" "), confidential: true)
+            application.organization ||= Organizations::Organization.default_organization
+            unless application.secret_matches?(secret)
+              Doorkeeper.config.application_secret_strategy.store_secret(application, :secret, secret)
+            end
+            next unless application.changed?
+            application.save!
+            puts "oauth application #{application.uid} saved"
           end
 
     - apiVersion: batch/v1
@@ -216,6 +256,12 @@ raw:
                     env:
                       - name: ADMINS
                         value: "{{ gitlab.admins | default([]) | join(',') }}"
+{%- set applications = [] %}
+{%- for application in gitlab.oauth_applications | default([]) %}
+{%- set _ = applications.append({"client_id": application.client_id, "name": application.name, "redirect_uri": application.redirect_uri, "scopes": application.scopes}) %}
+{%- endfor %}
+                      - name: APPLICATIONS
+                        value: '{{ applications | tojson }}'
                     resources:
                       requests:
                         cpu: 10m
@@ -225,10 +271,20 @@ raw:
                     volumeMounts:
                       - name: scripts
                         mountPath: /scripts
+{%- if gitlab.oauth_applications is defined %}
+                      - name: oauth
+                        mountPath: /oauth
+                        readOnly: true
+{%- endif %}
                 volumes:
                   - name: scripts
                     configMap:
                       name: gitlab-admin-sync
+{%- if gitlab.oauth_applications is defined %}
+                  - name: oauth
+                    secret:
+                      secretName: gitlab-oauth-applications
+{%- endif %}
 {% else %}
 # no cluster-specific overrides
 {% endif %}

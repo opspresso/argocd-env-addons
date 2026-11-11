@@ -108,6 +108,15 @@ gitlab:
   admins:
     - admin1
     - nalbam
+  # OAuth applications that GitLab serves, by client_id. secret_key is the SSM parameter of the client secret; the
+  # consumer reads the same parameter. Agent Studio connects each user's Git account with agent-studio-git
+  # (agent-platform docs/GIT_CONNECTIONS.md).
+  oauth_applications:
+    - client_id: agent-studio-git
+      name: Agent Studio
+      redirect_uri: https://studio.agrt.dev/api/git/callback
+      scopes: [api, read_repository, write_repository]
+      secret_key: /k8s/common/gitlab/agent-studio-git-client-secret
 
 # Sign-in rule of every client of the platform Dex (charts/dex). Only the connector lldap
 # signs in; its groups come by name. Members of admin_groups are administrators;
