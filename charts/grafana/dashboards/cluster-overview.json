@@ -3735,7 +3735,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count by (label_node_kubernetes_io_instance_type) (kube_node_labels{cluster=~\"$cluster\"} * on (cluster, node) group_left() (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"} == 1))",
+          "expr": "count by (label_node_kubernetes_io_instance_type) (max by (cluster, node, label_node_kubernetes_io_instance_type) (kube_node_labels{cluster=~\"$cluster\"}) * on (cluster, node) group_left() (max by (cluster, node) (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"}) == 1))",
           "legendFormat": "{{label_node_kubernetes_io_instance_type}}",
           "range": true,
           "instant": false,

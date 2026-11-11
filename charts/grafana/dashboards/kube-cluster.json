@@ -2283,7 +2283,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "100 * sum by (nodepool) (label_replace(kube_node_status_capacity{cluster=~\"$cluster\",resource=\"cpu\"} * on (cluster, node) group_left(label_karpenter_sh_nodepool) max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"cpu\"})",
+          "expr": "100 * sum by (nodepool) (label_replace(max by (cluster, node) (kube_node_status_capacity{cluster=~\"$cluster\",resource=\"cpu\"}) * on (cluster, node) group_left(label_karpenter_sh_nodepool) max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"cpu\"})",
           "legendFormat": "{{nodepool}}",
           "range": false,
           "instant": true,
@@ -2316,7 +2316,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "noValue": "No data",
+          "noValue": "No limited pool has nodes",
           "links": []
         },
         "overrides": []
@@ -2362,7 +2362,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "100 * sum by (nodepool) (label_replace(kube_node_status_capacity{cluster=~\"$cluster\",resource=\"memory\"} * on (cluster, node) group_left(label_karpenter_sh_nodepool) max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"memory\"})",
+          "expr": "100 * sum by (nodepool) (label_replace(max by (cluster, node) (kube_node_status_capacity{cluster=~\"$cluster\",resource=\"memory\"}) * on (cluster, node) group_left(label_karpenter_sh_nodepool) max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\"}), \"nodepool\", \"$1\", \"label_karpenter_sh_nodepool\", \"(.+)\")) / on (nodepool) group_left() max by (nodepool) (karpenter_nodepool_limit{cluster=~\"$cluster\",resource=\"memory\"})",
           "legendFormat": "{{nodepool}}",
           "range": false,
           "instant": true,
@@ -2395,7 +2395,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "noValue": "No data",
+          "noValue": "No limited pool has nodes",
           "links": []
         },
         "overrides": []
@@ -2474,7 +2474,7 @@
           "color": {
             "mode": "thresholds"
           },
-          "noValue": "No data",
+          "noValue": "No limited pool has nodes",
           "links": []
         },
         "overrides": []
@@ -2520,7 +2520,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count by (label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"} * on (cluster, node) group_left() (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"} == 1))",
+          "expr": "count by (label_karpenter_sh_nodepool) (max by (cluster, node, label_karpenter_sh_nodepool) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * on (cluster, node) group_left() (max by (cluster, node) (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"}) == 1))",
           "legendFormat": "{{label_karpenter_sh_nodepool}}",
           "range": true,
           "instant": false,
@@ -2615,7 +2615,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count by (label_node_kubernetes_io_instance_type) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"} * on (cluster, node) group_left() (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"} == 1))",
+          "expr": "count by (label_node_kubernetes_io_instance_type) (max by (cluster, node, label_node_kubernetes_io_instance_type) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * on (cluster, node) group_left() (max by (cluster, node) (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"}) == 1))",
           "legendFormat": "{{label_node_kubernetes_io_instance_type}}",
           "range": true,
           "instant": false,
@@ -2710,7 +2710,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count by (label_karpenter_sh_capacity_type) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"} * on (cluster, node) group_left() (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"} == 1))",
+          "expr": "count by (label_karpenter_sh_capacity_type) (max by (cluster, node, label_karpenter_sh_capacity_type) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * on (cluster, node) group_left() (max by (cluster, node) (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"}) == 1))",
           "legendFormat": "{{label_karpenter_sh_capacity_type}}",
           "range": false,
           "instant": true,
@@ -2783,7 +2783,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count by (label_topology_kubernetes_io_zone) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"} * on (cluster, node) group_left() (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"} == 1))",
+          "expr": "count by (label_topology_kubernetes_io_zone) (max by (cluster, node, label_topology_kubernetes_io_zone) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}) * on (cluster, node) group_left() (max by (cluster, node) (kube_node_status_condition{cluster=~\"$cluster\",condition=\"Ready\",status=\"true\"}) == 1))",
           "legendFormat": "{{label_topology_kubernetes_io_zone}}",
           "range": false,
           "instant": true,
@@ -2868,7 +2868,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "count(kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"})",
+          "expr": "count(max by (cluster, node) (kube_node_labels{cluster=~\"$cluster\",label_karpenter_sh_nodepool=~\"$nodepool\"}))",
           "legendFormat": "nodes",
           "range": true,
           "instant": false,
