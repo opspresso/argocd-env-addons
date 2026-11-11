@@ -3,7 +3,7 @@ lldap:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://{{lldap.hostname}}"
 {%- if core_tier | default(false) %}
-    # Blocks voluntary disruption such as consolidation; drift waits for the core maintenance window.
+    # Delays voluntary disruption only: drift (03:00-05:00 KST window) and expiry still drain it after at most the NodeClaim terminationGracePeriod, restarting it once.
     karpenter.sh/do-not-disrupt: "true"
 {%- endif %}
 {%- if core_tier | default(false) %}
