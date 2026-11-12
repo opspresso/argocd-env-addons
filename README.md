@@ -427,10 +427,10 @@ helm repo update
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy |  | 1.14.4 | 1.15.0 (v1.21.3) |
-| argo-cd |  | 10.11.6 | 10.17.1 (v3.6.1) |
+| argo-cd |  | 10.11.6 | 10.18.0 (v3.6.1) |
 | argo-rollouts |  | 2.43.8 | 2.43.12 (v1.10.2) |
 | argo-workflows |  | 2.0.14 | 2.0.18 (v4.1.6) |
-| atlantis |  | 7.0.0 | 7.1.0 (v0.49.0) |
+| atlantis |  | 7.0.0 | 7.3.1 (v0.49.0) |
 | aws-controllers (dynamodb-chart) | 🔒 | 1.13.4 | 1.15.0 (1.15.0) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
 | external-secrets |  | 2.14.0 | 2.15.0 (v2.15.0) |
@@ -446,9 +446,9 @@ helm repo update
 | kro | 🔒 | 0.9.4 | v0.10.0 (v0.10.0) |
 | loki |  | 7.5.0 | 7.6.0 (3.6.18) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
-| oauth2-proxy |  | 10.7.1 | 10.7.3 (7.15.6) |
+| oauth2-proxy |  | 10.7.1 | 10.7.4 (7.15.6) |
 | prometheus-adapter |  | 5.3.0 | 5.4.0 (v0.12.0) |
-| prometheus-stack |  | 92.14.1 | 93.1.2 (v0.95.2) |
+| prometheus-stack |  | 92.14.1 | 93.2.2 (v0.95.2) |
 | aws-controllers (rds-chart) |  | 1.13.4 | 1.15.0 (1.15.0) |
 | aws-controllers (s3-chart) | 🔒 | 1.13.4 | 1.16.0 (1.16.0) |
 | vllm-stack |  |  | 0.1.14 |
