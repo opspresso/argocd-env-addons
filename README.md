@@ -26,12 +26,12 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 | 분류 | addon | 주소 |
 | --- | --- | --- |
 | 배포·자동화 | argo-cd, argo-workflows, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows |
-| 개발 도구 | gitlab | gitlab |
+| 개발 도구 | gitlab, nexus | gitlab, nexus |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
 | 인증 | dex, lldap, oauth2-proxy | sso, id, auth |
 | 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
 
-`backup/`에 보관한 addon(배포하지 않음): argo-rollouts, atlantis, external-dns, jenkins, kite, nexus.
+`backup/`에 보관한 addon(배포하지 않음): argo-rollouts, atlantis, external-dns, jenkins, kite.
 
 ## 로그인
 
@@ -45,8 +45,10 @@ GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남
   `sso.member_groups`(`dev`)는 일반 사용자·읽기 전용.
 - LLDAP 관리자는 Argo CD 관리자(`/k8s/common/admin-user`, `admin-password`)이며 Dex에는 이메일 `lldap.admin_email`로
   로그인한다. 사용자는 관리자가 LLDAP 웹 UI에서 관리한다(`charts/lldap/README.md`). 웹 UI는 관리자만 열 수 있다.
-- 관리 도구는 oauth2-proxy가 관리자 로그인으로 막는다(`charts/oauth2-proxy/README.md`). 배포된 대상은 LLDAP 웹 UI이고,
-  Atlantis, Nexus, Argo Rollouts dashboard는 `backup/`에 있다.
+- 관리 도구는 oauth2-proxy가 관리자 로그인으로 막는다(`charts/oauth2-proxy/README.md`). 배포된 대상은 LLDAP 웹 UI와 Nexus이고,
+  Atlantis, Argo Rollouts dashboard는 `backup/`에 있다.
+- Nexus CE는 OIDC가 없어 oauth2-proxy 뒤에서 LLDAP 아이디 header로 로그인하고, LLDAP을 LDAP 사용자 원천으로 읽어
+  그룹을 역할로 쓴다(`charts/nexus/README.md`).
 - GitLab CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins` 목록을 CronJob이 맞춘다.
 - Keep은 `sso` 그룹이 없는 사용자를 거부한다. 다른 addon은 그룹이 없는 사용자에게 읽기 권한을 준다.
 - 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
@@ -362,8 +364,8 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 - [Workspace와 Agent 서비스 관측성](docs/workspace-observability.md): Workspace·Agent 서비스 지표와 경보
 - chart별 절차: [alloy](charts/alloy/README.md), [arc-runners](charts/arc-runners/README.md), [argo-cd](charts/argo-cd/README.md),
   [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md), [keep](charts/keep/README.md),
-  [dex](charts/dex/README.md), [lldap](charts/lldap/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
-- 보관 chart: [atlantis](charts/atlantis/README.md), [jenkins](charts/jenkins/README.md), [nexus](charts/nexus/README.md)
+  [dex](charts/dex/README.md), [lldap](charts/lldap/README.md), [nexus](charts/nexus/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
+- 보관 chart: [atlantis](charts/atlantis/README.md), [jenkins](charts/jenkins/README.md)
 
 관련 저장소:
 

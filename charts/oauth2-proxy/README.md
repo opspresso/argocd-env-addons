@@ -2,7 +2,7 @@
 
 관리 도구 앞에서 플랫폼 Dex(`charts/dex`, client `oauth2-proxy-sso`)의 관리자 로그인을 요구한다.
 namespace는 `addon-oauth2-proxy`, callback 주소는 `https://auth.demo.opsp.dev/oauth2/callback`이다.
-배포된 보호 대상은 LLDAP 웹 UI(`id.demo.opsp.dev`)다. Atlantis UI, Nexus, Argo Rollouts dashboard는 `backup/`에 있다.
+배포된 보호 대상은 LLDAP 웹 UI(`id.demo.opsp.dev`)와 Nexus(`nexus.demo.opsp.dev`)다. Atlantis UI, Argo Rollouts dashboard는 `backup/`에 있다.
 
 - Istio의 extension provider `oauth2-proxy`(`charts/istio`)가 이 Service로 인증을 묻는다. 서비스는
   `istio-system`에 `action: CUSTOM`, `provider: oauth2-proxy`인 AuthorizationPolicy를 둔다(예: `charts/atlantis`).
