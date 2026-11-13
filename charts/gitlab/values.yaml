@@ -190,11 +190,13 @@ gitlab:
             memory: 64Mi
           limits:
             memory: 256Mi
-      # gitlab-admin-sync runs gitlab-rails here every 10 minutes: working set
-      # p95 750Mi and peak 1Gi, CPU p95 320m.
+      # gitlab-admin-sync runs gitlab-rails here every 10 minutes. Idle working
+      # set is 100Mi; each run reaches 950Mi and 420m CPU for under a minute
+      # (7 days to 2026-11-13). Memory covers the run because it repeats;
+      # CPU is the idle p95 because a run may burst above it.
       resources:
         requests:
-          cpu: 380m
+          cpu: 120m
           memory: 1008Mi
         limits:
           memory: 2Gi
@@ -232,11 +234,11 @@ postgres:
   persistence:
     storageGiB: 20
     storageClass: gp3
-  # Working set p95 350Mi, peak 370Mi (7 days to 2026-11-11).
+  # Working set p99 310Mi, peak 370Mi; CPU p95 15m (7 days to 2026-11-13).
   resources:
     requests:
-      cpu: 80m
-      memory: 416Mi
+      cpu: 20m
+      memory: 352Mi
     limits:
       memory: 1Gi
 

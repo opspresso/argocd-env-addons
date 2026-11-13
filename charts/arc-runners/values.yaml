@@ -76,11 +76,14 @@ arc-runners:
             initialDelaySeconds: 0
             failureThreshold: 24
             periodSeconds: 5
-          # Image builds, kind nodes and test containers run here.
+          # Image builds, kind nodes and test containers run here. Per-job peak
+          # p99 2.2Gi and max 2.4Gi; CPU p99 500m and max 1.4 cores (1,470 jobs,
+          # 7 days to 2026-11-13). The request lets three jobs share an 8-CPU node;
+          # the limit keeps room for heavier builds.
           resources:
             requests:
-              cpu: 1500m
-              memory: 8Gi
+              cpu: 500m
+              memory: 3Gi
             limits:
               memory: 14Gi
           volumeMounts:
