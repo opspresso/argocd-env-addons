@@ -24,10 +24,12 @@ nexus:
         -Xms1g -Xmx1g -XX:MaxDirectMemorySize=1g
         -Djava.util.prefs.userRoot=/nexus-data/javaprefs
 
+  # Working set p99 1.3Gi, peak 1.3Gi; CPU p95 240m (7 days to 2026-11-13).
+  # Direct memory can grow toward its cap, so the limit keeps the headroom.
   resources:
     requests:
-      cpu: 500m
-      memory: 2Gi
+      cpu: 300m
+      memory: 1536Mi
     limits:
       memory: 3Gi
 

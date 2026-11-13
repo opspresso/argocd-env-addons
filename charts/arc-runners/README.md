@@ -19,7 +19,7 @@ jobs:
 - `docker`는 같은 Pod의 privileged dind sidecar(`docker:<version>-dind`)를 쓴다. image build, `kind`, test container가 여기서 실행된다.
 - 서비스 image는 `linux/arm64`로만 빌드한다. EKS의 모든 배포가 arm64(Graviton)이며, QEMU amd64 에뮬레이션에서는 Bun 기반 CLI가 중단되므로 에뮬레이터를 등록하지 않는다.
 - runner container에는 `CI_DOCKER_SCOPE=job`이 설정된다. agent-platform service-setup은 이 값으로 job 전용 Docker daemon을 확인한다.
-- Pod 하나는 runner 2 CPU·6Gi, dind 1.5 CPU·8Gi를 요청한다. 작업 디렉터리와 Docker 저장소는 노드 disk의 emptyDir이며 job마다 비워진다.
+- Pod 하나는 runner 2 CPU·6Gi, dind 500m·3Gi를 요청한다. 8-CPU 노드 하나에 job 3개가 들어간다. 작업 디렉터리와 Docker 저장소는 노드 disk의 emptyDir이며 job마다 비워진다.
 - public 저장소는 조직 `Default` runner group 설정상 이 runner를 쓰지 않는다.
 
 ## 노드
