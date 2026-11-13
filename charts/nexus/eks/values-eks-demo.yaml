@@ -22,9 +22,9 @@ raw:
         hostnames:
           - "nexus.demo.opsp.dev"
         rules:
-          # Package clients (Maven, npm, ...) use HTTP basic auth or anonymous
-          # read here, without oauth2-proxy. A client must not set the trusted
-          # user header on this path.
+          # Package clients (Maven, npm, ...) use their LLDAP ID and password,
+          # or anonymous read, here without oauth2-proxy. A client must not set
+          # the trusted user header on this path.
           - matches:
               - path:
                   type: PathPrefix
@@ -41,9 +41,9 @@ raw:
               - name: nexus
                 port: 8081
 
-    # The UI and the API require a GitHub sign-in through oauth2-proxy (Dex).
-    # The gateway then sets X-Auth-Request-Preferred-Username, which Nexus reads
-    # with the Remote User Token realm.
+    # The UI and the API require a sign-in through oauth2-proxy (the platform
+    # Dex, LLDAP). The gateway then sets X-Auth-Request-Preferred-Username (the
+    # LLDAP user ID), which Nexus reads with the Remote User Token realm.
     - apiVersion: security.istio.io/v1
       kind: AuthorizationPolicy
       metadata:
@@ -64,6 +64,8 @@ raw:
                   notPaths:
                     - /repository/*
 
+    # NEXUS_ADMIN_PASSWORD is the local admin. Nexus binds to LLDAP as the LLDAP
+    # admin, like the platform Dex (charts/dex).
     - apiVersion: external-secrets.io/v1
       kind: ExternalSecret
       metadata:
@@ -75,17 +77,28 @@ raw:
           name: parameter-store
         target:
           name: nexus-admin
+          # Merge keeps the fetched keys next to the templated bind DN.
+          template:
+            engineVersion: v2
+            mergePolicy: Merge
+            data:
+              LDAP_BIND_DN: "uid={{ .LDAP_BIND_USER }},ou=people,dc=opspresso,dc=com"
         data:
           - secretKey: NEXUS_ADMIN_PASSWORD
             remoteRef:
               key: /k8s/common/nexus/admin-password
+          - secretKey: LDAP_BIND_USER
+            remoteRef:
+              key: /k8s/common/admin-user
+          - secretKey: LDAP_BIND_PW
+            remoteRef:
+              key: /k8s/common/admin-password
 
-    # Nexus Community Edition has no group mapping. This CronJob applies the
-    # shared sign-in rule: users in nexus.admins (the GitHub logins of
-    # sso.admin_groups) get nx-admin, other signed-in users read
-    # anonymously. It also sets the admin password, the EULA, the realms and
-    # anonymous read access. The Remote User Token capability is created once in
-    # the UI (README.md): the REST API cannot create it.
+    # This CronJob applies the sign-in rule of every addon (sso in
+    # env/<cluster>.yaml). LLDAP is a Nexus user source, and each group in
+    # sso.admin_groups maps to nx-admin, each group in sso.member_groups to
+    # nx-anonymous (read). It also sets the admin password, the EULA, the
+    # realms, anonymous read and the Remote User Token capability.
     - apiVersion: v1
       kind: ServiceAccount
       metadata:
@@ -123,7 +136,7 @@ raw:
       data:
         sync.sh: |
           set -eu
-          [ -n "${ADMINS}" ] || { echo "nexus.admins is empty"; exit 1; }
+          [ -n "${ADMIN_GROUPS}" ] || { echo "sso.admin_groups is empty"; exit 1; }
           B=http://nexus:8081/service/rest
           api() { curl -fsS -u "admin:${NEXUS_ADMIN_PASSWORD}" -H 'Content-Type: application/json' "$@"; }
 
@@ -143,27 +156,75 @@ raw:
             echo "EULA accepted"
           fi
 
-          api -X PUT "$B/v1/security/realms/active" -d '["rutauth-realm","NexusAuthenticatingRealm"]'
-          api -X PUT "$B/v1/security/anonymous" \
-            -d '{"enabled":true,"userId":"anonymous","realmName":"NexusAuthorizingRealm"}' -o /dev/null
+          # LLDAP as a user source: the LLDAP groups of a user are Nexus role IDs.
+          # PUT on every run keeps the bind password equal to SSM.
+          ldap=$(jq -n --arg dn "${LDAP_BIND_DN}" --arg pw "${LDAP_BIND_PW}" --arg base "${LDAP_BASE_DN}" '{
+            name: "lldap", protocol: "LDAP", host: "lldap.addon-lldap.svc.cluster.local", port: 3890,
+            searchBase: $base, authScheme: "SIMPLE", authUsername: $dn, authPassword: $pw,
+            connectionTimeoutSeconds: 30, connectionRetryDelaySeconds: 300, maxIncidentsCount: 3,
+            userBaseDn: "ou=people", userSubtree: false, userObjectClass: "person",
+            userIdAttribute: "uid", userRealNameAttribute: "cn", userEmailAddressAttribute: "mail",
+            ldapGroupsAsRoles: true, groupType: "STATIC", groupBaseDn: "ou=groups", groupSubtree: false,
+            groupObjectClass: "groupOfUniqueNames", groupIdAttribute: "cn", groupMemberAttribute: "member",
+            groupMemberFormat: ("uid=${username},ou=people," + $base)}')
+          id=$(api "$B/v1/security/ldap" | jq -r '.[] | select(.name == "lldap") | .id')
+          if [ -n "$id" ]; then
+            echo "$ldap" | jq --arg id "$id" '.id = $id' | api -X PUT "$B/v1/security/ldap/lldap" -d @-
+          else
+            echo "$ldap" | api -X POST "$B/v1/security/ldap" -d @-
+            echo "LDAP server lldap created"
+          fi
 
-          # Local users other than admin and anonymous: nx-admin when listed, read-only otherwise.
-          for user in $(echo "${ADMINS}" | tr ',' ' '); do
-            if [ "$(api "$B/v1/security/users?userId=${user}&source=default" | jq --arg u "$user" 'map(select(.userId == $u)) | length')" = "0" ]; then
-              jq -n --arg u "$user" --arg p "$(head -c 32 /dev/urandom | base64)" \
-                '{userId: $u, firstName: $u, lastName: $u, emailAddress: ($u + "@users.noreply.github.com"), password: $p, status: "active", roles: ["nx-admin"]}' \
-                | api -X POST "$B/v1/security/users" -d @- -o /dev/null
-              echo "${user} created"
+          # Remote User Token first: a request with the gateway header signs in as that LLDAP user.
+          realms='["rutauth-realm","LdapRealm","NexusAuthenticatingRealm"]'
+          if [ "$(api "$B/v1/security/realms/active" | jq -c 'map(select(. != "NexusAuthorizingRealm"))')" != "$realms" ]; then
+            api -X PUT "$B/v1/security/realms/active" -d "$realms"
+            echo "realms=${realms}"
+          fi
+          anonymous='{"enabled":true,"realmName":"NexusAuthorizingRealm","userId":"anonymous"}'
+          if [ "$(api "$B/v1/security/anonymous" | jq -cS '{enabled, realmName, userId}')" != "$anonymous" ]; then
+            api -X PUT "$B/v1/security/anonymous" -d "$anonymous" -o /dev/null
+            echo "anonymous read enabled"
+          fi
+
+          header=X-Auth-Request-Preferred-Username
+          rut=$(api "$B/v1/capabilities" | jq -c '[.[] | select(.type == "rutauth")][0] // empty')
+          if [ -z "$rut" ]; then
+            jq -n --arg h "$header" '{type: "rutauth", enabled: true, properties: {httpHeader: $h}}' \
+              | api -X POST "$B/v1/capabilities" -d @- -o /dev/null
+            echo "Rut Auth capability created"
+          elif [ "$(echo "$rut" | jq -r '"\(.enabled) \(.properties.httpHeader)"')" != "true ${header}" ]; then
+            echo "$rut" | jq --arg h "$header" '.enabled = true | .properties.httpHeader = $h' \
+              | api -X PUT "$B/v1/capabilities/$(echo "$rut" | jq -r .id)" -d @- -o /dev/null
+            echo "Rut Auth capability updated"
+          fi
+
+          # A Nexus role with the ID of an LLDAP group maps that group.
+          map_group() {
+            want=$(jq -n --arg g "$1" --arg r "$2" \
+              '{id: $g, name: $g, description: "LLDAP group \($g)", privileges: [], roles: [$r]}')
+            if have=$(api "$B/v1/security/roles/$1" 2>/dev/null); then
+              if [ "$(echo "$have" | jq -c '[.privileges, .roles]')" != "[[],[\"$2\"]]" ]; then
+                echo "$want" | api -X PUT "$B/v1/security/roles/$1" -d @-
+                echo "group $1 -> $2"
+              fi
+            else
+              echo "$want" | api -X POST "$B/v1/security/roles" -d @- -o /dev/null
+              echo "group $1 -> $2"
             fi
-          done
-          api "$B/v1/security/users?source=default" | jq -c '.[] | select(.userId != "admin" and .userId != "anonymous")' | while read -r u; do
-            id=$(echo "$u" | jq -r .userId)
-            if echo ",${ADMINS}," | grep -q ",${id},"; then roles='["nx-admin"]'; else roles='["nx-anonymous"]'; fi
-            if [ "$(echo "$u" | jq -c '.roles | sort')" != "$roles" ]; then
-              echo "$u" | jq --argjson r "$roles" '.roles = $r' | api -X PUT "$B/v1/security/users/${id}" -d @-
-              echo "${id} roles=${roles}"
-            fi
-          done
+          }
+          for group in ${ADMIN_GROUPS}; do map_group "$group" nx-admin; done
+          for group in ${MEMBER_GROUPS}; do map_group "$group" nx-anonymous; done
+
+          # A local user with the ID of an LLDAP user adds its own roles to the
+          # LLDAP groups. Earlier versions created such copies: remove them.
+          api "$B/v1/security/users?source=default" | jq -r '.[].userId | select(. != "admin" and . != "anonymous")' \
+            | while read -r user; do
+              if [ "$(api "$B/v1/security/users?source=LDAP&userId=${user}" | jq --arg u "$user" 'map(select(.userId == $u)) | length')" != "0" ]; then
+                api -X DELETE "$B/v1/security/users/${user}?realm=NexusAuthenticatingRealm"
+                echo "local ${user} removed: LLDAP has it"
+              fi
+            done
 
     - apiVersion: batch/v1
       kind: CronJob
@@ -187,8 +248,12 @@ raw:
                     image: alpine/k8s:1.37.1
                     command: [sh, /scripts/sync.sh]
                     env:
-                      - name: ADMINS
-                        value: "nalbam"
+                      - name: LDAP_BASE_DN
+                        value: "dc=opspresso,dc=com"
+                      - name: ADMIN_GROUPS
+                        value: "sre"
+                      - name: MEMBER_GROUPS
+                        value: "dev"
                     envFrom:
                       - secretRef:
                           name: nexus-admin

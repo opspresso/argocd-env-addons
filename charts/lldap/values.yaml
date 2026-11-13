@@ -67,7 +67,7 @@ lldap:
   # LLDAP lets every user change their own mail, and mail is the email that Agent Studio
   # trusts. Only two paths reach the API: the ingress gateway, where the AuthorizationPolicy
   # lldap admits only sso.admin_groups, and the bootstrap Job in this namespace. The platform
-  # Dex (charts/dex) binds on the LDAP port.
+  # Dex (charts/dex) and Nexus (charts/nexus) bind on the LDAP port.
   networkPolicy:
     enabled: true
     policyTypes: [Ingress]
@@ -90,6 +90,12 @@ lldap:
             podSelector:
               matchLabels:
                 app.kubernetes.io/name: dex
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: addon-nexus
+            podSelector:
+              matchLabels:
+                app.kubernetes.io/name: nexus
         ports:
           - protocol: TCP
             port: 3890

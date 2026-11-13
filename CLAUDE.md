@@ -41,6 +41,7 @@ Argo CD 내장 Dex 는 끈다(`oidc.config`). GitHub connector 는 꺼져 있고
 권한은 `env/<cluster>.yaml` 의 `sso`: `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
 LLDAP 그룹은 이름 그대로 들어온다. LLDAP 관리자·Dex bind 사용자는 Argo CD 관리자(`/k8s/common/admin-user`·`admin-password`)다.
 자체 로그인이 없는 서비스는 `oauth2-proxy` 가 막는다. GitLab CE 의 관리자는 `gitlab.admins` 목록을 CronJob 이 맞춘다.
+Nexus CE 는 oauth2-proxy 뒤의 Remote User Token 으로 로그인하고 LLDAP 을 LDAP 사용자 원천으로 읽어 `sso` 그룹을 역할로 쓴다 (`charts/nexus/README.md`).
 
 설치(`install/eks`)는 SSM 이 비어 있어도, 값이 있어도 같은 명령으로 실행한다. 클러스터 설정은 `env/eks-demo.yaml` 에서 읽고,
 만들 수 있는 SSM 값은 `token.sh`·`secrets.sh` 가 없을 때만 만든다. 배포 addon 이 새 SSM 파라미터를 읽으면

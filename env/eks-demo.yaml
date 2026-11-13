@@ -160,12 +160,9 @@ agent_studio:
 jenkins:
   hostname: jenkins.demo.opsp.dev
 
+# Nexus reads LLDAP as a user source and maps the sso groups to roles (charts/nexus README.md).
 nexus:
   hostname: nexus.demo.opsp.dev
-  # Login names of the sso.admin_groups members. Nexus Community Edition has no
-  # group mapping, so these users get nx-admin (charts/nexus README.md).
-  admins:
-    - nalbam
 
 keep:
   hostname: keep.demo.opsp.dev

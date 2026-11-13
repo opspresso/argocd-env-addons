@@ -1,7 +1,5 @@
 # nexus
 
-> 배포하지 않는다. ApplicationSet은 `backup/nexus.yaml`에 보관한다. 되살리려면 `addons/eks/`로 옮긴다.
-
 Nexus Repository Community Edition을 공식 이미지 `sonatype/nexus3`로 배포한다. 관리 클러스터(`eks-demo`)에만
 배포하며 namespace는 `addon-nexus`, 주소는 `https://nexus.demo.opsp.dev`이다.
 
@@ -13,30 +11,36 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 - Deployment `nexus` 1개(`Recreate`), gp3 PVC 50Gi(`/nexus-data`). heap 1Gi, direct memory 1Gi, 메모리 한도 3Gi.
 - HTTPRoute `nexus`가 `/` 전체를 `nexus:8081`로 보낸다.
 - NetworkPolicy가 gateway(`istio-system`)와 같은 namespace의 Pod만 8081에 접속하게 한다.
+  LLDAP의 NetworkPolicy(`charts/lldap`)는 Nexus Pod의 LDAP(3890) 접속을 허용한다.
 
 ## 로그인
 
-모든 Dex client와 같은 규칙을 따른다(`env/<cluster>.yaml`의 `sso`).
+모든 addon과 같은 LLDAP 계정·그룹 규칙을 따른다(`env/<cluster>.yaml`의 `sso`). Community Edition은 OIDC를
+지원하지 않으므로 화면 로그인은 oauth2-proxy(플랫폼 Dex)가, 사용자와 그룹은 LLDAP(LDAP 사용자 원천)이 맡는다.
 
-- UI와 API(`/repository/` 밖)는 oauth2-proxy(Dex)로 로그인한 사용자만 연다.
-  gateway가 `X-Auth-Request-Preferred-Username`(LLDAP 아이디)을 붙인다. Nexus가 이 header로 사용자를 로그인시키려면
-  Remote User Token capability가 있어야 한다(아래). 없으면 로그인한 사용자도 익명 읽기 권한만 갖고, 관리는 로컬 `admin`으로 한다.
-- `nexus.admins`(LLDAP `sre` 그룹 구성원의 아이디)는 `nx-admin`이다. Community Edition은 group을 역할에 연결할 수 없어 목록을 코드에 둔다.
-  `sre` 그룹 구성원이 바뀌면 이 목록도 고친다. 목록에 없는 사용자는 익명 읽기 권한만 갖는다.
-- `/repository/`(Maven, npm 등 패키지 클라이언트)는 oauth2-proxy를 거치지 않는다. 익명 읽기 또는 Nexus 사용자 토큰·비밀번호를 쓴다.
-  이 경로에서는 gateway가 사용자 header를 지워 위조할 수 없다.
-- 로컬 `admin`(`/k8s/common/nexus/admin-password`)은 API와 동기화 Job만 쓴다.
+| 경로 | 인증 | 권한 |
+| --- | --- | --- |
+| UI·API(`/repository/` 밖) | oauth2-proxy(Dex, LLDAP). `sso.admin_groups`만 통과한다 | gateway가 붙인 `X-Auth-Request-Preferred-Username`(LLDAP 아이디)로 Remote User Token realm이 로그인시킨다 |
+| `/repository/`(Maven·npm 등 패키지 클라이언트) | LLDAP 아이디·비밀번호(HTTP basic) 또는 익명 | gateway가 사용자 header를 지운다. 위조할 수 없다 |
 
-CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 실패하면 이후 단계를 하지 않는다.
+- LLDAP 그룹이 Nexus 역할이 된다. `sso.admin_groups`(`sre`)는 `nx-admin`, `sso.member_groups`(`dev`)는
+  `nx-anonymous`(읽기)다. 그룹에 없는 사용자와 익명 사용자는 읽기만 한다.
+- 사용자를 추가하거나 그룹을 바꾸려면 LLDAP 웹 UI(`charts/lldap/README.md`)에서 한다. Nexus에서 바꿀 것은 없다.
+- 로컬 `admin`(`/k8s/common/nexus/admin-password`)은 비상용과 동기화 Job용이다. LLDAP 관리자의 아이디도 `admin`이라
+  oauth2-proxy로 로그인한 LLDAP 관리자는 로컬 `admin`으로 들어간다.
+- LDAP bind 사용자는 플랫폼 Dex와 같은 LLDAP 관리자(`/k8s/common/admin-user`, `admin-password`)다.
+
+CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 단계가 실패하면 Job이 실패하고 이후 단계를 하지 않는다.
 
 1. 처음 실행할 때 `/nexus-data/admin.password`로 로그인해 admin 비밀번호를 SSM 값으로 바꾼다.
 2. Community Edition EULA를 수락한다.
-3. 활성 realm을 `rutauth-realm`, `NexusAuthenticatingRealm`으로, 익명 읽기를 켠다.
-4. `nexus.admins` 사용자를 만들고 `nx-admin`을 준다. 그 밖의 로컬 사용자(admin·anonymous 제외)는 `nx-anonymous`로 맞춘다.
+3. LDAP 서버 `lldap`을 만들거나 같은 설정으로 덮어쓴다(그룹을 역할로 사용, static group `member`).
+4. 활성 realm을 `rutauth-realm`, `LdapRealm`, `NexusAuthenticatingRealm` 순서로, 익명 읽기를 켠다.
+5. Rut Auth capability(header `X-Auth-Request-Preferred-Username`)를 만든다.
+6. `sso` 그룹마다 같은 ID의 Nexus 역할을 만들어 `nx-admin` 또는 `nx-anonymous`를 준다.
+7. LLDAP에 같은 아이디가 있는 로컬 사용자를 지운다. 로컬 사용자가 남으면 그 역할이 LLDAP 그룹 권한에 더해진다.
 
-Remote User Token capability는 REST API로 만들 수 없다. Nexus 3.96부터 script 실행도 막혀 있다(`nexus.scripts.allowExecution`).
-사용하려면 로컬 `admin`으로 **Capabilities > Create capability > Rut Auth**에서 HTTP header를
-`X-Auth-Request-Preferred-Username`로 한 번 만든다. DB에 저장되므로 다시 만들 필요가 없다.
+LLDAP에 없는 로컬 사용자(예: CI 배포 계정)는 지우지 않으며, 그 역할은 로컬 `admin`이 관리한다.
 
 ```bash
 kubectl -n addon-nexus create job --from=cronjob/nexus-sync nexus-sync-manual
@@ -48,3 +52,4 @@ kubectl -n addon-nexus logs -f job/nexus-sync-manual
 | 파라미터 | 용도 |
 | --- | --- |
 | `/k8s/common/nexus/admin-password` | 로컬 `admin` 비밀번호. 동기화 Job이 첫 실행 때 설정한다 |
+| `/k8s/common/admin-user`, `/k8s/common/admin-password` | LDAP bind 사용자(LLDAP 관리자) |
