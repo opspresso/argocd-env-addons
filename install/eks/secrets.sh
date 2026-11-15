@@ -182,6 +182,8 @@ create /k8s/common/cookie-secret "$(random 32)"
 
 step "Nexus"
 create /k8s/common/nexus/admin-password "$(random)"
+create /k8s/common/nexus/runway-publisher-password "$(random)"
+create /k8s/common/nexus/runway-reader-password "$(random)"
 
 step "LLDAP"
 create /k8s/common/lldap/jwt-secret "$(random)"
