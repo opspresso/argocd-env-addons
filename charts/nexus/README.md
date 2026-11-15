@@ -57,7 +57,7 @@ LLDAP에 없는 로컬 사용자(예: CI 배포 계정)는 지우지 않으며, 
 Docker 주소는 `nexus.demo.opsp.dev/runway-images/<image>`다. 파일 주소는
 `https://nexus.demo.opsp.dev/repository/runway-artifacts/<path>`다. 앱 산출물 저장소를 만들기 전에 익명 역할을
 `public-packages`로 제한하므로 생성 직후에도 익명 읽기를 허용하지 않는다. 기존 공개 패키지는
-`nexus.publicRepositories`에 이름을 명시한다. 목록 밖의 새 저장소를 자동 공개하지 않는다.
+`nexus.publicRepositories`에 이름을 명시한다. 목록 밖의 새 저장소를 자동 공개하지 않는다. 동기화가 만든 역할의 이름·설명·권한 형태가 정확히 일치하고 현재 그룹 목록에서 빠진 역할은 권한만 비운다. 수동 역할은 보존한다.
 
 `runway-reader`는 두 저장소의 read·browse만, `runway-publisher`는 read·browse·add·edit만 가진다.
 `runway-cleaner`는 두 저장소의 read·browse·delete만 가지며 게시 권한이 없다. 세 계정 모두 관리자 권한이 없고, 동기화는 각 계정의 역할을 정해진 역할 하나로 복원한다.

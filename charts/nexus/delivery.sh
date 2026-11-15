@@ -39,6 +39,19 @@ api "$B/v1/repositories" | jq --argjson names "$NEXUS_PUBLIC_REPOSITORIES" \
     privileges:[.[] | select(.name as $name | $names | index($name)) |
       "nx-repository-view-\(.format)-\(.name)-read", "nx-repository-view-\(.format)-\(.name)-browse"]}' \
   | ensure_delivery security/roles public-packages
+# The old synchronizer identified its roles by this exact name/description/permission shape.
+# Empty retired managed roles; preserve custom roles and current administrator/member groups.
+api "$B/v1/security/roles" | jq -r --arg admins "${ADMIN_GROUPS:-}" --arg members "${MEMBER_GROUPS:-}" '
+  ($admins + " " + $members | split(" ") | map(select(length > 0))) as $current |
+  .[] | select(.source == "default" and .name == .id and .description == ("LLDAP group " + .id)
+    and .privileges == [] and (.roles | length) == 1
+    and (.roles[0] == "nx-anonymous" or .roles[0] == "nx-admin" or .roles[0] == "public-packages")) |
+  select(.id as $id | $current | index($id) | not) | .id' > "$delivery_tmp/retired-roles"
+while IFS= read -r group; do
+  jq -n --arg group "$group" '{id:$group,name:$group,description:("LLDAP group " + $group),privileges:[],roles:[]}' \
+    | ensure_delivery security/roles "$group"
+done < "$delivery_tmp/retired-roles"
+
 # Authenticated member groups must not inherit wildcard read access to private app artifacts.
 for group in ${MEMBER_GROUPS:-}; do
   jq -n --arg group "$group" '{id:$group,name:$group,description:("LLDAP group " + $group),privileges:[],roles:["public-packages"]}' \
