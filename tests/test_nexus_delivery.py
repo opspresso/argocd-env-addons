@@ -54,7 +54,7 @@ def exercise(fail=False):
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     env = {**os.environ, "NEXUS_ADMIN_PASSWORD": "test-admin", "NEXUS_PUBLISHER_PASSWORD": "test-publisher",
-           "NEXUS_READER_PASSWORD": "test-reader", "NEXUS_PUBLIC_REPOSITORIES": '["maven-releases"]',
+           "NEXUS_READER_PASSWORD": "test-reader", "NEXUS_CLEANER_PASSWORD": "test-cleaner", "NEXUS_PUBLIC_REPOSITORIES": '["maven-releases"]',
            "B": f"http://127.0.0.1:{server.server_port}"}
     command = 'api() { curl -fsS -H "Content-Type: application/json" "$@"; }; . "$1"'
     try:
@@ -84,6 +84,8 @@ def test_private_repositories_and_scoped_credentials_are_repeatable():
     assert len(reader) == 4 and all(p.endswith(("-read", "-browse")) for p in reader)
     publisher = state["security/roles/runway-publisher"]["privileges"]
     assert len(publisher) == 8 and not any(p.endswith("-delete") for p in publisher)
+    cleaner = state["security/roles/runway-cleaner"]["privileges"]
+    assert len(cleaner) == 6 and all(p.endswith(("-read", "-browse", "-delete")) for p in cleaner)
     for kind, name in [("raw", "runway-artifacts"), ("docker", "runway-images")]:
         assert state[f"repositories/{kind}/hosted/{name}"]["storage"]["writePolicy"] == "ALLOW_ONCE"
     anonymous_changed = next(i for i, c in enumerate(calls) if c[:2] == ("PUT", "security/users/anonymous"))

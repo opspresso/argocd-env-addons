@@ -22,6 +22,7 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 | --- | --- | --- |
 | UI·관리 API(아래 클라이언트 경로 밖) | oauth2-proxy(Dex, LLDAP). `sso.admin_groups`만 통과한다 | gateway가 붙인 `X-Auth-Request-Preferred-Username`(LLDAP 아이디)로 Remote User Token realm이 로그인시킨다 |
 | `/repository/`(Maven·npm 등 패키지 클라이언트) | LLDAP 아이디·비밀번호(HTTP basic) 또는 익명 | gateway가 사용자 header를 지운다. 위조할 수 없다 |
+| `/service/rest/v1/assets`와 하위 경로 | Nexus 계정 인증 | 사용자 헤더를 제거하고 자산별 읽기·삭제 권한을 검사한다. 보안·설정 관리 API는 계속 SSO로 보호한다 |
 | `/v2`·`/v2/` 하위(Docker 클라이언트) | Nexus Docker Bearer Token | gateway가 사용자 header를 지운다. Nexus 저장소 권한으로 push·pull을 검사한다 |
 
 - LLDAP 그룹이 Nexus 역할이 된다. `sso.admin_groups`(`sre`)는 `nx-admin`, `sso.member_groups`(`dev`)는
@@ -59,10 +60,10 @@ Docker 주소는 `nexus.demo.opsp.dev/runway-images/<image>`다. 파일 주소�
 `nexus.publicRepositories`에 이름을 명시한다. 목록 밖의 새 저장소를 자동 공개하지 않는다.
 
 `runway-reader`는 두 저장소의 read·browse만, `runway-publisher`는 read·browse·add·edit만 가진다.
-두 계정은 관리자 권한과 삭제 권한이 없다. 동기화는 두 계정의 역할을 정해진 역할 하나로 복원한다.
+`runway-cleaner`는 두 저장소의 read·browse·delete만 가지며 게시 권한이 없다. 세 계정 모두 관리자 권한이 없고, 동기화는 각 계정의 역할을 정해진 역할 하나로 복원한다.
 비밀번호는 SSM 값으로 최초 생성하며, 매 실행마다 기존 비밀번호를 바꾸지 않는다. 회전할 때는 운영자가
 Nexus 계정과 SSM 값을 함께 갱신한다. 게시 자격 증명은 격리된 게시 단계에만 전달한다.
-프로젝트별 산출물 삭제 연동은 별도 권한과 구현이 필요하다.
+Runway의 삭제 어댑터는 cleaner 계정으로 해당 프로젝트 경로의 파일과 이미지 manifest만 삭제한다. 다른 프로젝트와 공유 blob은 보존하며, 실제 연동은 Runway 배포 버전에서 확인한다.
 
 이 설정은 저장소와 계정을 준비한다. Runway 빌드·배포 연동 완료를 의미하지 않는다.
 
@@ -77,5 +78,6 @@ kubectl -n addon-nexus logs -f job/nexus-sync-manual
 | --- | --- |
 | `/k8s/common/nexus/admin-password` | 로컬 `admin` 비밀번호. 동기화 Job이 첫 실행 때 설정한다 |
 | `/k8s/common/nexus/runway-publisher-password` | Runway 산출물 게시 계정의 최초 비밀번호 |
+| `/k8s/common/nexus/runway-cleaner-password` | Runway 산출물 삭제 전용 계정의 최초 비밀번호 |
 | `/k8s/common/nexus/runway-reader-password` | Runway 산출물 읽기 계정의 최초 비밀번호 |
 | `/k8s/common/admin-user`, `/k8s/common/admin-password` | LDAP bind 사용자(LLDAP 관리자) |

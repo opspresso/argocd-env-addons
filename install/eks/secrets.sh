@@ -184,6 +184,7 @@ step "Nexus"
 create /k8s/common/nexus/admin-password "$(random)"
 create /k8s/common/nexus/runway-publisher-password "$(random)"
 create /k8s/common/nexus/runway-reader-password "$(random)"
+create /k8s/common/nexus/runway-cleaner-password "$(random)"
 
 step "LLDAP"
 create /k8s/common/lldap/jwt-secret "$(random)"
