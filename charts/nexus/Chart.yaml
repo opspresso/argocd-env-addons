@@ -2,7 +2,7 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: nexus
 type: application
-version: "v2.2.0" # helm chart app version
+version: "v2.4.0" # helm chart app version
 
 # Sonatype's chart for Nexus Repository 3.98 (nxrm-ha) needs a Pro license. The
 # Community Edition chart (nexus-repository-manager) is archived at 3.64. This
@@ -11,7 +11,7 @@ dependencies:
 - name: app
   alias: nexus
   repository: https://opspresso.github.io/helm-charts/
-  version: "v2.2.0" # helm chart app version
+  version: "v2.4.0" # helm chart app version
 
 - name: raw
   repository: https://opspresso.github.io/helm-charts/
