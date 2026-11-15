@@ -163,6 +163,8 @@ jenkins:
 # Nexus reads LLDAP as a user source and maps the sso groups to roles (charts/nexus README.md).
 nexus:
   hostname: nexus.demo.opsp.dev
+  delivery: true
+  publicRepositories: [maven-releases, maven-snapshots, maven-central, maven-public, nuget-hosted, nuget.org-proxy, nuget-group]
 
 keep:
   hostname: keep.demo.opsp.dev

@@ -101,6 +101,14 @@ raw:
           - secretKey: LDAP_BIND_PW
             remoteRef:
               key: /k8s/common/admin-password
+{% if nexus.delivery | default(false) %}
+          - secretKey: NEXUS_PUBLISHER_PASSWORD
+            remoteRef:
+              key: /k8s/common/nexus/runway-publisher-password
+          - secretKey: NEXUS_READER_PASSWORD
+            remoteRef:
+              key: /k8s/common/nexus/runway-reader-password
+{% endif %}
 
     # This CronJob applies the sign-in rule of every addon (sso in
     # env/<cluster>.yaml). LLDAP is a Nexus user source, and each group in
@@ -233,6 +241,11 @@ raw:
                 echo "local ${user} removed: LLDAP has it"
               fi
             done
+{% if nexus.delivery | default(false) %}
+          . /scripts/delivery.sh
+        delivery.sh: |
+{% filter indent(10, true) %}{% include 'delivery.sh' %}{% endfilter %}
+{% endif %}
 
     - apiVersion: batch/v1
       kind: CronJob
@@ -262,6 +275,10 @@ raw:
                         value: "{{ sso.admin_groups | join(' ') }}"
                       - name: MEMBER_GROUPS
                         value: "{{ sso.member_groups | default([]) | join(' ') }}"
+{% if nexus.delivery | default(false) %}
+                      - name: NEXUS_PUBLIC_REPOSITORIES
+                        value: '{{ nexus.publicRepositories | tojson }}'
+{% endif %}
                     envFrom:
                       - secretRef:
                           name: nexus-admin

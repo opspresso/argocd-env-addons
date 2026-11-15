@@ -25,7 +25,8 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 | `/v2`·`/v2/` 하위(Docker 클라이언트) | Nexus Docker Bearer Token | gateway가 사용자 header를 지운다. Nexus 저장소 권한으로 push·pull을 검사한다 |
 
 - LLDAP 그룹이 Nexus 역할이 된다. `sso.admin_groups`(`sre`)는 `nx-admin`, `sso.member_groups`(`dev`)는
-  `nx-anonymous`(읽기)다. 그룹에 없는 사용자와 익명 사용자는 읽기만 한다.
+  `nx-anonymous`(읽기)다. `nexus.delivery`가 켜지면 익명 사용자는 `nexus.publicRepositories`에 지정한
+  패키지 저장소만 읽는다. Runway 산출물은 인증된 계정으로만 읽는다.
 - 사용자를 추가하거나 그룹을 바꾸려면 LLDAP 웹 UI(`charts/lldap/README.md`)에서 한다. Nexus에서 바꿀 것은 없다.
 - 로컬 `admin`(`/k8s/common/nexus/admin-password`)은 비상용과 동기화 Job용이다. LLDAP 관리자의 아이디도 `admin`이라
   oauth2-proxy로 로그인한 LLDAP 관리자는 로컬 `admin`으로 들어간다.
@@ -43,6 +44,28 @@ CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 단계가 실패하면 
 
 LLDAP에 없는 로컬 사용자(예: CI 배포 계정)는 지우지 않으며, 그 역할은 로컬 `admin`이 관리한다.
 
+## Runway 산출물
+
+`env/<cluster>.yaml`의 `nexus.delivery: true`는 `delivery.sh`로 다음 구성을 동기화한다.
+
+| 저장소 | 용도 | 게시 정책 |
+| --- | --- | --- |
+| `runway-artifacts` | JAR·WAR 파일 | 같은 경로 덮어쓰기 금지 |
+| `runway-images` | Docker 이미지, path-based routing | 같은 tag 덮어쓰기 금지, `latest` 예외 없음 |
+
+Docker 주소는 `nexus.demo.opsp.dev/runway-images/<image>`다. 파일 주소는
+`https://nexus.demo.opsp.dev/repository/runway-artifacts/<path>`다. 앱 산출물 저장소를 만들기 전에 익명 역할을
+`public-packages`로 제한하므로 생성 직후에도 익명 읽기를 허용하지 않는다. 기존 공개 패키지는
+`nexus.publicRepositories`에 이름을 명시한다. 목록 밖의 새 저장소를 자동 공개하지 않는다.
+
+`runway-reader`는 두 저장소의 read·browse만, `runway-publisher`는 read·browse·add·edit만 가진다.
+두 계정은 관리자 권한과 삭제 권한이 없다. 동기화는 두 계정의 역할을 정해진 역할 하나로 복원한다.
+비밀번호는 SSM 값으로 최초 생성하며, 매 실행마다 기존 비밀번호를 바꾸지 않는다. 회전할 때는 운영자가
+Nexus 계정과 SSM 값을 함께 갱신한다. 게시 자격 증명은 격리된 게시 단계에만 전달한다.
+프로젝트별 산출물 삭제 연동은 별도 권한과 구현이 필요하다.
+
+이 설정은 저장소와 계정을 준비한다. Runway 빌드·배포 연동 완료를 의미하지 않는다.
+
 ```bash
 kubectl -n addon-nexus create job --from=cronjob/nexus-sync nexus-sync-manual
 kubectl -n addon-nexus logs -f job/nexus-sync-manual
@@ -53,4 +76,6 @@ kubectl -n addon-nexus logs -f job/nexus-sync-manual
 | 파라미터 | 용도 |
 | --- | --- |
 | `/k8s/common/nexus/admin-password` | 로컬 `admin` 비밀번호. 동기화 Job이 첫 실행 때 설정한다 |
+| `/k8s/common/nexus/runway-publisher-password` | Runway 산출물 게시 계정의 최초 비밀번호 |
+| `/k8s/common/nexus/runway-reader-password` | Runway 산출물 읽기 계정의 최초 비밀번호 |
 | `/k8s/common/admin-user`, `/k8s/common/admin-password` | LDAP bind 사용자(LLDAP 관리자) |
