@@ -2,6 +2,30 @@
 nexus:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://nexus.demo.opsp.dev"
+  # NEXUS_ADMIN_PASSWORD is the local admin. Nexus binds to LLDAP as the LLDAP
+  # admin, like the platform Dex (charts/dex).
+  extraExternalSecrets:
+    nexus-admin:
+      target:
+        # Merge keeps the fetched keys next to the templated bind DN.
+        template:
+          engineVersion: v2
+          mergePolicy: Merge
+          data:
+            LDAP_BIND_DN: "uid={{ .LDAP_BIND_USER }},ou=people,dc=opspresso,dc=com"
+      data:
+        - key: /k8s/common/nexus/admin-password
+          name: NEXUS_ADMIN_PASSWORD
+        - key: /k8s/common/admin-user
+          name: LDAP_BIND_USER
+        - key: /k8s/common/admin-password
+          name: LDAP_BIND_PW
+        - key: /k8s/common/nexus/runway-publisher-password
+          name: NEXUS_PUBLISHER_PASSWORD
+        - key: /k8s/common/nexus/runway-cleaner-password
+          name: NEXUS_CLEANER_PASSWORD
+        - key: /k8s/common/nexus/runway-reader-password
+          name: NEXUS_READER_PASSWORD
 
 raw:
   resources:
@@ -73,46 +97,6 @@ raw:
                     - /v2/*
                     - /service/rest/v1/assets
                     - /service/rest/v1/assets/*
-
-    # NEXUS_ADMIN_PASSWORD is the local admin. Nexus binds to LLDAP as the LLDAP
-    # admin, like the platform Dex (charts/dex).
-    - apiVersion: external-secrets.io/v1
-      kind: ExternalSecret
-      metadata:
-        name: nexus-admin
-      spec:
-        refreshInterval: 1h
-        secretStoreRef:
-          kind: ClusterSecretStore
-          name: parameter-store
-        target:
-          name: nexus-admin
-          # Merge keeps the fetched keys next to the templated bind DN.
-          template:
-            engineVersion: v2
-            mergePolicy: Merge
-            data:
-              LDAP_BIND_DN: "uid={{ .LDAP_BIND_USER }},ou=people,dc=opspresso,dc=com"
-        data:
-          - secretKey: NEXUS_ADMIN_PASSWORD
-            remoteRef:
-              key: /k8s/common/nexus/admin-password
-          - secretKey: LDAP_BIND_USER
-            remoteRef:
-              key: /k8s/common/admin-user
-          - secretKey: LDAP_BIND_PW
-            remoteRef:
-              key: /k8s/common/admin-password
-
-          - secretKey: NEXUS_PUBLISHER_PASSWORD
-            remoteRef:
-              key: /k8s/common/nexus/runway-publisher-password
-          - secretKey: NEXUS_CLEANER_PASSWORD
-            remoteRef:
-              key: /k8s/common/nexus/runway-cleaner-password
-          - secretKey: NEXUS_READER_PASSWORD
-            remoteRef:
-              key: /k8s/common/nexus/runway-reader-password
 
 
     # This CronJob applies the sign-in rule of every addon (sso in

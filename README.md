@@ -190,6 +190,8 @@ charts/<addon>/
    dependency로 추가하고 `raw.resources`에 선언한다. 일반 리소스를 addon의
    `extraObjects`·`extraManifests`에 넣지 않는다.
 3. wrapper에 `templates/`를 만들지 않는다. `raw`에는 `resources`만 쓰고 `raw.templates`는 쓰지 않는다.
+   `app` chart를 쓰는 addon(`lldap`, `nexus`)은 Job과 별도 ExternalSecret을 `raw`가 아니라 app chart의
+   `jobs`·`extraExternalSecrets`로 선언한다. app chart가 라벨·이미지·secretStore 기본값을 채운다.
    환경 분기와 클러스터별 값은 `values-template.yaml.j2`에서 채운다. 공통·환경별 리소스 목록이 함께
    필요하면 raw alias로 분리한다. Helm의 values 목록은 병합되지 않고 뒤의 목록으로 교체되기 때문이다.
 
