@@ -39,6 +39,11 @@ api "$B/v1/repositories" | jq --argjson names "$NEXUS_PUBLIC_REPOSITORIES" \
     privileges:[.[] | select(.name as $name | $names | index($name)) |
       "nx-repository-view-\(.format)-\(.name)-read", "nx-repository-view-\(.format)-\(.name)-browse"]}' \
   | ensure_delivery security/roles public-packages
+# Authenticated member groups must not inherit wildcard read access to private app artifacts.
+for group in ${MEMBER_GROUPS:-}; do
+  jq -n --arg group "$group" '{id:$group,name:$group,description:("LLDAP group " + $group),privileges:[],roles:["public-packages"]}' \
+    | ensure_delivery security/roles "$group"
+done
 api "$B/v1/security/users?source=default&userId=anonymous" | jq -e 'map(select(.userId=="anonymous")) | if length==1 then .[0] else error("anonymous user missing or ambiguous") end' > "$delivery_tmp/have.json"
 jq '.roles=["public-packages"]' "$delivery_tmp/have.json" \
   | api -X PUT "$B/v1/security/users/anonymous" -d @- -o /dev/null

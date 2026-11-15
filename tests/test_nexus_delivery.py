@@ -53,7 +53,7 @@ def exercise(fail=False):
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    env = {**os.environ, "NEXUS_ADMIN_PASSWORD": "test-admin", "NEXUS_PUBLISHER_PASSWORD": "test-publisher",
+    env = {**os.environ, "NEXUS_ADMIN_PASSWORD": "test-admin", "MEMBER_GROUPS": "developers", "NEXUS_PUBLISHER_PASSWORD": "test-publisher",
            "NEXUS_READER_PASSWORD": "test-reader", "NEXUS_CLEANER_PASSWORD": "test-cleaner", "NEXUS_PUBLIC_REPOSITORIES": '["maven-releases"]',
            "B": f"http://127.0.0.1:{server.server_port}"}
     command = 'api() { curl -fsS -H "Content-Type: application/json" "$@"; }; . "$1"'
@@ -77,6 +77,8 @@ def exercise(fail=False):
 def test_private_repositories_and_scoped_credentials_are_repeatable():
     result, state, calls = exercise()
     assert state["security/users/anonymous"]["roles"] == ["public-packages"]
+    assert state["security/roles/developers"]["roles"] == ["public-packages"]
+    assert state["security/roles/developers"]["privileges"] == []
     assert state["security/roles/public-packages"]["privileges"] == [
         "nx-repository-view-maven2-maven-releases-read", "nx-repository-view-maven2-maven-releases-browse"]
     assert state["security/users/runway-reader"]["roles"] == ["runway-reader"]

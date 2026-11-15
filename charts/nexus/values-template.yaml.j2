@@ -238,7 +238,9 @@ raw:
             fi
           }
           for group in ${ADMIN_GROUPS}; do map_group "$group" nx-admin; done
+{% if not (nexus.delivery | default(false)) %}
           for group in ${MEMBER_GROUPS}; do map_group "$group" nx-anonymous; done
+{% endif %}
 
           # A local user with the ID of an LLDAP user adds its own roles to the
           # LLDAP groups. Earlier versions created such copies: remove them.

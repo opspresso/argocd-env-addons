@@ -26,7 +26,7 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 | `/v2`·`/v2/` 하위(Docker 클라이언트) | Nexus Docker Bearer Token | gateway가 사용자 header를 지운다. Nexus 저장소 권한으로 push·pull을 검사한다 |
 
 - LLDAP 그룹이 Nexus 역할이 된다. `sso.admin_groups`(`sre`)는 `nx-admin`, `sso.member_groups`(`dev`)는
-  `nx-anonymous`(읽기)다. `nexus.delivery`가 켜지면 익명 사용자는 `nexus.publicRepositories`에 지정한
+  `nexus.delivery`가 꺼져 있으면 `nx-anonymous`(읽기)다. `nexus.delivery`가 켜지면 일반 그룹과 익명 사용자는 `nexus.publicRepositories`에 지정한
   패키지 저장소만 읽는다. Runway 산출물은 인증된 계정으로만 읽는다.
 - 사용자를 추가하거나 그룹을 바꾸려면 LLDAP 웹 UI(`charts/lldap/README.md`)에서 한다. Nexus에서 바꿀 것은 없다.
 - 로컬 `admin`(`/k8s/common/nexus/admin-password`)은 비상용과 동기화 Job용이다. LLDAP 관리자의 아이디도 `admin`이라
@@ -40,7 +40,7 @@ CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 단계가 실패하면 
 3. LDAP 서버 `lldap`을 만들거나 같은 설정으로 덮어쓴다(그룹을 역할로 사용, static group `member`).
 4. 활성 realm을 `rutauth-realm`, `LdapRealm`, `NexusAuthenticatingRealm`, `DockerToken` 순서로, 익명 읽기를 켠다.
 5. Rut Auth capability(header `X-Auth-Request-Preferred-Username`)를 만든다.
-6. `sso` 그룹마다 같은 ID의 Nexus 역할을 만들어 `nx-admin` 또는 `nx-anonymous`를 준다.
+6. `sso` 그룹마다 같은 ID의 Nexus 역할을 만든다. 관리자는 `nx-admin`이며, 일반 그룹은 delivery가 켜지면 `public-packages`, 아니면 `nx-anonymous`다.
 7. LLDAP에 같은 아이디가 있는 로컬 사용자를 지운다. 로컬 사용자가 남으면 그 역할이 LLDAP 그룹 권한에 더해진다.
 
 LLDAP에 없는 로컬 사용자(예: CI 배포 계정)는 지우지 않으며, 그 역할은 로컬 `admin`이 관리한다.
