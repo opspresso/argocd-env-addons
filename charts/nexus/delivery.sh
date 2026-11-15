@@ -4,6 +4,7 @@ set -eu
 set -o pipefail
 : "${NEXUS_PUBLISHER_PASSWORD:?publisher password is required}"
 : "${NEXUS_READER_PASSWORD:?reader password is required}"
+: "${NEXUS_CLEANER_PASSWORD:?cleaner password is required}"
 umask 077
 delivery_tmp=$(mktemp -d)
 trap 'rm -rf "$delivery_tmp"' EXIT HUP INT TERM
@@ -50,11 +51,11 @@ ensure_delivery repositories/docker/hosted runway-images <<'JSON'
 JSON
 
 
-for access in reader publisher; do
+for access in reader publisher cleaner; do
   jq -n --arg access "$access" \
     '{id:("runway-"+$access),name:("Runway "+$access),description:"Agent Runway artifacts only",roles:[],
       privileges:([["raw","runway-artifacts"],["docker","runway-images"]] | [.[] as $repo |
-        (["read","browse"] + (if $access=="publisher" then ["add","edit"] else [] end))[] |
+        (["read","browse"] + (if $access=="publisher" then ["add","edit"] elif $access=="cleaner" then ["delete"] else [] end))[] |
         "nx-repository-view-\($repo[0])-\($repo[1])-\(.)"])}' \
     | ensure_delivery security/roles "runway-$access"
   api "$B/v1/security/users?source=default&userId=runway-$access" \
@@ -62,7 +63,7 @@ for access in reader publisher; do
   if [ "$(jq length "$delivery_tmp/users.json")" = 0 ]; then
     jq -n --arg access "$access" \
       '{userId:("runway-"+$access),firstName:"Runway",lastName:$access,emailAddress:"runway@example.invalid",status:"active",
-        roles:["runway-"+$access],password:(if $access=="publisher" then env.NEXUS_PUBLISHER_PASSWORD else env.NEXUS_READER_PASSWORD end)}' \
+        roles:["runway-"+$access],password:(if $access=="publisher" then env.NEXUS_PUBLISHER_PASSWORD elif $access=="cleaner" then env.NEXUS_CLEANER_PASSWORD else env.NEXUS_READER_PASSWORD end)}' \
       | api -X POST "$B/v1/security/users" -d @- -o /dev/null
   else
     jq -e --arg role "runway-$access" 'if length==1 then .[0] | .roles=[$role] | .status="active" else error("ambiguous user") end' "$delivery_tmp/users.json" \

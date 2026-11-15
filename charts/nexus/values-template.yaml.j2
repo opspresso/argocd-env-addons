@@ -35,6 +35,9 @@ raw:
               - path:
                   type: PathPrefix
                   value: /v2
+              - path:
+                  type: PathPrefix
+                  value: /service/rest/v1/assets
             filters:
               - type: RequestHeaderModifier
                 requestHeaderModifier:
@@ -71,6 +74,8 @@ raw:
                     - /repository/*
                     - /v2
                     - /v2/*
+                    - /service/rest/v1/assets
+                    - /service/rest/v1/assets/*
 
     # NEXUS_ADMIN_PASSWORD is the local admin. Nexus binds to LLDAP as the LLDAP
     # admin, like the platform Dex (charts/dex).
@@ -105,6 +110,9 @@ raw:
           - secretKey: NEXUS_PUBLISHER_PASSWORD
             remoteRef:
               key: /k8s/common/nexus/runway-publisher-password
+          - secretKey: NEXUS_CLEANER_PASSWORD
+            remoteRef:
+              key: /k8s/common/nexus/runway-cleaner-password
           - secretKey: NEXUS_READER_PASSWORD
             remoteRef:
               key: /k8s/common/nexus/runway-reader-password

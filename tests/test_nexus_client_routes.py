@@ -13,7 +13,7 @@ POLICY = next(r["spec"] for r in RESOURCES if r["kind"] == "AuthorizationPolicy"
 
 
 @pytest.mark.parametrize("path", [
-    "/v2", "/v2/", "/v2/runway-images/app/manifests/release-1",
+    "/service/rest/v1/assets", "/service/rest/v1/assets/asset-id", "/v2", "/v2/", "/v2/runway-images/app/manifests/release-1",
     "/v2/runway-images/app/blobs/uploads/", "/repository/releases/app.jar",
 ])
 def test_package_clients_reach_nexus_without_trusting_user_headers(path):
@@ -30,7 +30,7 @@ def test_package_clients_reach_nexus_without_trusting_user_headers(path):
     pytest.fail(f"No credential-safe client route for {path}")
 
 
-@pytest.mark.parametrize("path", ["/", "/service/rest/v1/security/users", "/v2evil", "/repositoryevil"])
+@pytest.mark.parametrize("path", ["/", "/service/rest/v1/security/users", "/v2evil", "/repositoryevil", "/service/rest/v1/assets-evil"])
 def test_ui_and_management_api_still_require_sso(path):
     exclusions = POLICY["rules"][0]["to"][0]["operation"]["notPaths"]
     assert not any(path.startswith(p[:-1]) if p.endswith("*") else path == p for p in exclusions)
