@@ -25,13 +25,16 @@ raw:
         hostnames:
           - "{{nexus.hostname}}"
         rules:
-          # Package clients (Maven, npm, ...) use their LLDAP ID and password,
-          # or anonymous read, here without oauth2-proxy. A client must not set
+          # Package and Docker clients authenticate with Nexus, without a browser
+          # redirect to oauth2-proxy. A client must not set
           # the trusted user header on this path.
           - matches:
               - path:
                   type: PathPrefix
                   value: /repository/
+              - path:
+                  type: PathPrefix
+                  value: /v2
             filters:
               - type: RequestHeaderModifier
                 requestHeaderModifier:
@@ -66,6 +69,8 @@ raw:
                     - "{{nexus.hostname}}"
                   notPaths:
                     - /repository/*
+                    - /v2
+                    - /v2/*
 
     # NEXUS_ADMIN_PASSWORD is the local admin. Nexus binds to LLDAP as the LLDAP
     # admin, like the platform Dex (charts/dex).
@@ -179,7 +184,7 @@ raw:
           fi
 
           # Remote User Token first: a request with the gateway header signs in as that LLDAP user.
-          realms='["rutauth-realm","LdapRealm","NexusAuthenticatingRealm"]'
+          realms='["rutauth-realm","LdapRealm","NexusAuthenticatingRealm","DockerToken"]'
           if [ "$(api "$B/v1/security/realms/active" | jq -c 'map(select(. != "NexusAuthorizingRealm"))')" != "$realms" ]; then
             api -X PUT "$B/v1/security/realms/active" -d "$realms"
             echo "realms=${realms}"
