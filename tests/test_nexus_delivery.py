@@ -12,6 +12,11 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def exercise(fail=False):
     state = {"security/users/anonymous": {"userId": "anonymous", "roles": ["nx-anonymous"], "status": "active"}}
+    for role, parent, description in [("former-dev", "nx-anonymous", "LLDAP group former-dev"),
+                                       ("former-admin", "nx-admin", "LLDAP group former-admin"),
+                                       ("custom-reader", "nx-anonymous", "Manually managed role")]:
+        state["security/roles/" + role] = {"id": role, "name": role, "source": "default", "description": description,
+                                            "privileges": [], "roles": [parent]}
     calls = []
 
     class Handler(BaseHTTPRequestHandler):
@@ -31,6 +36,8 @@ def exercise(fail=False):
                     result = [{"name": "maven-releases", "format": "maven2"}] + [
                         {"name": value["name"], "format": key.split("/")[1]}
                         for key, value in state.items() if key.startswith("repositories/")]
+                elif path == "security/roles":
+                    result = [value for key, value in state.items() if key.startswith("security/roles/")]
                 elif path == "security/users":
                     user = parse_qs(url.query)["userId"][0]
                     result = [state["security/users/" + user]] if "security/users/" + user in state else []
@@ -53,7 +60,7 @@ def exercise(fail=False):
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    env = {**os.environ, "NEXUS_ADMIN_PASSWORD": "test-admin", "NEXUS_PUBLISHER_PASSWORD": "test-publisher",
+    env = {**os.environ, "NEXUS_ADMIN_PASSWORD": "test-admin", "MEMBER_GROUPS": "developers", "NEXUS_PUBLISHER_PASSWORD": "test-publisher",
            "NEXUS_READER_PASSWORD": "test-reader", "NEXUS_CLEANER_PASSWORD": "test-cleaner", "NEXUS_PUBLIC_REPOSITORIES": '["maven-releases"]',
            "B": f"http://127.0.0.1:{server.server_port}"}
     command = 'api() { curl -fsS -H "Content-Type: application/json" "$@"; }; . "$1"'
@@ -77,6 +84,11 @@ def exercise(fail=False):
 def test_private_repositories_and_scoped_credentials_are_repeatable():
     result, state, calls = exercise()
     assert state["security/users/anonymous"]["roles"] == ["public-packages"]
+    assert state["security/roles/developers"]["roles"] == ["public-packages"]
+    assert state["security/roles/developers"]["privileges"] == []
+    assert state["security/roles/former-dev"]["roles"] == []
+    assert state["security/roles/former-admin"]["roles"] == []
+    assert state["security/roles/custom-reader"]["roles"] == ["nx-anonymous"]
     assert state["security/roles/public-packages"]["privileges"] == [
         "nx-repository-view-maven2-maven-releases-read", "nx-repository-view-maven2-maven-releases-browse"]
     assert state["security/users/runway-reader"]["roles"] == ["runway-reader"]
