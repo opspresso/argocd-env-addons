@@ -20,8 +20,9 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 
 | 경로 | 인증 | 권한 |
 | --- | --- | --- |
-| UI·API(`/repository/` 밖) | oauth2-proxy(Dex, LLDAP). `sso.admin_groups`만 통과한다 | gateway가 붙인 `X-Auth-Request-Preferred-Username`(LLDAP 아이디)로 Remote User Token realm이 로그인시킨다 |
+| UI·관리 API(아래 클라이언트 경로 밖) | oauth2-proxy(Dex, LLDAP). `sso.admin_groups`만 통과한다 | gateway가 붙인 `X-Auth-Request-Preferred-Username`(LLDAP 아이디)로 Remote User Token realm이 로그인시킨다 |
 | `/repository/`(Maven·npm 등 패키지 클라이언트) | LLDAP 아이디·비밀번호(HTTP basic) 또는 익명 | gateway가 사용자 header를 지운다. 위조할 수 없다 |
+| `/v2`·`/v2/` 하위(Docker 클라이언트) | Nexus Docker Bearer Token | gateway가 사용자 header를 지운다. Nexus 저장소 권한으로 push·pull을 검사한다 |
 
 - LLDAP 그룹이 Nexus 역할이 된다. `sso.admin_groups`(`sre`)는 `nx-admin`, `sso.member_groups`(`dev`)는
   `nx-anonymous`(읽기)다. 그룹에 없는 사용자와 익명 사용자는 읽기만 한다.
@@ -35,7 +36,7 @@ CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 단계가 실패하면 
 1. 처음 실행할 때 `/nexus-data/admin.password`로 로그인해 admin 비밀번호를 SSM 값으로 바꾼다.
 2. Community Edition EULA를 수락한다.
 3. LDAP 서버 `lldap`을 만들거나 같은 설정으로 덮어쓴다(그룹을 역할로 사용, static group `member`).
-4. 활성 realm을 `rutauth-realm`, `LdapRealm`, `NexusAuthenticatingRealm` 순서로, 익명 읽기를 켠다.
+4. 활성 realm을 `rutauth-realm`, `LdapRealm`, `NexusAuthenticatingRealm`, `DockerToken` 순서로, 익명 읽기를 켠다.
 5. Rut Auth capability(header `X-Auth-Request-Preferred-Username`)를 만든다.
 6. `sso` 그룹마다 같은 ID의 Nexus 역할을 만들어 `nx-admin` 또는 `nx-anonymous`를 준다.
 7. LLDAP에 같은 아이디가 있는 로컬 사용자를 지운다. 로컬 사용자가 남으면 그 역할이 LLDAP 그룹 권한에 더해진다.
