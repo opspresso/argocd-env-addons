@@ -9,7 +9,8 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 ## 구성
 
 - Deployment `nexus` 1개(`Recreate`), gp3 PVC 50Gi(`/nexus-data`). heap 1Gi, direct memory 1Gi, 메모리 한도 3Gi.
-- HTTPRoute `nexus`가 `/` 전체를 `nexus:8081`로 보낸다.
+- HTTPRoute `nexus`(app chart `routing.httpRoute.rules`)가 `/` 전체를 `nexus:8081`로 보낸다. 클라이언트 경로 규칙은
+  사용자 header를 지운다(아래 [로그인](#로그인)).
 - NetworkPolicy가 gateway(`istio-system`)와 같은 namespace의 Pod만 8081에 접속하게 한다.
   LLDAP의 NetworkPolicy(`charts/lldap`)는 Nexus Pod의 LDAP(3890) 접속을 허용한다.
 

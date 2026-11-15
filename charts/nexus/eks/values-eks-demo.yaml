@@ -26,51 +26,45 @@ nexus:
           name: NEXUS_CLEANER_PASSWORD
         - key: /k8s/common/nexus/runway-reader-password
           name: NEXUS_READER_PASSWORD
+  routing:
+    hosts:
+      - "nexus.demo.opsp.dev"
+    httpRoute:
+      enabled: true
+      annotations:
+        link.argocd.argoproj.io/external-link: "https://nexus.demo.opsp.dev"
+      parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+
+          name: istio-ingressgateway
+          namespace: istio-system
+
+      # Both rules go to the nexus Service.
+      rules:
+        # Package and Docker clients authenticate with Nexus, without a browser
+        # redirect to oauth2-proxy. A client must not set
+        # the trusted user header on this path.
+        - matches:
+            - path:
+                type: PathPrefix
+                value: /repository/
+            - path:
+                type: PathPrefix
+                value: /v2
+            - path:
+                type: PathPrefix
+                value: /service/rest/v1/assets
+          filters:
+            - type: RequestHeaderModifier
+              requestHeaderModifier:
+                remove:
+                  - X-Auth-Request-Preferred-Username
+        # The UI and the API (routing.path /).
+        - {}
 
 raw:
   resources:
-    - apiVersion: gateway.networking.k8s.io/v1
-      kind: HTTPRoute
-      metadata:
-        name: nexus
-        annotations:
-          link.argocd.argoproj.io/external-link: "https://nexus.demo.opsp.dev"
-      spec:
-        parentRefs:
-          - group: gateway.networking.k8s.io
-            kind: Gateway
-
-            name: istio-ingressgateway
-            namespace: istio-system
-
-        hostnames:
-          - "nexus.demo.opsp.dev"
-        rules:
-          # Package and Docker clients authenticate with Nexus, without a browser
-          # redirect to oauth2-proxy. A client must not set
-          # the trusted user header on this path.
-          - matches:
-              - path:
-                  type: PathPrefix
-                  value: /repository/
-              - path:
-                  type: PathPrefix
-                  value: /v2
-              - path:
-                  type: PathPrefix
-                  value: /service/rest/v1/assets
-            filters:
-              - type: RequestHeaderModifier
-                requestHeaderModifier:
-                  remove:
-                    - X-Auth-Request-Preferred-Username
-            backendRefs:
-              - name: nexus
-                port: 8081
-          - backendRefs:
-              - name: nexus
-                port: 8081
-
     # The UI and the API require a sign-in through oauth2-proxy (the platform
     # Dex, LLDAP). The gateway then sets X-Auth-Request-Preferred-Username (the
     # LLDAP user ID), which Nexus reads with the Remote User Token realm.

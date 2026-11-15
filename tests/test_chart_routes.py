@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
     ("argo-rollouts", "eks", "eks-demo", "argo-rollouts", "addon-argo-rollouts", {"argo-rollouts-dashboard"}),
     ("argo-workflows", "eks", "eks-demo", "argo-workflows", "addon-argo-workflows", {"argo-workflows-server"}),
     ("atlantis", "eks", "eks-demo", "atlantis", "addon-atlantis", {"atlantis", "atlantis-public"}),
+    ("nexus", "eks", "eks-demo", "nexus", "addon-nexus", {"nexus"}),
 ])
 def test_native_routes_target_the_rendered_service_ports(chart, platform, cluster, release, namespace, route_names):
     path = ROOT / "charts" / chart
