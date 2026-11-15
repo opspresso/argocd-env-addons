@@ -65,6 +65,51 @@ lldap:
           name: istio-ingressgateway
           namespace: istio-system
 
+  # After every sync: declares the groups of the sign-in rule (sso in
+  # env/<cluster>.yaml) and puts the admin in the admin group. People and the
+  # other memberships are managed in the LLDAP web UI. Nothing is deleted. The
+  # Job runs the LLDAP image and the script of ConfigMap lldap-bootstrap.
+  jobs:
+    bootstrap:
+      annotations:
+        argocd.argoproj.io/hook: PostSync
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+      backoffLimit: 3
+      activeDeadlineSeconds: 300
+      command: [/bin/bash, /scripts/bootstrap.sh]
+      env:
+        - name: LLDAP_URL
+          value: http://lldap:17170
+        - name: LLDAP_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: lldap-secret
+              key: LLDAP_LDAP_USER_DN
+        - name: LLDAP_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: lldap-secret
+              key: LLDAP_LDAP_USER_PASS
+        - name: ADMIN_EMAIL
+          value: "{{lldap.admin_email}}"
+        - name: SSO_GROUPS
+          value: "{{ (lldap.admin_groups + lldap.member_groups) | join(' ') }}"
+        - name: ADMIN_GROUPS
+          value: "{{ lldap.admin_groups | join(' ') }}"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 128Mi
+      volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+        - name: scripts
+          configMap:
+            name: lldap-bootstrap
+
 raw:
   resources:
     # The web UI and its GraphQL API require an administrator sign-in through
@@ -90,9 +135,7 @@ raw:
                   hosts:
                     - "{{lldap.hostname}}"
 
-    # After every sync: declares the groups of the sign-in rule (sso in
-    # env/<cluster>.yaml) and puts the admin in the admin group. People and the
-    # other memberships are managed in the LLDAP web UI. Nothing is deleted.
+    # The script of the bootstrap Job (lldap.jobs.bootstrap).
     - apiVersion: v1
       kind: ConfigMap
       metadata:
@@ -113,57 +156,6 @@ raw:
           if grep -Eiq 'error|failed|not exists' /tmp/bootstrap/log; then
             exit 1
           fi
-
-    - apiVersion: batch/v1
-      kind: Job
-      metadata:
-        name: lldap-bootstrap
-        annotations:
-          argocd.argoproj.io/hook: PostSync
-          argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-      spec:
-        backoffLimit: 3
-        activeDeadlineSeconds: 300
-        template:
-          spec:
-            restartPolicy: Never
-            automountServiceAccountToken: false
-            containers:
-              - name: bootstrap
-                image: lldap/lldap:v0.6.3-alpine-rootless
-                command: [/bin/bash, /scripts/bootstrap.sh]
-                env:
-                  - name: LLDAP_URL
-                    value: http://lldap:17170
-                  - name: LLDAP_ADMIN_USERNAME
-                    valueFrom:
-                      secretKeyRef:
-                        name: lldap-secret
-                        key: LLDAP_LDAP_USER_DN
-                  - name: LLDAP_ADMIN_PASSWORD
-                    valueFrom:
-                      secretKeyRef:
-                        name: lldap-secret
-                        key: LLDAP_LDAP_USER_PASS
-                  - name: ADMIN_EMAIL
-                    value: "{{lldap.admin_email}}"
-                  - name: SSO_GROUPS
-                    value: "{{ (lldap.admin_groups + lldap.member_groups) | join(' ') }}"
-                  - name: ADMIN_GROUPS
-                    value: "{{ lldap.admin_groups | join(' ') }}"
-                resources:
-                  requests:
-                    cpu: 10m
-                    memory: 32Mi
-                  limits:
-                    memory: 128Mi
-                volumeMounts:
-                  - name: scripts
-                    mountPath: /scripts
-            volumes:
-              - name: scripts
-                configMap:
-                  name: lldap-bootstrap
 {% else %}
 # no cluster-specific overrides
 {% endif %}
