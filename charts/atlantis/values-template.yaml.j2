@@ -91,4 +91,34 @@ raw:
           - operation:
               hosts:
               - "atlantis.{{hostname.public}}"
+
+    # `helm test` probe for the UI. backup/atlantis.yaml fixes the release name atlantis and the
+    # namespace addon-atlantis.
+    - apiVersion: v1
+      kind: Pod
+      metadata:
+        name: atlantis-ui-test
+        namespace: addon-atlantis
+        annotations:
+          helm.sh/hook: test
+          helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+      spec:
+        restartPolicy: Never
+        automountServiceAccountToken: false
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 100
+          runAsGroup: 101
+          seccompProfile: {type: RuntimeDefault}
+        containers:
+          - name: ui-test
+            image: curlimages/curl:8.11.1
+            args: [--fail, --silent, --show-error, --connect-timeout, "5", --max-time, "30", "http://atlantis:80/"]
+            resources:
+              requests: {cpu: 10m, memory: 16Mi}
+              limits: {memory: 64Mi}
+            securityContext:
+              allowPrivilegeEscalation: false
+              readOnlyRootFilesystem: true
+              capabilities: {drop: [ALL]}
 {% endif %}
