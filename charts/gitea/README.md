@@ -87,6 +87,8 @@ Pod가 다시 시작하면 사라진다. 만든 파일은 바로 내려받고 �
 `gitea dump`는 실행 중인 Gitea에서 저장소와 DB를 차례로 읽는다. 그 사이에 push·migration이 있으면 저장소와 DB가 서로 다른
 시점을 담을 수 있다. Gitea 공식 문서는 일관된 백업을 위해 서버를 멈추라고 한다. 이 Deployment는 Argo CD가 `selfHeal`로
 replica 1을 되돌리고 dump도 같은 Pod에서 실행하므로, 아래 명령은 사용자가 쓰지 않는 시간에 실행한다.
+저장소가 하나도 없으면 `/data/git/gitea-repositories`가 아직 없어 `Failed to include repositories`로 실패한다.
+이때는 `--skip-repository`를 붙인다.
 
 ```bash
 kubectl -n addon-gitea exec deploy/gitea -c gitea -- gitea dump --type zip --file /tmp/gitea-dump.zip
