@@ -1,0 +1,19 @@
+apiVersion: v2
+description: A Helm chart for Kubernetes
+name: gitea
+type: application
+version: "12.7.0" # helm chart gitea version
+
+dependencies:
+# The bundled Bitnami PostgreSQL and Valkey charts are off (values.yaml).
+- name: gitea
+  repository: https://dl.gitea.com/charts/
+  version: "12.7.0" # helm chart gitea version
+
+- name: postgres
+  repository: https://opspresso.github.io/helm-charts/
+  version: "1.3.0" # helm chart postgres version
+
+- name: raw
+  repository: https://opspresso.github.io/helm-charts/
+  version: "0.2.5" # helm chart raw version

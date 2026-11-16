@@ -78,7 +78,8 @@ GENERATED = [
     "/k8s/common/argocd-mtime", "/k8s/common/argocd-webhook",
     "/k8s/common/argo-workflows-client-secret", "/k8s/common/oauth2-proxy-client-secret",
     "/k8s/common/cookie-secret", "/k8s/common/lldap/jwt-secret", "/k8s/common/lldap/key-seed",
-    "/k8s/common/gitlab/root-password", "/k8s/common/keep/nextauth-secret",
+    "/k8s/common/gitlab/root-password", "/k8s/common/gitea/admin-password",
+    "/k8s/common/gitea/postgres-password", "/k8s/common/keep/nextauth-secret",
 ]
 EXTERNAL = [
     "/k8s/common/github/opspresso-arc/app_id", "/k8s/common/github/opspresso-arc/installation_id",
@@ -157,7 +158,7 @@ def test_creates_every_missing_secret_and_never_overwrites(tmp_path):
     assert result.returncode == 0, result.stderr
     assert state["/k8s/common/gitlab/root-password"] == "kept"
     assert not any(overwrite for _, _, overwrite in calls)
-    for name in ("grafana", "gitlab", "jenkins", "keep"):
+    for name in ("grafana", "gitlab", "gitea", "jenkins", "keep"):
         assert len(state[f"/k8s/common/{name}/oidc-client-secret"]) == 32
     # Values must not leak to the output.
     assert state["/k8s/common/gitlab/postgres-password"] not in result.stdout

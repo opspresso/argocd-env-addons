@@ -162,7 +162,7 @@ step "OIDC client secret (플랫폼 Dex(charts/dex)와 각 client 가 같은 값
 create /k8s/common/argocd/oidc-client-secret "$(random)"
 create /k8s/common/argo-workflows-client-secret "$(random)"
 create /k8s/common/oauth2-proxy-client-secret "$(random)"
-for name in grafana gitlab jenkins keep; do
+for name in grafana gitlab gitea jenkins keep; do
   create "/k8s/common/${name}/oidc-client-secret" "$(random)"
 done
 # Agent Studio (argocd-env-apps) reads its values under the cluster prefix.
@@ -175,6 +175,10 @@ create /k8s/common/gitlab/postgres-password "$(random)"
 create /k8s/common/gitlab/valkey-password "$(random)"
 # The OAuth application agent-studio-git (gitlab.oauth_applications); Agent Studio reads the same secret.
 create /k8s/common/gitlab/agent-studio-git-client-secret "$(random)"
+
+step "Gitea"
+create /k8s/common/gitea/admin-password "$(random)"
+create /k8s/common/gitea/postgres-password "$(random)"
 
 step "oauth2-proxy"
 # cookie 암호화 키는 16·24·32 byte 여야 합니다.
