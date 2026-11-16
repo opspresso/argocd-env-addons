@@ -4,7 +4,7 @@ kro:
 {% if delivery_resources is defined %}
 {% set rds = delivery_resources.rds %}
 # Platform templates that Agent Runway instantiates in app-<slug>-<env> namespaces
-# (agent-platform docs/DELIVERY_V2.md D3, D4). A template that needs network objects from
+# (agent-platform docs/DELIVERY_RESOURCES.md). A template that needs network objects from
 # terraform-env-apps demo/8-app-delivery renders only once its security group is set.
 raw:
   resources:

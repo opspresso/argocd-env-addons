@@ -198,7 +198,7 @@ raw:
           - "http://opspresso.github.io/helm-charts"
 
 {% if app_delivery is defined and app_delivery.enabled %}
-    # Apps that Agent Runway deploys (agent-platform docs/APP_DELIVERY.md, docs/DELIVERY_V2.md). The app-deploy and
+    # Apps that Agent Runway deploys (agent-platform docs/APP_DELIVERY.md). The app-deploy and
     # resource-sync workflows write argocd-env-projects projects/<slug>/<env>/{app,resources}.yaml and
     # resources/<name>.yaml; only that step writes them, so the project limits where these Applications deploy (app-* namespaces other than
     # app-delivery), not which namespaced kinds they hold.
