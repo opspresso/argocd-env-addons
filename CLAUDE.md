@@ -127,8 +127,9 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
   HPA·VPA·KEDA를 만들지 않으며 PVC의 storage 요청은 유지한다.
 - 새 chart와 upstream 갱신도 `scripts/validate.py`의 렌더 결과 검사로 이 규칙을 확인한다.
 - `core_tier: true`는 중요 addon을 terraform-env-demo `demo/6-eks-node/51-core-node-pool.tf`의 on-demand
-  `core-2a`·`core-2c` 노드(label·taint `opspresso.com/tier=core`)에 둔다. LLDAP은 required affinity와
-  `karpenter.sh/do-not-disrupt`를 쓰고, Dex·istiod·ingress gateway는 preferred affinity로 복제본을 core에 두며
+  `core-2a`·`core-2c` 노드(label·taint `opspresso.com/tier=core`)에 둔다. 복제본이 하나뿐인 저장소인 LLDAP(계정)과
+  Nexus(Runway 산출물)는 required affinity와 `karpenter.sh/do-not-disrupt`를 쓴다. Karpenter consolidation이
+  Nexus를 옮기면 EBS 재연결과 기동 동안(약 2분) Runway publish와 machine target 배포가 실패한다. Dex·istiod·ingress gateway는 preferred affinity로 복제본을 core에 두며
   HPA 증가분과 rollout surge는 Spot으로 넘친다. core NodePool이 없는 클러스터에서는 켜지 않는다.
 
 ## addons/eks/<addon>.yaml

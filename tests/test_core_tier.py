@@ -32,8 +32,9 @@ def test_replicated_addons_prefer_core_and_spill_over(chart, name):
     assert node["preferredDuringSchedulingIgnoredDuringExecution"] == [{"weight": 100, "preference": {"matchExpressions": [CORE]}}]
 
 
-def test_lldap_requires_core_and_blocks_voluntary_disruption():
-    template = workloads("lldap", "eks-demo")["lldap"]
+@pytest.mark.parametrize("chart", ["lldap", "nexus"])
+def test_single_replica_stores_require_core_and_block_voluntary_disruption(chart):
+    template = workloads(chart, "eks-demo")[chart]
     terms = template["spec"]["affinity"]["nodeAffinity"]["requiredDuringSchedulingIgnoredDuringExecution"]["nodeSelectorTerms"]
     assert terms == [{"matchExpressions": [CORE]}]
     assert TOLERATION in template["spec"]["tolerations"]

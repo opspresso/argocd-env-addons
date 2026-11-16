@@ -2,6 +2,24 @@
 nexus:
   podAnnotations:
     link.argocd.argoproj.io/external-link: "https://nexus.demo.opsp.dev"
+    # Delays voluntary disruption only: drift (03:00-05:00 KST window) and expiry still drain it after at most the NodeClaim terminationGracePeriod, restarting it once.
+    karpenter.sh/do-not-disrupt: "true"
+  # core_tier: the only Nexus replica (ReadWriteOnce volume, Recreate) stores every Runway artifact, and a
+  # publish or a machine-target deploy fails while it restarts, so it runs only on the on-demand core nodes
+  # (terraform-env-demo 51-core-node-pool.tf); its EBS volume picks the AZ.
+  tolerations:
+    - key: opspresso.com/tier
+      operator: Equal
+      value: core
+      effect: NoSchedule
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: opspresso.com/tier
+                operator: In
+                values: [core]
   # NEXUS_ADMIN_PASSWORD is the local admin. Nexus binds to LLDAP as the LLDAP
   # admin, like the platform Dex (charts/dex).
   extraExternalSecrets:
