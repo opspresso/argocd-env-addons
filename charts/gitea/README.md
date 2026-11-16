@@ -38,8 +38,19 @@
 | `/k8s/common/gitea/postgres-password` | PostgreSQL 사용자 `gitea`. PostgreSQL은 데이터 디렉터리를 처음 만들 때만 읽는다 |
 | `/k8s/common/gitea/oidc-client-secret` | Dex client `gitea-sso`의 secret. 플랫폼 Dex의 `dex-secret`도 읽으므로, 없으면 `dex-secret` 전체가 갱신되지 않는다 |
 
-`postgres-password`는 첫 설치 뒤에 바꿔도 PostgreSQL에 반영되지 않는다. 바꾸려면 DB에서 `ALTER USER`를 먼저 실행하고
-SSM을 같은 값으로 바꾼 뒤 Pod를 다시 시작한다. Gitea는 시작할 때 이 값을 `app.ini`에 쓴다.
+`postgres-password`는 첫 설치 뒤에 바꿔도 PostgreSQL에 반영되지 않는다. Gitea는 Pod가 시작할 때 Secret `gitea-secret`의 값을
+`app.ini`에 쓴다. ExternalSecret은 1시간마다 갱신하므로, 그 전에 Pod를 다시 시작하면 이전 비밀번호로 DB 접속에 실패한다.
+
+1. DB에서 `ALTER USER gitea PASSWORD '<새 값>'`을 실행한다.
+2. SSM `/k8s/common/gitea/postgres-password`를 같은 값으로 바꾼다.
+3. ExternalSecret을 바로 갱신하고, `gitea-secret`의 `resourceVersion`이 바뀐 것을 확인한 뒤 Pod를 다시 시작한다.
+
+```bash
+kubectl -n addon-gitea get secret gitea-secret -o jsonpath='{.metadata.resourceVersion}'
+kubectl -n addon-gitea annotate externalsecret gitea-secret force-sync="$(date +%s)" --overwrite
+kubectl -n addon-gitea get secret gitea-secret -o jsonpath='{.metadata.resourceVersion}'
+kubectl -n addon-gitea rollout restart deploy/gitea
+```
 
 ## 로그인
 
@@ -48,6 +59,7 @@ SSM을 같은 값으로 바꾼 뒤 Pod를 다시 시작한다. Gitea는 시작�
 - LLDAP 사용자는 플랫폼 Dex(`https://sso.demo.opsp.dev`, `charts/dex`)를 거쳐 로그인한다. 인증 소스 이름은 `SSO`이고
   callback은 `https://gitea.demo.opsp.dev/user/oauth2/SSO/callback`이다.
 - 첫 로그인에서 관리자 승인 없이 사용자가 만들어진다. 사용자 이름은 Dex claim `preferred_username`(LLDAP 사용자 ID)이다.
+  Dex는 그룹과 관계없이 모든 LLDAP 사용자를 인증하므로, `sso` 그룹이 없는 사용자도 일반 사용자로 로그인한다(GitLab과 같다).
   같은 email의 Gitea 계정이 있으면 묻지 않고 연결한다(`ACCOUNT_LINKING: auto`).
 - `sso.admin_groups`의 그룹 구성원은 관리자, 다른 사용자는 일반 사용자다. Gitea는 로그인할 때마다 claim `groups`로
   관리자 권한을 맞춘다. 그룹에서 뺀 사용자는 다음 로그인 때 관리자 권한을 잃는다.
@@ -71,6 +83,10 @@ kubectl -n addon-gitea rollout restart deploy/gitea
 
 백업 CronJob은 켜지 않았다. `gitea dump`는 저장소·DB·`app.ini`를 zip 하나로 만든다. Pod의 `/tmp`는 emptyDir이라
 Pod가 다시 시작하면 사라진다. 만든 파일은 바로 내려받고 지운다.
+
+`gitea dump`는 실행 중인 Gitea에서 저장소와 DB를 차례로 읽는다. 그 사이에 push·migration이 있으면 저장소와 DB가 서로 다른
+시점을 담을 수 있다. Gitea 공식 문서는 일관된 백업을 위해 서버를 멈추라고 한다. 이 Deployment는 Argo CD가 `selfHeal`로
+replica 1을 되돌리고 dump도 같은 Pod에서 실행하므로, 아래 명령은 사용자가 쓰지 않는 시간에 실행한다.
 
 ```bash
 kubectl -n addon-gitea exec deploy/gitea -c gitea -- gitea dump --type zip --file /tmp/gitea-dump.zip
