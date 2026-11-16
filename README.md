@@ -26,7 +26,7 @@ addon 공개 주소는 `*.demo.opsp.dev`, 내부 주소는 `*.demo-in.opsp.dev`�
 | 분류 | addon | 주소 |
 | --- | --- | --- |
 | 배포·자동화 | argo-cd, argo-workflows, arc-controller·arc-runners(GitHub Actions runner) | argocd, workflows |
-| 개발 도구 | gitlab, nexus | gitlab, nexus |
+| 개발 도구 | gitlab, gitea, nexus | gitlab, gitea, nexus |
 | 관측·경보 | prometheus-stack, grafana, loki, alloy, keep, metrics-server, prometheus-adapter | grafana, keep, prom·loki(`demo-in`) |
 | 인증 | dex, lldap, oauth2-proxy | sso, id, auth |
 | 기반 | istio, gateway-api-crds, external-secrets, eks-network-policy, aws-controllers, kro, storage-class, ingress-class | - |
@@ -50,6 +50,7 @@ GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남
 - Nexus CE는 OIDC가 없어 oauth2-proxy 뒤에서 LLDAP 아이디 header로 로그인하고, LLDAP을 LDAP 사용자 원천으로 읽어
   그룹을 역할로 쓴다(`charts/nexus/README.md`).
 - GitLab CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins` 목록을 CronJob이 맞춘다.
+- Gitea는 로그인할 때마다 `sso.admin_groups`의 그룹(하나)으로 관리자 권한을 맞춘다.
 - Keep은 `sso` 그룹이 없는 사용자를 거부한다. 다른 addon은 그룹이 없는 사용자에게 읽기 권한을 준다.
 - 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
 
@@ -366,7 +367,7 @@ Pull request는 CI를 시작하지 않는다. PR에 렌더 결과가 빠져 있�
 - [Kubernetes monitoring](docs/kubernetes-monitoring.md): 클러스터·워크로드 대시보드와 중요 알림
 - [Workspace와 Agent 서비스 관측성](docs/workspace-observability.md): Workspace·Agent 서비스 지표와 경보
 - chart별 절차: [alloy](charts/alloy/README.md), [arc-runners](charts/arc-runners/README.md), [argo-cd](charts/argo-cd/README.md),
-  [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md), [keep](charts/keep/README.md),
+  [gitea](charts/gitea/README.md), [gitlab](charts/gitlab/README.md), [grafana](charts/grafana/README.md), [keep](charts/keep/README.md),
   [dex](charts/dex/README.md), [lldap](charts/lldap/README.md), [nexus](charts/nexus/README.md), [oauth2-proxy](charts/oauth2-proxy/README.md)
 - 보관 chart: [atlantis](charts/atlantis/README.md), [jenkins](charts/jenkins/README.md)
 
@@ -442,6 +443,7 @@ helm repo update
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
 | arc-runners (gha-runner-scale-set) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | arc-controller (gha-runner-scale-set-controller) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
+| gitea | ✅ | 12.7.0 | 12.7.0 (1.27.0) |
 | gitlab |  | 10.5.4 | 10.5.6 (v19.5.5) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio (istiod) |  | 1.31.3 | 1.32.0 (1.32.0) |

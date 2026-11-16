@@ -73,6 +73,12 @@
       "type": "oci",
       "version": "0.15.1"
     },
+    "gitea": {
+      "app_version": "1.27.0",
+      "chart": "gitea-charts/gitea",
+      "current": "12.7.0",
+      "version": "12.7.0"
+    },
     "gitlab": {
       "app_version": "v19.5.5",
       "chart": "gitlab/gitlab",

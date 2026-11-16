@@ -41,6 +41,7 @@ memory limit은 7일 peak보다 충분히 크게 둔다. CPU 기반 HPA를 쓰�
 | ACK RDS / S3 / DynamoDB controller | 10m / 64Mi | 256Mi | chart schema가 CPU limit을 요구해 200m을 둔다 |
 | GitLab webservice / sidekiq / gitaly | 300m/2560Mi, 300m/1500Mi, 100m/256Mi | 3Gi / 2560Mi / 1Gi | Puma worker 2개. 측정 3시간, 7일 뒤 재검토 |
 | GitLab toolbox / PostgreSQL | 200m/768Mi, 100m/512Mi | 2Gi / 1Gi | `gitlab-admin-sync`가 10분마다 toolbox에서 `gitlab-rails` 실행 |
+| Gitea / PostgreSQL | 50m/256Mi, 20m/128Mi | 1Gi / 512Mi | 1 replica, RWO PVC 20Gi·Recreate 배포. 측정 전 값, 7일 뒤 재검토 |
 | Keep backend / frontend / DB | 150m/768Mi, 50m/256Mi, 20m/256Mi | 2Gi / 768Mi / 1Gi | 알림 유입량이 늘면 backend CPU 확인 |
 | LLDAP | 10m / 32Mi | 128Mi | SQLite PVC, 1 replica |
 | oauth2-proxy | 10m / 64Mi | 256Mi | 보호 대상이 생기면 다시 측정 |

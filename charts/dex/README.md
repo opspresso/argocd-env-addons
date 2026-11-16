@@ -8,7 +8,7 @@ namespace는 `addon-dex`, 주소는 `https://sso.demo.opsp.dev`다. upstream cha
 
 ```mermaid
 flowchart LR
-  U[브라우저] --> A[addon: Argo CD·Grafana·Keep·GitLab·Argo Workflows·oauth2-proxy]
+  U[브라우저] --> A[addon: Argo CD·Grafana·Keep·GitLab·Gitea·Argo Workflows·oauth2-proxy]
   U --> S[Agent Studio]
   U --> V[Agent 서비스: Memory·Knowledge·Forge·Runway·Models]
   V -->|OIDC| S
@@ -41,6 +41,7 @@ flowchart LR
 | `oauth2-proxy-sso` | oauth2-proxy | `/k8s/common/oauth2-proxy-client-secret` |
 | `keep-sso` | Keep | `/k8s/common/keep/oidc-client-secret` |
 | `gitlab-sso` | GitLab | `/k8s/common/gitlab/oidc-client-secret` |
+| `gitea-sso` | Gitea(`env/<cluster>.yaml`에 `gitea`가 있을 때) | `/k8s/common/gitea/oidc-client-secret` |
 | `grafana-sso` | Grafana | `/k8s/common/grafana/oidc-client-secret` |
 | `jenkins-sso` | Jenkins(보관) | `/k8s/common/jenkins/oidc-client-secret` |
 | `agent-studio` | Agent Studio(`argocd-env-apps`, provider ID `lldap`) | `/k8s/<cluster>/agent-studio/oidc-client-secret` |

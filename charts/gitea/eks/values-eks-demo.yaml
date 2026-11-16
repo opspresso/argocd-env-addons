@@ -1,0 +1,104 @@
+
+gitea:
+  # The chart HTTPRoute on the shared istio gateway. tls makes ROOT_URL https.
+  gatewayAPI:
+    enabled: true
+    core:
+      httpRoute:
+        enabled: true
+        tls: true
+        annotations:
+          link.argocd.argoproj.io/external-link: "https://gitea.demo.opsp.dev"
+        parentRefs:
+          - group: gateway.networking.k8s.io
+            kind: Gateway
+
+            name: istio-ingressgateway
+            namespace: istio-system
+
+        hostnames:
+          - "gitea.demo.opsp.dev"
+
+  gitea:
+    config:
+      server:
+        DOMAIN: "gitea.demo.opsp.dev"
+        ROOT_URL: "https://gitea.demo.opsp.dev/"
+
+    # Sign-in through the platform Dex (charts/dex, client gitea-sso). The init
+    # container adds or updates this source on every start. Members of the
+    # sso.admin_groups group become administrators at each sign-in; other users
+    # lose administrator rights at their next sign-in. The callback is
+    # https://gitea.demo.opsp.dev/user/oauth2/SSO/callback.
+    oauth:
+      - name: SSO
+        provider: openidConnect
+        existingSecret: gitea-oidc
+        autoDiscoverUrl: "https://sso.demo.opsp.dev/.well-known/openid-configuration"
+        # goth adds openid. preferred_username comes with profile.
+        scopes: "profile,email,groups"
+        groupClaimName: groups
+        adminGroup: "sre"
+
+raw:
+  resources:
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: gitea-secret
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: gitea-secret
+        data:
+          - secretKey: postgres-password
+            remoteRef:
+              key: /k8s/common/gitea/postgres-password
+
+    # Keys username and password (gitea.gitea.admin.existingSecret).
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: gitea-admin
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: gitea-admin
+          template:
+            engineVersion: v2
+            data:
+              username: gitea_admin
+              password: "{{ .password }}"
+        data:
+          - secretKey: password
+            remoteRef:
+              key: /k8s/common/gitea/admin-password
+
+    # Keys key and secret (gitea.gitea.oauth[].existingSecret). The client
+    # secret is shared with the platform Dex (charts/dex).
+    - apiVersion: external-secrets.io/v1
+      kind: ExternalSecret
+      metadata:
+        name: gitea-oidc
+      spec:
+        refreshInterval: 1h
+        secretStoreRef:
+          kind: ClusterSecretStore
+          name: parameter-store
+        target:
+          name: gitea-oidc
+          template:
+            engineVersion: v2
+            data:
+              key: gitea-sso
+              secret: "{{ .client_secret }}"
+        data:
+          - secretKey: client_secret
+            remoteRef:
+              key: /k8s/common/gitea/oidc-client-secret

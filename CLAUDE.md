@@ -35,7 +35,7 @@ chart는 배포되지 않으며, `backup/`은 미배포 ApplicationSet 보관소
 `local` 템플릿·정책 지원은 남아 있지만 로컬 클러스터의 env·Application·설치 스크립트는 제공하지 않는다.
 
 인증: LLDAP(`charts/lldap`, `id.demo.opsp.dev`) → 플랫폼 Dex(`charts/dex`, `sso.demo.opsp.dev`, connector `lldap`, 로그인 ID 는 `mail`)
-→ 각 OIDC client(`argo-cd`·`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`jenkins-sso`·`oauth2-proxy-sso`·`agent-studio`).
+→ 각 OIDC client(`argo-cd`·`argo-workflows-sso`·`grafana-sso`·`keep-sso`·`gitlab-sso`·`gitea-sso`·`jenkins-sso`·`oauth2-proxy-sso`·`agent-studio`).
 Agent 서비스는 Agent Studio 를 거친다. Dex 세션(Kubernetes storage)이 한 번의 로그인을 모든 client 에 유지한다.
 Argo CD 내장 Dex 는 끈다(`oidc.config`). GitHub connector 는 꺼져 있고 설정은 주석으로 남아 있다(`charts/dex`, `env/<cluster>.yaml` 의 `sso`).
 권한은 `env/<cluster>.yaml` 의 `sso`: `sso.admin_groups` 는 관리자, `sso.member_groups` 는 일반·읽기 전용.
@@ -50,6 +50,7 @@ Nexus CE 는 oauth2-proxy 뒤의 Remote User Token 으로 로그인하고 LLDAP 
 경보: Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와
 kube-sre 호출을 만든다 (`charts/keep/README.md`).
 `gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙인다 (`charts/gitlab/README.md`).
+`gitea` 는 공식 Gitea chart 에 같은 release 의 PostgreSQL 과 gp3 PVC 를 붙이고, 관리자는 `sso.admin_groups` 그룹으로 정한다 (`charts/gitea/README.md`).
 
 istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해
 `charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`). 템플릿이 이 파일을 include 하므로

@@ -1,0 +1,133 @@
+gitea:
+  # One Pod on one RWO volume: the old Pod must release the volume before the
+  # new Pod mounts it.
+  replicaCount: 1
+  strategy:
+    type: Recreate
+
+  # A ClusterIP Service (the chart default is headless) for the HTTPRoute backend.
+  service:
+    http:
+      clusterIP: ""
+
+  # No Kubernetes API access.
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: false
+
+  # Repositories, LFS objects, attachments, the LevelDB queue and app.ini with
+  # the generated SECRET_KEY and INTERNAL_TOKEN. Delete=false keeps the volume
+  # when the Application is deleted.
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: gp3
+    annotations:
+      argocd.argoproj.io/sync-options: Delete=false
+
+  # Pod requests without a measurement yet; review after 7 days of usage.
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi
+    limits:
+      memory: 1Gi
+  initContainers:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  # The chart's helm test Pod has no resource settings.
+  test:
+    enabled: false
+
+  gitea:
+    # The local administrator for break-glass use. People sign in through SSO
+    # (values-template.yaml.j2). The init container sets the password from the
+    # Secret on every start.
+    admin:
+      existingSecret: gitea-admin
+      email: gitea@local.domain
+      passwordMode: keepUpdated
+
+    # The init container writes these into app.ini on the volume.
+    additionalConfigFromEnvs:
+      - name: GITEA__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-secret
+            key: postgres-password
+
+    config:
+      APP_NAME: Gitea
+      server:
+        # Git over HTTPS only: the gateway routes no SSH.
+        DISABLE_SSH: true
+        START_SSH_SERVER: false
+        LFS_START_SERVER: true
+      # PostgreSQL of this chart (dependency postgres).
+      database:
+        DB_TYPE: postgres
+        HOST: gitea-postgres:5432
+        NAME: gitea
+        USER: gitea
+        SSL_MODE: disable
+      # One replica without Valkey: sessions in the database survive a restart,
+      # the cache stays in memory and the queue on the volume.
+      session:
+        PROVIDER: db
+      cache:
+        ADAPTER: memory
+      queue:
+        TYPE: level
+      # Accounts come only from SSO. The password form, passkeys and OpenID 2.0
+      # are off, so the sign-in page goes straight to the only OAuth2 source.
+      service:
+        DISABLE_REGISTRATION: false
+        ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+        SHOW_REGISTRATION_BUTTON: false
+        ENABLE_PASSWORD_SIGNIN_FORM: false
+        ENABLE_PASSKEY_AUTHENTICATION: false
+      openid:
+        ENABLE_OPENID_SIGNIN: false
+        ENABLE_OPENID_SIGNUP: false
+      # The first SSO sign-in creates an active user named after the Dex claim
+      # preferred_username (the LLDAP user ID). An existing account with the
+      # same email is linked without a prompt.
+      oauth2_client:
+        ENABLE_AUTO_REGISTRATION: true
+        USERNAME: preferred_username
+        ACCOUNT_LINKING: auto
+        UPDATE_AVATAR: false
+      metrics:
+        ENABLED: false
+
+  # The chart's Bitnami database and cache charts are off.
+  postgresql-ha:
+    enabled: false
+  postgresql:
+    enabled: false
+  valkey-cluster:
+    enabled: false
+  valkey:
+    enabled: false
+
+postgres:
+  fullnameOverride: gitea-postgres
+  database: gitea
+  username: gitea
+  passwordSecret:
+    name: gitea-secret
+    key: postgres-password
+  persistence:
+    storageGiB: 10
+    storageClass: gp3
+  resources:
+    requests:
+      cpu: 20m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
