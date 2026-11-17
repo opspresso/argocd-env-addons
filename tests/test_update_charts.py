@@ -119,3 +119,88 @@ def test_oci_entry_matches_dependency_by_key(tmp_path):
     result = run(script, "--chart", "rds-chart")
     assert result.returncode == 0, result.stderr
     assert (tmp_path / "charts/aws-controllers/Chart.yaml").read_text() == chart.replace("1.13.4", "1.14.0")
+
+
+ACK_CHART = (
+    'name: aws-controllers\nversion: "1.13.4" # rds-chart\n\ndependencies:\n'
+    '- name: rds-chart\n  alias: rds\n  repository: oci://public.ecr.aws/aws-controllers-k8s\n'
+    '  version: "1.13.4" # rds-chart\n\n'
+    '- name: s3-chart\n  alias: s3\n  repository: oci://public.ecr.aws/aws-controllers-k8s\n'
+    '  version: "1.13.4" # s3-chart\n'
+)
+
+
+def ack_entry(key, current, version, **extra):
+    return {
+        key: {
+            "path": "aws-controllers",
+            "chart": "public.ecr.aws/aws-controllers-k8s",
+            "type": "oci",
+            "current": current,
+            "version": version,
+            **extra,
+        }
+    }
+
+
+def test_dependency_entry_updates_only_its_dependency_line(tmp_path):
+    script = setup_repo(
+        tmp_path,
+        ack_entry("s3-chart", "1.13.4", "1.16.0", wrapper=False),
+        {"aws-controllers": ACK_CHART},
+    )
+
+    result = run(script, "--chart", "s3-chart")
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "charts/aws-controllers/Chart.yaml").read_text() == ACK_CHART.replace(
+        '"1.13.4" # s3-chart', '"1.16.0" # s3-chart'
+    )
+
+
+def test_wrapper_update_leaves_dependencies_tracked_by_other_entries(tmp_path):
+    # s3-chart pins the same version as rds-chart by coincidence; it has its own entry.
+    script = setup_repo(
+        tmp_path,
+        {
+            **ack_entry("rds-chart", "1.13.4", "1.15.1"),
+            **ack_entry("s3-chart", "1.13.4", "1.13.4", wrapper=False),
+        },
+        {"aws-controllers": ACK_CHART},
+    )
+
+    result = run(script)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "charts/aws-controllers/Chart.yaml").read_text() == ACK_CHART.replace(
+        '"1.13.4" # rds-chart', '"1.15.1" # rds-chart'
+    )
+
+
+def test_wrapper_and_dependency_entries_update_one_chart_in_one_run(tmp_path):
+    script = setup_repo(
+        tmp_path,
+        {
+            **ack_entry("rds-chart", "1.13.4", "1.15.1"),
+            **ack_entry("s3-chart", "1.13.4", "1.16.0", wrapper=False),
+        },
+        {"aws-controllers": ACK_CHART},
+    )
+
+    result = run(script)
+    assert result.returncode == 0, result.stderr
+    assert (tmp_path / "charts/aws-controllers/Chart.yaml").read_text() == (
+        ACK_CHART.replace('"1.13.4" # rds-chart', '"1.15.1" # rds-chart')
+        .replace('"1.13.4" # s3-chart', '"1.16.0" # s3-chart')
+    )
+
+
+def test_dependency_entry_without_its_dependency_fails(tmp_path):
+    script = setup_repo(
+        tmp_path,
+        ack_entry("dynamodb-chart", "1.14.0", "1.16.0", wrapper=False),
+        {"aws-controllers": ACK_CHART},
+    )
+
+    result = run(script)
+    assert result.returncode != 0
+    assert "expected one dynamodb-chart dependency" in result.stderr
+    assert (tmp_path / "charts/aws-controllers/Chart.yaml").read_text() == ACK_CHART

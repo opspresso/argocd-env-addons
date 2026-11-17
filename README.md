@@ -317,8 +317,8 @@ Application은 그 파일이 고정한 `postgres`·`valkey` chart(opspresso/helm
    - requests·limits
    
    `values-template.yaml.j2`에는 `sqs.aws.region`을 추가한다.
-4. `config/versions.json`에 `sqs-chart` 항목(`type: oci`, `path: aws-controllers`, `locked: true`)을 추가한다.
-   wrapper `version`은 `rds-chart`를 따르므로 `scripts/update_charts.sh`는 다른 controller를 갱신하지 못한다. 그래서 버전은 손으로 올린다.
+4. `config/versions.json`에 `sqs-chart` 항목(`type: oci`, `path: aws-controllers`, `wrapper: false`)을 추가한다.
+   wrapper `version`은 `rds-chart`를 따른다. `wrapper: false` 항목은 `scripts/update_charts.sh`가 그 controller의 dependency 줄만 갱신한다.
 5. 새 종류를 RGD로 쓰면 `charts/kro`에 집계 ClusterRole 규칙과 RGD를 추가하고, `charts/argo-cd` AppProject `projects`에 인스턴스 종류를 허용한다.
 6. `./scripts/build.sh`, `./scripts/validate.py -r aws-controllers`, `python3 -m pytest -q`를 실행한다.
    배포 뒤 `kubectl -n addon-aws-controllers get deploy ack-sqs-controller`가 Ready인지 확인한다.
@@ -411,6 +411,25 @@ helm repo update
 감시 항목에 `"type": "oci"`를 지정하면 `helm show chart`로 OCI 레지스트리를 조회한다. 로그인이 필요한
 레지스트리는 먼저 `helm registry login`을 실행한다. 로그인하지 못하면 해당 chart만 실패로 집계된다.
 
+OCI 항목의 최신 버전은 chart 메타데이터의 `version`이 아니라 Helm이 받은 레지스트리 태그다. Helm은 OCI dependency를
+태그로 찾기 때문이다. 예: kro는 메타데이터 `v0.10.0`인 chart를 태그 `0.10.0`으로 게시한다. `Chart.yaml`에 `v0.10.0`을 쓰면
+`helm dependency update`가 `not found`로 실패한다.
+
+#### 감시 항목 필드
+
+| 필드 | 의미 |
+| --- | --- |
+| `chart` | Helm repo의 `<repo>/<chart>`, 또는 OCI 레지스트리 경로(`type: oci`). OCI 항목은 key가 chart 이름이다 |
+| `path` | chart 디렉터리 이름. key와 다를 때만 쓴다(`istiod` → `istio`) |
+| `wrapper` | `false`면 wrapper `version`이 아니라 같은 이름의 dependency 버전 하나만 감시·갱신한다. 한 chart에 controller 여러 개를 둔 `aws-controllers`가 쓴다. wrapper `version`은 `wrapper: false`가 아닌 항목(`rds-chart`)을 따른다 |
+| `locked` | `true`면 `update_charts.sh`가 건너뛴다. 업그레이드를 보류할 근거가 있을 때만 쓰고, 근거와 해제 조건을 아래 [잠금 항목](#잠금-항목)에 적는다 |
+| `disabled` | `true`면 최신 버전을 조회하지 않는다 |
+| `current`·`version`·`app_version` | `update_versions.py`가 쓰는 캐시. 직접 고치지 않는다 |
+
+#### 잠금 항목
+
+현재 잠금 항목은 없다. 잠글 때는 항목·근거·해제 조건을 이 절에 표로 추가한다.
+
 ### 버전 업그레이드
 
 `update_versions.py`는 `Chart.yaml`을 수정하지 않는다. 기록된 최신 버전을 `Chart.yaml`에 반영하려면
@@ -423,7 +442,9 @@ helm repo update
 ```
 
 - `--chart`에는 감시 목록의 key, chart 디렉터리 이름, upstream chart 이름을 지정할 수 있다.
-- 같은 upstream 저장소의 동일 버전 dependency를 함께 갱신한다.
+- 같은 upstream 저장소의 동일 버전 dependency를 함께 갱신한다(istio의 `base`·`istiod`·`gateway`).
+  같은 chart의 다른 감시 항목이 추적하는 dependency는 버전이 같아도 건드리지 않는다.
+- `wrapper: false` 항목은 그 dependency 줄만 갱신한다.
 - `locked`·`disabled` 항목과 로컬 chart가 없는 항목은 건너뛴다.
 - 기록된 `current`와 `Chart.yaml`이 다르면 중단한다. 먼저 `update_versions.py`를 실행한다.
 - 반영 후 [클러스터별 값 변경](#클러스터별-값-변경)과 같은 방법으로 값 생성·검증을 실행한다.
@@ -432,31 +453,31 @@ helm repo update
 <!--- BEGIN_VERSION --->
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
-| alloy |  | 1.14.4 | 1.16.0 (v1.22.0) |
-| argo-cd |  | 10.11.6 | 10.18.0 (v3.6.1) |
-| argo-rollouts |  | 2.43.8 | 2.43.12 (v1.10.2) |
-| argo-workflows |  | 2.0.14 | 2.0.18 (v4.1.6) |
-| atlantis |  | 7.0.0 | 7.4.0 (v0.49.0) |
-| aws-controllers (dynamodb-chart) | 🔒 | 1.13.4 | 1.16.0 (1.16.0) |
+| alloy | ✅ | 1.16.0 | 1.16.0 (v1.22.0) |
+| argo-cd | ✅ | 10.18.0 | 10.18.0 (v3.6.1) |
+| argo-rollouts | ✅ | 2.43.12 | 2.43.12 (v1.10.2) |
+| argo-workflows | ✅ | 2.0.18 | 2.0.18 (v4.1.6) |
+| atlantis | ✅ | 7.4.0 | 7.4.0 (v0.49.0) |
+| aws-controllers (dynamodb-chart) | ✅ | 1.16.0 | 1.16.0 (1.16.0) |
 | external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
-| external-secrets |  | 2.14.0 | 2.15.0 (v2.15.0) |
+| external-secrets | ✅ | 2.15.0 | 2.15.0 (v2.15.0) |
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
 | arc-runners (gha-runner-scale-set) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | arc-controller (gha-runner-scale-set-controller) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | gitea | ✅ | 12.7.0 | 12.7.0 (1.27.0) |
-| gitlab |  | 10.5.4 | 10.5.7 (v19.5.6) |
+| gitlab | ✅ | 10.5.7 | 10.5.7 (v19.5.6) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
-| istio (istiod) |  | 1.31.3 | 1.32.0 (1.32.0) |
-| jenkins |  | 5.10.10 | 5.13.3 (2.580.2) |
+| istio (istiod) | ✅ | 1.32.0 | 1.32.0 (1.32.0) |
+| jenkins | ✅ | 5.13.3 | 5.13.3 (2.580.2) |
 | keep | ✅ | 0.1.97 | 0.1.97 (0.54.3) |
-| kite |  | 0.16.0 | 0.18.0 (v0.18.0) |
-| kro | 🔒 | 0.9.4 | v0.10.0 (v0.10.0) |
-| loki |  | 7.5.0 | 7.6.0 (3.6.18) |
+| kite | ✅ | 0.18.0 | 0.18.0 (v0.18.0) |
+| kro | ✅ | 0.10.0 | 0.10.0 (v0.10.0) |
+| loki | ✅ | 7.6.0 | 7.6.0 (3.6.18) |
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
-| oauth2-proxy |  | 10.7.1 | 10.7.4 (7.15.6) |
-| prometheus-adapter |  | 5.3.0 | 5.4.2 (v0.12.0) |
-| prometheus-stack |  | 92.14.1 | 93.3.1 (v0.95.2) |
-| aws-controllers (rds-chart) |  | 1.13.4 | 1.15.1 (1.15.1) |
-| aws-controllers (s3-chart) | 🔒 | 1.13.4 | 1.16.0 (1.16.0) |
+| oauth2-proxy | ✅ | 10.7.4 | 10.7.4 (7.15.6) |
+| prometheus-adapter | ✅ | 5.4.2 | 5.4.2 (v0.12.0) |
+| prometheus-stack | ✅ | 93.3.1 | 93.3.1 (v0.95.2) |
+| aws-controllers (rds-chart) | ✅ | 1.15.1 | 1.15.1 (1.15.1) |
+| aws-controllers (s3-chart) | ✅ | 1.16.0 | 1.16.0 (1.16.0) |
 | vllm-stack |  |  | 0.1.14 |
 <!--- END_VERSION --->

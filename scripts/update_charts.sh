@@ -49,26 +49,36 @@ command -v yq >/dev/null || die "yq v4 is required"
 # A chart can be selected by its config key, local directory, or upstream name.
 # An OCI entry's chart field is the registry path and its key is the chart name
 # (update_versions.py reads oci://<chart>/<key>).
+# An entry with "wrapper": false tracks one dependency only; the wrapper version
+# of that chart follows another entry (aws-controllers follows rds-chart).
+# "others" lists the upstream names of the other entries on the same chart, so a
+# wrapper update never moves a dependency that another entry tracks.
 entries=$(jq -er --arg chart "${CHART}" '
   def upstream: if .value.type == "oci" then .key else (.value.chart // "" | split("/")[-1]) end;
-  .versions | to_entries
+  def path: .value.path // .key;
+  (.versions | to_entries) as $all
+  | $all
   | if $chart == "" then . else
-      map(select(.key == $chart or (.value.path // .key) == $chart or upstream == $chart))
+      map(select(.key == $chart or path == $chart or upstream == $chart))
     end
   | if length == 0 then error("chart not found: " + $chart) else .[] end
-  | [.key, (.value.path // .key), upstream,
+  | . as $entry
+  | [.key, path, upstream,
      (.value.version // ""),
      (.value.current // ""), (.value.locked // false),
-     (.value.disabled // false)] | join("|")
+     (.value.disabled // false),
+     (if .value.wrapper == false then "false" else "true" end),
+     ([$all[] | select(path == ($entry | path) and .key != $entry.key) | upstream] | join(","))] | join("|")
 ' "${VERSIONS_FILE}") || die "could not read chart versions"
 
 files=()
 olds=()
 news=()
 line_sets=()
+tracked=()
 
 # Check every candidate before writing any Chart.yaml.
-while IFS='|' read -r key path upstream latest cached locked disabled; do
+while IFS='|' read -r key path upstream latest cached locked disabled wrapper others; do
   case "${path}" in
     ""|*[!a-zA-Z0-9_-]*) die "invalid chart path for ${key}: ${path}" ;;
   esac
@@ -85,8 +95,19 @@ while IFS='|' read -r key path upstream latest cached locked disabled; do
   fi
 
   [[ "${latest}" =~ ^v?[0-9][a-zA-Z0-9.+-]*$ ]] || die "invalid latest version for ${key}: ${latest}"
-  current=$(yq -r '.version // ""' "${file}") || die "could not read ${file}"
-  [ -n "${current}" ] || die "missing version in ${file}"
+
+  if [ "${wrapper}" = false ]; then
+    # Only the tracked dependency moves; the wrapper version is left alone.
+    current=$(UPSTREAM_NAME="${upstream}" yq -r '
+      [(.dependencies // [])[] | select(.name == strenv(UPSTREAM_NAME))]
+      | select(length == 1) | .[0].version
+    ' "${file}") || die "could not inspect ${file}"
+    [ -n "${current}" ] && [ "${current}" != null ] \
+      || die "${key}: expected one ${upstream} dependency in ${file}"
+  else
+    current=$(yq -r '.version // ""' "${file}") || die "could not read ${file}"
+    [ -n "${current}" ] || die "missing version in ${file}"
+  fi
   if [ "${current}" = "${latest}" ]; then
     echo "Unchanged ${key}: ${current}"
     continue
@@ -95,32 +116,47 @@ while IFS='|' read -r key path upstream latest cached locked disabled; do
     die "${key}: recorded current ${cached} differs from Chart.yaml ${current}; run update_versions.py first"
   fi
 
-  dependencies=$(yq -r '(.dependencies // []) | length' "${file}") || die "could not inspect ${file}"
-  upstream_repo=""
-  if [ "${dependencies}" -gt 0 ]; then
-    upstream_repo=$(UPSTREAM_NAME="${upstream}" yq -r '
-      (.dependencies // [])[] | select(.name == strenv(UPSTREAM_NAME)) | .repository
+  if [ "${wrapper}" = false ]; then
+    lines=$(UPSTREAM_NAME="${upstream}" yq -r '
+      (.dependencies // [])[] | select(.name == strenv(UPSTREAM_NAME)) | .version | line
     ' "${file}") || die "could not inspect ${file}"
-    [ -n "${upstream_repo}" ] && [ "${upstream_repo}" != null ] \
-      && [[ "${upstream_repo}" != *$'\n'* ]] \
-      || die "${key}: expected one ${upstream} dependency in ${file}"
-  fi
+  else
+    dependencies=$(yq -r '(.dependencies // []) | length' "${file}") || die "could not inspect ${file}"
+    upstream_repo=""
+    if [ "${dependencies}" -gt 0 ]; then
+      upstream_repo=$(UPSTREAM_NAME="${upstream}" yq -r '
+        (.dependencies // [])[] | select(.name == strenv(UPSTREAM_NAME)) | .repository
+      ' "${file}") || die "could not inspect ${file}"
+      [ -n "${upstream_repo}" ] && [ "${upstream_repo}" != null ] \
+        && [[ "${upstream_repo}" != *$'\n'* ]] \
+        || die "${key}: expected one ${upstream} dependency in ${file}"
+    fi
 
-  lines=$(OLD_VERSION="${current}" UPSTREAM_REPO="${upstream_repo}" yq -r '
-    (.version | line),
-    ((.dependencies // [])[]
-      | select(.repository == strenv(UPSTREAM_REPO) and .version == strenv(OLD_VERSION))
-      | .version | line)
-  ' "${file}") || die "could not inspect ${file}"
-  [ -n "${lines}" ] || die "missing version line in ${file}"
-  if [ "${dependencies}" -gt 0 ] && [[ "${lines}" != *$'\n'* ]]; then
-    die "${key}: no dependency matches wrapper version ${current}"
+    # The wrapper line, then every dependency from the same repository at the
+    # same version (istio base/istiod/gateway), except those another entry tracks.
+    lines=$(OLD_VERSION="${current}" UPSTREAM_REPO="${upstream_repo}" OTHERS=",${others}," yq -r '
+      (.version | line),
+      ((.dependencies // [])[]
+        | select(.repository == strenv(UPSTREAM_REPO) and .version == strenv(OLD_VERSION))
+        | select(.name as $name | strenv(OTHERS) | contains("," + $name + ",") | not)
+        | .version | line)
+    ' "${file}") || die "could not inspect ${file}"
+    [ -n "${lines}" ] || die "missing version line in ${file}"
+    if [ "${dependencies}" -gt 0 ] && [[ "${lines}" != *$'\n'* ]]; then
+      die "${key}: no dependency matches wrapper version ${current}"
+    fi
   fi
 
   files+=("${file}")
   olds+=("${current}")
   news+=("${latest}")
   line_sets+=("${lines//$'\n'/,}")
+  # The dependency a "wrapper": false entry moves; empty when the wrapper moves.
+  if [ "${wrapper}" = false ]; then
+    tracked+=("${upstream}")
+  else
+    tracked+=("")
+  fi
 done <<< "${entries}"
 
 for ((i = 0; i < ${#files[@]}; i++)); do
@@ -163,7 +199,12 @@ for ((i = 0; i < ${#files[@]}; i++)); do
     END { if (changed != count) exit 1 }
   ' "${file}" > "${WORK_FILE}" || die "could not update ${file}"
 
-  NEW_VERSION="${new}" yq -e '.version == strenv(NEW_VERSION)' "${WORK_FILE}" >/dev/null \
+  if [ -n "${tracked[i]}" ]; then
+    check='(.dependencies[] | select(.name == strenv(TRACKED)) | .version) == strenv(NEW_VERSION)'
+  else
+    check='.version == strenv(NEW_VERSION)'
+  fi
+  NEW_VERSION="${new}" TRACKED="${tracked[i]}" yq -e "${check}" "${WORK_FILE}" >/dev/null \
     || die "invalid updated chart: ${file}"
   mv "${WORK_FILE}" "${file}"
   WORK_FILE=""

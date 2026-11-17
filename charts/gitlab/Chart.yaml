@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: gitlab
 type: application
-version: "10.5.4" # helm chart gitlab version
+version: "10.5.7" # helm chart gitlab version
 
 dependencies:
 - name: gitlab
   repository: https://charts.gitlab.io/
-  version: "10.5.4" # helm chart gitlab version
+  version: "10.5.7" # helm chart gitlab version
 
 # GitLab 19 needs an external PostgreSQL and Redis: the chart no longer bundles them.
 - name: postgres

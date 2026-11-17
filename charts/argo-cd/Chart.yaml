@@ -2,12 +2,12 @@ apiVersion: v2
 description: A Helm chart for Kubernetes
 name: argo-cd
 type: application
-version: "10.11.6" # helm chart argo-cd version
+version: "10.18.0" # helm chart argo-cd version
 
 dependencies:
 - name: argo-cd
   repository: https://argoproj.github.io/argo-helm
-  version: "10.11.6" # helm chart argo-cd version
+  version: "10.18.0" # helm chart argo-cd version
 
 - name: raw
   repository: https://opspresso.github.io/helm-charts/
