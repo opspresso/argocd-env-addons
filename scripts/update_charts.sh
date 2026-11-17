@@ -199,11 +199,12 @@ for ((i = 0; i < ${#files[@]}; i++)); do
     END { if (changed != count) exit 1 }
   ' "${file}" > "${WORK_FILE}" || die "could not update ${file}"
 
-  NEW_VERSION="${new}" TRACKED="${tracked[i]}" yq -e '
-    if strenv(TRACKED) == "" then .version
-    else (.dependencies[] | select(.name == strenv(TRACKED)) | .version) end
-    | . == strenv(NEW_VERSION)
-  ' "${WORK_FILE}" >/dev/null \
+  if [ -n "${tracked[i]}" ]; then
+    check='(.dependencies[] | select(.name == strenv(TRACKED)) | .version) == strenv(NEW_VERSION)'
+  else
+    check='.version == strenv(NEW_VERSION)'
+  fi
+  NEW_VERSION="${new}" TRACKED="${tracked[i]}" yq -e "${check}" "${WORK_FILE}" >/dev/null \
     || die "invalid updated chart: ${file}"
   mv "${WORK_FILE}" "${file}"
   WORK_FILE=""
