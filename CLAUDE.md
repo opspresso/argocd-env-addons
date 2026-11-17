@@ -178,7 +178,9 @@ CLI의 기본 대상은 `addons/`다. main push·수동 validate CI는 `-d addon
 `config/versions.json` 을 기준으로 생성한다. 직접 고치면 다음 실행에서 덮어써진다.
 `scripts/update_versions.py` 는 `Chart.yaml` 을 수정하지 않는 감시 도구다.
 버전 업그레이드는 `scripts/update_charts.sh` 로 기록된 최신 버전을 `Chart.yaml` 에 반영한다.
-쉘은 같은 upstream 저장소의 동일 버전 dependency 를 함께 갱신하고, 잠금·비활성 항목과 로컬 chart 가 없는 항목은 건너뛴다.
+쉘은 같은 upstream 저장소의 동일 버전 dependency 를 함께 갱신하고(다른 감시 항목이 추적하는 dependency 는 제외),
+잠금·비활성 항목과 로컬 chart 가 없는 항목은 건너뛴다. `"wrapper": false` 항목(`aws-controllers` 의 `s3-chart`·`dynamodb-chart`)은
+자기 dependency 줄만 갱신한다. `locked` 는 근거가 있을 때만 쓰고 근거·해제 조건을 README "잠금 항목" 에 적는다.
 
 `.github/workflows/versions.yml` 이 매일 UTC 22:00에 이 스크립트를 돌려 갱신분을 `nalbam-bot`
 이름으로 main 에 커밋한다. 조회 실패가 있으면 run 은 실패로 표시되지만 성공한 chart 의
@@ -203,7 +205,8 @@ helm repo update
 ./scripts/update_versions.py
 ```
 
-`"type": "oci"` 항목은 `helm show chart` 로 조회한다. 로그인이 필요한 레지스트리는
+`"type": "oci"` 항목은 `helm show chart` 로 조회하고, chart 메타데이터 version 이 아니라 받은 레지스트리 태그를 기록한다
+(kro 는 메타데이터 `v0.10.0`, 태그 `0.10.0`). 로그인이 필요한 레지스트리는
 `helm registry login` 을 해 둬야 한다. 로그인이 없으면 해당 chart 만 Failed 로 집계되고
 나머지는 정상 진행된다. `raw` chart 만 쓰는 매니페스트 chart 는 `raw` 가 `opspresso/helm-charts` 의 고정 사본(0.2.5)이라 감시하지 않는다.
 

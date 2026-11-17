@@ -6,7 +6,7 @@ Chart Version Updater
 
 Looks up the latest upstream version of every chart listed in config/versions.json,
 then rewrites config/versions.json and the version table in README.md. Chart.yaml
-files are never modified — upgrading a chart stays a manual edit.
+files are never modified; scripts/update_charts.sh applies the recorded versions.
 """
 
 import argparse
@@ -127,6 +127,12 @@ def get_chart_version(chart: str, name: str) -> Tuple[str, str]:
 def get_oci_version(chart: str, name: str) -> Tuple[str, str]:
     """Get latest version of an OCI Helm chart.
 
+    The version is the registry tag that `helm show chart` pulled, not the
+    chart's own `version` field. Helm resolves an OCI dependency by tag, and a
+    publisher can tag a chart differently from its metadata: kro tags 0.10.0
+    for a chart whose version is v0.10.0, and a Chart.yaml pinned to v0.10.0
+    fails `helm dependency update`.
+
     Args:
         chart: OCI registry path
         name: Chart name
@@ -134,20 +140,37 @@ def get_oci_version(chart: str, name: str) -> Tuple[str, str]:
     Returns:
         Tuple of (version, app_version) or ("", "") if failed
     """
-    output = run_command(["helm", "show", "chart", f"oci://{chart}/{name}"])
+    reference = f"oci://{chart}/{name}"
+    try:
+        result = subprocess.run(
+            ["helm", "show", "chart", reference],
+            capture_output=True, text=True, check=True, timeout=30
+        )
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Command failed: helm show chart {reference}")
+        logger.error(f"Error: {e.stderr if e.stderr else str(e)}")
+        logger.warning(f"Failed to show OCI chart {reference}")
+        return "", ""
+    except subprocess.TimeoutExpired:
+        logger.error(f"Command timed out: helm show chart {reference}")
+        return "", ""
 
-    if not output:
-        logger.warning(f"Failed to show OCI chart oci://{chart}/{name}")
+    # Helm reports the resolved reference as "Pulled: <registry>/<name>:<tag>"
+    # and writes "+" in a SemVer build suffix as "_" in the tag.
+    tag = ""
+    for line in result.stderr.splitlines():
+        if line.startswith("Pulled: "):
+            tag = line.rsplit(":", 1)[-1].strip().replace("_", "+")
+    if not tag:
+        logger.error(f"helm show chart {reference} did not report the pulled tag")
         return "", ""
 
     try:
-        docs = yaml.safe_load(output)
-        version = docs.get("version", "")
-        app_version = docs.get("appVersion", "")
-        return version, app_version
+        docs = yaml.safe_load(result.stdout) or {}
     except yaml.YAMLError as e:
         logger.error(f"Failed to parse YAML: {e}")
         return "", ""
+    return tag, docs.get("appVersion", "")
 
 
 def get_latest_version(chart: str, name: str, chart_type: str = "https") -> Tuple[str, str]:
@@ -285,11 +308,13 @@ def update_version_in_readme(version_content: str, file_path: str = "README.md",
         return False
 
 
-def get_local_version(chart_path: str) -> Tuple[str, str]:
+def get_local_version(chart_path: str, dependency: str = "") -> Tuple[str, str]:
     """Get version from local Chart.yaml file.
 
     Args:
         chart_path: Path to Chart.yaml
+        dependency: Dependency name whose pinned version to read instead of the
+            wrapper version
 
     Returns:
         Tuple of (version, app_version)
@@ -300,13 +325,25 @@ def get_local_version(chart_path: str) -> Tuple[str, str]:
     try:
         with open(chart_path, "r") as f:
             chart_doc = yaml.safe_load(f)
-
-        version = chart_doc.get("version", "")
-        app_version = chart_doc.get("appVersion", "")
-        return version, app_version
     except (IOError, yaml.YAMLError) as e:
         logger.warning(f"Failed to read local chart {chart_path}: {e}")
         return "", ""
+
+    if dependency:
+        for item in chart_doc.get("dependencies") or []:
+            if item.get("name") == dependency:
+                return str(item.get("version", "")), ""
+        logger.warning(f"No {dependency} dependency in {chart_path}")
+        return "", ""
+
+    return chart_doc.get("version", ""), chart_doc.get("appVersion", "")
+
+
+def upstream_name(key: str, chart_info: Dict[str, Any]) -> str:
+    """Upstream chart name: the key for OCI entries, else the last chart path part."""
+    if chart_info.get("type") == "oci":
+        return key
+    return chart_info.get("chart", "").split("/")[-1]
 
 
 def process_chart(
@@ -332,8 +369,10 @@ def process_chart(
     path = chart_info.get("path", key)
     chart_yaml_path = os.path.join(CHARTS_DIR, path, "Chart.yaml")
 
-    # Get current version
-    old_ver, old_app = get_local_version(chart_yaml_path)
+    # Get current version. An entry with "wrapper": false tracks one dependency
+    # of a chart whose wrapper version follows another entry (aws-controllers).
+    dependency = "" if chart_info.get("wrapper", True) else upstream_name(key, chart_info)
+    old_ver, old_app = get_local_version(chart_yaml_path, dependency)
 
     if not old_ver:
         old_ver = chart_info.get("current", "")
