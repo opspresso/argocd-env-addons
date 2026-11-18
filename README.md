@@ -476,7 +476,7 @@ OCI 항목의 최신 버전은 chart 메타데이터의 `version`이 아니라 H
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.4 | 10.7.4 (7.15.6) |
 | prometheus-adapter | ✅ | 5.4.2 | 5.4.2 (v0.12.0) |
-| prometheus-stack | ✅ | 93.3.1 | 93.3.1 (v0.95.2) |
+| prometheus-stack |  | 93.3.1 | 93.4.0 (v0.95.2) |
 | aws-controllers (rds-chart) | ✅ | 1.15.1 | 1.15.1 (1.15.1) |
 | aws-controllers (s3-chart) | ✅ | 1.16.0 | 1.16.0 (1.16.0) |
 | vllm-stack |  |  | 0.1.14 |
