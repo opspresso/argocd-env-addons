@@ -51,6 +51,8 @@ raw:
               - "^addon-[a-z0-9-]+$"
               - "^agent-(studio|models|memory|knowledge|forge|mcps|runway)$"
               - "^delivery-pool$"
+              # The AgentOps console reads its session, sign-in client and database credentials (argocd-env-apps charts/agentops).
+              - "^agentops$"
               # The app-delivery workflow reads its GitHub token (argocd-env-projects charts/delivery).
               - "^app-delivery$"
               # rovr reads its GitHub App, model and database credentials (argocd-env-apps charts/rovr).
