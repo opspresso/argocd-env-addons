@@ -58,12 +58,15 @@ nexus:
 
   terminationGracePeriodSeconds: 120
 
+  # Agent Runway publishes Release images here; a large build's image is about
+  # 1GB. gp3 allows volume expansion: raising the size grows the volume in
+  # place. A PVC cannot shrink.
   persistence:
     enabled: true
     storageClassName: gp3
     accessModes:
       - ReadWriteOnce
-    size: 50Gi
+    size: 200Gi
     mountPath: /nexus-data
 
   # Nexus trusts the user header that the gateway sets after oauth2-proxy
