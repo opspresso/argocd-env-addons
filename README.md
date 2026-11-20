@@ -454,18 +454,18 @@ OCI 항목의 최신 버전은 chart 메타데이터의 `version`이 아니라 H
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy | ✅ | 1.16.0 | 1.16.0 (v1.22.0) |
-| argo-cd |  | 10.18.0 | 10.18.1 (v3.6.1) |
+| argo-cd |  | 10.18.0 | 10.18.2 (v3.6.2) |
 | argo-rollouts | ✅ | 2.43.12 | 2.43.12 (v1.10.2) |
 | argo-workflows | ✅ | 2.0.18 | 2.0.18 (v4.1.6) |
 | atlantis | ✅ | 7.4.0 | 7.4.0 (v0.49.0) |
 | aws-controllers (dynamodb-chart) | ✅ | 1.16.0 | 1.16.0 (1.16.0) |
-| external-dns | ✅ | 1.23.0 | 1.23.0 (0.23.0) |
+| external-dns |  | 1.23.0 | 1.24.0 (0.24.0) |
 | external-secrets | ✅ | 2.15.0 | 2.15.0 (v2.15.0) |
 | gateway-api-crds | ✅ | 1.6.3 | 1.6.3 (v1.6.3) |
 | arc-runners (gha-runner-scale-set) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | arc-controller (gha-runner-scale-set-controller) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | gitea | ✅ | 12.7.0 | 12.7.0 (1.27.0) |
-| gitlab | ✅ | 10.5.7 | 10.5.7 (v19.5.6) |
+| gitlab |  | 10.5.7 | 10.6.0 (v19.6.0) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio (istiod) | ✅ | 1.32.0 | 1.32.0 (1.32.0) |
 | jenkins | ✅ | 5.13.3 | 5.13.3 (2.580.2) |

@@ -7,10 +7,10 @@
       "version": "1.16.0"
     },
     "argo-cd": {
-      "app_version": "v3.6.1",
+      "app_version": "v3.6.2",
       "chart": "argo/argo-cd",
       "current": "10.18.0",
-      "version": "10.18.1"
+      "version": "10.18.2"
     },
     "argo-rollouts": {
       "app_version": "v1.10.2",
@@ -40,10 +40,10 @@
       "wrapper": false
     },
     "external-dns": {
-      "app_version": "0.23.0",
+      "app_version": "0.24.0",
       "chart": "external-dns/external-dns",
       "current": "1.23.0",
-      "version": "1.23.0"
+      "version": "1.24.0"
     },
     "external-secrets": {
       "app_version": "v2.15.0",
@@ -80,10 +80,10 @@
       "version": "12.7.0"
     },
     "gitlab": {
-      "app_version": "v19.5.6",
+      "app_version": "v19.6.0",
       "chart": "gitlab/gitlab",
       "current": "10.5.7",
-      "version": "10.5.7"
+      "version": "10.6.0"
     },
     "grafana": {
       "app_version": "12.3.1",
