@@ -80,10 +80,10 @@
       "version": "12.7.0"
     },
     "gitlab": {
-      "app_version": "v19.6.0",
+      "app_version": "v19.6.1",
       "chart": "gitlab/gitlab",
       "current": "10.5.7",
-      "version": "10.6.0"
+      "version": "10.6.1"
     },
     "grafana": {
       "app_version": "12.3.1",
@@ -151,7 +151,7 @@
       "app_version": "v0.95.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "93.3.1",
-      "version": "93.4.1"
+      "version": "93.6.0"
     },
     "rds-chart": {
       "app_version": "1.15.1",
