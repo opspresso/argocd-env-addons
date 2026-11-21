@@ -165,12 +165,16 @@ raw:
                       "@type": type.googleapis.com/envoy.extensions.request_id.uuid.v3.UuidRequestIdConfig
                       pack_trace_reason: false
 
-    # Envoy answers with a bare "no healthy upstream" (and similar) when a
-    # backend is down or being redeployed. local_reply_config rewrites only
-    # replies the gateway generates itself, so a 5xx from an application keeps
-    # its own body. Browsers get this page; API and gRPC clients, which do not
-    # send Accept: text/html, keep the plain text. The page polls the URL and
-    # reloads itself once the gateway stops answering 502-504.
+    # The gateway answers with a bare "no healthy upstream" (502-504) when a
+    # backend is down or being redeployed, and with an empty 404 when no route
+    # matches the host. local_reply_config rewrites only replies the gateway
+    # generates itself, so an application's own 404 or 5xx keeps its body.
+    # Browsers get unavailable-page.html; API and gRPC clients, which do not
+    # send Accept: text/html, keep the plain reply. The page reads the status:
+    # on 502-504 it polls the URL and reloads once the service answers, on 404
+    # it explains that no service exists at the address and does not poll.
+    # Other gateway replies keep their bodies: an ext_authz deny carries
+    # oauth2-proxy's response, and an RBAC deny is meant for bots.
     - apiVersion: networking.istio.io/v1alpha3
       kind: EnvoyFilter
       metadata:
@@ -195,6 +199,7 @@ raw:
                   "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
                   local_reply_config:
                     mappers:
+                      # 502-504: the service exists but cannot answer now.
                       - filter:
                           and_filter:
                             filters:
@@ -239,8 +244,6 @@ raw:
                               <meta name="theme-color" content="#03050b">
                               <noscript><meta http-equiv="refresh" content="30"></noscript>
                               <title>Arriving shortly</title>
-                              <link rel="preconnect" href="https://fonts.googleapis.com">
-                              <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
                               <style>
                               :root {
                                 color-scheme: dark;
@@ -250,8 +253,9 @@ raw:
                                 --faint: rgba(214, 224, 243, 0.42);
                                 --rule: rgba(255, 255, 255, 0.24);
                                 --glass: rgba(255, 255, 255, 0.05);
-                                --display: "Noto Sans Display", "Helvetica Neue", Arial, sans-serif;
-                                --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Hiragino Sans", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif;
+                                /* System faces only: the page loads nothing from outside the gateway. */
+                                --display: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif;
+                                --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif;
                                 --gutter: clamp(20px, 5vw, 48px);
                               }
                               * { box-sizing: border-box; }
@@ -275,6 +279,14 @@ raw:
                                 user-select: none;
                                 -webkit-tap-highlight-color: transparent;
                               }
+                              /* Lost: a colder, emptier sky with no destination glow. */
+                              body[data-mode="lost"] {
+                                background:
+                                  radial-gradient(ellipse 80vw 60vh at 78vw 26vh, rgba(40, 70, 96, 0.18), transparent),
+                                  radial-gradient(ellipse 60vw 50vh at 12vw 88vh, rgba(52, 46, 92, 0.14), transparent),
+                                  var(--space);
+                                background-attachment: fixed;
+                              }
                               canvas {
                                 position: fixed;
                                 inset: 0;
@@ -288,6 +300,18 @@ raw:
                                 opacity: 0;
                                 pointer-events: none;
                               }
+                              .drifter {
+                                position: fixed;
+                                left: 0;
+                                top: 0;
+                                width: 96px;
+                                height: 96px;
+                                display: none;
+                                pointer-events: none;
+                                will-change: transform;
+                                filter: drop-shadow(0 0 14px rgba(150, 180, 230, 0.18));
+                              }
+                              body[data-mode="lost"] .drifter { display: block; }
                               main, footer { position: relative; }
                               main {
                                 display: grid;
@@ -335,6 +359,12 @@ raw:
                                 gap: 16px;
                                 margin-top: 36px;
                               }
+                              .actions {
+                                display: flex;
+                                flex-wrap: wrap;
+                                justify-content: center;
+                                gap: 12px;
+                              }
                               .status {
                                 margin: 0;
                                 font-size: 0.9375rem;
@@ -358,6 +388,9 @@ raw:
                               }
                               .retry:hover:not(:disabled) { background: var(--ink); color: var(--space); border-color: var(--ink); }
                               .retry:disabled { opacity: 0.35; cursor: default; }
+                              .retry.quiet { background: transparent; border-color: transparent; color: var(--muted); }
+                              .retry.quiet:hover:not(:disabled) { background: var(--glass); color: var(--ink); border-color: var(--rule); }
+                              [hidden] { display: none !important; }
                               :focus-visible { outline: 1.5px solid var(--ink); outline-offset: 4px; }
                               .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
@@ -402,18 +435,48 @@ raw:
                               }
                               @media (max-width: 560px) {
                                 footer { flex-direction: column; align-items: flex-start; }
+                                .drifter { width: 60px; height: 60px; }
                               }
                               </style>
                               </head>
-                              <body data-state="travel">
+                              <body data-state="travel" data-mode="travel">
                               <canvas id="space" aria-hidden="true"></canvas>
+                              <svg class="drifter" id="drifter" viewBox="-42 -42 84 84" aria-hidden="true">
+                                <defs>
+                                  <linearGradient id="visor" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#7f9cd6"/>
+                                    <stop offset="0.45" stop-color="#1b2748"/>
+                                    <stop offset="1" stop-color="#070b18"/>
+                                  </linearGradient>
+                                  <linearGradient id="suit" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#f1f4fa"/>
+                                    <stop offset="1" stop-color="#a9b4c8"/>
+                                  </linearGradient>
+                                </defs>
+                                <!-- The tether has snapped; its loose end trails behind. -->
+                                <path d="M-12 6 C-20 14 -24 2 -31 9 S -38 22 -41 17" fill="none" stroke="#8d98ae" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="0.1 3.2"/>
+                                <rect x="-14" y="-6" width="9" height="19" rx="2.5" fill="#7d889e"/>
+                                <path d="M-4 3 L-13 12" stroke="url(#suit)" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M8 2 L17 -5" stroke="url(#suit)" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M-1 16 L-5 28" stroke="url(#suit)" stroke-width="6.5" stroke-linecap="round"/>
+                                <path d="M6 16 L11 27" stroke="url(#suit)" stroke-width="6.5" stroke-linecap="round"/>
+                                <rect x="-7" y="-4" width="17" height="22" rx="7" fill="url(#suit)"/>
+                                <rect x="-2" y="3" width="7" height="5" rx="1.2" fill="#8a95ab"/>
+                                <circle cx="1.5" cy="-13" r="11" fill="url(#suit)"/>
+                                <ellipse cx="4.5" cy="-13" rx="7" ry="5.4" fill="url(#visor)"/>
+                                <ellipse cx="2.2" cy="-15.2" rx="2.2" ry="1.2" fill="#ffffff" opacity="0.55"/>
+                                <circle id="beacon" cx="-10" cy="-8" r="1.8" fill="#ff6b6b"/>
+                              </svg>
                               <div class="flash" id="flash"></div>
                               <main>
                                 <div class="copy">
                                   <h1><span id="title">Arriving shortly</span></h1>
-                                  <p class="lead" data-i18n="body">This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.</p>
+                                  <p class="lead" id="lead">This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.</p>
                                   <div class="controls">
-                                    <button type="button" class="retry" id="retry" data-i18n="retry">Check now</button>
+                                    <div class="actions">
+                                      <button type="button" class="retry" id="retry">Check now</button>
+                                      <button type="button" class="retry quiet" id="back" hidden>Go back</button>
+                                    </div>
                                     <p class="status" id="status" aria-hidden="true"></p>
                                   </div>
                                   <p class="sr" id="live" aria-live="polite"></p>
@@ -448,28 +511,20 @@ raw:
                                 const $ = (id) => document.getElementById(id);
                                 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 
+                                // travel: the gateway could not reach the service (502-504). The ship is
+                                // in a light-speed jump and the page polls until the service answers.
+                                // lost: no route matches the host (404). Waiting does not fix an address,
+                                // so the page drifts and only checks again when asked.
+                                const MODE = code === "404" ? "lost" : "travel";
+
                                 const I18N = {
-                                  ko: { name: "한국어", titles: ["곧 도착합니다", "광속으로 이동 중입니다", "목적지 좌표를 확인하고 있습니다", "항로를 다시 계산하고 있습니다", "별 사이를 지나는 중입니다", "도킹 허가를 기다리고 있습니다", "조금만 더 가면 됩니다", "엔진을 최대 출력으로 유지하고 있습니다"], body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
-                                  en: { name: "English", titles: ["Arriving shortly", "Traveling at light speed", "Confirming the destination", "Recalculating the route", "Passing between the stars", "Waiting for docking clearance", "Almost there", "Engines at full power"], body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" },
-                                  ja: { name: "日本語", titles: ["まもなく到着します", "光速で移動中です", "目的地の座標を確認しています", "航路を再計算しています", "星々のあいだを通過中です", "ドッキング許可を待っています", "もう少しで到着です", "エンジンを最大出力で維持しています"], body: "このサービスは現在応答していません。メンテナンスまたは更新中の可能性があります。このページを開いたままにしておくと、準備が整いしだい自動的に移動します。", recovered: "到着しました。ページを開きます。", offline: "オフラインです。接続が戻ると確認を再開します。", retry: "今すぐ確認", details: "技術情報", code: "エラーコード", request: "リクエスト ID", copy: "コピー", copied: "コピーしました", lang: "言語" },
-                                  "zh-Hans": { name: "简体中文", titles: ["即将抵达", "正在以光速前进", "正在确认目的地坐标", "正在重新计算航线", "正在穿越星海", "正在等待对接许可", "马上就到", "引擎保持全速运转"], body: "该服务暂时没有响应，可能正在维护或更新。保持此页面打开，服务就绪后将自动前往。", recovered: "已抵达，正在打开页面。", offline: "网络已断开。恢复连接后将继续检查。", retry: "立即检查", details: "技术信息", code: "错误代码", request: "请求 ID", copy: "复制", copied: "已复制", lang: "语言" },
-                                  "zh-Hant": { name: "繁體中文", titles: ["即將抵達", "正在以光速前進", "正在確認目的地座標", "正在重新計算航線", "正在穿越星海", "正在等待對接許可", "馬上就到", "引擎保持全速運轉"], body: "此服務暫時沒有回應，可能正在維護或更新。保持此頁面開啟，服務就緒後將自動前往。", recovered: "已抵達，正在開啟頁面。", offline: "網路已中斷。恢復連線後將繼續檢查。", retry: "立即檢查", details: "技術資訊", code: "錯誤代碼", request: "請求 ID", copy: "複製", copied: "已複製", lang: "語言" },
-                                  es: { name: "Español", titles: ["Llegamos en breve", "Viajando a la velocidad de la luz", "Confirmando el destino", "Recalculando la ruta", "Cruzando entre las estrellas", "Esperando permiso de atraque", "Ya casi llegamos", "Motores a plena potencia"], body: "Este servicio no responde en este momento. Puede estar en mantenimiento o actualizándose. Deja esta página abierta y te llevará allí en cuanto el servicio esté listo.", recovered: "Hemos llegado. Abriendo la página.", offline: "Sin conexión. La comprobación se reanudará al reconectar.", retry: "Comprobar ahora", details: "Detalles técnicos", code: "Código de error", request: "ID de solicitud", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
-                                  fr: { name: "Français", titles: ["Arrivée imminente", "En route à la vitesse de la lumière", "Confirmation de la destination", "Recalcul de la trajectoire", "Entre les étoiles", "En attente d’autorisation d’amarrage", "Nous y sommes presque", "Moteurs à pleine puissance"], body: "Ce service ne répond pas pour le moment. Il est peut-être en maintenance ou en cours de mise à jour. Gardez cette page ouverte : elle vous y conduira dès que le service sera prêt.", recovered: "Arrivé. Ouverture de la page.", offline: "Vous êtes hors ligne. La vérification reprendra à la reconnexion.", retry: "Vérifier maintenant", details: "Détails techniques", code: "Code d’erreur", request: "ID de requête", copy: "Copier", copied: "Copié", lang: "Langue" },
-                                  de: { name: "Deutsch", titles: ["Gleich am Ziel", "Unterwegs mit Lichtgeschwindigkeit", "Ziel wird bestätigt", "Route wird neu berechnet", "Zwischen den Sternen unterwegs", "Warten auf Andockfreigabe", "Fast geschafft", "Triebwerke auf voller Leistung"], body: "Dieser Dienst antwortet gerade nicht. Möglicherweise wird er gewartet oder aktualisiert. Lassen Sie diese Seite geöffnet. Sie bringt Sie hin, sobald der Dienst bereit ist.", recovered: "Angekommen. Seite wird geöffnet.", offline: "Sie sind offline. Die Prüfung läuft weiter, sobald die Verbindung zurück ist.", retry: "Jetzt prüfen", details: "Technische Details", code: "Fehlercode", request: "Anfrage-ID", copy: "Kopieren", copied: "Kopiert", lang: "Sprache" },
-                                  pt: { name: "Português", titles: ["Chegando em instantes", "Viajando à velocidade da luz", "Confirmando o destino", "Recalculando a rota", "Passando entre as estrelas", "Aguardando autorização de acoplagem", "Quase lá", "Motores em potência máxima"], body: "Este serviço não está respondendo agora. Ele pode estar em manutenção ou sendo atualizado. Deixe esta página aberta e ela levará você até lá assim que o serviço estiver pronto.", recovered: "Chegamos. Abrindo a página.", offline: "Você está offline. A verificação continua quando a conexão voltar.", retry: "Verificar agora", details: "Detalhes técnicos", code: "Código de erro", request: "ID da solicitação", copy: "Copiar", copied: "Copiado", lang: "Idioma" },
-                                  vi: { name: "Tiếng Việt", titles: ["Sắp đến nơi", "Đang di chuyển với tốc độ ánh sáng", "Đang xác nhận điểm đến", "Đang tính lại lộ trình", "Đang băng qua các vì sao", "Đang chờ cấp phép cập bến", "Sắp tới rồi", "Động cơ đang chạy hết công suất"], body: "Dịch vụ này hiện không phản hồi. Có thể dịch vụ đang được bảo trì hoặc cập nhật. Hãy giữ trang này mở, trang sẽ tự đưa bạn đến ngay khi dịch vụ sẵn sàng.", recovered: "Đã đến nơi. Đang mở trang.", offline: "Bạn đang ngoại tuyến. Việc kiểm tra sẽ tiếp tục khi có kết nối.", retry: "Kiểm tra ngay", details: "Thông tin kỹ thuật", code: "Mã lỗi", request: "Mã yêu cầu", copy: "Sao chép", copied: "Đã sao chép", lang: "Ngôn ngữ" }
+                                  ko: { name: "한국어", titles: ["곧 도착합니다", "광속으로 이동 중입니다", "목적지 좌표를 확인하고 있습니다", "항로를 다시 계산하고 있습니다", "별 사이를 지나는 중입니다", "도킹 허가를 기다리고 있습니다", "조금만 더 가면 됩니다", "엔진을 최대 출력으로 유지하고 있습니다"], body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", lostTitles: ["우주 미아가 되었습니다", "이 좌표에는 아무것도 없습니다", "지도에 없는 곳입니다", "항로를 벗어났습니다", "구조 신호를 보내고 있습니다", "신호가 닿지 않는 곳입니다"], lostBody: "이 주소에 연결된 서비스를 찾지 못했습니다. 주소가 정확한지 확인해 주세요. 서비스가 옮겨졌거나 삭제되었을 수 있습니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", reload: "다시 시도", back: "돌아가기", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
+                                  en: { name: "English", titles: ["Arriving shortly", "Traveling at light speed", "Confirming the destination", "Recalculating the route", "Passing between the stars", "Waiting for docking clearance", "Almost there", "Engines at full power"], body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", lostTitles: ["Lost in space", "Nothing at these coordinates", "Off the map", "Drifted off course", "Sending a distress signal", "Out of signal range"], lostBody: "There's no service at this address. Check that the address is correct. The service may have moved or been removed.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", reload: "Try again", back: "Go back", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" }
                                 };
-                                // One display face per script; only the family for the shown language loads.
-                                const DISPLAY = { ko: "Noto Sans KR", ja: "Noto Sans JP", "zh-Hans": "Noto Sans SC", "zh-Hant": "Noto Sans TC" };
-                                const DISPLAY_FALLBACK = "\"Helvetica Neue\", \"Apple SD Gothic Neo\", \"Hiragino Sans\", \"PingFang SC\", Arial, sans-serif";
                                 const LANG_KEY = "unavailable-page.lang";
-                                const loadedFonts = new Set();
 
                                 function match(tag) {
-                                  tag = String(tag || "").toLowerCase();
-                                  if (tag.startsWith("zh")) return /hant|tw|hk|mo/.test(tag) ? "zh-Hant" : "zh-Hans";
-                                  const base = tag.split("-")[0];
+                                  const base = String(tag || "").toLowerCase().split("-")[0];
                                   return I18N[base] ? base : null;
                                 }
                                 function pickLang() {
@@ -483,17 +538,7 @@ raw:
                                   }
                                   return "en";
                                 }
-                                function useDisplay(lang) {
-                                  const family = DISPLAY[lang] || "Noto Sans Display";
-                                  if (!loadedFonts.has(family)) {
-                                    loadedFonts.add(family);
-                                    const link = document.createElement("link");
-                                    link.rel = "stylesheet";
-                                    link.href = "https://fonts.googleapis.com/css2?family=" + family.replace(/ /g, "+") + ":wght@300&display=swap";
-                                    document.head.appendChild(link);
-                                  }
-                                  root.style.setProperty("--display", "\"" + family + "\", " + DISPLAY_FALLBACK);
-                                }
+                                const wrap = (v, size) => v - Math.floor(v / size) * size;
 
                                 // Space ---------------------------------------------------------------
                                 // Stars live in a unit cube in front of the viewer and are projected
@@ -502,17 +547,21 @@ raw:
                                 // points into streaks.
                                 const canvas = $("space");
                                 const ctx = canvas.getContext("2d");
-                                // The page opens at cruise, then jumps to light speed and stays there
+                                // Travel opens at cruise, then jumps to light speed and stays there
                                 // until the service answers; arrival drops out of light speed.
+                                // Lost barely moves forward and slides sideways instead, so near stars
+                                // pass faster than far ones.
                                 const CRUISE = 0.07;
                                 const WARP = 2.4;
                                 const SURGE = 3.8;
+                                const ADRIFT = 0.012;
+                                const SLIDE = { x: 0.004, y: -0.0012 };
                                 const LAUNCH_MS = 1800;
                                 let w = 0, h = 0, focal = 0, stars = [];
                                 let field = null;
-                                let speed = CRUISE;
-                                let target = CRUISE;
+                                let speed = MODE === "lost" ? ADRIFT : CRUISE;
                                 const view = { x: 0, y: 0, roll: 0, tx: 0, ty: 0, troll: 0 };
+                                const slid = { x: 0, y: 0 };
 
                                 function spawn(s, far) {
                                   s.x = Math.random() * 2 - 1;
@@ -532,7 +581,9 @@ raw:
                                   canvas.style.height = h + "px";
                                   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
                                   focal = Math.max(w, h) * 0.55;
-                                  const count = Math.round(Math.min(1500, Math.max(400, w * h / 1100)));
+                                  // Adrift the sky is emptier: about half the stars.
+                                  const density = MODE === "lost" ? 0.5 : 1;
+                                  const count = Math.round(Math.min(1500, Math.max(400, w * h / 1100)) * density);
                                   stars = Array.from({ length: count }, () => spawn({}, false));
                                   // Distant stars that never come closer: depth behind the moving field.
                                   field = document.createElement("canvas");
@@ -548,7 +599,25 @@ raw:
                                     fctx.arc(Math.random() * w, Math.random() * h, 0.3 + r * r * 0.9, 0, Math.PI * 2);
                                     fctx.fill();
                                   }
+                                  drifterSize = parseFloat(getComputedStyle(drifter).width) || 96;
                                   if (reduce.matches) draw(0);
+                                }
+                                function drawField() {
+                                  if (MODE !== "lost") {
+                                    ctx.drawImage(field, view.x * 0.15, view.y * 0.15, w, h);
+                                    return;
+                                  }
+                                  // The far field slides slowly and repeats. The view is rolled, so the
+                                  // tiles also cover the band a tilted screen corner reaches past each edge.
+                                  const reach = Math.abs(view.roll) * Math.max(w, h) + 2;
+                                  const ox = wrap(view.x * 0.15 + slid.x * 120, w) - w;
+                                  const oy = wrap(view.y * 0.15 + slid.y * 120, h) - h;
+                                  for (let tx = ox - w; tx < w + reach; tx += w) {
+                                    if (tx + w <= -reach) continue;
+                                    for (let ty = oy - h; ty < h + reach; ty += h) {
+                                      if (ty + h > -reach) ctx.drawImage(field, tx, ty, w, h);
+                                    }
+                                  }
                                 }
                                 function draw(dt) {
                                   ctx.clearRect(0, 0, w, h);
@@ -561,7 +630,7 @@ raw:
                                   const cy = h / 2 + view.y;
                                   // The far field fades as the jump starts, and drifts a little with the view.
                                   ctx.globalAlpha = Math.max(0, 1 - speed / 2.5);
-                                  ctx.drawImage(field, view.x * 0.15, view.y * 0.15, w, h);
+                                  drawField();
                                   // Trail length grows with the square of speed: points at cruise, streaks in a jump.
                                   const stretch = Math.min(0.5, speed * speed * 0.035);
                                   // In a jump the streaks clear the middle of the screen so the text stays legible.
@@ -570,14 +639,30 @@ raw:
                                   // Light ahead blue-shifts as the ship approaches light speed.
                                   const cool = "rgb(" + Math.round(255 - 95 * blue) + "," + Math.round(255 - 50 * blue) + ",255)";
                                   const warm = "rgb(255," + Math.round(214 - 40 * blue) + "," + Math.round(170 + 60 * blue) + ")";
+                                  const lost = MODE === "lost";
+                                  // A rolled view shows canvas points beyond the edges near the corners.
+                                  const margin = 60 + Math.abs(view.roll) * Math.max(w, h);
                                   ctx.lineCap = "round";
                                   for (const s of stars) {
                                     s.z -= speed * dt;
+                                    if (lost) {
+                                      s.x += SLIDE.x * dt;
+                                      s.y += SLIDE.y * dt;
+                                    }
                                     if (s.z <= 0.02) { spawn(s, true); continue; }
                                     const k = focal / s.z;
-                                    const x = cx + s.x * k;
-                                    const y = cy + s.y * k;
-                                    if (x < -60 || x > w + 60 || y < -60 || y > h + 60) { spawn(s, true); continue; }
+                                    let x = cx + s.x * k;
+                                    let y = cy + s.y * k;
+                                    if (x < -margin || x > w + margin || y < -margin || y > h + margin) {
+                                      if (!lost) { spawn(s, true); continue; }
+                                      // Adrift, a star leaving one edge comes back at the same depth on the other.
+                                      const spanX = (w + margin * 2) / k;
+                                      const spanY = (h + margin * 2) / k;
+                                      s.x = wrap(s.x + (cx + margin) / k, spanX) - (cx + margin) / k;
+                                      s.y = wrap(s.y + (cy + margin) / k, spanY) - (cy + margin) / k;
+                                      x = cx + s.x * k;
+                                      y = cy + s.y * k;
+                                    }
                                     const tz = Math.min(1.2, s.z + stretch + 0.0015);
                                     const kt = focal / tz;
                                     const near = 1 - s.z;
@@ -587,6 +672,14 @@ raw:
                                       if (d < 1) alpha *= d * d;
                                     }
                                     ctx.globalAlpha = alpha;
+                                    if (lost) {
+                                      // Adrift, stars stay round points; nearer ones are larger.
+                                      ctx.fillStyle = s.warm ? warm : cool;
+                                      ctx.beginPath();
+                                      ctx.arc(x, y, s.size * (0.3 + near * 0.9), 0, Math.PI * 2);
+                                      ctx.fill();
+                                      continue;
+                                    }
                                     ctx.strokeStyle = s.warm ? warm : cool;
                                     ctx.lineWidth = s.size * (0.4 + near * 1.8);
                                     ctx.beginPath();
@@ -607,6 +700,28 @@ raw:
                                   }
                                   ctx.restore();
                                 }
+
+                                // The drifter ----------------------------------------------------------
+                                // Lost only: an astronaut with a snapped tether tumbles slowly across the
+                                // sky, and the suit's distress light blinks.
+                                const drifter = $("drifter");
+                                const beacon = $("beacon");
+                                const CROSSING_S = 95;
+                                const TUMBLE_S = 38;
+                                // Layout size, not the rotated bounding box, so the tumble does not shift it.
+                                let drifterSize = 96;
+                                function placeDrifter(now) {
+                                  const size = drifterSize;
+                                  // It crosses the upper band, above the text, rising slowly to the right.
+                                  const t = reduce.matches ? 0.8 : wrap(now / 1000 / CROSSING_S + 0.72, 1);
+                                  const x = -size + t * (w + size * 2) + view.x * 0.35;
+                                  const y = h * (0.24 - t * 0.1) + Math.sin(t * Math.PI * 3) * h * 0.03 + view.y * 0.35;
+                                  const turn = reduce.matches ? -24 : now / 1000 / TUMBLE_S * 360;
+                                  drifter.style.transform = "translate(" + (x - size / 2).toFixed(1) + "px," + (y - size / 2).toFixed(1) + "px) rotate(" + turn.toFixed(2) + "deg)";
+                                  const pulse = wrap(now / 1000, 1.8);
+                                  beacon.style.opacity = reduce.matches || pulse < 0.18 ? "1" : pulse < 0.4 ? "0.35" : "0.08";
+                                }
+
                                 const launchAt = performance.now() + (reduce.matches ? 0 : LAUNCH_MS);
                                 let surgeUntil = 0;
                                 let arriving = false;
@@ -615,17 +730,25 @@ raw:
                                   const dt = Math.min(0.05, (now - last) / 1000);
                                   last = now;
                                   if (!reduce.matches) {
-                                    const target = state === "recovered" ? 0 : now < launchAt ? CRUISE : now < surgeUntil ? SURGE : WARP;
+                                    const target = MODE === "lost" ? ADRIFT
+                                      : state === "recovered" ? 0 : now < launchAt ? CRUISE : now < surgeUntil ? SURGE : WARP;
                                     // Accelerate briskly, come out of light speed a little slower.
                                     const rate = target > speed ? 1.5 : 1.3;
                                     speed += (target - speed) * (1 - Math.exp(-dt * rate));
+                                    if (MODE === "lost") {
+                                      slid.x += SLIDE.x * dt;
+                                      slid.y += SLIDE.y * dt;
+                                    }
                                     const steer = 1 - Math.exp(-dt * 3);
+                                    // Adrift, the view keeps a slow, uncorrected sway.
+                                    const sway = MODE === "lost" ? Math.sin(now / 7000) * 0.07 : 0;
                                     view.x += (view.tx - view.x) * steer;
                                     view.y += (view.ty - view.y) * steer;
-                                    view.roll += (view.troll - view.roll) * steer;
+                                    view.roll += (view.troll + sway - view.roll) * steer;
                                     draw(dt);
                                     if (state === "recovered" && speed < 0.15) arrive();
                                   }
+                                  if (MODE === "lost") placeDrifter(now);
                                   requestAnimationFrame(frame);
                                 }
 
@@ -633,13 +756,15 @@ raw:
                                 addEventListener("pointermove", (e) => {
                                   const dx = e.clientX - w / 2;
                                   const dy = e.clientY - h / 2;
-                                  view.tx = dx * 0.55;
-                                  view.ty = dy * 0.55;
-                                  view.troll = dx / w * -0.35;
+                                  // Adrift there is little thrust left to steer with.
+                                  const grip = MODE === "lost" ? 0.2 : 1;
+                                  view.tx = dx * 0.55 * grip;
+                                  view.ty = dy * 0.55 * grip;
+                                  view.troll = dx / w * -0.35 * grip;
                                 });
                                 document.addEventListener("pointerleave", () => { view.tx = 0; view.ty = 0; view.troll = 0; });
 
-                                // Recovery polling ----------------------------------------------------
+                                // Recovery polling (travel only) --------------------------------------
                                 const DELAYS = [5, 10, 15, 20, 30];
                                 let lang = pickLang();
                                 let t = I18N[lang];
@@ -705,48 +830,58 @@ raw:
                                   attempt += 1;
                                   schedule();
                                 }
-                                setInterval(() => {
-                                  if (state === "recovered" || document.hidden || probing) return;
-                                  if (Date.now() >= deadline) check();
-                                }, 250);
-                                addEventListener("online", () => { if (state === "offline") { state = "travel"; render(); check(); } });
-                                addEventListener("offline", () => { if (state === "travel") { state = "offline"; render(); } });
+                                if (MODE === "travel") {
+                                  setInterval(() => {
+                                    if (state === "recovered" || document.hidden || probing) return;
+                                    if (Date.now() >= deadline) check();
+                                  }, 250);
+                                  addEventListener("online", () => { if (state === "offline") { state = "travel"; render(); check(); } });
+                                  addEventListener("offline", () => { if (state === "travel") { state = "offline"; render(); } });
+                                }
                                 $("retry").addEventListener("click", () => {
+                                  // Lost: the address may have been routed since; load it again.
+                                  if (MODE === "lost") { location.reload(); return; }
                                   // A manual check pushes the ship past light speed for a moment.
                                   surgeUntil = performance.now() + 1200;
                                   check();
                                 });
+                                // Going back only makes sense when this tab came from another page.
+                                $("back").hidden = !(MODE === "lost" && history.length > 1);
+                                $("back").addEventListener("click", () => history.back());
 
                                 // Headline ------------------------------------------------------------
                                 // The headline changes to another phrase from the shown language every
                                 // few seconds, never repeating the one on screen.
                                 const title = $("title");
+                                const titles = () => MODE === "lost" ? t.lostTitles : t.titles;
                                 let titleIndex = 0;
                                 function showTitle(index, animate) {
                                   titleIndex = index;
-                                  if (!animate || reduce.matches) { title.textContent = t.titles[index]; return; }
+                                  if (!animate || reduce.matches) { title.textContent = titles()[index]; return; }
                                   const out = title.animate([{ opacity: 1, filter: "blur(0)", transform: "none" }, { opacity: 0, filter: "blur(8px)", transform: "translateY(-10px)" }], { duration: 450, easing: "ease-in", fill: "forwards" });
                                   out.finished.then(() => {
-                                    title.textContent = t.titles[index];
+                                    title.textContent = titles()[index];
                                     title.animate([{ opacity: 0, filter: "blur(8px)", transform: "translateY(10px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 650, easing: "cubic-bezier(0.16, 0.8, 0.2, 1)", fill: "forwards" });
                                   });
                                 }
                                 setInterval(() => {
                                   if (document.hidden || state === "recovered") return;
-                                  let next = Math.floor(Math.random() * (t.titles.length - 1));
+                                  let next = Math.floor(Math.random() * (titles().length - 1));
                                   if (next >= titleIndex) next += 1;
                                   showTitle(next, true);
-                                }, 5500);
+                                }, MODE === "lost" ? 7000 : 5500);
 
                                 // Text ----------------------------------------------------------------
                                 function applyLang(next) {
                                   lang = next;
                                   t = I18N[lang];
                                   root.lang = lang;
-                                  document.title = t.titles[0];
+                                  document.title = titles()[0];
                                   showTitle(0, false);
-                                  useDisplay(lang);
                                   for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t[el.dataset.i18n];
+                                  $("lead").textContent = MODE === "lost" ? t.lostBody : t.body;
+                                  $("retry").textContent = MODE === "lost" ? t.reload : t.retry;
+                                  $("back").textContent = t.back;
                                   $("lang").value = lang;
                                   render();
                                 }
@@ -762,6 +897,7 @@ raw:
                                   applyLang(select.value);
                                 });
 
+                                document.body.dataset.mode = MODE;
                                 $("host").textContent = location.host;
                                 $("code").textContent = detail ? code + " (" + detail + ")" : code;
                                 if (requestId) $("request").textContent = requestId;
@@ -780,7 +916,723 @@ raw:
                                 reduce.addEventListener("change", resize);
                                 resize();
                                 applyLang(lang);
-                                schedule();
+                                if (MODE === "travel") schedule();
+                                if (MODE === "lost") placeDrifter(performance.now());
+                                requestAnimationFrame(frame);
+                              })();
+                              </script>
+                              </body>
+                              </html>
+                      # 404 with response flag NR: no route matches the host.
+                      - filter:
+                          and_filter:
+                            filters:
+                              - status_code_filter:
+                                  comparison:
+                                    op: EQ
+                                    value:
+                                      default_value: 404
+                                      runtime_key: unavailable_page.not_found
+                              - response_flag_filter:
+                                  flags:
+                                    - NR
+                              - header_filter:
+                                  header:
+                                    name: accept
+                                    string_match:
+                                      contains: text/html
+                        headers_to_add:
+                          - header:
+                              key: cache-control
+                              value: no-store
+                            append_action: OVERWRITE_IF_EXISTS_OR_ADD
+                        body_format_override:
+                          content_type: text/html; charset=UTF-8
+                          text_format_source:
+                            inline_string: |
+                              <!doctype html>
+                              <html lang="en" data-code="%RESPONSE_CODE%" data-detail="%RESPONSE_CODE_DETAILS%" data-request="%REQ(X-REQUEST-ID):64%">
+                              <head>
+                              <meta charset="utf-8">
+                              <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+                              <meta name="robots" content="noindex">
+                              <meta name="theme-color" content="#03050b">
+                              <noscript><meta http-equiv="refresh" content="30"></noscript>
+                              <title>Arriving shortly</title>
+                              <style>
+                              :root {
+                                color-scheme: dark;
+                                --space: #03050b;
+                                --ink: #eef2fa;
+                                --muted: rgba(214, 224, 243, 0.68);
+                                --faint: rgba(214, 224, 243, 0.42);
+                                --rule: rgba(255, 255, 255, 0.24);
+                                --glass: rgba(255, 255, 255, 0.05);
+                                /* System faces only: the page loads nothing from outside the gateway. */
+                                --display: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Apple SD Gothic Neo", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif;
+                                --sans: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Pretendard", "Noto Sans CJK KR", "Segoe UI", system-ui, sans-serif;
+                                --gutter: clamp(20px, 5vw, 48px);
+                              }
+                              * { box-sizing: border-box; }
+                              html, body { margin: 0; }
+                              body {
+                                min-height: 100vh;
+                                min-height: 100dvh;
+                                display: grid;
+                                grid-template-rows: 1fr auto;
+                                color: var(--ink);
+                                font-family: var(--sans);
+                                -webkit-font-smoothing: antialiased;
+                                background:
+                                  radial-gradient(ellipse 70vw 55vh at 18vw 22vh, rgba(58, 72, 170, 0.22), transparent),
+                                  radial-gradient(ellipse 60vw 50vh at 86vw 82vh, rgba(126, 52, 132, 0.16), transparent),
+                                  radial-gradient(ellipse 40vw 30vh at 70vw 18vh, rgba(30, 110, 150, 0.12), transparent),
+                                  var(--space);
+                                background-attachment: fixed;
+                                overflow-x: hidden;
+                                -webkit-user-select: none;
+                                user-select: none;
+                                -webkit-tap-highlight-color: transparent;
+                              }
+                              /* Lost: a colder, emptier sky with no destination glow. */
+                              body[data-mode="lost"] {
+                                background:
+                                  radial-gradient(ellipse 80vw 60vh at 78vw 26vh, rgba(40, 70, 96, 0.18), transparent),
+                                  radial-gradient(ellipse 60vw 50vh at 12vw 88vh, rgba(52, 46, 92, 0.14), transparent),
+                                  var(--space);
+                                background-attachment: fixed;
+                              }
+                              canvas {
+                                position: fixed;
+                                inset: 0;
+                                display: block;
+                                touch-action: none;
+                              }
+                              .flash {
+                                position: fixed;
+                                inset: 0;
+                                background: var(--space);
+                                opacity: 0;
+                                pointer-events: none;
+                              }
+                              .drifter {
+                                position: fixed;
+                                left: 0;
+                                top: 0;
+                                width: 96px;
+                                height: 96px;
+                                display: none;
+                                pointer-events: none;
+                                will-change: transform;
+                                filter: drop-shadow(0 0 14px rgba(150, 180, 230, 0.18));
+                              }
+                              body[data-mode="lost"] .drifter { display: block; }
+                              main, footer { position: relative; }
+                              main {
+                                display: grid;
+                                justify-items: center;
+                                align-content: center;
+                                padding: 64px var(--gutter) 32px;
+                                text-align: center;
+                                pointer-events: none;
+                              }
+                              main > * { pointer-events: auto; }
+                              .copy {
+                                max-width: 44rem;
+                                padding: 40px 24px;
+                                background: radial-gradient(ellipse closest-side, rgba(3, 5, 11, 0.72), transparent);
+                                animation: rise 1400ms 300ms cubic-bezier(0.16, 0.8, 0.2, 1) both;
+                              }
+                              h1 {
+                                margin: 0 0 20px;
+                                font-family: var(--display);
+                                font-weight: 300;
+                                font-size: clamp(2.125rem, 1.1rem + 3.4vw, 3.875rem);
+                                line-height: 1.08;
+                                /* Two lines are reserved so a longer phrase does not move the text below. */
+                                display: grid;
+                                align-content: end;
+                                min-height: 2.16em;
+                                letter-spacing: -0.025em;
+                                word-break: keep-all;
+                                overflow-wrap: anywhere;
+                                text-shadow: 0 0 40px rgba(140, 170, 255, 0.25);
+                              }
+                              .lead {
+                                margin: 0 auto;
+                                max-width: 30em;
+                                font-size: 1.0625rem;
+                                line-height: 1.75;
+                                color: var(--muted);
+                                word-break: keep-all;
+                                overflow-wrap: anywhere;
+                              }
+                              .controls {
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                                gap: 16px;
+                                margin-top: 36px;
+                              }
+                              .actions {
+                                display: flex;
+                                flex-wrap: wrap;
+                                justify-content: center;
+                                gap: 12px;
+                              }
+                              .status {
+                                margin: 0;
+                                font-size: 0.9375rem;
+                                font-variant-numeric: tabular-nums;
+                                color: var(--ink);
+                              }
+                              .status:empty { display: none; }
+                              .retry {
+                                font: inherit;
+                                font-size: 0.9375rem;
+                                font-weight: 500;
+                                color: var(--ink);
+                                background: var(--glass);
+                                border: 1px solid var(--rule);
+                                border-radius: 999px;
+                                padding: 11px 26px;
+                                cursor: pointer;
+                                -webkit-backdrop-filter: blur(10px);
+                                backdrop-filter: blur(10px);
+                                transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+                              }
+                              .retry:hover:not(:disabled) { background: var(--ink); color: var(--space); border-color: var(--ink); }
+                              .retry:disabled { opacity: 0.35; cursor: default; }
+                              .retry.quiet { background: transparent; border-color: transparent; color: var(--muted); }
+                              .retry.quiet:hover:not(:disabled) { background: var(--glass); color: var(--ink); border-color: var(--rule); }
+                              [hidden] { display: none !important; }
+                              :focus-visible { outline: 1.5px solid var(--ink); outline-offset: 4px; }
+                              .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+                              footer {
+                                display: flex;
+                                flex-wrap: wrap;
+                                justify-content: space-between;
+                                align-items: flex-end;
+                                gap: 12px 28px;
+                                padding: 16px var(--gutter) max(22px, env(safe-area-inset-bottom));
+                                font-size: 0.8125rem;
+                                color: var(--faint);
+                                animation: fade 1400ms 700ms ease both;
+                              }
+                              .host { color: var(--muted); letter-spacing: 0.02em; overflow-wrap: anywhere; }
+                              .tools { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 12px 28px; }
+                              summary { cursor: pointer; list-style: none; color: var(--muted); }
+                              summary::-webkit-details-marker { display: none; }
+                              summary::after { content: " +"; }
+                              details[open] summary::after { content: " \2212"; }
+                              dl {
+                                display: grid;
+                                grid-template-columns: auto 1fr auto;
+                                gap: 6px 14px;
+                                margin: 12px 0 0;
+                                max-width: 34rem;
+                                text-align: left;
+                                -webkit-user-select: text;
+                                user-select: text;
+                              }
+                              dt { white-space: nowrap; }
+                              dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+                              dd.wide { grid-column: span 2; }
+                              .link { font: inherit; color: var(--ink); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+                              select { font: inherit; color: var(--muted); background: transparent; border: 0; padding: 0; cursor: pointer; }
+                              option { color: #111; }
+
+                              @keyframes rise { from { opacity: 0; transform: translateY(18px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
+                              @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+                              @media (prefers-reduced-motion: reduce) {
+                                .copy, footer { animation: none; }
+                              }
+                              @media (max-width: 560px) {
+                                footer { flex-direction: column; align-items: flex-start; }
+                                .drifter { width: 60px; height: 60px; }
+                              }
+                              </style>
+                              </head>
+                              <body data-state="travel" data-mode="travel">
+                              <canvas id="space" aria-hidden="true"></canvas>
+                              <svg class="drifter" id="drifter" viewBox="-42 -42 84 84" aria-hidden="true">
+                                <defs>
+                                  <linearGradient id="visor" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#7f9cd6"/>
+                                    <stop offset="0.45" stop-color="#1b2748"/>
+                                    <stop offset="1" stop-color="#070b18"/>
+                                  </linearGradient>
+                                  <linearGradient id="suit" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#f1f4fa"/>
+                                    <stop offset="1" stop-color="#a9b4c8"/>
+                                  </linearGradient>
+                                </defs>
+                                <!-- The tether has snapped; its loose end trails behind. -->
+                                <path d="M-12 6 C-20 14 -24 2 -31 9 S -38 22 -41 17" fill="none" stroke="#8d98ae" stroke-width="1.4" stroke-linecap="round" stroke-dasharray="0.1 3.2"/>
+                                <rect x="-14" y="-6" width="9" height="19" rx="2.5" fill="#7d889e"/>
+                                <path d="M-4 3 L-13 12" stroke="url(#suit)" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M8 2 L17 -5" stroke="url(#suit)" stroke-width="6" stroke-linecap="round"/>
+                                <path d="M-1 16 L-5 28" stroke="url(#suit)" stroke-width="6.5" stroke-linecap="round"/>
+                                <path d="M6 16 L11 27" stroke="url(#suit)" stroke-width="6.5" stroke-linecap="round"/>
+                                <rect x="-7" y="-4" width="17" height="22" rx="7" fill="url(#suit)"/>
+                                <rect x="-2" y="3" width="7" height="5" rx="1.2" fill="#8a95ab"/>
+                                <circle cx="1.5" cy="-13" r="11" fill="url(#suit)"/>
+                                <ellipse cx="4.5" cy="-13" rx="7" ry="5.4" fill="url(#visor)"/>
+                                <ellipse cx="2.2" cy="-15.2" rx="2.2" ry="1.2" fill="#ffffff" opacity="0.55"/>
+                                <circle id="beacon" cx="-10" cy="-8" r="1.8" fill="#ff6b6b"/>
+                              </svg>
+                              <div class="flash" id="flash"></div>
+                              <main>
+                                <div class="copy">
+                                  <h1><span id="title">Arriving shortly</span></h1>
+                                  <p class="lead" id="lead">This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.</p>
+                                  <div class="controls">
+                                    <div class="actions">
+                                      <button type="button" class="retry" id="retry">Check now</button>
+                                      <button type="button" class="retry quiet" id="back" hidden>Go back</button>
+                                    </div>
+                                    <p class="status" id="status" aria-hidden="true"></p>
+                                  </div>
+                                  <p class="sr" id="live" aria-live="polite"></p>
+                                </div>
+                              </main>
+                              <footer>
+                                <span class="host" id="host"></span>
+                                <div class="tools">
+                                  <details>
+                                    <summary data-i18n="details">Technical details</summary>
+                                    <dl>
+                                      <dt data-i18n="code">Error code</dt><dd class="wide" id="code"></dd>
+                                      <dt data-i18n="request" class="request-row">Request ID</dt><dd id="request" class="request-row"></dd><button type="button" class="link request-row" id="copy" data-i18n="copy">Copy</button>
+                                    </dl>
+                                  </details>
+                                  <div>
+                                    <label class="sr" for="lang" data-i18n="lang">Language</label>
+                                    <select id="lang"></select>
+                                  </div>
+                                </div>
+                              </footer>
+                              <script>
+                              (() => {
+                                // Envoy fills the data attributes. A literal percent sign in this file
+                                // would be read as a format command, so it is built from its char code.
+                                const PCT = String.fromCharCode(37);
+                                const root = document.documentElement;
+                                const value = (v, fallback) => (!v || v === "-" || v.charAt(0) === PCT) ? fallback : v;
+                                const code = value(root.dataset.code, "503");
+                                const detail = value(root.dataset.detail, "").split("{")[0];
+                                const requestId = value(root.dataset.request, "");
+                                const $ = (id) => document.getElementById(id);
+                                const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+                                // travel: the gateway could not reach the service (502-504). The ship is
+                                // in a light-speed jump and the page polls until the service answers.
+                                // lost: no route matches the host (404). Waiting does not fix an address,
+                                // so the page drifts and only checks again when asked.
+                                const MODE = code === "404" ? "lost" : "travel";
+
+                                const I18N = {
+                                  ko: { name: "한국어", titles: ["곧 도착합니다", "광속으로 이동 중입니다", "목적지 좌표를 확인하고 있습니다", "항로를 다시 계산하고 있습니다", "별 사이를 지나는 중입니다", "도킹 허가를 기다리고 있습니다", "조금만 더 가면 됩니다", "엔진을 최대 출력으로 유지하고 있습니다"], body: "서비스가 지금 응답하지 않습니다. 점검이나 업데이트 중일 수 있습니다. 이 페이지를 열어 두면 서비스가 준비되는 즉시 자동으로 이동합니다.", lostTitles: ["우주 미아가 되었습니다", "이 좌표에는 아무것도 없습니다", "지도에 없는 곳입니다", "항로를 벗어났습니다", "구조 신호를 보내고 있습니다", "신호가 닿지 않는 곳입니다"], lostBody: "이 주소에 연결된 서비스를 찾지 못했습니다. 주소가 정확한지 확인해 주세요. 서비스가 옮겨졌거나 삭제되었을 수 있습니다.", recovered: "도착했습니다. 페이지를 엽니다.", offline: "인터넷 연결이 끊겼습니다. 연결되면 다시 확인합니다.", retry: "지금 확인", reload: "다시 시도", back: "돌아가기", details: "기술 정보", code: "오류 코드", request: "요청 ID", copy: "복사", copied: "복사했습니다", lang: "언어" },
+                                  en: { name: "English", titles: ["Arriving shortly", "Traveling at light speed", "Confirming the destination", "Recalculating the route", "Passing between the stars", "Waiting for docking clearance", "Almost there", "Engines at full power"], body: "This service isn't responding right now. It may be under maintenance or being updated. Keep this page open and it will take you there the moment the service is ready.", lostTitles: ["Lost in space", "Nothing at these coordinates", "Off the map", "Drifted off course", "Sending a distress signal", "Out of signal range"], lostBody: "There's no service at this address. Check that the address is correct. The service may have moved or been removed.", recovered: "Arrived. Opening the page.", offline: "You're offline. Checking resumes when you reconnect.", retry: "Check now", reload: "Try again", back: "Go back", details: "Technical details", code: "Error code", request: "Request ID", copy: "Copy", copied: "Copied", lang: "Language" }
+                                };
+                                const LANG_KEY = "unavailable-page.lang";
+
+                                function match(tag) {
+                                  const base = String(tag || "").toLowerCase().split("-")[0];
+                                  return I18N[base] ? base : null;
+                                }
+                                function pickLang() {
+                                  try {
+                                    const saved = localStorage.getItem(LANG_KEY);
+                                    if (saved && I18N[saved]) return saved;
+                                  } catch (e) {}
+                                  for (const tag of navigator.languages || [navigator.language]) {
+                                    const m = match(tag);
+                                    if (m) return m;
+                                  }
+                                  return "en";
+                                }
+                                const wrap = (v, size) => v - Math.floor(v / size) * size;
+
+                                // Space ---------------------------------------------------------------
+                                // Stars live in a unit cube in front of the viewer and are projected
+                                // through a vanishing point. Speed is in depth units per second; each
+                                // star is drawn from where it was a moment ago, so speed stretches
+                                // points into streaks.
+                                const canvas = $("space");
+                                const ctx = canvas.getContext("2d");
+                                // Travel opens at cruise, then jumps to light speed and stays there
+                                // until the service answers; arrival drops out of light speed.
+                                // Lost barely moves forward and slides sideways instead, so near stars
+                                // pass faster than far ones.
+                                const CRUISE = 0.07;
+                                const WARP = 2.4;
+                                const SURGE = 3.8;
+                                const ADRIFT = 0.012;
+                                const SLIDE = { x: 0.004, y: -0.0012 };
+                                const LAUNCH_MS = 1800;
+                                let w = 0, h = 0, focal = 0, stars = [];
+                                let field = null;
+                                let speed = MODE === "lost" ? ADRIFT : CRUISE;
+                                const view = { x: 0, y: 0, roll: 0, tx: 0, ty: 0, troll: 0 };
+                                const slid = { x: 0, y: 0 };
+
+                                function spawn(s, far) {
+                                  s.x = Math.random() * 2 - 1;
+                                  s.y = Math.random() * 2 - 1;
+                                  s.z = far ? 1 : 0.04 + Math.random() * 0.96;
+                                  s.warm = Math.random() < 0.12;
+                                  s.size = 0.6 + Math.random() * 0.9;
+                                  return s;
+                                }
+                                function resize() {
+                                  const dpr = Math.min(devicePixelRatio || 1, 2);
+                                  w = innerWidth;
+                                  h = innerHeight;
+                                  canvas.width = Math.round(w * dpr);
+                                  canvas.height = Math.round(h * dpr);
+                                  canvas.style.width = w + "px";
+                                  canvas.style.height = h + "px";
+                                  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                                  focal = Math.max(w, h) * 0.55;
+                                  // Adrift the sky is emptier: about half the stars.
+                                  const density = MODE === "lost" ? 0.5 : 1;
+                                  const count = Math.round(Math.min(1500, Math.max(400, w * h / 1100)) * density);
+                                  stars = Array.from({ length: count }, () => spawn({}, false));
+                                  // Distant stars that never come closer: depth behind the moving field.
+                                  field = document.createElement("canvas");
+                                  field.width = canvas.width;
+                                  field.height = canvas.height;
+                                  const fctx = field.getContext("2d");
+                                  fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                                  for (let i = 0, n = Math.round(w * h / 1400); i < n; i++) {
+                                    const r = Math.random();
+                                    fctx.globalAlpha = 0.15 + r * r * 0.6;
+                                    fctx.fillStyle = r > 0.92 ? "#ffd9b0" : r > 0.8 ? "#c8d8ff" : "#ffffff";
+                                    fctx.beginPath();
+                                    fctx.arc(Math.random() * w, Math.random() * h, 0.3 + r * r * 0.9, 0, Math.PI * 2);
+                                    fctx.fill();
+                                  }
+                                  drifterSize = parseFloat(getComputedStyle(drifter).width) || 96;
+                                  if (reduce.matches) draw(0);
+                                }
+                                function drawField() {
+                                  if (MODE !== "lost") {
+                                    ctx.drawImage(field, view.x * 0.15, view.y * 0.15, w, h);
+                                    return;
+                                  }
+                                  // The far field slides slowly and repeats. The view is rolled, so the
+                                  // tiles also cover the band a tilted screen corner reaches past each edge.
+                                  const reach = Math.abs(view.roll) * Math.max(w, h) + 2;
+                                  const ox = wrap(view.x * 0.15 + slid.x * 120, w) - w;
+                                  const oy = wrap(view.y * 0.15 + slid.y * 120, h) - h;
+                                  for (let tx = ox - w; tx < w + reach; tx += w) {
+                                    if (tx + w <= -reach) continue;
+                                    for (let ty = oy - h; ty < h + reach; ty += h) {
+                                      if (ty + h > -reach) ctx.drawImage(field, tx, ty, w, h);
+                                    }
+                                  }
+                                }
+                                function draw(dt) {
+                                  ctx.clearRect(0, 0, w, h);
+                                  ctx.save();
+                                  // Banking: the view rolls around the screen centre as the ship turns.
+                                  ctx.translate(w / 2, h / 2);
+                                  ctx.rotate(view.roll);
+                                  ctx.translate(-w / 2, -h / 2);
+                                  const cx = w / 2 + view.x;
+                                  const cy = h / 2 + view.y;
+                                  // The far field fades as the jump starts, and drifts a little with the view.
+                                  ctx.globalAlpha = Math.max(0, 1 - speed / 2.5);
+                                  drawField();
+                                  // Trail length grows with the square of speed: points at cruise, streaks in a jump.
+                                  const stretch = Math.min(0.5, speed * speed * 0.035);
+                                  // In a jump the streaks clear the middle of the screen so the text stays legible.
+                                  const tunnel = Math.min(1, Math.max(0, (speed - 0.6) / 1.6)) * Math.min(w, h) * 0.42;
+                                  const blue = Math.min(1, Math.max(0, (speed - 0.4) / 3));
+                                  // Light ahead blue-shifts as the ship approaches light speed.
+                                  const cool = "rgb(" + Math.round(255 - 95 * blue) + "," + Math.round(255 - 50 * blue) + ",255)";
+                                  const warm = "rgb(255," + Math.round(214 - 40 * blue) + "," + Math.round(170 + 60 * blue) + ")";
+                                  const lost = MODE === "lost";
+                                  // A rolled view shows canvas points beyond the edges near the corners.
+                                  const margin = 60 + Math.abs(view.roll) * Math.max(w, h);
+                                  ctx.lineCap = "round";
+                                  for (const s of stars) {
+                                    s.z -= speed * dt;
+                                    if (lost) {
+                                      s.x += SLIDE.x * dt;
+                                      s.y += SLIDE.y * dt;
+                                    }
+                                    if (s.z <= 0.02) { spawn(s, true); continue; }
+                                    const k = focal / s.z;
+                                    let x = cx + s.x * k;
+                                    let y = cy + s.y * k;
+                                    if (x < -margin || x > w + margin || y < -margin || y > h + margin) {
+                                      if (!lost) { spawn(s, true); continue; }
+                                      // Adrift, a star leaving one edge comes back at the same depth on the other.
+                                      const spanX = (w + margin * 2) / k;
+                                      const spanY = (h + margin * 2) / k;
+                                      s.x = wrap(s.x + (cx + margin) / k, spanX) - (cx + margin) / k;
+                                      s.y = wrap(s.y + (cy + margin) / k, spanY) - (cy + margin) / k;
+                                      x = cx + s.x * k;
+                                      y = cy + s.y * k;
+                                    }
+                                    const tz = Math.min(1.2, s.z + stretch + 0.0015);
+                                    const kt = focal / tz;
+                                    const near = 1 - s.z;
+                                    let alpha = Math.min(1, near * near * 1.6 + 0.08);
+                                    if (tunnel > 0) {
+                                      const d = Math.hypot((x - w / 2) / 1.6, y - h / 2) / tunnel;
+                                      if (d < 1) alpha *= d * d;
+                                    }
+                                    ctx.globalAlpha = alpha;
+                                    if (lost) {
+                                      // Adrift, stars stay round points; nearer ones are larger.
+                                      ctx.fillStyle = s.warm ? warm : cool;
+                                      ctx.beginPath();
+                                      ctx.arc(x, y, s.size * (0.3 + near * 0.9), 0, Math.PI * 2);
+                                      ctx.fill();
+                                      continue;
+                                    }
+                                    ctx.strokeStyle = s.warm ? warm : cool;
+                                    ctx.lineWidth = s.size * (0.4 + near * 1.8);
+                                    ctx.beginPath();
+                                    ctx.moveTo(cx + s.x * kt, cy + s.y * kt);
+                                    ctx.lineTo(x, y);
+                                    ctx.stroke();
+                                  }
+                                  ctx.globalAlpha = 1;
+                                  if (speed > 1) {
+                                    // The bloom of light at the vanishing point during a jump.
+                                    const glow = Math.min(0.4, (speed - 1) / 7);
+                                    const r = Math.max(w, h) * 0.35;
+                                    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+                                    g.addColorStop(0, "rgba(190, 215, 255, " + glow.toFixed(3) + ")");
+                                    g.addColorStop(1, "rgba(190, 215, 255, 0)");
+                                    ctx.fillStyle = g;
+                                    ctx.fillRect(-w, -h, w * 3, h * 3);
+                                  }
+                                  ctx.restore();
+                                }
+
+                                // The drifter ----------------------------------------------------------
+                                // Lost only: an astronaut with a snapped tether tumbles slowly across the
+                                // sky, and the suit's distress light blinks.
+                                const drifter = $("drifter");
+                                const beacon = $("beacon");
+                                const CROSSING_S = 95;
+                                const TUMBLE_S = 38;
+                                // Layout size, not the rotated bounding box, so the tumble does not shift it.
+                                let drifterSize = 96;
+                                function placeDrifter(now) {
+                                  const size = drifterSize;
+                                  // It crosses the upper band, above the text, rising slowly to the right.
+                                  const t = reduce.matches ? 0.8 : wrap(now / 1000 / CROSSING_S + 0.72, 1);
+                                  const x = -size + t * (w + size * 2) + view.x * 0.35;
+                                  const y = h * (0.24 - t * 0.1) + Math.sin(t * Math.PI * 3) * h * 0.03 + view.y * 0.35;
+                                  const turn = reduce.matches ? -24 : now / 1000 / TUMBLE_S * 360;
+                                  drifter.style.transform = "translate(" + (x - size / 2).toFixed(1) + "px," + (y - size / 2).toFixed(1) + "px) rotate(" + turn.toFixed(2) + "deg)";
+                                  const pulse = wrap(now / 1000, 1.8);
+                                  beacon.style.opacity = reduce.matches || pulse < 0.18 ? "1" : pulse < 0.4 ? "0.35" : "0.08";
+                                }
+
+                                const launchAt = performance.now() + (reduce.matches ? 0 : LAUNCH_MS);
+                                let surgeUntil = 0;
+                                let arriving = false;
+                                let last = performance.now();
+                                function frame(now) {
+                                  const dt = Math.min(0.05, (now - last) / 1000);
+                                  last = now;
+                                  if (!reduce.matches) {
+                                    const target = MODE === "lost" ? ADRIFT
+                                      : state === "recovered" ? 0 : now < launchAt ? CRUISE : now < surgeUntil ? SURGE : WARP;
+                                    // Accelerate briskly, come out of light speed a little slower.
+                                    const rate = target > speed ? 1.5 : 1.3;
+                                    speed += (target - speed) * (1 - Math.exp(-dt * rate));
+                                    if (MODE === "lost") {
+                                      slid.x += SLIDE.x * dt;
+                                      slid.y += SLIDE.y * dt;
+                                    }
+                                    const steer = 1 - Math.exp(-dt * 3);
+                                    // Adrift, the view keeps a slow, uncorrected sway.
+                                    const sway = MODE === "lost" ? Math.sin(now / 7000) * 0.07 : 0;
+                                    view.x += (view.tx - view.x) * steer;
+                                    view.y += (view.ty - view.y) * steer;
+                                    view.roll += (view.troll + sway - view.roll) * steer;
+                                    draw(dt);
+                                    if (state === "recovered" && speed < 0.15) arrive();
+                                  }
+                                  if (MODE === "lost") placeDrifter(now);
+                                  requestAnimationFrame(frame);
+                                }
+
+                                // Steering ------------------------------------------------------------
+                                addEventListener("pointermove", (e) => {
+                                  const dx = e.clientX - w / 2;
+                                  const dy = e.clientY - h / 2;
+                                  // Adrift there is little thrust left to steer with.
+                                  const grip = MODE === "lost" ? 0.2 : 1;
+                                  view.tx = dx * 0.55 * grip;
+                                  view.ty = dy * 0.55 * grip;
+                                  view.troll = dx / w * -0.35 * grip;
+                                });
+                                document.addEventListener("pointerleave", () => { view.tx = 0; view.ty = 0; view.troll = 0; });
+
+                                // Recovery polling (travel only) --------------------------------------
+                                const DELAYS = [5, 10, 15, 20, 30];
+                                let lang = pickLang();
+                                let t = I18N[lang];
+                                let state = "travel";
+                                let attempt = 0;
+                                let probing = false;
+                                let deadline = 0;
+
+                                function setLive(text) {
+                                  const live = $("live");
+                                  if (live.textContent !== text) live.textContent = text;
+                                }
+                                function render() {
+                                  document.body.dataset.state = state;
+                                  $("retry").disabled = state === "recovered";
+                                  const line = state === "recovered" ? t.recovered : state === "offline" ? t.offline : "";
+                                  $("status").textContent = line;
+                                  setLive(line);
+                                }
+                                function schedule() {
+                                  deadline = Date.now() + DELAYS[Math.min(attempt, DELAYS.length - 1)] * 1000;
+                                }
+                                async function probe() {
+                                  const ctrl = new AbortController();
+                                  const timer = setTimeout(() => ctrl.abort(), 10000);
+                                  try {
+                                    const res = await fetch(location.href, {
+                                      cache: "no-store",
+                                      credentials: "same-origin",
+                                      redirect: "manual",
+                                      headers: { accept: "text/html" },
+                                      signal: ctrl.signal
+                                    });
+                                    // Any answer other than a gateway failure means the service is back,
+                                    // including a redirect to sign in.
+                                    return !(res.status >= 502 && res.status <= 504);
+                                  } catch (e) {
+                                    return false;
+                                  } finally {
+                                    clearTimeout(timer);
+                                  }
+                                }
+                                function arrive() {
+                                  if (arriving) return;
+                                  arriving = true;
+                                  if (reduce.matches) { location.replace(location.href); return; }
+                                  $("flash").animate([{ opacity: 0 }, { opacity: 1 }], { duration: 450, easing: "ease-in", fill: "forwards" })
+                                    .finished.then(() => location.replace(location.href));
+                                }
+                                async function check() {
+                                  if (probing || state === "recovered") return;
+                                  if (navigator.onLine === false) { state = "offline"; render(); return; }
+                                  probing = true;
+                                  const ok = await probe();
+                                  probing = false;
+                                  if (ok) {
+                                    state = "recovered";
+                                    render();
+                                    if (reduce.matches) arrive();
+                                    return;
+                                  }
+                                  if (state === "offline") { state = "travel"; render(); }
+                                  attempt += 1;
+                                  schedule();
+                                }
+                                if (MODE === "travel") {
+                                  setInterval(() => {
+                                    if (state === "recovered" || document.hidden || probing) return;
+                                    if (Date.now() >= deadline) check();
+                                  }, 250);
+                                  addEventListener("online", () => { if (state === "offline") { state = "travel"; render(); check(); } });
+                                  addEventListener("offline", () => { if (state === "travel") { state = "offline"; render(); } });
+                                }
+                                $("retry").addEventListener("click", () => {
+                                  // Lost: the address may have been routed since; load it again.
+                                  if (MODE === "lost") { location.reload(); return; }
+                                  // A manual check pushes the ship past light speed for a moment.
+                                  surgeUntil = performance.now() + 1200;
+                                  check();
+                                });
+                                // Going back only makes sense when this tab came from another page.
+                                $("back").hidden = !(MODE === "lost" && history.length > 1);
+                                $("back").addEventListener("click", () => history.back());
+
+                                // Headline ------------------------------------------------------------
+                                // The headline changes to another phrase from the shown language every
+                                // few seconds, never repeating the one on screen.
+                                const title = $("title");
+                                const titles = () => MODE === "lost" ? t.lostTitles : t.titles;
+                                let titleIndex = 0;
+                                function showTitle(index, animate) {
+                                  titleIndex = index;
+                                  if (!animate || reduce.matches) { title.textContent = titles()[index]; return; }
+                                  const out = title.animate([{ opacity: 1, filter: "blur(0)", transform: "none" }, { opacity: 0, filter: "blur(8px)", transform: "translateY(-10px)" }], { duration: 450, easing: "ease-in", fill: "forwards" });
+                                  out.finished.then(() => {
+                                    title.textContent = titles()[index];
+                                    title.animate([{ opacity: 0, filter: "blur(8px)", transform: "translateY(10px)" }, { opacity: 1, filter: "blur(0)", transform: "none" }], { duration: 650, easing: "cubic-bezier(0.16, 0.8, 0.2, 1)", fill: "forwards" });
+                                  });
+                                }
+                                setInterval(() => {
+                                  if (document.hidden || state === "recovered") return;
+                                  let next = Math.floor(Math.random() * (titles().length - 1));
+                                  if (next >= titleIndex) next += 1;
+                                  showTitle(next, true);
+                                }, MODE === "lost" ? 7000 : 5500);
+
+                                // Text ----------------------------------------------------------------
+                                function applyLang(next) {
+                                  lang = next;
+                                  t = I18N[lang];
+                                  root.lang = lang;
+                                  document.title = titles()[0];
+                                  showTitle(0, false);
+                                  for (const el of document.querySelectorAll("[data-i18n]")) el.textContent = t[el.dataset.i18n];
+                                  $("lead").textContent = MODE === "lost" ? t.lostBody : t.body;
+                                  $("retry").textContent = MODE === "lost" ? t.reload : t.retry;
+                                  $("back").textContent = t.back;
+                                  $("lang").value = lang;
+                                  render();
+                                }
+                                const select = $("lang");
+                                for (const key of Object.keys(I18N)) {
+                                  const opt = document.createElement("option");
+                                  opt.value = key;
+                                  opt.textContent = I18N[key].name;
+                                  select.appendChild(opt);
+                                }
+                                select.addEventListener("change", () => {
+                                  try { localStorage.setItem(LANG_KEY, select.value); } catch (e) {}
+                                  applyLang(select.value);
+                                });
+
+                                document.body.dataset.mode = MODE;
+                                $("host").textContent = location.host;
+                                $("code").textContent = detail ? code + " (" + detail + ")" : code;
+                                if (requestId) $("request").textContent = requestId;
+                                else for (const el of document.querySelectorAll(".request-row")) el.hidden = true;
+                                $("copy").addEventListener("click", async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(requestId);
+                                    $("copy").textContent = t.copied;
+                                    setTimeout(() => { $("copy").textContent = t.copy; }, 2000);
+                                  } catch (e) {
+                                    getSelection().selectAllChildren($("request"));
+                                  }
+                                });
+
+                                addEventListener("resize", resize);
+                                reduce.addEventListener("change", resize);
+                                resize();
+                                applyLang(lang);
+                                if (MODE === "travel") schedule();
+                                if (MODE === "lost") placeDrifter(performance.now());
                                 requestAnimationFrame(frame);
                               })();
                               </script>

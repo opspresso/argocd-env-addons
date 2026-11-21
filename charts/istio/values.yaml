@@ -83,6 +83,9 @@ istiod:
         envoyExtAuthzHttp:
           service: "oauth2-proxy.addon-oauth2-proxy.svc.cluster.local"
           port: "80"
+          # When oauth2-proxy cannot be reached, answer 503 instead of Istio's default 403:
+          # the outage is temporary, and 503 shows browsers the unavailable page.
+          statusOnError: "503"
           headersToDownstreamOnDeny:
             - content-type
             - set-cookie
