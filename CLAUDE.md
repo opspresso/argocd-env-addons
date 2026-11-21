@@ -52,10 +52,14 @@ kube-sre 호출을 만든다 (`charts/keep/README.md`).
 `gitlab` 은 공식 GitLab chart(CE)에 같은 release 의 PostgreSQL·Valkey 와 S3 를 붙인다 (`charts/gitlab/README.md`).
 `gitea` 는 공식 Gitea chart 에 같은 release 의 PostgreSQL 과 gp3 PVC 를 붙이고, 관리자는 `sso.admin_groups` 그룹으로 정한다 (`charts/gitea/README.md`).
 
-istio-ingressgateway 가 직접 만든 502~504 응답은 브라우저 요청(`Accept: text/html`)에 한해
-`charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`). 템플릿이 이 파일을 include 하므로
-수정 후 `./scripts/gen_values.py -p eks -r istio` 를 돌린다. Envoy 가 `%COMMAND%` 를 치환하므로 파일에
-허용된 명령 외의 `%` 를 쓰지 않는다 (`tests/test_unavailable_page.py` 가 검사).
+istio-ingressgateway 가 직접 만든 502~504 응답과 route 가 없는 호스트의 404(response flag `NR`)는
+브라우저 요청(`Accept: text/html`)에 한해 `charts/istio/unavailable-page.html` 로 바뀐다 (`EnvoyFilter/unavailable-page`).
+페이지는 상태 코드로 화면을 고른다. 502~504 는 광속 이동 화면을 보여 주고 서비스가 응답할 때까지 URL 을 다시 확인한다.
+404 는 우주 미아 화면을 보여 주고 자동으로 다시 확인하지 않는다. 앱이 직접 보낸 응답, ext_authz(oauth2-proxy) 거부,
+RBAC 거부는 바꾸지 않는다. oauth2-proxy 에 연결할 수 없으면 `statusOnError: "503"` 으로 502~504 화면을 보여 준다.
+페이지 문구는 한국어·영어만 두고, 글꼴·스크립트·이미지를 외부에서 받지 않는다.
+템플릿이 이 파일을 include 하므로 수정 후 `./scripts/gen_values.py -p eks -r istio` 를 돌린다.
+Envoy 가 `%COMMAND%` 를 치환하므로 파일에 허용된 명령 외의 `%` 를 쓰지 않는다 (`tests/test_unavailable_page.py` 가 검사).
 
 ## charts 규칙
 
