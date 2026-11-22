@@ -151,7 +151,7 @@
       "app_version": "v0.95.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "93.3.1",
-      "version": "93.6.0"
+      "version": "93.6.1"
     },
     "rds-chart": {
       "app_version": "1.15.1",
