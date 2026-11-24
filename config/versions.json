@@ -10,7 +10,7 @@
       "app_version": "v3.6.2",
       "chart": "argo/argo-cd",
       "current": "10.18.0",
-      "version": "10.18.2"
+      "version": "10.18.3"
     },
     "argo-rollouts": {
       "app_version": "v1.10.2",
