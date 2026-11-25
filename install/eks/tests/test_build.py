@@ -20,21 +20,30 @@ import sys
 
 args = sys.argv[1:]
 scenario = os.environ.get("SCENARIO", "ready")
-parameter = args[args.index("--name") + 1].rsplit("/", 1)[-1]
-values = json.loads(Path(os.environ["SSM_VALUES"]).read_text())
-if parameter == "argocd-password":
-    if scenario == "ssm_failure":
-        print("AccessDeniedException", file=sys.stderr)
+if args[:2] != ["secretsmanager", "get-secret-value"]:
+    print(f"unexpected aws call: {args[:2]}", file=sys.stderr)
+    sys.exit(2)
+name = args[args.index("--secret-id") + 1].rsplit("/", 1)[-1]
+values = json.loads(Path(os.environ["SECRET_VALUES"]).read_text())
+if name == "argocd-password":
+    if scenario == "read_failure":
+        print("An error occurred (AccessDeniedException) when calling the GetSecretValue operation: denied", file=sys.stderr)
         sys.exit(254)
     if scenario == "invalid_json":
         print("not json")
         sys.exit()
+    if scenario == "missing":
+        del values[name]
     if scenario in ("null", "empty", "wrong_type"):
-        values[parameter] = {"null": None, "empty": "", "wrong_type": 123}[scenario]
-if parameter not in values:
-    print("An error occurred (ParameterNotFound) when calling the GetParameter operation: missing", file=sys.stderr)
+        values[name] = {"null": None, "empty": "", "wrong_type": 123}[scenario]
+if name not in values:
+    print("An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation: missing", file=sys.stderr)
     sys.exit(254)
-print(json.dumps({"Parameter": {"Value": values[parameter]}}))
+response = {"Name": name, "VersionId": "v1"}
+# A binary secret has no SecretString.
+if scenario != "binary" or name != "argocd-password":
+    response["SecretString"] = values[name]
+print(json.dumps(response))
 '''
 
 
@@ -65,7 +74,7 @@ def run_build(tmp_path, scenario="ready", env=ENV):
         "argocd-webhook": SECRET,
         "argocd-mcp-tokens": '[{"id":"fixture", "iat":123}]',
     }
-    values_path = tmp_path / "ssm.json"
+    values_path = tmp_path / "secrets.json"
     values_path.write_text(json.dumps(values))
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
@@ -78,7 +87,7 @@ def run_build(tmp_path, scenario="ready", env=ENV):
         env={
             **os.environ,
             "PATH": f"{bin_dir}:{Path(sys.executable).parent}:{os.environ['PATH']}",
-            "SSM_VALUES": str(values_path),
+            "SECRET_VALUES": str(values_path),
             "SCENARIO": scenario,
         },
         capture_output=True, text=True, timeout=15,
@@ -120,7 +129,7 @@ def test_build_requires_cluster_settings(tmp_path, env):
 
 
 @pytest.mark.parametrize("scenario", [
-    "ssm_failure", "invalid_json", "null", "empty", "wrong_type",
+    "read_failure", "invalid_json", "binary", "null", "empty", "wrong_type", "missing",
 ])
 def test_build_failure_preserves_existing_output(tmp_path, scenario):
     result, output, _ = run_build(tmp_path, scenario)
@@ -128,3 +137,10 @@ def test_build_failure_preserves_existing_output(tmp_path, scenario):
     assert output.read_text() == "previous output\n"
     assert "파일이 생성되었습니다" not in result.stdout
     assert list(output.parent.glob(".values.output-*.tmp")) == []
+
+
+def test_missing_secret_is_named_in_the_error(tmp_path):
+    result, output, _ = run_build(tmp_path, "missing")
+    assert result.returncode != 0
+    assert "Secrets Manager 시크릿이 없습니다: /k8s/common/argocd-password" in result.stderr
+    assert output.read_text() == "previous output\n"

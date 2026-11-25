@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Argo CD 와 addons 가 읽는 값 중 여기서 만들 수 있는 것(관리자 계정, 비밀번호, OIDC client
-# secret, 암호화 키)을 SSM 에 만듭니다. SSM 이 비어 있어도, 이미 값이 있어도 같은 명령으로
-# 실행합니다. install.sh 가 매번 호출해도 안전합니다.
+# secret, 암호화 키)을 Secrets Manager 에 만듭니다. Secrets Manager 가 비어 있어도, 이미 값이
+# 있어도 같은 명령으로 실행합니다. install.sh 가 매번 호출해도 안전합니다.
 #
-# - 없는 파라미터만 만들고 **있는 값은 바꾸지 않습니다**. 바꾸면 DB 비밀번호·암호화된
+# - 없는 시크릿만 만들고 **있는 값은 바꾸지 않습니다**. 바꾸면 DB 비밀번호·암호화된
 #   데이터·발급된 세션이 맞지 않게 됩니다.
 # - 예외는 argocd-password 하나입니다. admin-password 의 bcrypt 해시이므로, 없거나
 #   admin-password 와 맞지 않으면 다시 만들고 argocd-mtime 도 갱신합니다.
@@ -43,32 +43,33 @@ ok() { echo -e "${C_OK}✔ $*${C_OFF}"; }
 warn() { echo -e "${C_CMD}  warn $*${C_OFF}"; }
 
 
-# 파라미터가 있으면 0, ParameterNotFound 면 1. 그 밖의 오류(권한·통신)는 중단합니다.
+# 시크릿이 있으면 0, ResourceNotFoundException 이면 1. 값은 읽지 않습니다.
+# 그 밖의 오류(권한·통신)는 중단합니다.
 exists() {
   local status=0
-  aws ssm get-parameter --name "$1" --output json >/dev/null 2>"${WORK_DIR}/error" || status=$?
+  aws secretsmanager describe-secret --secret-id "$1" --output json >/dev/null 2>"${WORK_DIR}/error" || status=$?
   if [ "$status" -eq 0 ]; then
     return 0
   fi
-  if grep -Fq '(ParameterNotFound)' "${WORK_DIR}/error"; then
+  if grep -Fq '(ResourceNotFoundException)' "${WORK_DIR}/error"; then
     return 1
   fi
-  echo "SSM 조회 실패: $1 (종료 코드 $status)" >&2
+  echo "Secrets Manager 조회 실패: $1 (종료 코드 $status)" >&2
   exit "$status"
 }
 
-# 값을 출력합니다. ParameterNotFound 면 빈 문자열입니다. 그 밖의 오류는 중단합니다.
+# 값을 출력합니다. ResourceNotFoundException 이면 빈 문자열입니다. 그 밖의 오류는 중단합니다.
 read_value() {
   local status=0 response
-  response=$(aws ssm get-parameter --name "$1" --with-decryption --output json 2>"${WORK_DIR}/error") || status=$?
+  response=$(aws secretsmanager get-secret-value --secret-id "$1" --output json 2>"${WORK_DIR}/error") || status=$?
   if [ "$status" -ne 0 ]; then
-    if grep -Fq '(ParameterNotFound)' "${WORK_DIR}/error"; then
+    if grep -Fq '(ResourceNotFoundException)' "${WORK_DIR}/error"; then
       return 0
     fi
-    echo "SSM 조회 실패: $1 (종료 코드 $status)" >&2
+    echo "Secrets Manager 조회 실패: $1 (종료 코드 $status)" >&2
     exit "$status"
   fi
-  printf '%s' "$response" | jq -r '.Parameter.Value // ""'
+  printf '%s' "$response" | jq -r '.SecretString // ""'
 }
 
 MISSING=()
@@ -86,12 +87,12 @@ create() {
     return 0
   fi
   echo -e "${C_CMD}  put  ${name}${C_OFF}"
-  if ! aws ssm put-parameter --name "$name" --value "$value" --type SecureString --output json >/dev/null 2>"${WORK_DIR}/error"; then
-    if grep -Fq '(ParameterAlreadyExists)' "${WORK_DIR}/error"; then
+  if ! aws secretsmanager create-secret --name "$name" --secret-string "$value" --output json >/dev/null 2>"${WORK_DIR}/error"; then
+    if grep -Fq '(ResourceExistsException)' "${WORK_DIR}/error"; then
       echo "  keep ${name} (다른 설치가 먼저 만들었습니다)"
       return 0
     fi
-    echo "SSM 저장 실패: ${name}" >&2
+    echo "Secrets Manager 저장 실패: ${name}" >&2
     exit 1
   fi
 }
@@ -113,17 +114,26 @@ sys.exit(0 if bcrypt.checkpw(os.environ["PASSWORD"].encode(), os.environ["HASH"]
 }
 
 # 덮어쓰는 유일한 경우입니다: 파생값을 원본(admin-password)에 맞춥니다.
+# 시크릿이 있으면 새 버전을 넣고, 없으면 만듭니다.
 put_overwrite() {
+  local name="$1" value="$2" status=0
   if [ "$CHECK" = "true" ]; then
-    echo -e "${C_CMD}  miss $1 (다시 만들어야 합니다)${C_OFF}"
-    MISSING+=("$1")
+    echo -e "${C_CMD}  miss ${name} (다시 만들어야 합니다)${C_OFF}"
+    MISSING+=("$name")
     return 0
   fi
-  echo -e "${C_CMD}  put  $1${C_OFF}"
-  aws ssm put-parameter --name "$1" --value "$2" --type SecureString --overwrite --output json >/dev/null 2>"${WORK_DIR}/error" || {
-    echo "SSM 저장 실패: $1" >&2
+  echo -e "${C_CMD}  put  ${name}${C_OFF}"
+  if exists "$name"; then
+    aws secretsmanager put-secret-value --secret-id "$name" --secret-string "$value" \
+      --output json >/dev/null 2>"${WORK_DIR}/error" || status=$?
+  else
+    aws secretsmanager create-secret --name "$name" --secret-string "$value" \
+      --output json >/dev/null 2>"${WORK_DIR}/error" || status=$?
+  fi
+  if [ "$status" -ne 0 ]; then
+    echo "Secrets Manager 저장 실패: ${name}" >&2
     exit 1
-  }
+  fi
 }
 
 if ! python3 -c 'import bcrypt' >/dev/null 2>&1; then
@@ -225,7 +235,7 @@ if [ "$EXTERNAL" -gt 0 ]; then
 fi
 
 if [ "$CHECK" = "true" ] && [ "${#MISSING[@]}" -gt 0 ]; then
-  echo "없는 파라미터 ${#MISSING[@]}개" >&2
+  echo "없는 시크릿 ${#MISSING[@]}개" >&2
   exit 1
 fi
 

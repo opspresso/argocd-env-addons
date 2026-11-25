@@ -10,7 +10,7 @@ import unittest
 
 INSTALLER = Path(__file__).resolve().parents[1] / "install.sh"
 
-# Only external commands and the SSM values generator are replaced. Bash's
+# Only external commands and the secret generators are replaced. Bash's
 # error handling, argument expansion, jq parsing and readiness deadline are real.
 COMMAND = r'''
 import json
@@ -26,7 +26,7 @@ with log.open("a") as stream:
 scenario = os.environ.get("SCENARIO", "ready")
 
 if name == "aws":
-    # install.sh reads nothing from SSM itself: token.sh, secrets.sh and build.sh do.
+    # install.sh reads no secret itself: token.sh, secrets.sh and build.sh do.
     sys.exit(1)
 elif name == "python3" and len(args) > 2 and "yaml.safe_load" in args[1]:
     if scenario == "env_invalid":
@@ -53,7 +53,7 @@ class InstallTest(unittest.TestCase):
                 path = root / name if name.endswith(".sh") else bin_dir / name
                 path.write_text(f"#!{sys.executable}\n{COMMAND}")
                 path.chmod(0o755)
-            # jq is real in the installer's ssm(); use the system jq when present.
+            # Use the system jq when present.
             system_jq = shutil.which("jq")
             if system_jq:
                 (bin_dir / "jq").unlink()
@@ -90,14 +90,14 @@ class InstallTest(unittest.TestCase):
         install = next(i for i, c in enumerate(commands) if c[:2] == ["helm", "upgrade"])
         self.assertLess(names.index("secrets.sh"), install)
 
-    def test_reads_cluster_settings_from_env_not_ssm(self):
+    def test_reads_cluster_settings_from_env_not_secrets_manager(self):
         result, commands = self.run_installer()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertFalse(any(command[0] == "aws" for command in commands))
         read = next(c for c in commands if c[0] == "python3" and len(c) > 2 and "yaml.safe_load" in c[2])
         self.assertEqual(read[-1], "../../env/eks-demo.yaml")
 
-    def test_invalid_env_stops_before_ssm_writes(self):
+    def test_invalid_env_stops_before_secret_writes(self):
         result, commands = self.run_installer("env_invalid")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("클러스터 설정 확인 (env/eks-demo.yaml) 단계 실패", result.stderr)
@@ -116,7 +116,7 @@ class InstallTest(unittest.TestCase):
         self.assertIn("클러스터·AppProject 등록 단계 실패", result.stderr)
         self.assertEqual(sum(command[0] == "kubectl" for command in commands), 1)
 
-    def test_missing_python_dependency_stops_before_ssm_writes(self):
+    def test_missing_python_dependency_stops_before_secret_writes(self):
         result, commands = self.run_installer("python_dependency_missing")
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("bcrypt·PyYAML이 필요합니다", result.stderr)

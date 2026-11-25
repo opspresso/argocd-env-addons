@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Argo CD 의 서명 키와 API 계정(mcp, keep)의 토큰을 SSM 에 고정합니다. 실행 순서대로:
+# Argo CD 의 서명 키와 API 계정(mcp, keep)의 토큰을 Secrets Manager 에 고정합니다. 실행 순서대로:
 #
 #   1. /k8s/common/argocd-server-secret        서명 키. 없을 때만 만듭니다
 #   2. /k8s/common/argocd-<계정>-tokens         계정의 토큰 목록
@@ -22,7 +22,7 @@
 #   b. sub 가 "<계정>:apiKey" 이고 그 계정에 apiKey capability 가 있을 것
 #   c. jti 가 accounts.<계정>.tokens 목록에 있을 것
 #
-# a 의 키와 c 의 목록이 모두 SSM 에 있으므로 토큰은 여기서 직접 서명해 고정할 수
+# a 의 키와 c 의 목록이 모두 Secrets Manager 에 있으므로 토큰은 여기서 직접 서명해 고정할 수
 # 있습니다. 그러면 재설치해도 같은 토큰이 그대로 통하고, 발급 절차가 없어집니다.
 #
 # 인자 없이 실행하면 이미 고정된 토큰을 검증만 하고 유효하면 아무것도 하지
@@ -32,13 +32,14 @@
 #   ./token.sh --account keep   # keep 계정
 #   ./token.sh --rotate         # 토큰만 새로 발급 (이전 토큰은 즉시 무효)
 #
-# --rotate 도 서명 키는 바꾸지 않습니다. 키까지 갈아야 한다면 파라미터를 직접 지운
-# 뒤 실행하고, 그때는 다른 로그인 세션도 함께 끊긴다는 것을 감안하세요.
+# --rotate 도 서명 키는 바꾸지 않습니다. 키까지 갈아야 한다면 시크릿을 직접 지운
+# 뒤 실행하고, 그때는 다른 로그인 세션도 함께 끊긴다는 것을 감안하세요. 복구 기간이
+# 남은 시크릿과 같은 이름으로는 만들 수 없으므로 --force-delete-without-recovery 로 지웁니다.
 
 set -euo pipefail
 
-SSM_ERROR_FILE=$(mktemp)
-trap 'rm -f "$SSM_ERROR_FILE"' EXIT
+ERROR_FILE=$(mktemp)
+trap 'rm -f "$ERROR_FILE"' EXIT
 
 ACCOUNT="mcp"
 ROTATE="false"
@@ -57,13 +58,13 @@ while [ $# -gt 0 ]; do
   shift
 done
 
-SECRET_KEY_PARAM="/k8s/common/argocd-server-secret"
-TOKENS_PARAM="/k8s/common/argocd-${ACCOUNT}-tokens"
+SECRET_KEY_NAME="/k8s/common/argocd-server-secret"
+TOKENS_NAME="/k8s/common/argocd-${ACCOUNT}-tokens"
 # Each account's token lives where its consumer reads it. charts/argo-cd lists
 # the same accounts in argocd-cm (accounts.<name>: apiKey) and argocd-secret.
 case "$ACCOUNT" in
-mcp) TOKEN_PARAM="/k8s/common/mcp-argocd/argocd-api-token" ;;
-keep) TOKEN_PARAM="/k8s/common/keep/argocd-api-token" ;;
+mcp) TOKEN_NAME="/k8s/common/mcp-argocd/argocd-api-token" ;;
+keep) TOKEN_NAME="/k8s/common/keep/argocd-api-token" ;;
 *)
   echo "지원하지 않는 계정: ${ACCOUNT} (mcp, keep)" >&2
   exit 2
@@ -83,29 +84,51 @@ fi
 step() { echo -e "\n${C_STEP}==> $*${C_OFF}"; }
 ok() { echo -e "${C_OK}✔ $*${C_OFF}"; }
 
-# 조회한 값은 시크릿이므로 파라미터 이름만 출력합니다.
-ssm() {
+# 값을 출력합니다. 없으면 빈 문자열입니다. 값은 시크릿이므로 이름만 로그에 남깁니다.
+get() {
   local response value status
-  echo -e "${C_CMD}  ssm  ${1}${C_OFF}" >&2
-  if response=$(aws ssm get-parameter --name "$1" --with-decryption --output json 2>"$SSM_ERROR_FILE"); then
-    if ! value=$(printf '%s' "$response" | jq -er '.Parameter.Value | select(type == "string" and length > 0)'); then
-      echo "SSM 값이 비어 있거나 문자열이 아닙니다: $1" >&2
+  echo -e "${C_CMD}  get  ${1}${C_OFF}" >&2
+  if response=$(aws secretsmanager get-secret-value --secret-id "$1" --output json 2>"$ERROR_FILE"); then
+    if ! value=$(printf '%s' "$response" | jq -er '.SecretString | select(type == "string" and length > 0)'); then
+      echo "Secrets Manager 값이 비어 있거나 문자열이 아닙니다: $1" >&2
       return 1
     fi
     printf '%s' "$value"
   else
     status=$?
-    if grep -Fq 'An error occurred (ParameterNotFound) when calling the GetParameter operation:' "$SSM_ERROR_FILE"; then
+    if grep -Fq 'An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation:' "$ERROR_FILE"; then
       return 0
     fi
-    echo "SSM 조회 실패: $1 (종료 코드 $status)" >&2
+    echo "Secrets Manager 조회 실패: $1 (종료 코드 $status)" >&2
     return "$status"
   fi
 }
 
+# 시크릿이 있으면 0, 없으면 1. 값은 읽지 않습니다. if 조건 안에서도 실패가 묻히지
+# 않도록 그 밖의 오류(권한·통신)는 여기서 종료합니다.
+exists() {
+  local status=0
+  aws secretsmanager describe-secret --secret-id "$1" --output json >/dev/null 2>"$ERROR_FILE" || status=$?
+  if [ "$status" -eq 0 ]; then
+    return 0
+  fi
+  if grep -Fq 'An error occurred (ResourceNotFoundException) when calling the DescribeSecret operation:' "$ERROR_FILE"; then
+    return 1
+  fi
+  echo "Secrets Manager 조회 실패: $1 (종료 코드 $status)" >&2
+  exit "$status"
+}
+
+# 기본은 만들기만 합니다. 이미 있으면 create-secret 이 ResourceExistsException 으로 실패합니다.
+# --overwrite 이면 있는 시크릿에 새 버전을 넣고, 없으면 만듭니다.
 put() {
-  echo -e "${C_CMD}  put  ${1}${C_OFF}"
-  aws ssm put-parameter --name "$1" --value "$2" --type SecureString --output json "${@:3}" | jq -er .Version
+  local name="$1" value="$2" mode="${3:-}"
+  echo -e "${C_CMD}  put  ${name}${C_OFF}"
+  if [ "$mode" = "--overwrite" ] && exists "$name"; then
+    aws secretsmanager put-secret-value --secret-id "$name" --secret-string "$value" --output json | jq -er .VersionId
+  else
+    aws secretsmanager create-secret --name "$name" --secret-string "$value" --output json | jq -er .VersionId
+  fi
 }
 
 # JWT 는 padding 없는 base64url 을 씁니다.
@@ -147,24 +170,24 @@ verify() {
   printf '%s' "$tokens" | jq -e --arg id "$jti" 'any(.[]; .id == $id)' >/dev/null
 }
 
-step "SSM 파라미터 조회"
+step "Secrets Manager 조회"
 
-SERVER_SECRET="$(ssm "$SECRET_KEY_PARAM")"
-STORED_TOKEN="$(ssm "$TOKEN_PARAM")"
-STORED_TOKENS="$(ssm "$TOKENS_PARAM")"
+SERVER_SECRET="$(get "$SECRET_KEY_NAME")"
+STORED_TOKEN="$(get "$TOKEN_NAME")"
+STORED_TOKENS="$(get "$TOKENS_NAME")"
 
 if [ -z "${SERVER_SECRET}" ]; then
-  step "${SECRET_KEY_PARAM} 생성"
+  step "${SECRET_KEY_NAME} 생성"
 
   SERVER_SECRET="$(openssl rand -hex 32)"
   # Do not overwrite a key created by another installer after our read.
-  put "${SECRET_KEY_PARAM}" "${SERVER_SECRET}" >/dev/null
+  put "${SECRET_KEY_NAME}" "${SERVER_SECRET}" >/dev/null
 
   ok "새로 만들었습니다. (32 bytes, hex)"
 fi
 
 if [ "${ROTATE}" = "false" ] && verify "${STORED_TOKEN}" "${STORED_TOKENS}" "${SERVER_SECRET}"; then
-  ok "이미 고정된 토큰이 유효합니다. (${TOKEN_PARAM})"
+  ok "이미 고정된 토큰이 유효합니다. (${TOKEN_NAME})"
   exit 0
 fi
 
@@ -174,7 +197,7 @@ JTI="$(uuidgen | tr '[:upper:]' '[:lower:]')"
 IAT="$(date +%s)"
 
 # SessionManager.Create 가 쓰는 클레임 그대로에서 exp 만 뺐습니다. 만료가 없으므로
-# 폐기는 목록에서 지우는 것(파라미터를 [] 로 되돌리기)으로 합니다.
+# 폐기는 목록에서 지우는 것(시크릿을 [] 로 되돌리기)으로 합니다.
 HEADER="$(printf '%s' '{"alg":"HS256","typ":"JWT"}' | b64)"
 CLAIMS="$(printf '{"iat":%s,"iss":"argocd","jti":"%s","nbf":%s,"sub":"%s:apiKey"}' "${IAT}" "${JTI}" "${IAT}" "${ACCOUNT}" | b64)"
 
@@ -183,14 +206,14 @@ TOKEN="${HEADER}.${CLAIMS}.$(sign "${HEADER}.${CLAIMS}" "${SERVER_SECRET}")"
 # settings.Token 은 {"id","iat","exp,omitempty"} 로 직렬화됩니다. exp 는 넣지 않습니다.
 TOKENS="$(jq -cn --arg id "${JTI}" --argjson iat "${IAT}" '[{id: $id, iat: $iat}]')"
 
-step "SSM 파라미터 저장"
+step "Secrets Manager 저장"
 
-put "${TOKENS_PARAM}" "${TOKENS}" --overwrite >/dev/null
-put "${TOKEN_PARAM}" "${TOKEN}" --overwrite >/dev/null
+put "${TOKENS_NAME}" "${TOKENS}" --overwrite >/dev/null
+put "${TOKEN_NAME}" "${TOKEN}" --overwrite >/dev/null
 
 step "검증"
 
-if verify "$(ssm ${TOKEN_PARAM})" "$(ssm ${TOKENS_PARAM})" "${SERVER_SECRET}"; then
+if verify "$(get "${TOKEN_NAME}")" "$(get "${TOKENS_NAME}")" "${SERVER_SECRET}"; then
   echo "  jti  ${JTI}"
   echo "  iat  ${IAT}"
 else

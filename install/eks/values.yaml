@@ -71,12 +71,12 @@ configs:
       server.secretkey: "ARGOCD_SERVER_SECRET"
 
       # GitHub 로그인(꺼짐)의 OAuth App 입니다.
-      # dex.github.clientId: <SSM /k8s/<org>/argocd-github-id>
-      # dex.github.clientSecret: <SSM /k8s/<org>/argocd-github-secret>
+      # dex.github.clientId: <Secrets Manager /k8s/<org>/argocd-github-id>
+      # dex.github.clientSecret: <Secrets Manager /k8s/<org>/argocd-github-secret>
 
       # mcp 계정의 토큰 목록입니다. server.secretkey 와 이 목록이 같이 고정되어
       # 있으면 mcp-argocd 가 들고 있는 토큰이 재설치 후에도 그대로 통합니다.
-      # 값은 ./token.sh 가 만들어 SSM 에 넣습니다 — JSON 안에 " 가 있으므로
+      # 값은 ./token.sh 가 만들어 Secrets Manager 에 넣습니다 — JSON 안에 " 가 있으므로
       # 홑따옴표로 감쌉니다.
       accounts.mcp.tokens: 'ARGOCD_MCP_TOKENS'
 
