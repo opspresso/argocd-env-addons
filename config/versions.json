@@ -7,10 +7,10 @@
       "version": "1.16.0"
     },
     "argo-cd": {
-      "app_version": "v3.6.2",
+      "app_version": "v3.6.3",
       "chart": "argo/argo-cd",
       "current": "10.18.0",
-      "version": "10.18.3"
+      "version": "10.19.1"
     },
     "argo-rollouts": {
       "app_version": "v1.10.2",
@@ -25,10 +25,10 @@
       "version": "2.0.18"
     },
     "atlantis": {
-      "app_version": "v0.49.0",
+      "app_version": "v0.50.0",
       "chart": "atlantis/atlantis",
       "current": "7.4.0",
-      "version": "7.4.0"
+      "version": "7.5.1"
     },
     "dynamodb-chart": {
       "app_version": "1.16.0",
@@ -151,7 +151,7 @@
       "app_version": "v0.95.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "93.3.1",
-      "version": "93.9.0"
+      "version": "93.10.1"
     },
     "rds-chart": {
       "app_version": "1.15.1",
