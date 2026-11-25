@@ -31,9 +31,9 @@ job이 있으면 8-CPU Graviton m 노드(Spot 우선)를 만들고, 비면 10분
 ## 인증
 
 GitHub App `opspresso-arc`(조직 권한 Self-hosted runners: Read and write, Metadata: Read)가 `opspresso` 조직의 모든 저장소에 설치돼 있다.
-ExternalSecret `arc-github-app`이 다음 SSM 파라미터로 Secret을 만든다.
+ExternalSecret `arc-github-app`이 다음 Secrets Manager 시크릿으로 Secret을 만든다.
 
-| 파라미터 | 형식 | 용도 |
+| 시크릿 | 형식 | 용도 |
 | --- | --- | --- |
 | `/k8s/common/github/opspresso-arc/app_id` | String | GitHub App ID |
 | `/k8s/common/github/opspresso-arc/installation_id` | String | `opspresso` 조직 설치 ID |

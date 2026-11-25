@@ -1,7 +1,7 @@
 external-secrets:
   fullnameOverride: external-secrets
 
-  # Every addon that reads a secret from SSM waits on this controller, so it
+  # Every addon that reads a secret from Secrets Manager waits on this controller, so it
   # should outrank the workloads it serves when a node runs short.
   priorityClassName: system-cluster-critical
 

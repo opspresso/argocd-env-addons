@@ -36,7 +36,7 @@ Sonatype의 현재 chart(`nxrm-ha`)는 Pro 라이선스가 필요하고, Communi
 
 CronJob `nexus-sync`가 10분마다 다음을 맞춘다. 단계가 실패하면 Job이 실패하고 이후 단계를 하지 않는다.
 
-1. 처음 실행할 때 `/nexus-data/admin.password`로 로그인해 admin 비밀번호를 SSM 값으로 바꾼다.
+1. 처음 실행할 때 `/nexus-data/admin.password`로 로그인해 admin 비밀번호를 Secrets Manager 값으로 바꾼다.
 2. Community Edition EULA를 수락한다.
 3. LDAP 서버 `lldap`을 만들거나 같은 설정으로 덮어쓴다(그룹을 역할로 사용, static group `member`).
 4. 활성 realm을 `rutauth-realm`, `LdapRealm`, `NexusAuthenticatingRealm`, `DockerToken` 순서로, 익명 읽기를 켠다.
@@ -62,8 +62,8 @@ Docker 주소는 `nexus.demo.opsp.dev/runway-images/<image>`다. 파일 주소�
 
 `runway-reader`는 두 저장소의 read·browse만, `runway-publisher`는 read·browse·add·edit만 가진다.
 `runway-cleaner`는 두 저장소의 read·browse·delete만 가지며 게시 권한이 없다. 세 계정 모두 관리자 권한이 없고, 동기화는 각 계정의 역할을 정해진 역할 하나로 복원한다.
-비밀번호는 SSM 값으로 최초 생성하며, 매 실행마다 기존 비밀번호를 바꾸지 않는다. 회전할 때는 운영자가
-Nexus 계정과 SSM 값을 함께 갱신한다. 게시 자격 증명은 격리된 게시 단계에만 전달한다.
+비밀번호는 Secrets Manager 값으로 최초 생성하며, 매 실행마다 기존 비밀번호를 바꾸지 않는다. 회전할 때는 운영자가
+Nexus 계정과 Secrets Manager 값을 함께 갱신한다. 게시 자격 증명은 격리된 게시 단계에만 전달한다.
 Runway의 삭제 어댑터는 cleaner 계정으로 해당 프로젝트 경로의 파일과 이미지 manifest만 삭제한다. 다른 프로젝트와 공유 blob은 보존하며, 실제 연동은 Runway 배포 버전에서 확인한다.
 
 이 설정은 저장소와 계정을 준비한다. Runway 빌드·배포 연동 완료를 의미하지 않는다.
@@ -73,9 +73,9 @@ kubectl -n addon-nexus create job --from=cronjob/nexus-sync nexus-sync-manual
 kubectl -n addon-nexus logs -f job/nexus-sync-manual
 ```
 
-## SSM 파라미터
+## Secrets Manager 시크릿
 
-| 파라미터 | 용도 |
+| 시크릿 | 용도 |
 | --- | --- |
 | `/k8s/common/nexus/admin-password` | 로컬 `admin` 비밀번호. 동기화 Job이 첫 실행 때 설정한다 |
 | `/k8s/common/nexus/runway-publisher-password` | Runway 산출물 게시 계정의 최초 비밀번호 |

@@ -44,7 +44,7 @@ create/update/delete/sync/action 권한을 함께 제거한다. `MCP_READ_ONLY`�
   client secret은 `/k8s/common/argocd/oidc-client-secret`이며 `argocd-secret`의 `oidc.lldap.clientSecret`으로 읽는다.
   `argocd login <host> --sso`는 public client `argo-cd-cli`를 쓴다.
 - 로컬 `admin`(`/k8s/common/argocd-password`, `admin-password`의 bcrypt)은 비상용이다.
-- `server.secretkey`와 `mcp`·`keep` 계정 토큰은 `install/eks/token.sh`가 SSM에 고정한다. 동작과 파라미터는
+- `server.secretkey`와 `mcp`·`keep` 계정 토큰은 `install/eks/token.sh`가 Secrets Manager에 고정한다. 동작과 파라미터는
   [install/eks README](../../install/eks/README.md#server-secret-and-api-tokens)에 있다.
 - ExternalSecret `argocd-secret`은 파라미터가 하나라도 없으면 통째로 실패한다. 새 클러스터에서는 `install/eks/install.sh`가
   먼저 모든 값을 만든다.

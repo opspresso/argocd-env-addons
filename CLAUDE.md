@@ -43,9 +43,9 @@ LLDAP 그룹은 이름 그대로 들어온다. LLDAP 관리자·Dex bind 사용�
 자체 로그인이 없는 서비스는 `oauth2-proxy` 가 막는다. GitLab CE 의 관리자는 `gitlab.admins` 목록을 CronJob 이 맞춘다.
 Nexus CE 는 oauth2-proxy 뒤의 Remote User Token 으로 로그인하고 LLDAP 을 LDAP 사용자 원천으로 읽어 `sso` 그룹을 역할로 쓴다 (`charts/nexus/README.md`).
 
-설치(`install/eks`)는 SSM 이 비어 있어도, 값이 있어도 같은 명령으로 실행한다. 클러스터 설정은 `env/eks-demo.yaml` 에서 읽고,
-만들 수 있는 SSM 값은 `token.sh`·`secrets.sh` 가 없을 때만 만든다. 배포 addon 이 새 SSM 파라미터를 읽으면
-`secrets.sh` 에 생성을 추가하거나 외부 발급 값으로 등록한다(`install/eks/tests/test_empty_ssm.py` 가 검사).
+설치(`install/eks`)는 Secrets Manager 가 비어 있어도, 값이 있어도 같은 명령으로 실행한다. 클러스터 설정은 `env/eks-demo.yaml` 에서 읽고,
+만들 수 있는 Secrets Manager 값은 `token.sh`·`secrets.sh` 가 없을 때만 만든다. 배포 addon 이 새 Secrets Manager 시크릿을 읽으면
+`secrets.sh` 에 생성을 추가하거나 외부 발급 값으로 등록한다(`install/eks/tests/test_empty_secrets.py` 가 검사).
 
 경보: Slack 경보는 Keep 만 보낸다. Grafana·Alertmanager·Argo CD 는 Keep 으로만 보내고, Keep workflow 가 Slack 메시지와
 kube-sre 호출을 만든다 (`charts/keep/README.md`).
@@ -69,7 +69,7 @@ charts/<addon>/
   values.yaml                   # 모든 클러스터 공통 값
   values-template.yaml.j2       # Jinja2 템플릿 (렌더 소스)
   eks/values-<cluster>.yaml     # EKS 렌더 결과
-  README.md                     # (선택) 해당 addon 이 요구하는 SSM 파라미터 등록 절차
+  README.md                     # (선택) 해당 addon 이 요구하는 Secrets Manager 시크릿 등록 절차
 ```
 
 **이 저장소에는 `values-<phase>.yaml` 도 `versions-<phase>.json` 도 없다.** phase 개념은
@@ -115,7 +115,7 @@ ApplicationSet 의 `helm.valueFiles` 순서 그대로다.
 ## env/<cluster>.yaml
 
 - 파일 이름이 클러스터 이름이고, 안의 `cluster` 필드와 일치해야 한다 (`{{cluster}}` 로 치환됨).
-- 클러스터별 SSM 경로는 템플릿의 `{{cluster}}`에서 만든다. 공통 `values.yaml`에 특정 클러스터의 경로를 기본값으로 두지 않는다.
+- 클러스터별 Secrets Manager 경로는 템플릿의 `{{cluster}}`에서 만든다. 공통 `values.yaml`에 특정 클러스터의 경로를 기본값으로 두지 않는다.
 - `env` 는 플랫폼(`eks`, `local`)이며 valueFiles 경로의 디렉토리(`{{env}}/values-{{cluster}}.yaml`)가 된다.
 - `terraform-env-demo` 산출물(`vpcId`, `acm_arn`, `target_group.*`)은 손으로 넣지 말고
   `./scripts/update_env.sh` 로 갱신한다. 이미 값이 들어 있는 키만 교체하므로, 새 키는 먼저 추가해야 한다.

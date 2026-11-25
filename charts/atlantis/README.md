@@ -10,16 +10,16 @@ Terraform PR 자동화. 관리 클러스터(`eks-demo`)에만 배포하며 names
 - Terraform은 EKS Pod Identity로 IAM 역할 `pod-role--atlantis`(AdministratorAccess)를 쓴다
   (terraform-env-demo `demo/4-role`, `demo/5-eks`).
 
-## SSM 파라미터
+## Secrets Manager 시크릿
 
 `nalbam-bot`의 GitHub token과 webhook secret은 밖에서 발급하는 값이라 설치가 만들지 않는다. 되살리기 전에 넣는다.
 
-| 파라미터 | 용도 |
+| 시크릿 | 용도 |
 | --- | --- |
 | `/k8s/common/github/nalbam-bot/token` | GitHub API token |
 | `/k8s/common/github/nalbam-bot/secret` | GitHub webhook secret |
 
 ```bash
-aws ssm put-parameter --name /k8s/common/github/nalbam-bot/token --value "<token>" --type SecureString
-aws ssm put-parameter --name /k8s/common/github/nalbam-bot/secret --value "<secret>" --type SecureString
+read -rs VALUE && printf "%s" "$VALUE" | aws secretsmanager create-secret --name /k8s/common/github/nalbam-bot/token --secret-string file:///dev/stdin
+read -rs VALUE && printf "%s" "$VALUE" | aws secretsmanager create-secret --name /k8s/common/github/nalbam-bot/secret --secret-string file:///dev/stdin
 ```

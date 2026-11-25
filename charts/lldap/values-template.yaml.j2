@@ -32,7 +32,7 @@ lldap:
       value: "{{lldap.base_dn}}"
     - name: LLDAP_LDAP_USER_EMAIL
       value: "{{lldap.admin_email}}"
-    # SSM is the source of the admin password: every start resets it.
+    # Secrets Manager is the source of the admin password: every start resets it.
     - name: LLDAP_FORCE_LDAP_USER_PASS_RESET
       value: "always"
 

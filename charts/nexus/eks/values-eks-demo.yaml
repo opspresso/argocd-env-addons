@@ -157,7 +157,7 @@ raw:
           B=http://nexus:8081/service/rest
           api() { curl -fsS -u "admin:${NEXUS_ADMIN_PASSWORD}" -H 'Content-Type: application/json' "$@"; }
 
-          # First run: replace the generated admin password with the SSM value.
+          # First run: replace the generated admin password with the Secrets Manager value.
           code=$(curl -s -o /dev/null -w '%{http_code}' -u "admin:${NEXUS_ADMIN_PASSWORD}" "$B/v1/status/check")
           if [ "$code" = "401" ]; then
             pod=$(kubectl get pod -l app.kubernetes.io/name=nexus --field-selector=status.phase=Running -o name | head -1)
@@ -174,7 +174,7 @@ raw:
           fi
 
           # LLDAP as a user source: the LLDAP groups of a user are Nexus role IDs.
-          # PUT on every run keeps the bind password equal to SSM.
+          # PUT on every run keeps the bind password equal to Secrets Manager.
           ldap=$(jq -n --arg dn "${LDAP_BIND_DN}" --arg pw "${LDAP_BIND_PW}" --arg base "${LDAP_BASE_DN}" '{
             name: "lldap", protocol: "LDAP", host: "lldap.addon-lldap.svc.cluster.local", port: 3890,
             searchBase: $base, authScheme: "SIMPLE", authUsername: $dn, authPassword: $pw,

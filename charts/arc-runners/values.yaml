@@ -4,7 +4,7 @@
 arc-runners:
   githubConfigUrl: https://github.com/opspresso
   # GitHub App opspresso-arc (organization Self-hosted runners: write).
-  # The ExternalSecret below creates this Secret from SSM.
+  # The ExternalSecret below creates this Secret from Secrets Manager.
   githubConfigSecret: arc-github-app
   runnerScaleSetName: eks-arm64
   runnerGroup: Default

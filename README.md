@@ -52,7 +52,7 @@ GitHub 로그인(connector `github`)은 꺼져 있고 설정은 주석으로 남
 - GitLab CE는 그룹으로 관리자를 정할 수 없어 `gitlab.admins` 목록을 CronJob이 맞춘다.
 - Gitea는 로그인할 때마다 `sso.admin_groups`의 그룹(하나)으로 관리자 권한을 맞춘다.
 - Keep은 `sso` 그룹이 없는 사용자를 거부한다. 다른 addon은 그룹이 없는 사용자에게 읽기 권한을 준다.
-- 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 SSM에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
+- 각 addon의 로컬 관리자 계정은 비상용이며 비밀번호는 Secrets Manager에 있다. 무작위 값은 `install/eks/secrets.sh`가 만든다.
 
 ## 저장소 구조
 
@@ -154,7 +154,7 @@ addon을 동기화한다.
 - 파일 이름은 클러스터 이름이며 `cluster` 필드와 같아야 한다. 다르면 생성에 실패한다.
 - `env` 필드는 플랫폼(`eks`, `local`)이며 렌더 출력 디렉터리가 된다.
   `env`를 바꾸면 옛 디렉터리에 남은 파일은 손으로 지운다.
-- 클러스터별 SSM 경로는 템플릿의 `{{cluster}}`로 만든다. 공통 `values.yaml`에 특정 클러스터의
+- 클러스터별 Secrets Manager 경로는 템플릿의 `{{cluster}}`로 만든다. 공통 `values.yaml`에 특정 클러스터의
   경로를 기본값으로 두지 않는다.
 
 ### ApplicationSet 규칙
@@ -173,7 +173,7 @@ charts/<addon>/
   values.yaml                  # 모든 클러스터 공통 값
   values-template.yaml.j2      # 클러스터별 값의 Jinja2 템플릿
   eks/values-<cluster>.yaml    # EKS 렌더 결과
-  README.md                    # (선택) SSM 파라미터 등록 등 addon별 절차
+  README.md                    # (선택) Secrets Manager 시크릿 등록 등 addon별 절차
 ```
 
 - ApplicationSet은 `values.yaml` → `<env>/values-<cluster>.yaml` 순으로 병합한다.

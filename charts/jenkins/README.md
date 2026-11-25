@@ -13,9 +13,9 @@
 - `sso.admin_groups`는 `Overall/Administer`, 그 밖의 사용자는 읽기(`Overall/Read`, `Job/Read`, `View/Read`)만 한다.
 - 보안 설정은 JCasC(`values-template.yaml.j2`)에 있다. UI에서 바꾼 보안 설정은 JCasC가 다시 적용될 때 덮어써진다.
 
-## SSM 파라미터
+## Secrets Manager 시크릿
 
-| 파라미터 | 용도 |
+| 시크릿 | 용도 |
 | --- | --- |
 | `/k8s/common/jenkins/oidc-client-secret` | Dex client `jenkins-sso`의 secret. 플랫폼 Dex의 `dex-secret`도 읽는다 |
 

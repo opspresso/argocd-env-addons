@@ -188,7 +188,7 @@ raw:
         refreshInterval: 1h
         secretStoreRef:
           kind: ClusterSecretStore
-          name: parameter-store
+          name: secrets-manager
         target:
           name: dex-secret
           # Merge keeps the fetched keys next to the templated bind DN.

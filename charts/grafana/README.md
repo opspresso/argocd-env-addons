@@ -10,11 +10,11 @@
 - 로컬 관리자(`/k8s/common/admin-user`, `admin-password`)와 LLDAP 관리자는 login `admin`이 같다. 둘의 email을
   `lldap.admin_email`로 맞춰 같은 계정으로 연결한다(`security.admin_email`, `charts/lldap/README.md`).
 
-## SSM 파라미터
+## Secrets Manager 시크릿
 
 `install/eks/secrets.sh`가 없을 때만 만든다.
 
-| 파라미터 | 읽는 곳 |
+| 시크릿 | 읽는 곳 |
 | --- | --- |
 | `/k8s/common/admin-user`, `admin-password` | `grafana-secret`(로컬 관리자) |
 | `/k8s/common/grafana/oidc-client-secret` | `grafana-secret`, `dex-secret`(Dex client `grafana-sso`) |

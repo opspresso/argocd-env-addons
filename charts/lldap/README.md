@@ -20,7 +20,7 @@ namespace는 `addon-lldap`, 웹 UI 주소는 `https://id.demo.opsp.dev`다.
 
 LLDAP 관리자는 Argo CD 관리자와 같은 값을 쓴다.
 
-| 파라미터 | 용도 |
+| 시크릿 | 용도 |
 | --- | --- |
 | `/k8s/common/admin-user` | LLDAP 관리자 아이디(웹 UI 로그인), Dex bind 사용자. Dex 로그인은 이메일 `lldap.admin_email` |
 | `/k8s/common/admin-password` | LLDAP 관리자 비밀번호, Dex bind 비밀번호 |
@@ -28,9 +28,9 @@ LLDAP 관리자는 Argo CD 관리자와 같은 값을 쓴다.
 | `/k8s/common/lldap/key-seed` | 비밀번호 저장 키의 seed. **바꾸면 모든 사용자 비밀번호가 맞지 않는다** |
 
 - `lldap/*` 값은 `install/eks/secrets.sh`가 없을 때만 만든다.
-- LLDAP은 시작할 때마다 관리자 비밀번호를 SSM 값으로 되돌린다(`LLDAP_FORCE_LDAP_USER_PASS_RESET=always`).
-  웹 UI에서 관리자 비밀번호를 바꾸지 말고 SSM 값을 바꾼다.
-- SSM 값을 바꾼 뒤에는 ExternalSecret `lldap-secret`(addon-lldap)과 `dex-secret`(addon-dex)이 새 값을 읽은 다음
+- LLDAP은 시작할 때마다 관리자 비밀번호를 Secrets Manager 값으로 되돌린다(`LLDAP_FORCE_LDAP_USER_PASS_RESET=always`).
+  웹 UI에서 관리자 비밀번호를 바꾸지 말고 Secrets Manager 값을 바꾼다.
+- Secrets Manager 값을 바꾼 뒤에는 ExternalSecret `lldap-secret`(addon-lldap)과 `dex-secret`(addon-dex)이 새 값을 읽은 다음
   `lldap` Deployment와 `dex` Deployment를 재시작한다.
 
 ## 그룹과 사용자
