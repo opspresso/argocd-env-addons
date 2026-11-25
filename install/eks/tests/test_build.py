@@ -34,8 +34,8 @@ if name == "argocd-password":
         sys.exit()
     if scenario == "missing":
         del values[name]
-    if scenario in ("empty", "wrong_type"):
-        values[name] = {"empty": "", "wrong_type": 123}[scenario]
+    if scenario in ("null", "empty", "wrong_type"):
+        values[name] = {"null": None, "empty": "", "wrong_type": 123}[scenario]
 if name not in values:
     print("An error occurred (ResourceNotFoundException) when calling the GetSecretValue operation: missing", file=sys.stderr)
     sys.exit(254)
@@ -129,7 +129,7 @@ def test_build_requires_cluster_settings(tmp_path, env):
 
 
 @pytest.mark.parametrize("scenario", [
-    "read_failure", "invalid_json", "binary", "empty", "wrong_type", "missing",
+    "read_failure", "invalid_json", "binary", "null", "empty", "wrong_type", "missing",
 ])
 def test_build_failure_preserves_existing_output(tmp_path, scenario):
     result, output, _ = run_build(tmp_path, scenario)
