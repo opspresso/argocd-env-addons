@@ -42,6 +42,9 @@ lldap:
   externalSecrets:
     enabled: true
     name: lldap-secret
+    secretStoreRef:
+      kind: ClusterSecretStore
+      name: secrets-manager
     data:
       - key: /k8s/common/admin-user
         name: LLDAP_LDAP_USER_DN
