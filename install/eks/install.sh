@@ -58,7 +58,7 @@ step "Helm repository 등록"
 run helm repo add argo https://argoproj.github.io/argo-helm --force-update
 run helm repo update argo
 
-# Argo CD 의 서명 키(server.secretkey)와 mcp·keep 계정의 API 토큰을 SSM 에 고정합니다.
+# Argo CD 의 서명 키(server.secretkey)와 mcp·keep 계정의 API 토큰을 Secrets Manager 에 고정합니다.
 # 키는 없을 때만 만들고, 토큰은 없거나 무효일 때만 발급하므로 매번 실행해도
 # 됩니다. 클러스터를 다시 만들어도 같은 토큰이 그대로 통하므로 재설치에 별도
 # 절차가 붙지 않습니다. charts/argo-cd 의 ExternalSecret 은 두 토큰 목록을 모두

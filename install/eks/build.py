@@ -2,7 +2,7 @@
 """Render bootstrap values without interpreting secrets as YAML or sed syntax.
 
 Cluster settings (hostname, admin groups) come from env/<CLUSTER>.yaml, the
-same file the addons render from. Secrets come from SSM; secrets.sh and token.sh
+same file the addons render from. Secrets come from Secrets Manager; secrets.sh and token.sh
 create them before this runs. The bootstrap signs in with the admin account only.
 """
 
@@ -19,7 +19,7 @@ import yaml
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 ENV_DIR = SCRIPT_DIR.parents[1] / "env"
-NOT_FOUND = "(ParameterNotFound)"
+NOT_FOUND = "(ResourceNotFoundException)"
 
 
 def aws(*args):
@@ -28,23 +28,23 @@ def aws(*args):
     )
     if result.returncode:
         if NOT_FOUND in result.stderr:
-            raise ValueError(f"SSM 파라미터가 없습니다: {args[args.index('--name') + 1]}")
+            raise ValueError(f"Secrets Manager 시크릿이 없습니다: {args[args.index('--secret-id') + 1]}")
         # Do not include captured output, which may contain decrypted values.
         raise ValueError(f"AWS {args[0]} {args[1]} 조회 실패 (종료 코드 {result.returncode})")
     return result.stdout
 
 
-def ssm(name):
-    print(f"  ssm  {name}")
+def secret(name):
+    print(f"  get  {name}")
     try:
         response = json.loads(
-            aws("ssm", "get-parameter", "--name", name, "--with-decryption", "--output", "json")
+            aws("secretsmanager", "get-secret-value", "--secret-id", name, "--output", "json")
         )
-        value = response["Parameter"]["Value"]
+        value = response["SecretString"]
     except (json.JSONDecodeError, KeyError, TypeError) as error:
-        raise ValueError(f"SSM 응답이 올바르지 않습니다: {name}") from error
+        raise ValueError(f"Secrets Manager 응답이 올바르지 않습니다: {name}") from error
     if not isinstance(value, str) or not value:
-        raise ValueError(f"SSM 값이 비어 있거나 문자열이 아닙니다: {name}")
+        raise ValueError(f"Secrets Manager 값이 비어 있거나 문자열이 아닙니다: {name}")
     return value
 
 
@@ -86,7 +86,7 @@ def build():
         "ADMIN_GROUPS_POLICY": "\n".join(f"g, {group}, role:admin" for group in groups),
     }
     replacements.update({
-        key: ssm(f"/k8s/common/{name}")
+        key: secret(f"/k8s/common/{name}")
         for key, name in (
             ("ARGOCD_PASSWORD", "argocd-password"),
             ("ARGOCD_MTIME", "argocd-mtime"),
