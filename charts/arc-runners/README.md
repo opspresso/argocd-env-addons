@@ -37,7 +37,7 @@ ExternalSecret `arc-github-app`이 다음 Secrets Manager 시크릿으로 Secret
 | --- | --- | --- |
 | `/k8s/common/github/opspresso-arc/app_id` | String | GitHub App ID |
 | `/k8s/common/github/opspresso-arc/installation_id` | String | `opspresso` 조직 설치 ID |
-| `/k8s/common/github/opspresso-arc/private_key` | SecureString | GitHub App private key(PEM) |
+| `/k8s/common/github/opspresso-arc/private_key` | String | GitHub App private key(PEM) |
 
 private key를 교체하면 GitHub App 설정에서 새 key를 만들고 `private_key`를 갱신한 뒤 이전 key를 삭제한다.
 ExternalSecret은 1시간마다 갱신하며, 즉시 반영하려면 ExternalSecret에 `force-sync` annotation을 바꾼다.
