@@ -103,12 +103,12 @@ bot 권한:
 Basic Information에서 `slack-app-icon.png`를 올린 뒤 workspace에 설치한다.
 권한을 바꾸면 Install App → Reinstall to nalbam으로 다시 설치해야 적용된다.
 
-## SSM 파라미터
+## Secrets Manager 시크릿
 
 ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들지 않는다. `slack-bot-token`을 뺀 값은
 `install/eks/install.sh`(`secrets.sh`, `token.sh --account keep`)가 없을 때만 만든다. `slack-bot-token`은 직접 넣는다.
 
-| 파라미터 | 읽는 곳 |
+| 시크릿 | 읽는 곳 |
 | --- | --- |
 | `/k8s/common/keep/database-password` | `addon-keep-database`(PostgreSQL), `addon-keep-backend`(접속 문자열) |
 | `/k8s/common/keep/nextauth-secret` | `addon-keep-frontend` |
@@ -121,7 +121,7 @@ ExternalSecret은 파라미터가 하나라도 없으면 Secret 전체를 만들
 | `/k8s/common/argocd-keep-tokens` | `argocd-secret`의 `accounts.keep.tokens`. 위와 같은 스크립트가 만든다 |
 
 ```bash
-aws ssm put-parameter --name /k8s/common/keep/slack-bot-token --value "<xoxb-...>" --type SecureString
+read -rs VALUE && printf "%s" "$VALUE" | aws secretsmanager create-secret --name /k8s/common/keep/slack-bot-token --secret-string file:///dev/stdin
 ```
 
 ### 값 교체

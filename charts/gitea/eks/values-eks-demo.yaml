@@ -50,7 +50,7 @@ raw:
         refreshInterval: 1h
         secretStoreRef:
           kind: ClusterSecretStore
-          name: parameter-store
+          name: secrets-manager
         target:
           name: gitea-secret
         data:
@@ -67,7 +67,7 @@ raw:
         refreshInterval: 1h
         secretStoreRef:
           kind: ClusterSecretStore
-          name: parameter-store
+          name: secrets-manager
         target:
           name: gitea-admin
           template:
@@ -90,7 +90,7 @@ raw:
         refreshInterval: 1h
         secretStoreRef:
           kind: ClusterSecretStore
-          name: parameter-store
+          name: secrets-manager
         target:
           name: gitea-oidc
           template:

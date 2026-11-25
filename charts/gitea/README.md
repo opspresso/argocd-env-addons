@@ -28,11 +28,11 @@
   Application을 지워도 남는다. `postgres` StatefulSet의 PVC는 Application을 지우면 함께 지워진다. gp3는 `Retain`이므로
   두 경우 모두 EBS 볼륨은 남는다.
 
-## SSM 파라미터
+## Secrets Manager 시크릿
 
 `install/eks/secrets.sh`가 없을 때만 만든다. 값이 없으면 ExternalSecret이 실패하고 Pod가 시작하지 않는다.
 
-| 파라미터 | 용도 |
+| 시크릿 | 용도 |
 | --- | --- |
 | `/k8s/common/gitea/admin-password` | 로컬 관리자 `gitea_admin`의 비밀번호. init container가 시작할 때마다 이 값으로 맞춘다 |
 | `/k8s/common/gitea/postgres-password` | PostgreSQL 사용자 `gitea`. PostgreSQL은 데이터 디렉터리를 처음 만들 때만 읽는다 |
@@ -42,7 +42,7 @@
 `app.ini`에 쓴다. ExternalSecret은 1시간마다 갱신하므로, 그 전에 Pod를 다시 시작하면 이전 비밀번호로 DB 접속에 실패한다.
 
 1. DB에서 `ALTER USER gitea PASSWORD '<새 값>'`을 실행한다.
-2. SSM `/k8s/common/gitea/postgres-password`를 같은 값으로 바꾼다.
+2. Secrets Manager `/k8s/common/gitea/postgres-password`를 같은 값으로 바꾼다.
 3. ExternalSecret을 바로 갱신하고, `gitea-secret`의 `resourceVersion`이 바뀐 것을 확인한 뒤 Pod를 다시 시작한다.
 
 ```bash

@@ -33,7 +33,7 @@ flowchart LR
 
 ## Client
 
-| client | 서비스 | secret(SSM) |
+| client | 서비스 | secret(Secrets Manager) |
 | --- | --- | --- |
 | `argo-cd` | Argo CD | `/k8s/common/argocd/oidc-client-secret` |
 | `argo-cd-cli` | `argocd login --sso`(public, `http://localhost:8085/auth/callback`) | 없음 |

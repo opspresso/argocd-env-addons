@@ -11,7 +11,7 @@ namespace는 `addon-oauth2-proxy`, callback 주소는 `https://auth.demo.opsp.de
   `x-auth-request-preferred-username`, `x-auth-request-groups` header가 붙는다.
 - cookie는 `.demo.opsp.dev` 전체에 쓴다. 한 번 로그인하면 보호된 모든 host에 적용된다.
 
-| 파라미터 | 용도 |
+| 시크릿 | 용도 |
 | --- | --- |
 | `/k8s/common/oauth2-proxy-client-secret` | Dex client `oauth2-proxy-sso`의 secret. 플랫폼 Dex의 `dex-secret`도 읽는다 |
 | `/k8s/common/cookie-secret` | cookie 암호화 키(16·24·32 byte) |

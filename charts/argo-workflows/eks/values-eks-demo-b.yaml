@@ -44,12 +44,12 @@ raw:
         refreshInterval: 1h
         secretStoreRef:
           kind: ClusterSecretStore
-          name: parameter-store
+          name: secrets-manager
         target:
           name: argo-workflows-secret
           # The client id is the literal id of the staticClient that argo-cd's
           # dex declares, not a secret, so it is written here rather than read
-          # from parameter store. Merge keeps the fetched client-secret.
+          # from Secrets Manager. Merge keeps the fetched client-secret.
           template:
             mergePolicy: Merge
             data:

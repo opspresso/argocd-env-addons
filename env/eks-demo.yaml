@@ -108,7 +108,7 @@ gitlab:
   admins:
     - admin1
     - nalbam
-  # OAuth applications that GitLab serves, by client_id. secret_key is the SSM parameter of the client secret; the
+  # OAuth applications that GitLab serves, by client_id. secret_key is the Secrets Manager secret of the client secret; the
   # consumer reads the same parameter. Agent Studio connects each user's Git account with agent-studio-git
   # (agent-platform docs/GIT_CONNECTIONS.md).
   oauth_applications:
