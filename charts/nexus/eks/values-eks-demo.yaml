@@ -24,6 +24,9 @@ nexus:
   # admin, like the platform Dex (charts/dex).
   extraExternalSecrets:
     nexus-admin:
+      secretStoreRef:
+        kind: ClusterSecretStore
+        name: secrets-manager
       target:
         # Merge keeps the fetched keys next to the templated bind DN.
         template:
