@@ -9,9 +9,9 @@ raw:
     - apiVersion: external-secrets.io/v1
       kind: ClusterSecretStore
       metadata:
-        name: parameter-store
+        name: secrets-manager
       spec:
-        conditions: &platform-namespaces
+        conditions:
           # Platform paths hold every service's credentials. Only platform namespaces may
           # reference them; tenant workloads use their own namespaced SecretStore.
           - namespaceRegexes:
@@ -25,17 +25,6 @@ raw:
               - "^app-delivery$"
               # rovr reads its GitHub App, model and database credentials (argocd-env-apps charts/rovr).
               - "^rovr$"
-        provider:
-          aws:
-            region: "ap-northeast-2"
-            service: ParameterStore
-
-    - apiVersion: external-secrets.io/v1
-      kind: ClusterSecretStore
-      metadata:
-        name: secrets-manager
-      spec:
-        conditions: *platform-namespaces
         provider:
           aws:
             region: "ap-northeast-2"
