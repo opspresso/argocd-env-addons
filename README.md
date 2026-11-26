@@ -454,10 +454,10 @@ OCI 항목의 최신 버전은 chart 메타데이터의 `version`이 아니라 H
 | NAME | | CURRENT | LATEST |
 | --- | - | --- | --- |
 | alloy | ✅ | 1.16.0 | 1.16.0 (v1.22.0) |
-| argo-cd |  | 10.18.0 | 10.19.1 (v3.6.3) |
+| argo-cd |  | 10.18.0 | 10.20.0 (v3.6.3) |
 | argo-rollouts | ✅ | 2.43.12 | 2.43.12 (v1.10.2) |
 | argo-workflows | ✅ | 2.0.18 | 2.0.18 (v4.1.6) |
-| atlantis |  | 7.4.0 | 7.5.1 (v0.50.0) |
+| atlantis |  | 7.4.0 | 7.6.0 (v0.50.0) |
 | aws-controllers (dynamodb-chart) | ✅ | 1.16.0 | 1.16.0 (1.16.0) |
 | external-dns |  | 1.23.0 | 1.24.0 (0.24.0) |
 | external-secrets | ✅ | 2.15.0 | 2.15.0 (v2.15.0) |
@@ -465,10 +465,10 @@ OCI 항목의 최신 버전은 chart 메타데이터의 `version`이 아니라 H
 | arc-runners (gha-runner-scale-set) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | arc-controller (gha-runner-scale-set-controller) | ✅ | 0.15.1 | 0.15.1 (0.15.1) |
 | gitea | ✅ | 12.7.0 | 12.7.0 (1.27.0) |
-| gitlab |  | 10.5.7 | 10.6.1 (v19.6.1) |
+| gitlab |  | 10.5.7 | 10.6.2 (v19.6.2) |
 | grafana | ✅ | 10.5.15 | 10.5.15 (12.3.1) |
 | istio (istiod) | ✅ | 1.32.0 | 1.32.0 (1.32.0) |
-| jenkins | ✅ | 5.13.3 | 5.13.3 (2.580.2) |
+| jenkins |  | 5.13.3 | 5.13.4 (2.580.2) |
 | keep | ✅ | 0.1.97 | 0.1.97 (0.54.3) |
 | kite | ✅ | 0.18.0 | 0.18.0 (v0.18.0) |
 | kro | ✅ | 0.10.0 | 0.10.0 (v0.10.0) |
@@ -476,7 +476,7 @@ OCI 항목의 최신 버전은 chart 메타데이터의 `version`이 아니라 H
 | metrics-server | ✅ | 3.14.0 | 3.14.0 (0.9.0) |
 | oauth2-proxy | ✅ | 10.7.4 | 10.7.4 (7.15.6) |
 | prometheus-adapter | ✅ | 5.4.2 | 5.4.2 (v0.12.0) |
-| prometheus-stack |  | 93.3.1 | 93.10.1 (v0.95.2) |
+| prometheus-stack |  | 93.3.1 | 93.11.0 (v0.95.2) |
 | aws-controllers (rds-chart) | ✅ | 1.15.1 | 1.15.1 (1.15.1) |
 | aws-controllers (s3-chart) | ✅ | 1.16.0 | 1.16.0 (1.16.0) |
 | vllm-stack |  |  | 0.1.14 |
