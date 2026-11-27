@@ -250,7 +250,7 @@ raw:
                       - name: ADMINS
                         value: "admin1,nalbam"
                       - name: APPLICATIONS
-                        value: '[{"client_id": "agent-studio-git", "name": "Agent Studio", "redirect_uri": "https://studio.agrt.dev/api/git/callback", "scopes": ["api", "read_repository", "write_repository"]}]'
+                        value: '[{"client_id": "agent-studio-git", "name": "Agent Studio", "redirect_uri": "https://agentops.agrt.dev/api/git/callback", "scopes": ["api", "read_repository", "write_repository"]}]'
                     resources:
                       requests:
                         cpu: 10m

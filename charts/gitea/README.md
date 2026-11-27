@@ -79,19 +79,19 @@ kubectl -n addon-dex rollout restart deploy/dex
 kubectl -n addon-gitea rollout restart deploy/gitea
 ```
 
-## Agent Studio Git 연결
+## AgentOps Git 연결
 
-Agent Studio의 Git 호스트 `gitea-demo`(provider `gitea`)는 Gitea OAuth2 application **Agent Studio**를 쓴다. Forge와 Runway는
-Studio가 발급한 사용자 token으로 Gitea에 접근한다.
+AgentOps Identity의 Git 호스트 `gitea-demo`(provider `gitea`)는 Gitea OAuth2 application **Agent Studio**를 쓴다. Studio·Forge·Runway는
+Identity가 발급한 사용자 token으로 Gitea에 접근한다.
 
 | 항목 | 값 |
 | --- | --- |
 | 등록 위치 | 사이트 관리 **통합 → 어플리케이션**(`https://gitea.demo.opsp.dev/-/admin/applications`) |
-| redirect URI | `https://studio.agrt.dev/api/git/callback` |
-| 종류 | public client(**비공개 클라이언트** 끔). Studio가 PKCE로 code를 교환하므로 client secret을 쓰지 않는다 |
-| client ID | `argocd-env-apps`의 `env/eks-demo.yaml` → `agent_studio.git_hosts`의 `gitea-demo` 항목 |
+| redirect URI | `https://agentops.agrt.dev/api/git/callback` |
+| 종류 | public client(**비공개 클라이언트** 끔). Identity가 PKCE로 code를 교환하므로 client secret을 쓰지 않는다 |
+| client ID | `argocd-env-apps`의 `env/eks-demo.yaml` → `agentops.git_hosts`의 `gitea-demo` 항목 |
 
-- application을 다시 만들면 client ID가 바뀐다. `git_hosts`의 `client_id`를 같은 값으로 바꾸면 기존 Studio 연결은
+- application을 다시 만들면 client ID가 바뀐다. `git_hosts`의 `clientId`를 같은 값으로 바꾸면 기존 연결은
   **재연결 필요**가 된다.
 - Gitea에는 OAuth token을 폐기하는 API가 없다. Studio에서 연결을 해제한 사용자는 Gitea **Settings → Applications**
   (`https://gitea.demo.opsp.dev/user/settings/applications`)에서 grant를 직접 폐기한다.
