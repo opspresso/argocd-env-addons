@@ -19,16 +19,16 @@
       "version": "2.43.12"
     },
     "argo-workflows": {
-      "app_version": "v4.1.6",
+      "app_version": "v4.1.7",
       "chart": "argo/argo-workflows",
       "current": "2.0.18",
-      "version": "2.0.18"
+      "version": "2.0.19"
     },
     "atlantis": {
       "app_version": "v0.50.0",
       "chart": "atlantis/atlantis",
       "current": "7.4.0",
-      "version": "7.6.0"
+      "version": "7.7.0"
     },
     "dynamodb-chart": {
       "app_version": "1.16.0",
@@ -83,7 +83,7 @@
       "app_version": "v19.6.2",
       "chart": "gitlab/gitlab",
       "current": "10.5.7",
-      "version": "10.6.2"
+      "version": "10.6.3"
     },
     "grafana": {
       "app_version": "12.3.1",
@@ -99,10 +99,10 @@
       "version": "1.32.0"
     },
     "jenkins": {
-      "app_version": "2.580.2",
+      "app_version": "2.580.3",
       "chart": "jenkinsci/jenkins",
       "current": "5.13.3",
-      "version": "5.13.4"
+      "version": "5.13.10"
     },
     "keep": {
       "app_version": "0.54.3",
@@ -151,7 +151,7 @@
       "app_version": "v0.95.2",
       "chart": "prometheus/kube-prometheus-stack",
       "current": "93.3.1",
-      "version": "93.11.0"
+      "version": "94.1.0"
     },
     "rds-chart": {
       "app_version": "1.15.1",
