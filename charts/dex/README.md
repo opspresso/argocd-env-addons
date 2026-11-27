@@ -45,6 +45,7 @@ flowchart LR
 | `grafana-sso` | Grafana | `/k8s/common/grafana/oidc-client-secret` |
 | `jenkins-sso` | Jenkins(보관) | `/k8s/common/jenkins/oidc-client-secret` |
 | `agent-studio` | Agent Studio(`argocd-env-apps`, provider ID `lldap`) | `/k8s/<cluster>/agent-studio/oidc-client-secret` |
+| `agentops-identity` | AgentOps Identity(`argocd-env-apps` `charts/agentops`, `env/<cluster>.yaml`에 `agentops`가 있을 때) | `/k8s/<cluster>/agentops-identity/oidc-client-secret` |
 
 - secret은 ExternalSecret `dex-secret`이 환경 변수로 넣는다(`secretEnv`). 같은 값을 각 서비스가 읽는다.
   `install/eks/secrets.sh`가 없는 값을 만든다. 하나라도 없으면 `dex-secret` 전체가 갱신되지 않는다.

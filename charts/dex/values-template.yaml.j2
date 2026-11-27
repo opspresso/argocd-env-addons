@@ -159,6 +159,15 @@ dex:
           - https://{{agent_studio.hostname}}/api/auth/callback/lldap
         secretEnv: AGENT_STUDIO_SSO_CLIENT_SECRET
 {% endif %}
+{% if agentops is defined %}
+      # AgentOps Identity (argocd-env-apps charts/agentops): the platform sign-in. The console origin receives the
+      # callback and relays it to Identity.
+      - id: agentops-identity
+        name: AgentOps
+        redirectURIs:
+          - https://{{agentops.hostname}}/api/auth/callback
+        secretEnv: AGENTOPS_IDENTITY_SSO_CLIENT_SECRET
+{% endif %}
 
   httpRoute:
     enabled: true
@@ -236,6 +245,11 @@ raw:
           - secretKey: AGENT_STUDIO_SSO_CLIENT_SECRET
             remoteRef:
               key: /k8s/{{cluster}}/agent-studio/oidc-client-secret
+{% endif %}
+{% if agentops is defined %}
+          - secretKey: AGENTOPS_IDENTITY_SSO_CLIENT_SECRET
+            remoteRef:
+              key: /k8s/{{cluster}}/agentops-identity/oidc-client-secret
 {% endif %}
           # - secretKey: GITHUB_CLIENT_ID
           #   remoteRef:

@@ -162,6 +162,9 @@ dex:
 agent_studio:
   hostname: studio.agrt.dev
 
+agentops:
+  hostname: agentops.agrt.dev
+
 jenkins:
   hostname: jenkins.demo.opsp.dev
 

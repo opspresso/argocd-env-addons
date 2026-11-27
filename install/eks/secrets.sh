@@ -178,6 +178,9 @@ done
 # Agent Studio (argocd-env-apps) reads its values under the cluster prefix.
 create "/k8s/${CLUSTER}/agent-studio/oidc-client-id" agent-studio
 create "/k8s/${CLUSTER}/agent-studio/oidc-client-secret" "$(random)"
+# AgentOps Identity (argocd-env-apps charts/agentops) reads its Dex client under the cluster prefix.
+create "/k8s/${CLUSTER}/agentops-identity/oidc-client-id" agentops-identity
+create "/k8s/${CLUSTER}/agentops-identity/oidc-client-secret" "$(random)"
 
 step "GitLab"
 create /k8s/common/gitlab/root-password "$(random)"
